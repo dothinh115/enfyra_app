@@ -1,7 +1,7 @@
 <template>
   <div class="flex h-screen text-sm bg-background text-foreground">
     <!-- Mini Sidebar -->
-    <aside class="w-16 bg-background flex flex-col items-center pt-4 gap-4">
+    <aside class="w-16 bg-background flex flex-col items-center">
       <LogoMini />
       <IconMenu />
     </aside>
@@ -31,4 +31,5 @@
       </section>
     </main>
   </div>
+  <GlobalConfirm />
 </template>

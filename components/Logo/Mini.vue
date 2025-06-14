@@ -1,6 +1,6 @@
 <template>
   <div
-    class="w-8 h-8 bg-primary text-white rounded-xl flex items-center justify-center font-bold text-xs"
+    class="w-full aspect-square bg-gray-700 text-white flex items-center justify-center font-bold text-lg"
   >
     {{ props.name }}
   </div>

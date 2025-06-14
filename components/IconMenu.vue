@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { useRoute } from "vue-router";
-
 const route = useRoute();
+const { confirm } = useConfirm();
 
+async function test() {
+  const ok = await confirm({ content: "Bạn chắc chắn muốn thoát?" });
+}
 const items = [
   { icon: "lucide:layout-dashboard", tooltip: "Dashboard", to: "/" },
   { icon: "lucide:database", tooltip: "CMS", to: "/cms" },
@@ -14,7 +16,7 @@ const isActive = (path: string) => route.path.startsWith(path);
 </script>
 
 <template>
-  <div class="flex flex-col justify-between h-full items-center pt-4 w-full">
+  <div class="flex flex-col justify-between h-full items-center w-full">
     <!-- Tầng trên: Menu chính -->
     <div class="flex flex-col items-center w-full">
       <UTooltip
@@ -24,7 +26,6 @@ const isActive = (path: string) => route.path.startsWith(path);
         placement="right"
       >
         <UButton
-          :to="item.to"
           variant="ghost"
           :icon="item.icon"
           color="primary"
@@ -44,6 +45,7 @@ const isActive = (path: string) => route.path.startsWith(path);
         <UButton
           variant="ghost"
           icon="lucide:log-out"
+          @click="test"
           class="transition duration-200 ease-in-out rotate-180 w-full aspect-square flex justify-center bg-red-900 hover:bg-red-700 rounded-none text-gray-100"
         />
       </UTooltip>
