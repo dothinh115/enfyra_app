@@ -6,7 +6,7 @@ export function useAuth() {
       const { data } = await useApi("/me", {
         method: "get",
       });
-      me.value = data.value;
+      me.value = data.value.data[0];
     } catch (err: any) {
       me.value = null;
     }

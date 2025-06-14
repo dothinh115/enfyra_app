@@ -2,13 +2,15 @@
   <div
     class="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-slate-900 to-purple-900 px-4"
   >
-    <UCard class="w-full max-w-md p-6 sm:p-8 shadow-2xl rounded-2xl">
+    <UCard class="w-full max-w-md lg:p-6 p-2 sm:p-8 shadow-2xl rounded-2xl">
       <!-- Branding -->
       <template #header>
         <div class="text-center space-y-2">
           <div class="flex justify-center items-center gap-3">
             <Icon name="lucide:shield-check" class="text-primary" size="40" />
-            <h1 class="text-3xl font-bold text-primary">Dynamiq CMS</h1>
+            <h1 class="lg:text-3xl md:text-xl text-lg font-bold text-primary">
+              Dynamiq CMS
+            </h1>
           </div>
           <p class="text-sm text-gray-400">Đăng nhập để tiếp tục</p>
         </div>
