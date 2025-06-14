@@ -25,6 +25,7 @@ export default defineEventHandler(async (event: H3Event) => {
       method: "POST",
       headers: {
         cookie: getHeader(event, "cookie") || "",
+        authorization: event.context.proxyHeaders.authorization,
       },
       body: {
         refreshToken,
