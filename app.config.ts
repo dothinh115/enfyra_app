@@ -1,4 +1,9 @@
 export default defineAppConfig({
+  toaster: {
+    position: "top-right" as const,
+    expand: true,
+    duration: 5000,
+  },
   ui: {
     button: {
       compoundVariants: [{ color: "primary", class: "hover:cursor-pointer" }],

@@ -19,10 +19,7 @@
         <div class="flex flex-col gap-y-5">
           <!-- Email -->
           <div>
-            <label
-              class="block text-sm font-medium text-gray-300 mb-1"
-              for="email"
-              >Email
+            <UFormField :error="error.email" label="Email" required>
               <UInput
                 v-model="form.email"
                 placeholder="you@example.com"
@@ -30,16 +27,16 @@
                 size="lg"
                 class="w-full"
                 id="email"
+                :color="error.email ? 'error' : 'primary'"
+                :error="!!error.email"
+                :required="true"
               />
-            </label>
+            </UFormField>
           </div>
 
           <!-- Password -->
           <div>
-            <label
-              class="block text-sm font-medium text-gray-300 mb-1"
-              for="password"
-              >Mật khẩu
+            <UFormField :error="error.password" label="Password" required>
               <UInput
                 v-model="form.password"
                 type="password"
@@ -48,7 +45,7 @@
                 size="lg"
                 class="w-full"
                 id="password"
-            /></label>
+            /></UFormField>
           </div>
 
           <!-- Checkbox -->
@@ -57,7 +54,12 @@
           </div>
 
           <!-- Submit -->
-          <UButton type="submit" size="lg" class="w-full justify-center">
+          <UButton
+            type="submit"
+            size="lg"
+            class="w-full justify-center"
+            loading-auto
+          >
             Đăng nhập
           </UButton>
         </div>
@@ -67,13 +69,52 @@
 </template>
 
 <script setup lang="ts">
+const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+const { login } = useAuth();
+const toast = useToast();
 const form = reactive({
   email: "",
   password: "",
   remember: false,
 });
+const error = reactive({
+  email: "",
+  password: "",
+});
+async function handleLogin() {
+  const ok = await login(form);
+  if (ok) window.location.reload();
+  else {
+    toast.add({
+      title: "Đăng nhập thất bại!",
+      description: "Email hoặc mật khẩu không đúng",
+      icon: "lucide:octagon-x",
+      color: "error",
+    });
+  }
+}
+watch(
+  () => form.email,
+  (newVal) => {
+    if (!newVal) {
+      error.email = "Kông được để trống!";
+    } else if (!emailPattern.test(newVal)) {
+      error.email = "Phải đúng định dạng!";
+    } else {
+      error.email = "";
+    }
+  }
+);
 
-const handleLogin = () => {
-  console.log("Đăng nhập:", form);
-};
+watch(
+  () => form.password,
+  (newVal) => {
+    if (!newVal) {
+      error.password = "Không được để trống!";
+    } else {
+      error.password = "";
+    }
+  }
+);
 </script>

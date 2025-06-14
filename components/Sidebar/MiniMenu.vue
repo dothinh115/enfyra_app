@@ -1,10 +1,12 @@
 <script setup lang="ts">
 const route = useRoute();
 const { confirm } = useConfirm();
-
-async function test() {
+const { logout } = useAuth();
+async function handleLogout() {
   const ok = await confirm({ content: "Bạn chắc chắn muốn thoát?" });
+  if (ok) await logout();
 }
+
 const items = [
   { icon: "lucide:layout-dashboard", tooltip: "Dashboard", to: "/" },
   { icon: "lucide:database", tooltip: "CMS", to: "/cms" },
@@ -45,7 +47,7 @@ const isActive = (path: string) => route.path.startsWith(path);
         <UButton
           variant="ghost"
           icon="lucide:log-out"
-          @click="test"
+          @click="handleLogout"
           class="transition duration-200 ease-in-out rotate-180 w-full aspect-square flex justify-center bg-red-900 hover:bg-red-700 rounded-none text-gray-100"
         />
       </UTooltip>

@@ -3,7 +3,7 @@
     <!-- Mini Sidebar -->
     <aside class="w-16 bg-background flex flex-col items-center">
       <LogoMini />
-      <IconMenu />
+      <SidebarMiniMenu />
     </aside>
 
     <!-- Sidebar -->
