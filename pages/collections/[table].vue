@@ -2,13 +2,15 @@
 import { columnTypes, relationTypes } from "~/utils/types/table.type";
 
 const route = useRoute();
-const { tables } = useGlobalState();
+const { tables, fetchRoute } = useGlobalState();
 const { confirm } = useConfirm();
-const { fetchRoute } = useGlobalState();
+const toast = useToast();
 
 const tableName = route.params.table as string;
 const table = reactive({ ...tables.value.find((t) => t.name === tableName) });
-const toast = useToast();
+
+let originalSnapshot = "";
+
 onMounted(() => {
   table.uniques ||= [];
   table.indexes ||= [];
@@ -17,50 +19,77 @@ onMounted(() => {
 
   for (const col of table.columns) {
     col._editing = false;
-    col.error = {}; // ✅ init error object
+    col.error = {};
   }
 
   for (const rel of table.relations) {
     rel._editing = false;
-    rel.error = {}; // ✅ init error object cho relations
+    rel.error = {};
   }
+
+  originalSnapshot = snapshotTable();
 });
 
+function normalize(value: any) {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "string") return value.trim();
+  return value;
+}
+
+function snapshotTable() {
+  const cleanArray = (arr: any[][]) =>
+    (arr || [])
+      .map((group) => group.filter(Boolean).map(normalize))
+      .filter((group) => group.length > 0);
+
+  return JSON.stringify({
+    name: normalize(table.name),
+    description: normalize(table.description),
+    uniques: cleanArray(table.uniques),
+    indexes: cleanArray(table.indexes),
+    columns: table.columns.map((col: any) => ({
+      name: normalize(col.name),
+      type: normalize(col.type),
+      description: normalize(col.description),
+      isIndex: !!col.isIndex,
+      isNullable: !!col.isNullable,
+    })),
+    relations: table.relations.map((rel: any) => ({
+      propertyName: normalize(rel.propertyName),
+      type: normalize(rel.type),
+      targetTable: rel.targetTable ?? null,
+      description: normalize(rel.description),
+      isIndex: !!rel.isIndex,
+      isNullable: !!rel.isNullable,
+    })),
+  });
+}
+
+const isTableChanged = computed(() => snapshotTable() !== originalSnapshot);
+
+const columnNames = computed(() => table.columns.map((col: any) => col.name));
 const tableOptions = computed(() =>
   tables.value.map((t) => ({ label: t.name, value: t.id }))
 );
 
-const columnNames = computed(() => table.columns.map((c: any) => c.name));
-
-function addFieldToGroup(list: string[][], groupIndex: number) {
-  list[groupIndex].push("");
-}
-
 function addGroup(list: string[][]) {
   list.push([""]);
 }
-
+function addFieldToGroup(list: string[][], groupIndex: number) {
+  list[groupIndex].push("");
+}
 function removeGroup(list: string[][], groupIndex: number) {
   list.splice(groupIndex, 1);
 }
 
 function validateColumn(col: any) {
-  col.error = {}; // reset
+  col.error = {};
   if (!col.isNullable && !col.name?.trim()) {
     col.error.name = "Tên cột là bắt buộc";
   }
   if (!col.type?.trim()) {
     col.error.type = "Phải chọn kiểu dữ liệu";
   }
-}
-
-function validateAllColumns(): boolean {
-  let isValid = true;
-  for (const col of table.columns) {
-    validateColumn(col);
-    if (col.error?.name || col.error?.type) isValid = false;
-  }
-  return isValid;
 }
 
 function validateRelation(rel: any) {
@@ -71,27 +100,30 @@ function validateRelation(rel: any) {
   if (!rel.type?.trim()) {
     rel.error.type = "Phải chọn loại quan hệ";
   }
-  if (rel.targetTable == null) {
+  if (rel.targetTable === null || rel.targetTable === undefined) {
     rel.error.targetTable = "Phải chọn bảng đích";
   }
 }
 
-function validateAllRelations(): boolean {
+function validateAll() {
   let isValid = true;
+  for (const col of table.columns) {
+    validateColumn(col);
+    if (col.error?.name || col.error?.type) isValid = false;
+  }
+
   for (const rel of table.relations) {
     validateRelation(rel);
     if (rel.error?.propertyName || rel.error?.type || rel.error?.targetTable) {
       isValid = false;
     }
   }
+
   return isValid;
 }
 
 async function save() {
-  const colValid = validateAllColumns();
-  const relValid = validateAllRelations();
-
-  if (!colValid || !relValid) {
+  if (!validateAll()) {
     toast.add({
       title: "Dữ liệu không hợp lệ",
       color: "error",
@@ -103,6 +135,7 @@ async function save() {
   const ok = await confirm({
     content: "Bạn chắc chắn muốn sửa cấu trúc bảng?",
   });
+
   if (!ok) return;
 
   await patchTable();
@@ -112,7 +145,7 @@ async function patchTable() {
   const toastId = toast.add({
     title: "Đang xử lý...",
     color: "info",
-    description: "Đang xử lý, vui lòng chờ",
+    description: "Đang cập nhật cấu trúc bảng...",
   });
 
   const payload = { ...table };
@@ -124,23 +157,22 @@ async function patchTable() {
     body: payload,
   });
 
+  toast.remove(toastId.id);
+
   if (data.value) {
     await fetchRoute();
+    originalSnapshot = snapshotTable();
     toast.add({
       title: "Thành công",
       color: "success",
-      description: "Sửa bảng thành công!",
+      description: "Cấu trúc bảng đã được cập nhật!",
     });
-    toast.remove(toastId.id);
-  }
-
-  if (error.value) {
+  } else if (error.value) {
     toast.add({
       title: "Lỗi",
       color: "error",
       description: error.value?.message,
     });
-    toast.remove(toastId.id);
   }
 }
 </script>
@@ -163,6 +195,7 @@ async function patchTable() {
                 variant="solid"
                 @click="save"
                 loading-auto
+                :disabled="!isTableChanged"
               />
             </div>
             <UTextarea
@@ -540,7 +573,7 @@ async function patchTable() {
                 isSystem: false,
                 isIndex: false,
                 _editing: false,
-                error: {}, // ✅ nhớ init error
+                error: {},
               })
             "
           />
