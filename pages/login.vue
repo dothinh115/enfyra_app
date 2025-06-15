@@ -119,4 +119,8 @@ watch(
     }
   }
 );
+
+definePageMeta({
+  layout: false,
+});
 </script>

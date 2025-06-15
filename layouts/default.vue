@@ -18,7 +18,11 @@
       <header
         class="h-16 px-6 border-b border-gray-600 flex items-center justify-between bg-background"
       >
-        <div class="text-lg font-semibold">Dashboard</div>
+        <div class="text-lg font-semibold">
+          {{
+            route.path.startsWith("/collections") ? "Collections" : "Dashboard"
+          }}
+        </div>
         <div class="flex gap-2 items-center">
           <UButton icon="lucide:filter" label="Filter" />
           <UAvatar />
@@ -33,3 +37,9 @@
   </div>
   <GlobalConfirm />
 </template>
+
+<script setup lang="ts">
+const route = useRoute();
+const global = useGlobalState();
+await Promise.all([global.fetchTable(), global.fetchRoute()]);
+</script>

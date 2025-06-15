@@ -8,13 +8,55 @@ async function handleLogout() {
 }
 
 const items = [
-  { icon: "lucide:layout-dashboard", tooltip: "Dashboard", to: "/" },
-  { icon: "lucide:database", tooltip: "CMS", to: "/cms" },
-  { icon: "lucide:image", tooltip: "Media", to: "/media" },
-  { icon: "lucide:settings", tooltip: "Settings", to: "/settings" },
+  {
+    label: "Dashboard",
+    icon: "lucide:layout-dashboard",
+    route: "/",
+  },
+  {
+    label: "Collections",
+    icon: "lucide:database",
+    route: "/collections",
+  },
+  {
+    label: "Structure",
+    icon: "lucide:settings",
+    route: "/structure",
+  },
+  {
+    label: "Permissions",
+    icon: "lucide:shield-check",
+    route: "/permissions",
+  },
+  {
+    label: "Users",
+    icon: "lucide:users",
+    route: "/users",
+  },
+  {
+    label: "Automation",
+    icon: "lucide:zap",
+    route: "/automation",
+  },
+  {
+    label: "Settings",
+    icon: "lucide:sliders",
+    route: "/settings",
+  },
+  {
+    label: "Logs",
+    icon: "lucide:file-text",
+    route: "/logs",
+  },
+  {
+    label: "Developer",
+    icon: "lucide:code",
+    route: "/dev",
+  },
 ];
 
-const isActive = (path: string) => route.path.startsWith(path);
+const isActive = (path: string) =>
+  path === "/" ? route.path === path : route.path.startsWith(path);
 </script>
 
 <template>
@@ -24,16 +66,18 @@ const isActive = (path: string) => route.path.startsWith(path);
       <UTooltip
         v-for="item in items"
         :key="item.icon"
-        :text="item.tooltip"
+        :text="item.label"
         placement="right"
+        :delay-duration="0"
       >
         <UButton
           variant="ghost"
           :icon="item.icon"
+          :to="item.route"
           color="primary"
           class="w-full aspect-square flex justify-center items-center transition duration-200 ease-in-out rounded-none"
           :class="
-            isActive(item.to)
+            isActive(item.route)
               ? 'bg-primary text-gray-800 hover:bg-primary'
               : 'hover:bg-gray-800'
           "
