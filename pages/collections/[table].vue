@@ -6,14 +6,13 @@ import { useConfirm } from "~/composables/useConfirm";
 import { useToast } from "#imports";
 
 const route = useRoute();
-const { tables, fetchRoute, tableForm } = useGlobalState();
+const { tables, fetchRoute, tableForm, tableFormLoading, fetchTable } =
+  useGlobalState();
 const { confirm } = useConfirm();
 const toast = useToast();
 
 const tableName = ref(route.params.table as string);
 const table = reactive<any>({});
-console.log(table);
-const isLoading = ref(false);
 
 function assignToTable(source: any) {
   Object.assign(table, JSON.parse(JSON.stringify(source)));
@@ -102,19 +101,25 @@ function validateAll() {
 }
 
 async function save() {
+  tableFormLoading.value = true;
+
   if (!validateAll()) {
     toast.add({
       title: "Dữ liệu không hợp lệ",
       color: "error",
       description: "Vui lòng kiểm tra lại các trường có lỗi.",
     });
+    tableFormLoading.value = false;
     return;
   }
   const ok = await confirm({
     content: "Bạn chắc chắn muốn sửa cấu trúc bảng?",
   });
-  if (!ok) return;
-  return patchTable();
+  if (!ok) {
+    tableFormLoading.value = false;
+    return;
+  }
+  await patchTable();
 }
 
 function getCleanTablePayload() {
@@ -136,11 +141,10 @@ function getCleanTablePayload() {
 }
 
 async function patchTable() {
-  isLoading.value = true;
   const toastId = toast.add({
     title: "Đang xử lý...",
     color: "info",
-    description: "Đang cập nhật cấu trúc bảng...",
+    description: "Đang reload schema...",
   });
 
   const payload = getCleanTablePayload();
@@ -151,10 +155,9 @@ async function patchTable() {
   });
 
   toast.remove(toastId.id);
-  isLoading.value = false;
-
   if (data.value) {
     await fetchRoute();
+    await fetchTable();
     const updated = tables.value.find((t) => t.id === table.id);
     if (updated) {
       assignToTable(updated);
@@ -165,6 +168,49 @@ async function patchTable() {
       color: "success",
       description: "Cấu trúc bảng đã được cập nhật!",
     });
+  } else if (error.value) {
+    toast.add({
+      title: "Lỗi",
+      color: "error",
+      description: error.value?.message,
+    });
+  }
+
+  tableFormLoading.value = false;
+}
+
+async function handleDelete() {
+  tableFormLoading.value = true;
+
+  const ok = await confirm({
+    content: `Bạn chắc chắn muốn xoá bảng ${table.name}?`,
+  });
+  if (!ok) {
+    return;
+  }
+  await deleteTable();
+  tableFormLoading.value = false;
+}
+
+async function deleteTable() {
+  const toastId = toast.add({
+    title: "Đang xử lý...",
+    color: "info",
+    description: "Đang reload schema...",
+  });
+  const { data, error } = await useApi(`/table_definition/${table.id}`, {
+    method: "delete",
+  });
+  toast.remove(toastId.id);
+
+  if (data.value) {
+    toast.add({
+      title: "Thành công",
+      color: "success",
+      description: "Schema đã được reload!",
+    });
+    await fetchTable();
+    return navigateTo(`/collections/create`);
   } else if (error.value) {
     toast.add({
       title: "Lỗi",
@@ -191,6 +237,19 @@ async function patchTable() {
               tables?.map((t) => ({ label: t.name, value: t.id }))
             "
           />
+          <div>
+            <UButton
+              icon="lucide:delete"
+              size="lg"
+              color="error"
+              variant="solid"
+              class="hover:cursor-pointer"
+              @click="handleDelete"
+              :disabled="table.isSystem"
+              :loading="tableFormLoading"
+              >Xoá bảng</UButton
+            >
+          </div>
         </div>
       </TableForm>
     </div>

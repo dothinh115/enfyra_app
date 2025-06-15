@@ -1,7 +1,8 @@
 <script setup lang="ts">
 const router = useRouter();
-const { fetchRoute, tables, tableForm, tableFormLoading } = useGlobalState();
-const { confirm, onCancel } = useConfirm();
+const { fetchRoute, tables, tableForm, tableFormLoading, fetchTable } =
+  useGlobalState();
+const { confirm } = useConfirm();
 const toast = useToast();
 
 const table = reactive<any>({
@@ -45,7 +46,7 @@ watch(
 );
 
 watch(
-  () => table.column.type,
+  () => table.columns.type,
   (newType) => {
     const notIndexableTypes = ["text", "longtext", "json", "blob"];
     if (notIndexableTypes.includes(newType)) {
@@ -142,12 +143,13 @@ async function save() {
 
   if (data.value) {
     await fetchRoute();
+    await fetchTable();
     toast.add({
       title: "Thành công",
       color: "success",
       description: "Bảng mới đã được tạo!",
     });
-    router.push(`/table/${data.value.name}`);
+    router.push(`/collections/${data.value.data[0].name}`);
   } else {
     toast.add({
       title: "Lỗi",

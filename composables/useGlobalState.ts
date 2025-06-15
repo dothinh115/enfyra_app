@@ -35,7 +35,9 @@ export const useGlobalState = () => {
     ];
     const fields = fieldArr.join(",");
     try {
-      const { data } = await useApi("/route_definition", { query: { fields } });
+      const { data } = await useApi("/route_definition", {
+        query: { fields, limit: 0 },
+      });
       routes.value = data.value.data;
     } catch (error) {
       toast.add({
