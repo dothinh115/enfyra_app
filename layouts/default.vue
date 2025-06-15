@@ -13,24 +13,42 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 flex flex-col">
+    <main class="flex-1 flex flex-col min-h-0">
       <!-- Header -->
       <header
-        class="h-16 px-6 border-b border-gray-600 flex items-center justify-between bg-background"
+        class="h-16 px-6 border-b border-gray-600 flex items-center justify-between bg-background shrink-0"
       >
         <div class="text-lg font-semibold">
           {{
             route.path.startsWith("/collections") ? "Collections" : "Dashboard"
           }}
         </div>
-        <div class="flex gap-2 items-center">
+        <div v-if="route.path.startsWith('/collections')">
+          <UButton
+            :label="
+              route.path === '/collections/create'
+                ? 'Tạo bảng mới'
+                : 'Lưu thay đổi'
+            "
+            :icon="
+              route.path === '/collections/create'
+                ? 'lucide:newspaper'
+                : 'lucide:save'
+            "
+            color="primary"
+            variant="solid"
+            :loading="tableFormLoading"
+            @click="tableForm?.submit()"
+          />
+        </div>
+        <div class="flex gap-2 items-center" v-else>
           <UButton icon="lucide:filter" label="Filter" />
           <UAvatar />
         </div>
       </header>
 
       <!-- Page content -->
-      <section class="flex-1 overflow-auto p-6">
+      <section class="flex-1 min-h-0 overflow-auto p-6">
         <slot />
       </section>
     </main>
@@ -40,6 +58,8 @@
 
 <script setup lang="ts">
 const route = useRoute();
-const global = useGlobalState();
-await Promise.all([global.fetchTable(), global.fetchRoute()]);
+const { fetchTable, fetchRoute, tableForm, tableFormLoading } =
+  useGlobalState();
+
+await Promise.all([fetchTable(), fetchRoute()]);
 </script>

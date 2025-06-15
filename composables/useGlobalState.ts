@@ -1,6 +1,8 @@
 export const useGlobalState = () => {
   const tables = useState<any[]>("global:tables", () => []);
   const routes = useState<any[]>("global:routes", () => []);
+  const tableForm = useState<any>("tableForm", () => null);
+  const tableFormLoading = useState<boolean>("tableForm:loading", () => false);
 
   const toast = useToast();
 
@@ -8,8 +10,11 @@ export const useGlobalState = () => {
     const fieldArr = ["*", "columns.*", "relations.*"];
     const fields = fieldArr.join(",");
     try {
-      const { data } = await useApi("/table_definition", { query: { fields } });
+      const { data } = await useApi("/table_definition", {
+        query: { fields, limit: 0 },
+      });
       tables.value = data.value.data;
+      console.log(tables.value);
     } catch (error) {
       toast.add({
         title: "Error",
@@ -44,7 +49,9 @@ export const useGlobalState = () => {
   return {
     tables,
     routes,
+    tableForm,
     fetchTable,
     fetchRoute,
+    tableFormLoading,
   };
 };
