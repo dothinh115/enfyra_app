@@ -21,11 +21,7 @@ export async function refreshToken(event: H3Event): Promise<string | null> {
   }
 
   try {
-    const {
-      accessToken: newAccessToken,
-      refreshToken,
-      expTime,
-    } = await $fetch<{
+    const response: any = await $fetch<{
       accessToken: string;
       refreshToken: string;
       expTime: number;
@@ -38,6 +34,12 @@ export async function refreshToken(event: H3Event): Promise<string | null> {
         refreshToken: refToken,
       },
     });
+
+    const {
+      accessToken: newAccessToken,
+      refreshToken,
+      expTime,
+    } = response.data;
 
     const cookieOptions = {
       httpOnly: true,

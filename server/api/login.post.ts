@@ -31,7 +31,6 @@ export default defineEventHandler(async (event: H3Event) => {
       },
     });
     const { accessToken, refreshToken, expTime } = response.data;
-    console.log(response.data);
 
     const cookieOptions = {
       httpOnly: true,
