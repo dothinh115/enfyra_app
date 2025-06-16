@@ -5,7 +5,6 @@ export const columnTypes = [
   { label: "Boolean", value: "boolean", icon: "mdi:toggle-switch" },
   { label: "Date", value: "date", icon: "mdi:calendar" },
   { label: "Text", value: "text", icon: "mdi:file-document-outline" },
-  { label: "Simple JSON", value: "simple-json", icon: "mdi:code-json" },
 ];
 
 export const relationTypes = [

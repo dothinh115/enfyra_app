@@ -6,8 +6,7 @@ import { useConfirm } from "~/composables/useConfirm";
 import { useToast } from "#imports";
 
 const route = useRoute();
-const { tables, fetchRoute, tableForm, tableFormLoading, fetchTable } =
-  useGlobalState();
+const { tables, tableForm, tableFormLoading, fetchSchema } = useGlobalState();
 const { confirm } = useConfirm();
 const toast = useToast();
 
@@ -156,8 +155,7 @@ async function patchTable() {
 
   toast.remove(toastId.id);
   if (data.value) {
-    await fetchRoute();
-    await fetchTable();
+    await fetchSchema();
     const updated = tables.value.find((t) => t.id === table.id);
     if (updated) {
       assignToTable(updated);
@@ -209,7 +207,7 @@ async function deleteTable() {
       color: "success",
       description: "Schema đã được reload!",
     });
-    await fetchTable();
+    await fetchSchema();
     return navigateTo(`/collections/create`);
   } else if (error.value) {
     toast.add({

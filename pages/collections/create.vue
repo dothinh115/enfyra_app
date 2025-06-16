@@ -1,7 +1,6 @@
 <script setup lang="ts">
 const router = useRouter();
-const { fetchRoute, tables, tableForm, tableFormLoading, fetchTable } =
-  useGlobalState();
+const { tables, tableForm, tableFormLoading, fetchSchema } = useGlobalState();
 const { confirm } = useConfirm();
 const toast = useToast();
 
@@ -142,8 +141,7 @@ async function save() {
   toast.remove(toastId.id);
 
   if (data.value) {
-    await fetchRoute();
-    await fetchTable();
+    await fetchSchema();
     toast.add({
       title: "Thành công",
       color: "success",

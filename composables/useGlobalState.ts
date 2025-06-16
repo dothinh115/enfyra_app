@@ -1,6 +1,8 @@
 export const useGlobalState = () => {
   const tables = useState<any[]>("global:tables", () => []);
   const routes = useState<any[]>("global:routes", () => []);
+  const columns = useState<any[]>("global:columns", () => []);
+  const relations = useState<any[]>("global:relations", () => []);
   const tableForm = useState<any>("tableForm", () => null);
   const tableFormLoading = useState<boolean>("tableForm:loading", () => false);
 
@@ -48,12 +50,56 @@ export const useGlobalState = () => {
     }
   }
 
+  async function fetchColumn() {
+    const fieldArr = ["*"];
+    const fields = fieldArr.join(",");
+    try {
+      const { data } = await useApi("/column_definition", {
+        query: { fields, limit: 0 },
+      });
+      columns.value = data.value.data;
+    } catch (error) {
+      toast.add({
+        title: "Error",
+        description: "Cannot fetch columns...",
+        color: "error",
+      });
+    }
+  }
+
+  async function fetchRelation() {
+    const fieldArr = ["*"];
+    const fields = fieldArr.join(",");
+    try {
+      const { data } = await useApi("/relation_definition", {
+        query: { fields, limit: 0 },
+      });
+      relations.value = data.value.data;
+    } catch (error) {
+      toast.add({
+        title: "Error",
+        description: "Cannot fetch relations...",
+        color: "error",
+      });
+    }
+  }
+
+  async function fetchSchema() {
+    return await Promise.all([
+      fetchTable(),
+      fetchRelation(),
+      fetchRoute(),
+      fetchColumn(),
+    ]);
+  }
+
   return {
     tables,
     routes,
+    columns,
+    relations,
     tableForm,
-    fetchTable,
-    fetchRoute,
     tableFormLoading,
+    fetchSchema,
   };
 };

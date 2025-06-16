@@ -58,8 +58,6 @@
 
 <script setup lang="ts">
 const route = useRoute();
-const { fetchTable, fetchRoute, tableForm, tableFormLoading } =
-  useGlobalState();
-
-await Promise.all([fetchTable(), fetchRoute()]);
+const { fetchSchema, tableForm, tableFormLoading } = useGlobalState();
+await fetchSchema();
 </script>
