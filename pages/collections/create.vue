@@ -47,7 +47,7 @@ watch(
 watch(
   () => table.columns.type,
   (newType) => {
-    const notIndexableTypes = ["text", "longtext", "json", "blob"];
+    const notIndexableTypes = ["text", "json"];
     if (notIndexableTypes.includes(newType)) {
       table.column.isIndex = false;
     }

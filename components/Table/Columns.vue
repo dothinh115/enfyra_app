@@ -15,10 +15,13 @@ const route = useRoute();
 function createEmptyColumn(): any {
   const tableName = route.params.table as string;
   const table = tables.value.find((t) => t.name === tableName);
-  if (!table) return {};
+  const column: any = {};
+  column.error = {};
+  column.name = "";
+  column.type = "varchar";
+  if (!table) return column;
 
   const omit = ["id", "createdAt", "updatedAt", "table"];
-  const column: any = {};
 
   for (const def of columnData.value) {
     if (def.table !== table.id) continue;
@@ -39,8 +42,6 @@ function createEmptyColumn(): any {
         ? 0
         : null;
   }
-
-  // Bổ sung thêm mặc định UI sử dụng
   column.name = "";
   column.type = "varchar";
   column._editing = false;
@@ -57,7 +58,7 @@ function editColumn(col: any, index: number) {
 }
 
 function saveColumn() {
-  nameValidate(currentColumn.value.name);
+  validate();
   if (Object.keys(currentColumn.value.error).length > 0) return;
 
   const newCol = { ...currentColumn.value };
@@ -82,15 +83,15 @@ function addNewColumn() {
 }
 
 watch(
-  () => currentColumn.value?.name,
-  (newVal) => {
-    if (!currentColumn.value?.error && currentColumn.value)
-      currentColumn.value.error = {};
-    nameValidate(newVal);
+  () => [currentColumn.value?.name, currentColumn.value?.type],
+  (newVal, oldVal) => {
+    for (let i = 0; i < newVal.length; i++) {
+      if (oldVal[i] === undefined) continue;
+      if (newVal[i]) validate();
+    }
   }
 );
-
-function nameValidate(name: string) {
+function validate() {
   const errors: Record<string, string> = {};
 
   if (!currentColumn.value?.name?.trim()) {
@@ -193,7 +194,7 @@ function nameValidate(name: string) {
             />
           </UFormField>
 
-          <UFormField label="Kiểu dữ liệu">
+          <UFormField label="Kiểu dữ liệu" :error="currentColumn.error?.type">
             <USelect
               v-model="currentColumn.type"
               :items="columnTypes"
