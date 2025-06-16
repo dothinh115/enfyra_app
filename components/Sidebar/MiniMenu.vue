@@ -21,37 +21,7 @@ const items = [
   {
     label: "Structure",
     icon: "lucide:settings",
-    route: "/structure",
-  },
-  {
-    label: "Permissions",
-    icon: "lucide:shield-check",
-    route: "/permissions",
-  },
-  {
-    label: "Users",
-    icon: "lucide:users",
-    route: "/users",
-  },
-  {
-    label: "Automation",
-    icon: "lucide:zap",
-    route: "/automation",
-  },
-  {
-    label: "Settings",
-    icon: "lucide:sliders",
     route: "/settings",
-  },
-  {
-    label: "Logs",
-    icon: "lucide:file-text",
-    route: "/logs",
-  },
-  {
-    label: "Developer",
-    icon: "lucide:code",
-    route: "/dev",
   },
 ];
 

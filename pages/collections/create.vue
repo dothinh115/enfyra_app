@@ -160,7 +160,7 @@ async function save() {
 </script>
 
 <template>
-  <UForm @submit.prevent="save" state="" ref="tableForm">
+  <UForm @submit.prevent="save" :state="table" ref="tableForm">
     <div class="mx-auto">
       <TableForm v-model="table" :new="true">
         <template #tableName>

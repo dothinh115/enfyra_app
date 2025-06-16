@@ -31,6 +31,7 @@ function removeGroup(list: string[][], groupIndex: number) {
           size="sm"
           color="primary"
           @click="addGroup(table.uniques)"
+          :disabled="table.isSystem"
         />
       </div>
       <div
@@ -51,6 +52,7 @@ function removeGroup(list: string[][], groupIndex: number) {
           icon="lucide:plus"
           size="xs"
           @click="addFieldToGroup(table.uniques, gIndex)"
+          :disabled="table.isSystem"
         />
         <UButton
           icon="lucide:trash"
@@ -58,6 +60,7 @@ function removeGroup(list: string[][], groupIndex: number) {
           variant="ghost"
           size="xs"
           @click="removeGroup(table.uniques, gIndex)"
+          :disabled="table.isSystem"
         />
       </div>
     </div>
@@ -72,6 +75,7 @@ function removeGroup(list: string[][], groupIndex: number) {
           size="sm"
           color="primary"
           @click="addGroup(table.indexes)"
+          :disabled="table.isSystem"
         />
       </div>
       <div
@@ -92,6 +96,7 @@ function removeGroup(list: string[][], groupIndex: number) {
           icon="lucide:plus"
           size="xs"
           @click="addFieldToGroup(table.indexes, gIndex)"
+          :disabled="table.isSystem"
         />
         <UButton
           icon="lucide:trash"
@@ -99,6 +104,7 @@ function removeGroup(list: string[][], groupIndex: number) {
           variant="ghost"
           size="xs"
           @click="removeGroup(table.indexes, gIndex)"
+          :disabled="table.isSystem"
         />
       </div>
     </div>

@@ -7,40 +7,44 @@ const props = defineProps<{
 const isEditing = ref(false);
 const editingIndex = ref<number | null>(null);
 const currentColumn = ref<any>(null);
-const { columns: columnData } = useGlobalState();
+const { columns: columnData, tables } = useGlobalState();
 const columns = useModel(props, "modelValue");
 const isNew = ref(false);
+const route = useRoute();
 
 function createEmptyColumn(): any {
-  const base =
-    columnData.value.find((c) => c.name !== "id" && c.name !== "createdAt") ??
-    {};
+  const tableName = route.params.table as string;
+  const table = tables.value.find((t) => t.name === tableName);
+  if (!table) return {};
 
   const omit = ["id", "createdAt", "updatedAt", "table"];
   const column: any = {};
 
-  for (const key in base) {
-    if (!omit.includes(key)) {
-      const value = base[key];
-      column[key] =
-        typeof value === "boolean"
-          ? false
-          : value === null || value === undefined
-          ? ""
-          : Array.isArray(value)
-          ? []
-          : typeof value === "object"
-          ? { ...value }
-          : "";
-    }
+  for (const def of columnData.value) {
+    if (def.table !== table.id) continue;
+    if (omit.includes(def.name)) continue;
+
+    column[def.name] =
+      def.default !== null && def.default !== undefined
+        ? def.default
+        : def.type === "boolean"
+        ? false
+        : def.type === "simple-json"
+        ? {}
+        : def.type === "text" || def.type === "varchar"
+        ? ""
+        : def.type === "enum"
+        ? def.enumValues?.[0] ?? ""
+        : def.type === "int"
+        ? 0
+        : null;
   }
 
+  // Bổ sung thêm mặc định UI sử dụng
   column.name = "";
   column.type = "varchar";
   column._editing = false;
   column.error = {};
-  column.isNullable = true;
-
   return column;
 }
 
@@ -181,11 +185,11 @@ function nameValidate(name: string) {
       <!-- Body modal -->
       <template #body>
         <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <UFormField label="Tên cột" :error="currentColumn.error.name">
+          <UFormField label="Tên cột" :error="currentColumn.error?.name">
             <UInput
               v-model="currentColumn.name"
               placeholder="Tên cột"
-              :error="currentColumn.error.name"
+              :error="currentColumn.error?.name"
             />
           </UFormField>
 
