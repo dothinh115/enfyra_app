@@ -82,14 +82,24 @@ function validateRelation(rel: any) {
 }
 
 function validateAll() {
-  if (nameError.value || table.name.trim() === "") {
-    toast.add({
-      color: "error",
-      description: nameError.value || "Tên bảng không được để trống",
-    });
-    return false;
-  }
   let isValid = true;
+
+  const name = table.name.trim();
+  if (name === "") {
+    nameError.value = "Không được để trống!";
+    isValid = false;
+  } else if (!tableNameOrFieldRegexCheck.test(name)) {
+    nameError.value =
+      "Chỉ cho phép chữ cái, số, _ và không bắt đầu bằng số hoặc _!";
+    isValid = false;
+  } else if (name === "table") {
+    nameError.value = "Tên table không được là `table`";
+    isValid = false;
+  } else {
+    nameError.value = "";
+    isValid = true;
+  }
+
   for (const col of table.columns as any[]) {
     validateColumn(col);
     if (col.error?.name || col.error?.type) isValid = false;

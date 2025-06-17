@@ -24,9 +24,7 @@
         <div v-if="route.path.startsWith('/collections')">
           <UButton
             :label="
-              route.path === '/collections/create'
-                ? 'Tạo bảng mới'
-                : 'Lưu thay đổi'
+              route.path === '/collections' ? 'Tạo bảng mới' : 'Lưu thay đổi'
             "
             :icon="
               route.path === '/collections/create'

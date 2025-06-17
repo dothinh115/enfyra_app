@@ -108,7 +108,7 @@ function validate() {
   } else {
     delete errors.type;
   }
-  if (!currentColumn.value?.isNullable) {
+  if (!currentColumn.value?.isNullable && !currentColumn.value?.isGenerated) {
     errors.default = "Không được để trống!";
   } else delete errors.default;
   if (currentColumn.value) currentColumn.value.error = errors;
@@ -206,7 +206,10 @@ function validate() {
             />
           </UFormField>
 
-          <div class="flex items-center gap-2">
+          <div
+            class="flex items-center gap-2"
+            v-if="currentColumn.name !== 'id'"
+          >
             <USwitch v-model="currentColumn.isNullable" />
             <span class="text-sm text-muted">Cho phép null</span>
           </div>
