@@ -22,22 +22,22 @@ const route = useRoute();
       Tạo bảng mới
     </UButton>
     <UButton
-      v-for="item in tables.filter((table) =>
-        routes.some((route) => route.mainTable.name === table.name)
+      v-for="item in routes.filter((route) =>
+        tables.some((table) => route.mainTable.name === table.name)
       )"
       :key="item.id"
       size="lg"
       variant="ghost"
       color="neutral"
       :icon="item.icon"
-      :to="`/collections/${item.name}`"
+      :to="`/collections/${item.mainTable.name}`"
       class="hover:bg-primary/20"
       active-class="bg-primary/20 text-white  shadow hover:!bg-primary/20"
     >
       <template #trailing>
         <Icon name="lucide:arrow-right" class="ml-auto" />
       </template>
-      {{ item.name }}
+      {{ item.path }}
     </UButton>
   </nav>
   <nav

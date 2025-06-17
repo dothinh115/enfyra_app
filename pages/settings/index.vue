@@ -23,12 +23,6 @@ const systemKeys = ["id", "createdAt", "updatedAt", "isSystem"];
 
 const manualKeys = ["actionPermissionValue"];
 
-const formFields = computed(() => {
-  return Object.entries(settings.value).filter(
-    ([key]) => !systemKeys.includes(key) && !manualKeys.includes(key)
-  );
-});
-
 function getComponentConfigByKey(key: string) {
   const column = columnInfoMap.value.get(key);
   const type = column?.type;
@@ -63,6 +57,7 @@ function getComponentConfigByKey(key: string) {
         placeholder: column.placeholder || key,
         rows: 4,
         class: "w-full",
+        variant: "subtle",
       },
       fieldProps: {
         class: "col-span-2",
