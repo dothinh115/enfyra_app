@@ -6,7 +6,7 @@ import { useConfirm } from "~/composables/useConfirm";
 import { useToast } from "#imports";
 
 const route = useRoute();
-const { tables, tableForm, tableFormLoading, fetchSchema } = useGlobalState();
+const { tables, globalForm, globalFormLoading, fetchSchema } = useGlobalState();
 const { confirm } = useConfirm();
 const toast = useToast();
 
@@ -100,7 +100,7 @@ function validateAll() {
 }
 
 async function save() {
-  tableFormLoading.value = true;
+  globalFormLoading.value = true;
 
   if (!validateAll()) {
     toast.add({
@@ -108,14 +108,14 @@ async function save() {
       color: "error",
       description: "Vui lòng kiểm tra lại các trường có lỗi.",
     });
-    tableFormLoading.value = false;
+    globalFormLoading.value = false;
     return;
   }
   const ok = await confirm({
     content: "Bạn chắc chắn muốn sửa cấu trúc bảng?",
   });
   if (!ok) {
-    tableFormLoading.value = false;
+    globalFormLoading.value = false;
     return;
   }
   await patchTable();
@@ -174,11 +174,11 @@ async function patchTable() {
     });
   }
 
-  tableFormLoading.value = false;
+  globalFormLoading.value = false;
 }
 
 async function handleDelete() {
-  tableFormLoading.value = true;
+  globalFormLoading.value = true;
 
   const ok = await confirm({
     content: `Bạn chắc chắn muốn xoá bảng ${table.name}?`,
@@ -187,7 +187,7 @@ async function handleDelete() {
     return;
   }
   await deleteTable();
-  tableFormLoading.value = false;
+  globalFormLoading.value = false;
 }
 
 async function deleteTable() {
@@ -220,7 +220,7 @@ async function deleteTable() {
 </script>
 
 <template>
-  <UForm @submit.prevent="save" :state="table" ref="tableForm">
+  <UForm @submit.prevent="save" :state="table" ref="globalForm">
     <div class="mx-auto">
       <TableForm v-model="table" @save="save">
         <div class="space-y-6">
@@ -244,7 +244,7 @@ async function deleteTable() {
               class="hover:cursor-pointer"
               @click="handleDelete"
               :disabled="table.isSystem"
-              :loading="tableFormLoading"
+              :loading="globalFormLoading"
               >Xoá bảng</UButton
             >
           </div>

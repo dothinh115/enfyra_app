@@ -19,9 +19,7 @@
         class="h-16 px-6 border-b border-gray-600 flex items-center justify-between bg-background shrink-0"
       >
         <div class="text-lg font-semibold">
-          {{
-            route.path.startsWith("/collections") ? "Collections" : "Dashboard"
-          }}
+          {{ pageName }}
         </div>
         <div v-if="route.path.startsWith('/collections')">
           <UButton
@@ -37,8 +35,19 @@
             "
             color="primary"
             variant="solid"
-            :loading="tableFormLoading"
-            @click="tableForm?.submit()"
+            :loading="globalFormLoading"
+            @click="globalForm?.submit()"
+          />
+        </div>
+
+        <div v-else-if="route.path.startsWith('/settings')">
+          <UButton
+            :label="'Save'"
+            :icon="'lucide:newspaper'"
+            color="primary"
+            variant="solid"
+            :loading="globalFormLoading"
+            @click="globalForm?.submit()"
           />
         </div>
         <div class="flex gap-2 items-center" v-else>
@@ -58,6 +67,11 @@
 
 <script setup lang="ts">
 const route = useRoute();
-const { fetchSchema, tableForm, tableFormLoading } = useGlobalState();
+const { fetchSchema, globalForm, globalFormLoading } = useGlobalState();
 await fetchSchema();
+const pageName = computed(() => {
+  if (route.path.startsWith("/collections")) return "Collections";
+  if (route.path.startsWith("/settings")) return "Settings";
+  return "Dashboard";
+});
 </script>

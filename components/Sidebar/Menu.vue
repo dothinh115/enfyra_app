@@ -4,13 +4,15 @@ const route = useRoute();
 </script>
 
 <template>
-  <nav class="flex flex-col space-y-3">
+  <nav
+    class="flex flex-col space-y-3"
+    v-if="route.path.startsWith('/collections')"
+  >
     <UButton
-      v-if="route.path.startsWith('/collections')"
       size="lg"
       variant="ghost"
       color="neutral"
-      :to="`/collections/create`"
+      :to="`/collections`"
       class="hover:bg-primary/20"
       active-class="bg-primary/20 text-white  shadow hover:!bg-primary/20"
     >
@@ -29,7 +31,6 @@ const route = useRoute();
       color="neutral"
       :icon="item.icon"
       :to="`/collections/${item.name}`"
-      v-if="route.path.startsWith('/collections')"
       class="hover:bg-primary/20"
       active-class="bg-primary/20 text-white  shadow hover:!bg-primary/20"
     >
@@ -37,6 +38,24 @@ const route = useRoute();
         <Icon name="lucide:arrow-right" class="ml-auto" />
       </template>
       {{ item.name }}
+    </UButton>
+  </nav>
+  <nav
+    v-else-if="route.path.startsWith('/settings')"
+    class="flex flex-col space-y-3"
+  >
+    <UButton
+      size="lg"
+      variant="ghost"
+      color="neutral"
+      :to="`/settings`"
+      class="hover:bg-primary/20"
+      active-class="bg-primary/20 text-white  shadow hover:!bg-primary/20"
+    >
+      <template #trailing>
+        <Icon name="lucide:arrow-right" class="ml-auto" />
+      </template>
+      Settings
     </UButton>
   </nav>
 </template>

@@ -1,19 +1,16 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import { useToast, useGlobalState } from "#imports";
 import { UInput, UTextarea, USwitch } from "#components";
+
 const toast = useToast();
-const saving = ref(false);
 const newPermission = ref("");
 
-const { settings, tables } = useGlobalState();
+const { settings, tables, globalForm, globalFormLoading } = useGlobalState();
+const { confirm } = useConfirm();
 
-// Lấy bảng setting_definition
 const settingTable = computed(() =>
   tables.value.find((t) => t.name === "setting_definition")
 );
 
-// Map từ tên cột sang full column info
 const columnInfoMap = computed(() => {
   const map = new Map<string, any>();
   for (const col of settingTable.value?.columns || []) {
@@ -22,63 +19,69 @@ const columnInfoMap = computed(() => {
   return map;
 });
 
+const systemKeys = ["id", "createdAt", "updatedAt", "isSystem"];
+
+const manualKeys = ["actionPermissionValue"];
+
+const formFields = computed(() => {
+  return Object.entries(settings.value).filter(
+    ([key]) => !systemKeys.includes(key) && !manualKeys.includes(key)
+  );
+});
+
 function getComponentConfigByKey(key: string) {
   const column = columnInfoMap.value.get(key);
   const type = column?.type;
 
-  if (!column) return { component: UInput, props: {} };
+  const fieldProps = {
+    class: "min-h-[110px]",
+  };
+
+  if (!column) {
+    return {
+      component: UInput,
+      componentProps: {},
+      fieldProps,
+    };
+  }
 
   if (type === "boolean") {
     return {
       component: USwitch,
-      props: {
+      componentProps: {
         label: column.description || key,
       },
+      fieldProps,
     };
   }
 
-  if (["text"].includes(type)) {
+  if (type === "text") {
     return {
       component: UTextarea,
-      props: {
+      componentProps: {
         autoresize: true,
-        placeholder: `Nhập ${column.description || key}`,
+        placeholder: column.placeholder || key,
         rows: 4,
+        class: "w-full",
+      },
+      fieldProps: {
+        class: "col-span-2",
       },
     };
   }
 
   return {
     component: UInput,
-    props: {
-      placeholder: `Nhập ${column.description || key}`,
+    componentProps: {
+      placeholder: column.placeholder || key,
       type: type === "int" ? "number" : "text",
       class: "w-full",
     },
+    fieldProps,
   };
 }
 
-// Các key mặc định không render lại
-const systemKeys = [
-  "id",
-  "projectName",
-  "projectUrl",
-  "projectDescription",
-  "actionPermissionValue",
-  "isInit",
-  "isSystem",
-  "createdAt",
-  "updatedAt",
-];
-
-// Lấy các field tuỳ chỉnh
-const customFields = computed(() => {
-  return Object.entries(settings.value).filter(
-    ([key]) => !systemKeys.includes(key)
-  );
-});
-
-// Thêm quyền mới
+// Quyền
 function addPermission(method: string, action: string) {
   if (method && action) {
     settings.value.actionPermissionValue[method] = action;
@@ -89,9 +92,16 @@ function removePermission(method: string) {
   delete settings.value.actionPermissionValue[method];
 }
 
-// Lưu setting
+// Lưu
 async function saveSetting() {
-  saving.value = true;
+  globalFormLoading.value = true;
+  const ok = await confirm({
+    content: "Update settings?",
+  });
+  if (!ok) {
+    globalFormLoading.value = false;
+    return;
+  }
   try {
     await useApi(`/setting_definition/${settings.value.id}`, {
       method: "patch",
@@ -101,52 +111,79 @@ async function saveSetting() {
   } catch (e: any) {
     toast.add({ title: "Lỗi khi lưu", description: e.message, color: "error" });
   } finally {
-    saving.value = false;
+    globalFormLoading.value = false;
   }
 }
+
+const booleanFields = computed(() =>
+  Object.entries(settings.value).filter(
+    ([key]) =>
+      !systemKeys.includes(key) &&
+      !manualKeys.includes(key) &&
+      columnInfoMap.value.get(key)?.type === "boolean"
+  )
+);
+
+const normalFields = computed(() =>
+  Object.entries(settings.value).filter(
+    ([key]) =>
+      !systemKeys.includes(key) &&
+      !manualKeys.includes(key) &&
+      columnInfoMap.value.get(key)?.type !== "boolean"
+  )
+);
 </script>
 
 <template>
-  <div class="space-y-12">
-    <!-- Header -->
-    <div>
-      <h1 class="text-2xl font-semibold">Cài đặt hệ thống</h1>
-      <p class="text-muted-foreground text-sm">
-        Tuỳ chỉnh các thông số mặc định cho hệ thống.
-      </p>
-    </div>
-
-    <!-- Thông tin hệ thống -->
-    <UCard>
+  <UForm
+    :state="settings"
+    ref="globalForm"
+    @submit="saveSetting"
+    class="space-y-12"
+  >
+    <!-- Các trường dạng text / input -->
+    <UCard v-if="normalFields.length">
       <template #header>
-        <div class="font-semibold text-base">Thông tin hệ thống</div>
+        <div class="font-semibold text-base">Cấu hình thông tin</div>
       </template>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <UFormField label="Tên hệ thống">
-          <UInput
-            v-model="settings.projectName"
-            placeholder="Tên hệ thống"
-            class="w-full"
-          />
-        </UFormField>
+        <UFormField
+          :label="key"
+          v-bind="getComponentConfigByKey(key).fieldProps"
+          v-for="[key] in normalFields"
+          :key="key"
+        >
+          <template #description>
+            <span
+              class="block min-h-[1.25rem] text-xs text-muted-foreground italic"
+            >
+              {{ columnInfoMap.get(key)?.description || "" }}
+            </span>
+          </template>
 
-        <UFormField label="URL hệ thống">
-          <UInput
-            v-model="settings.projectUrl"
-            placeholder="https://..."
-            class="w-full"
+          <component
+            :is="getComponentConfigByKey(key).component"
+            v-bind="getComponentConfigByKey(key).componentProps"
+            v-model="settings[key]"
           />
         </UFormField>
+      </div>
+    </UCard>
 
-        <UFormField label="Mô tả" class="md:col-span-2">
-          <UTextarea
-            v-model="settings.projectDescription"
-            placeholder="Mô tả hệ thống"
-            autoresize
-            class="w-full"
-          />
-        </UFormField>
+    <!-- Các trường boolean gom riêng -->
+    <UCard v-if="booleanFields.length">
+      <template #header>
+        <div class="font-semibold text-base">Cấu hình công tắc (boolean)</div>
+      </template>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <USwitch
+          v-for="[key] in booleanFields"
+          :key="key"
+          v-model="settings[key]"
+          :label="columnInfoMap.get(key)?.description || key"
+        />
       </div>
     </UCard>
 
@@ -184,15 +221,12 @@ async function saveSetting() {
               () => {
                 if (newPermission.includes(':')) {
                   const [method, action] = newPermission.split(':');
-                  if (method && action) {
-                    addPermission(method.trim().toUpperCase(), action.trim());
-                    newPermission = '';
-                  }
+                  addPermission(method.trim().toUpperCase(), action.trim());
+                  newPermission = '';
                 } else {
                   toast.add({
                     title: 'Định dạng không hợp lệ',
-                    description:
-                      'Vui lòng nhập theo định dạng METHOD:action (vd: PUT:sync)',
+                    description: 'PUT:sync',
                     color: 'warning',
                   });
                 }
@@ -202,48 +236,5 @@ async function saveSetting() {
         </div>
       </div>
     </UCard>
-
-    <!-- Cấu hình tuỳ chỉnh -->
-    <UCard v-if="customFields.length">
-      <template #header>
-        <div class="font-semibold text-base">Cấu hình tuỳ chỉnh</div>
-      </template>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div v-for="[key, value] in customFields" :key="key">
-          <UFormField
-            :label="key"
-            :description="columnInfoMap.get(key)?.description"
-          >
-            <component
-              :is="getComponentConfigByKey(key).component"
-              v-bind="getComponentConfigByKey(key).props"
-              v-model="settings[key]"
-            />
-          </UFormField>
-        </div>
-      </div>
-    </UCard>
-
-    <!-- Cấu hình nâng cao -->
-    <UCard>
-      <template #header>
-        <div class="font-semibold text-base">Cấu hình nâng cao</div>
-      </template>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <USwitch v-model="settings.isInit" label="Khởi tạo lần đầu (isInit)" />
-      </div>
-    </UCard>
-
-    <!-- Nút lưu -->
-    <div class="flex justify-end">
-      <UButton
-        icon="lucide:save"
-        label="Lưu cấu hình"
-        :loading="saving"
-        @click="saveSetting"
-      />
-    </div>
-  </div>
+  </UForm>
 </template>

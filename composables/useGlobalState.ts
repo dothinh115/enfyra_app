@@ -4,8 +4,11 @@ export const useGlobalState = () => {
   const columns = useState<any[]>("global:columns", () => []);
   const relations = useState<any[]>("global:relations", () => []);
   const settings = useState<any>("global:settings", () => {});
-  const tableForm = useState<any>("tableForm", () => null);
-  const tableFormLoading = useState<boolean>("tableForm:loading", () => false);
+  const globalForm = useState<any>("global:form", () => null);
+  const globalFormLoading = useState<boolean>(
+    "global:form:loading",
+    () => false
+  );
 
   const toast = useToast();
 
@@ -120,8 +123,8 @@ export const useGlobalState = () => {
     columns,
     settings,
     relations,
-    tableForm,
-    tableFormLoading,
+    globalForm,
+    globalFormLoading,
     fetchSchema,
   };
 };

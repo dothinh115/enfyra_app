@@ -23,7 +23,7 @@ function createEmptyColumn(): any {
 
   const omit = ["id", "createdAt", "updatedAt", "table"];
 
-  for (const def of columnData.value) {
+  for (const def of columnData?.value) {
     if (def.table !== table.id) continue;
     if (omit.includes(def.name)) continue;
 
@@ -256,12 +256,20 @@ function validate() {
               :type="currentColumn.type === 'int' ? 'number' : 'string'"
             />
           </UFormField>
-
-          <UTextarea
-            v-model="currentColumn.description"
-            placeholder="Mô tả"
-            class="md:col-span-2"
-          />
+          <UFormField label="Placeholder" class="md:col-span-2">
+            <UInput
+              v-model="currentColumn.placeholder"
+              placeholder="Placeholder"
+              class="md:col-span-2 w-full"
+            />
+          </UFormField>
+          <UFormField label="Mô tả cho cột này" class="md:col-span-2">
+            <UTextarea
+              v-model="currentColumn.description"
+              placeholder="..."
+              class="w-full"
+            />
+          </UFormField>
         </div>
       </template>
 
