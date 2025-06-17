@@ -182,7 +182,7 @@ const normalFields = computed(() =>
           v-for="[key] in booleanFields"
           :key="key"
           v-model="settings[key]"
-          :label="columnInfoMap.get(key)?.description || key"
+          :label="columnInfoMap.get(key)?.name || key"
         />
       </div>
     </UCard>

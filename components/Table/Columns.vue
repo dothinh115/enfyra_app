@@ -19,6 +19,7 @@ function createEmptyColumn(): any {
   column.error = {};
   column.name = "";
   column.type = "varchar";
+  column.isNullable = true;
   if (!table) return column;
 
   const omit = ["id", "createdAt", "updatedAt", "table"];
@@ -107,6 +108,9 @@ function validate() {
   } else {
     delete errors.type;
   }
+  if (!currentColumn.value?.isNullable) {
+    errors.default = "Không được để trống!";
+  } else delete errors.default;
   if (currentColumn.value) currentColumn.value.error = errors;
 }
 </script>
@@ -248,12 +252,14 @@ function validate() {
             v-else-if="['varchar', 'int'].includes(currentColumn.type)"
             label="Giá trị mặc định"
             class="md:col-span-2"
+            :error="currentColumn.error?.default"
           >
             <UInput
               v-model="currentColumn.default"
               class="w-full"
               placeholder="Giá trị mặc định"
               :type="currentColumn.type === 'int' ? 'number' : 'string'"
+              :color="currentColumn.error?.default ? 'error' : 'primary'"
             />
           </UFormField>
           <UFormField label="Placeholder" class="md:col-span-2">
