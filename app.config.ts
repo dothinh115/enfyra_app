@@ -8,5 +8,9 @@ export default defineAppConfig({
     button: {
       compoundVariants: [{ color: "primary", class: "hover:cursor-pointer" }],
     },
+    modal: {
+      slots: {},
+      variants: {},
+    },
   },
 });

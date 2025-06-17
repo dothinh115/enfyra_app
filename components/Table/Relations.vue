@@ -205,7 +205,7 @@ watch(
     <UModal v-model:open="isEditing" v-if="currentRelation">
       <!-- Header modal -->
       <template #header>
-        <div class="flex justify-between items-center px-4 pt-4 w-full">
+        <div class="flex justify-between items-center w-full">
           <div class="text-base font-semibold">
             {{ isNew ? "Thêm quan hệ" : "Sửa quan hệ" }}
           </div>
@@ -222,7 +222,7 @@ watch(
 
       <!-- Body modal -->
       <template #body>
-        <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <UFormField
             label="Tên quan hệ"
             :error="currentRelation.error.propertyName"

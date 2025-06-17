@@ -14,7 +14,7 @@ watch(
       <div class="text-lg font-semibold">{{ options.title }}</div>
     </template>
     <template #body>
-      <div class="p-6 space-y-4">
+      <div class="space-y-4">
         <p class="text-sm text-gray-300 text-center">
           {{ options.content }}
         </p>
