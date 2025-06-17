@@ -22,9 +22,7 @@ const route = useRoute();
       Tạo bảng mới
     </UButton>
     <UButton
-      v-for="item in routes.filter((route) =>
-        tables.some((table) => route.mainTable.name === table.name)
-      )"
+      v-for="item in routes"
       :key="item.id"
       size="lg"
       variant="ghost"
