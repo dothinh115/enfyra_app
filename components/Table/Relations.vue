@@ -63,7 +63,7 @@ function editRelation(rel: any, index: number) {
   currentRelation.value = { ...toRaw(rel) };
 }
 
-function validateRelation(rel: any) {
+function validatePropertyName(rel: any) {
   rel.error ||= {};
 
   if (!rel.propertyName?.trim()) {
@@ -75,18 +75,34 @@ function validateRelation(rel: any) {
     delete rel.error.propertyName;
   }
 
+  return rel.error;
+}
+
+function validateType(rel: any) {
+  rel.error ||= {};
   if (!rel.type) {
     rel.error.type = "Phải chọn loại quan hệ";
   } else {
     delete rel.error.type;
   }
 
+  return rel.error;
+}
+
+function validateTargetTable(rel: any) {
+  rel.error ||= {};
   if (!rel.targetTable) {
     rel.error.targetTable = "Phải chọn bảng đích";
   } else {
     delete rel.error.targetTable;
   }
+  return rel.error;
+}
 
+function validateRelation(rel: any) {
+  validatePropertyName(rel);
+  validateType(rel);
+  validateTargetTable(rel);
   return rel.error;
 }
 
@@ -107,15 +123,30 @@ function saveRelation() {
   currentRelation.value = null;
 }
 
-// 🟡 Tự động validate khi field thay đổi
 watch(
-  () => [
-    currentRelation.value?.propertyName,
-    currentRelation.value?.type,
-    currentRelation.value?.targetTable,
-  ],
-  () => {
-    if (currentRelation.value) validateRelation(currentRelation.value);
+  () => currentRelation.value?.propertyName,
+  (newVal, oldVal) => {
+    if (oldVal !== undefined) {
+      validatePropertyName(currentRelation.value);
+    }
+  }
+);
+
+watch(
+  () => currentRelation.value?.type,
+  (newVal, oldVal) => {
+    if (oldVal !== undefined) {
+      validateType(currentRelation.value);
+    }
+  }
+);
+
+watch(
+  () => currentRelation.value?.targetTable,
+  (newVal, oldVal) => {
+    if (oldVal !== undefined) {
+      validateTargetTable(currentRelation.value);
+    }
   }
 );
 </script>
