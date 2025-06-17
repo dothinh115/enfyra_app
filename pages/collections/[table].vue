@@ -184,6 +184,7 @@ async function handleDelete() {
     content: `Bạn chắc chắn muốn xoá bảng ${table.name}?`,
   });
   if (!ok) {
+    globalFormLoading.value = false;
     return;
   }
   await deleteTable();
