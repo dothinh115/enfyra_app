@@ -2,6 +2,7 @@
 const props = defineProps<{
   options: string[];
   disabled?: boolean;
+  multiple?: boolean;
 }>();
 
 const model = defineModel<any[]>();
@@ -10,17 +11,32 @@ if (!Array.isArray(model.value)) {
 }
 const emit = defineEmits(["update:modelValue"]);
 const selected = ref("");
+const selectedArr = ref<string[]>([]);
+
+const proxySelected = computed({
+  get() {
+    return props.multiple ? selectedArr.value : selected.value;
+  },
+  set(val) {
+    if (props.multiple) selectedArr.value = val as string[];
+    else selected.value = val as string;
+  },
+});
 
 function addItem() {
-  if (!selected.value) return;
-  if (!model.value?.includes(selected.value)) {
+  if (!proxySelected.value) return;
+  if (!props.multiple && !model.value?.includes(selected.value)) {
     model.value?.push(selected.value);
+  }
+  if (props.multiple) {
+    model.value = proxySelected.value as any;
+    console.log(model.value);
   }
   selected.value = "";
 }
 
 watch(
-  () => selected.value,
+  () => proxySelected.value,
   () => {
     addItem();
   }
@@ -33,7 +49,7 @@ function removeItem(item: string) {
 
 <template>
   <div class="space-y-2">
-    <div class="flex flex-wrap gap-2">
+    <div class="flex flex-wrap gap-2" v-if="modelValue?.length">
       <UBadge
         v-for="item in modelValue"
         :key="item"
@@ -49,11 +65,12 @@ function removeItem(item: string) {
 
     <div class="flex gap-2">
       <USelect
-        v-model="selected"
+        v-model="proxySelected"
         :items="props.options"
         placeholder="Chọn giá trị"
-        class="flex-1"
+        class="flex-1 text-transparent caret-transparent"
         :disabled="disabled"
+        :multiple="props.multiple"
       />
     </div>
   </div>

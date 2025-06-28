@@ -14,7 +14,7 @@ const route = useRoute();
       color="neutral"
       :to="`/collections`"
       class="hover:bg-primary/20"
-      active-class="bg-primary/20 text-white  shadow hover:!bg-primary/20"
+      active-class="bg-primary/20 text-white shadow hover:!bg-primary/20"
     >
       <template #trailing>
         <Icon name="lucide:arrow-right" class="ml-auto" />
@@ -32,7 +32,7 @@ const route = useRoute();
       :icon="item.icon"
       :to="`/collections/${item.name}`"
       class="hover:bg-primary/20"
-      active-class="bg-primary/20 text-white  shadow hover:!bg-primary/20"
+      active-class="bg-primary/20 text-white shadow hover:!bg-primary/20"
     >
       <template #trailing>
         <Icon name="lucide:arrow-right" class="ml-auto" />
@@ -50,8 +50,7 @@ const route = useRoute();
       color="neutral"
       :to="`/settings/general`"
       class="hover:bg-primary/20"
-      exact
-      active-class="bg-primary/20 text-white  shadow hover:!bg-primary/20"
+      active-class="bg-primary/20 text-white shadow hover:!bg-primary/20"
     >
       <template #trailing>
         <Icon name="lucide:arrow-right" class="ml-auto" />
@@ -62,10 +61,14 @@ const route = useRoute();
       size="lg"
       variant="ghost"
       color="neutral"
-      :to="`/settings/routings`"
+      :to="{
+        name: 'settings-routings',
+      }"
       class="hover:bg-primary/20"
-      exact
-      active-class="bg-primary/20 text-white  shadow hover:!bg-primary/20"
+      :class="
+        route.path.startsWith('/settings/routings') &&
+        'bg-primary/20 text-white shadow hover:!bg-primary/20'
+      "
     >
       <template #trailing>
         <Icon name="lucide:arrow-right" class="ml-auto" />

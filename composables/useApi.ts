@@ -26,7 +26,6 @@ export async function useApi<T = any>(
     headers,
     query,
     immediate,
-    transform: (response: any) => response?.data ?? response,
     ...(defaultFn ? { default: defaultFn as any } : {}),
   });
 }
@@ -51,7 +50,7 @@ export async function useApiLazy<T = any>(
       query,
     });
     return {
-      data: ref(res?.data),
+      data: ref(res),
       error: null,
       pending: false,
       refresh: async () => res,

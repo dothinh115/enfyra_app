@@ -116,8 +116,14 @@ watch(
           publishedMethods: {
             type: 'array-select',
             options: Object.keys(settings.actionPermissionValue),
+            componentProps: {
+              multiple: true,
+            },
           },
           path: {
+            disabled: true,
+          },
+          isEnabled: {
             disabled: true,
           },
         }"

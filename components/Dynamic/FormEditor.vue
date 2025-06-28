@@ -6,6 +6,7 @@ const props = defineProps<{
   modelValue: Record<string, any>;
   tableName: string;
   excluded?: string[];
+  includes?: string[];
   typeMap?: Record<
     string,
     | string
@@ -17,6 +18,17 @@ const props = defineProps<{
       }
   >;
 }>();
+
+const visibleKeys = computed(() => {
+  const keys = Object.keys(formData.value || {});
+  if (props.includes?.length) {
+    return keys.filter((key) => props.includes!.includes(key));
+  }
+  if (props.excluded?.length) {
+    return keys.filter((key) => !props.excluded!.includes(key));
+  }
+  return keys;
+});
 
 const emit = defineEmits(["update:modelValue"]);
 
@@ -48,17 +60,19 @@ function getComponentConfigByKey(key: string) {
       : manualConfig || {};
 
   const finalType = config.type || column?.type;
-  const fieldProps = {
-    ...(config.fieldProps || {}),
-  };
-
   const disabled = config.disabled ?? false;
 
-  // Các props chung cho input-like
+  // props chung cho input-like
   const commonInputProps = {
     class: "w-full",
     placeholder: config.placeholder || column?.placeholder || key,
     disabled,
+    ...(config.componentProps || {}),
+  };
+
+  // props riêng cho UFormField
+  const fieldProps = {
+    ...(config.fieldProps || {}),
   };
 
   if (!column && !finalType) {
@@ -75,6 +89,7 @@ function getComponentConfigByKey(key: string) {
       componentProps: {
         label: column?.description || key,
         disabled,
+        ...(config.componentProps || {}),
       },
       fieldProps,
     };
@@ -95,11 +110,11 @@ function getComponentConfigByKey(key: string) {
     return {
       component: resolveComponent("SimpleArrayEditor"),
       componentProps: {
-        "v-model": formData.value[key] ?? [],
+        ...commonInputProps,
+        modelValue: formData.value[key] ?? [],
         "onUpdate:modelValue": (val: string[]) => {
           formData.value[key] = val;
         },
-        disabled,
       },
       fieldProps,
     };
@@ -126,12 +141,12 @@ function getComponentConfigByKey(key: string) {
     return {
       component: resolveComponent("ArraySelectEditor"),
       componentProps: {
+        ...commonInputProps,
         options: config.options ?? [],
         modelValue: formData.value[key] ?? [],
         "onUpdate:modelValue": (val: string[]) => {
           formData.value[key] = val;
         },
-        disabled,
       },
       fieldProps,
     };
@@ -150,9 +165,8 @@ function getComponentConfigByKey(key: string) {
 
 <template>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-    <template v-for="(value, key) in formData" :key="key">
+    <template v-for="key in visibleKeys" :key="key">
       <UFormField
-        v-if="!props.excluded?.includes(key)"
         v-bind="getComponentConfigByKey(key).fieldProps"
         :label="key"
         class="rounded-lg border border-muted p-4"

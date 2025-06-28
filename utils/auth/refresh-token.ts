@@ -48,7 +48,7 @@ export async function refreshToken(event: H3Event): Promise<string | null> {
       accessToken: newAccessToken,
       refreshToken: newRefreshToken,
       expTime: newExpTime,
-    } = response.data;
+    } = response;
 
     const cookieOptions = {
       httpOnly: true,
