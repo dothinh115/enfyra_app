@@ -11,7 +11,7 @@ if (!Array.isArray(model.value)) {
 }
 const emit = defineEmits(["update:modelValue"]);
 const selected = ref("");
-const selectedArr = ref<string[]>([]);
+const selectedArr = ref<string[]>(model.value);
 
 const proxySelected = computed({
   get() {
