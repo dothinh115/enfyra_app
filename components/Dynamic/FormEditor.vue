@@ -7,6 +7,7 @@ const props = defineProps<{
   tableName: string;
   excluded?: string[];
   includes?: string[];
+  errors?: Record<string, string>;
   typeMap?: Record<
     string,
     | string
@@ -20,14 +21,31 @@ const props = defineProps<{
 }>();
 
 const visibleKeys = computed(() => {
-  const keys = Object.keys(formData.value || {});
+  const columnDefTable = tables.value.find(
+    (t) => t.name === "column_definition"
+  );
+  const allKeys = Object.keys(formData.value || {});
+
+  let filtered: string[];
+
   if (props.includes?.length) {
-    return keys.filter((key) => props.includes!.includes(key));
+    filtered = allKeys.filter((key) => props.includes!.includes(key));
+  } else if (props.excluded?.length) {
+    filtered = allKeys.filter((key) => !props.excluded!.includes(key));
+  } else {
+    filtered = allKeys;
   }
-  if (props.excluded?.length) {
-    return keys.filter((key) => !props.excluded!.includes(key));
-  }
-  return keys;
+
+  if (!columnDefTable) return filtered;
+
+  // Sắp xếp theo id trong column_definition
+  const sorted = columnDefTable.columns
+    .slice()
+    .sort((a: any, b: any) => a.id - b.id)
+    .map((col: any) => col.name)
+    .filter((name: string) => filtered.includes(name));
+
+  return sorted;
 });
 
 const emit = defineEmits(["update:modelValue"]);
@@ -100,7 +118,7 @@ function getComponentConfigByKey(key: string) {
       component: USelect,
       componentProps: {
         ...commonInputProps,
-        options: config.options ?? [],
+        items: config.options ?? [],
       },
       fieldProps,
     };
@@ -170,6 +188,7 @@ function getComponentConfigByKey(key: string) {
         v-bind="getComponentConfigByKey(key).fieldProps"
         :label="key"
         class="rounded-lg border border-muted p-4"
+        :error="props.errors && props.errors[key]"
       >
         <template #description>
           <span

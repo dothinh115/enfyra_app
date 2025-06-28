@@ -30,7 +30,7 @@ export default defineEventHandler(async (event: H3Event) => {
         cookie: getHeader(event, "cookie") || "",
       },
     });
-    const { accessToken, refreshToken, expTime } = response.data;
+    const { accessToken, refreshToken, expTime } = response;
 
     const cookieOptions = {
       httpOnly: true,

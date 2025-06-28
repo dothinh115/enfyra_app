@@ -50,7 +50,7 @@ async function fetchRouteDetail(routeId: number) {
 async function updateRoute() {
   globalFormLoading.value = true;
   try {
-    await useApi(`/route_definition/${detail.value.id}`, {
+    await useApiLazy(`/route_definition/${detail.value.id}`, {
       method: "patch",
       body: form.value,
     });
@@ -116,9 +116,6 @@ watch(
           publishedMethods: {
             type: 'array-select',
             options: Object.keys(settings.actionPermissionValue),
-            componentProps: {
-              multiple: true,
-            },
           },
           path: {
             disabled: true,

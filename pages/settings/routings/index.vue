@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const toast = useToast();
 const page = ref(1);
-const pageLimit = 10;
+const pageLimit = 7;
 const total = ref(0);
 const route = useRoute();
 
@@ -32,15 +32,11 @@ async function fetchRoute(page = 1, limit: number) {
 }
 const routes = ref<any[]>([]);
 
-onMounted(async () => {
-  page.value = 1;
-  await fetchRoute(page.value, pageLimit);
-});
-
 watch(
   () => route.query.page,
   async (newVal) => {
-    page.value = Number(newVal);
+    if (!newVal) page.value = 1;
+    else page.value = Number(newVal);
     await fetchRoute(page.value, pageLimit);
   },
   {

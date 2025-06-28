@@ -51,14 +51,14 @@ export async function useApiLazy<T = any>(
     });
     return {
       data: ref(res),
-      error: null,
+      error: ref(null),
       pending: false,
       refresh: async () => res,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       data: ref(null),
-      error,
+      error: ref<any>(error.data),
       pending: false,
       refresh: async () => null,
     };

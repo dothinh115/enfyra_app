@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { columnTypes } from "~/utils/types/table.type";
-import { UInput, UTextarea, USwitch, USelect } from "#components";
 
 const props = defineProps<{
   modelValue: any[];
@@ -9,104 +8,10 @@ const props = defineProps<{
 const isEditing = ref(false);
 const editingIndex = ref<number | null>(null);
 const currentColumn = ref<any>(null);
-const { columns: columnData, tables } = useGlobalState();
+const { tables } = useGlobalState();
 const columns = useModel(props, "modelValue");
 const isNew = ref(false);
-const route = useRoute();
-const currentError = ref<Record<string, string>>({});
-
-const columnDefTable = computed(() =>
-  tables.value.find((t) => t.name === "column_definition")
-);
-
-const columnInfoMap = computed(() => {
-  const map = new Map<string, any>();
-  for (const col of columnDefTable.value?.columns || []) {
-    map.set(col.name, col);
-  }
-  return map;
-});
-
-function getComponentConfigByKey(key: string) {
-  const column = columnInfoMap.value.get(key);
-  const type = column?.type;
-
-  const fieldProps = {
-    class: "",
-  };
-
-  if (!column) {
-    return {
-      component: UInput,
-      componentProps: {},
-      fieldProps,
-    };
-  }
-
-  if (key === "type") {
-    return {
-      component: USelect,
-      componentProps: {
-        items: columnTypes,
-        placeholder: "Chọn kiểu dữ liệu",
-        class: "w-full",
-      },
-      fieldProps,
-    };
-  }
-
-  if (type === "boolean") {
-    return {
-      component: USwitch,
-      componentProps: {
-        label: column.description || key,
-      },
-      fieldProps,
-    };
-  }
-
-  if (type === "simple-json") {
-    return {
-      component: UTextarea,
-      componentProps: {
-        autoresize: true,
-        placeholder: column.placeholder || key,
-        rows: 4,
-        class: "w-full font-mono text-xs",
-        variant: "subtle",
-      },
-      fieldProps: {
-        class: "col-span-2",
-      },
-    };
-  }
-
-  if (type === "text") {
-    return {
-      component: UTextarea,
-      componentProps: {
-        autoresize: true,
-        placeholder: column.placeholder || key,
-        rows: 4,
-        class: "w-full",
-        variant: "subtle",
-      },
-      fieldProps: {
-        class: "col-span-2",
-      },
-    };
-  }
-
-  return {
-    component: UInput,
-    componentProps: {
-      placeholder: column.placeholder || key,
-      type: type === "int" ? "number" : "text",
-      class: "w-full",
-    },
-    fieldProps,
-  };
-}
+const errors = ref<Record<string, string>>({});
 
 function createEmptyColumn(): any {
   const columnDefTable = tables.value.find(
@@ -143,9 +48,6 @@ function createEmptyColumn(): any {
     column[def.name] = value;
   }
 
-  column._editing = false;
-  column.error = {};
-
   return column;
 }
 
@@ -159,7 +61,8 @@ function editColumn(col: any, index: number) {
 
 function saveColumn() {
   validate();
-  if (Object.keys(currentError.value).length > 0) return;
+  validate("name");
+  if (Object.keys(errors.value).length > 0) return;
 
   const newCol = { ...currentColumn.value };
 
@@ -179,31 +82,37 @@ function addNewColumn() {
   isNew.value = true;
   isEditing.value = true;
   currentColumn.value = createEmptyColumn();
+  currentColumn.value.isNullable = true;
+  currentColumn.value.isUpdatable = true;
   editingIndex.value = null;
 }
 
 watch(
-  () => [currentColumn.value?.name, currentColumn.value?.type],
+  () => currentColumn.value?.name,
   (newVal, oldVal) => {
-    for (let i = 0; i < newVal.length; i++) {
-      if (oldVal[i] === undefined) continue;
-      if (newVal[i]) validate();
+    if (!oldVal) return;
+    if (newVal) {
+      validate("name");
     }
   }
 );
-function validate() {
-  const errors: Record<string, string> = {};
 
-  if (!currentColumn.value?.name?.trim()) {
-    errors.name = "Tên cột là bắt buộc";
-  } else if (!tableNameOrFieldRegexCheck.test(currentColumn.value?.name)) {
-    errors.name =
-      "Chỉ cho phép chữ cái, số, _ và không bắt đầu bằng số hoặc _!";
+function validate(property?: string) {
+  if (property === "name") {
+    if (!currentColumn.value?.name?.trim()) {
+      errors.value.name = "Tên cột là bắt buộc";
+    } else if (!tableNameOrFieldRegexCheck.test(currentColumn.value?.name)) {
+      errors.value.name =
+        "Chỉ cho phép chữ cái, số, _ và không bắt đầu bằng số hoặc _!";
+    } else {
+      delete errors.value.name;
+    }
+    return;
   }
 
   if (!currentColumn.value?.type) {
-    errors.type = "Phải chọn kiểu dữ liệu";
-  }
+    errors.value.type = "Phải chọn kiểu dữ liệu";
+  } else delete errors.value.type;
 
   if (
     !currentColumn.value?.isNullable &&
@@ -211,11 +120,19 @@ function validate() {
     (currentColumn.value?.default === "" ||
       currentColumn.value?.default === undefined)
   ) {
-    errors.default = "Không được để trống!";
-  }
-
-  currentError.value = errors;
+    errors.value.default = "Không được để trống!";
+  } else delete errors.value.default;
 }
+
+onMounted(() => {
+  const primaryColumn = createEmptyColumn();
+  primaryColumn.name = "id";
+  primaryColumn.type = "int";
+  primaryColumn.isPrimary = true;
+  primaryColumn.isGenerated = true;
+  primaryColumn.isNullable = false;
+  if (!columns.value.length) columns.value.push(primaryColumn);
+});
 </script>
 
 <template>
@@ -296,7 +213,14 @@ function validate() {
         <DynamicFormEditor
           v-model="currentColumn"
           tableName="column_definition"
-          :errors="currentError"
+          :errors="errors"
+          :excluded="['isSystem', 'id', 'enumValues', 'createdAt', 'updatedAt']"
+          :type-map="{
+            type: {
+              type: 'select',
+              options: columnTypes,
+            },
+          }"
         />
       </template>
 

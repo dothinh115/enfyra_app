@@ -13,21 +13,6 @@ const table = reactive<any>({
   indexes: [],
 });
 
-onMounted(() => {
-  table.columns.push({
-    name: "id",
-    type: "int",
-    isPrimary: true,
-    isGenerated: true,
-    isSystem: false,
-    isNullable: false,
-    isIndex: false,
-    description: "ID tự tăng",
-    _editing: false,
-    error: {},
-  });
-});
-
 const nameError = ref("");
 
 watch(
@@ -114,14 +99,6 @@ function validateAll() {
 
 function getCleanTablePayload() {
   const clone = JSON.parse(JSON.stringify(table));
-  for (const col of clone.columns) {
-    delete col._editing;
-    delete col.error;
-  }
-  for (const rel of clone.relations) {
-    delete rel._editing;
-    delete rel.error;
-  }
   if (!clone.uniques?.length) delete clone.uniques;
   if (!clone.indexes?.length) delete clone.indexes;
   return clone;
@@ -131,36 +108,36 @@ async function save() {
   if (!validateAll()) return;
   globalFormLoading.value = true;
 
-  const ok = await confirm({ content: "Bạn chắc chắn muốn tạo bảng mới?" });
+  const ok = await confirm({ content: "Are u sure?" });
   if (!ok) {
     return;
   }
 
   const toastId = toast.add({
-    title: "Đang xử lý...",
+    title: "Loading...",
     color: "info",
-    description: "Đang tạo bảng mới...",
+    description: "Creating new table...",
   });
 
   const payload = getCleanTablePayload();
-  const { data, error } = await useApi("/table_definition", {
+  const { data, error } = await useApiLazy("/table_definition", {
     method: "post",
     body: payload,
   });
-
   toast.remove(toastId.id);
 
   if (data.value) {
     await fetchSchema();
     toast.add({
-      title: "Thành công",
+      title: "Success",
       color: "success",
-      description: "Bảng mới đã được tạo!",
+      description: "New table created!",
     });
     router.push(`/collections/${data.value.data[0].name}`);
   } else {
+    console.log(error, error.value);
     toast.add({
-      title: "Lỗi",
+      title: "Error",
       color: "error",
       description: error.value?.message,
     });

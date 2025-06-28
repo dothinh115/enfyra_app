@@ -20,15 +20,6 @@ function assignToTable(source: any) {
   table.indexes ||= [];
   table.columns ||= [];
   table.relations ||= [];
-
-  for (const col of table.columns as any[]) {
-    col._editing = false;
-    col.error = {};
-  }
-  for (const rel of table.relations as any[]) {
-    rel._editing = false;
-    rel.error = {};
-  }
 }
 
 watch(
@@ -148,7 +139,7 @@ async function patchTable() {
 
   const payload = getCleanTablePayload();
 
-  const { data, error } = await useApi(`/table_definition/${table.id}`, {
+  const { data, error } = await useApiLazy(`/table_definition/${table.id}`, {
     method: "patch",
     body: payload,
   });
@@ -197,7 +188,7 @@ async function deleteTable() {
     color: "info",
     description: "Đang reload schema...",
   });
-  const { data, error } = await useApi(`/table_definition/${table.id}`, {
+  const { data, error } = await useApiLazy(`/table_definition/${table.id}`, {
     method: "delete",
   });
   toast.remove(toastId.id);
@@ -209,7 +200,7 @@ async function deleteTable() {
       description: "Schema đã được reload!",
     });
     await fetchSchema();
-    return navigateTo(`/collections/create`);
+    return navigateTo(`/collections`);
   } else if (error.value) {
     toast.add({
       title: "Lỗi",
