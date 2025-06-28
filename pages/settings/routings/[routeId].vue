@@ -62,7 +62,7 @@ async function updateRoute() {
   } catch (err) {
     toast.add({ title: "Error", description: "Update failed", color: "error" });
   } finally {
-    globalFormLoading.value = true;
+    globalFormLoading.value = false;
   }
 }
 

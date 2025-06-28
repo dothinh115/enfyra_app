@@ -36,6 +36,7 @@
             @click="globalForm?.submit()"
           />
         </div>
+        <div v-else-if="route.path === '/settings/routings'"></div>
 
         <div v-else-if="route.path.startsWith('/settings')">
           <UButton

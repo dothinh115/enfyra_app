@@ -49,7 +49,6 @@ function getComponentConfigByKey(key: string) {
 
   const finalType = config.type || column?.type;
   const fieldProps = {
-    class: "col-span-2",
     ...(config.fieldProps || {}),
   };
 
@@ -116,7 +115,10 @@ function getComponentConfigByKey(key: string) {
         autoresize: true,
         class: "w-full font-mono text-xs",
       },
-      fieldProps,
+      fieldProps: {
+        ...fieldProps,
+        class: "col-span-2",
+      },
     };
   }
 
