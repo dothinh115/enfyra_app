@@ -18,9 +18,8 @@
       <header
         class="h-16 px-6 border-b border-gray-600 flex items-center justify-between bg-background shrink-0"
       >
-        <div class="text-lg font-semibold">
-          {{ pageName }}
-        </div>
+        <BreadCrumbs />
+
         <div v-if="route.path.startsWith('/collections')">
           <UButton
             :label="
@@ -67,9 +66,4 @@
 const route = useRoute();
 const { fetchSchema, globalForm, globalFormLoading } = useGlobalState();
 await fetchSchema();
-const pageName = computed(() => {
-  if (route.path.startsWith("/collections")) return "Collections";
-  if (route.path.startsWith("/settings")) return "Settings";
-  return "Dashboard";
-});
 </script>

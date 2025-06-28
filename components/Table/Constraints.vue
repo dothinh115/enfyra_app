@@ -8,6 +8,8 @@ const props = defineProps<{
 
 const table = useModel(props, "modelValue");
 
+const { me } = useAuth();
+
 function addGroup(list: string[][]) {
   list.push([""]);
 }

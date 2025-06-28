@@ -8,7 +8,10 @@ interface UseApiOptions<T> {
   default?: () => T | Ref<T>;
 }
 
-export function useApi<T = any>(path: string, opts: UseApiOptions<T> = {}) {
+export async function useApi<T = any>(
+  path: string,
+  opts: UseApiOptions<T> = {}
+) {
   const headers = useRequestHeaders(["cookie", "authorization"]);
   const runtimeConfig = useRuntimeConfig();
   const { apiPrefix } = runtimeConfig.public;
@@ -16,7 +19,7 @@ export function useApi<T = any>(path: string, opts: UseApiOptions<T> = {}) {
 
   const cleanPath = path.replace(/^\/?api\/?/, "");
 
-  return useFetch<T>(cleanPath, {
+  return await useFetch<T>(cleanPath, {
     baseURL: apiPrefix,
     method: method as any,
     body,
@@ -26,4 +29,39 @@ export function useApi<T = any>(path: string, opts: UseApiOptions<T> = {}) {
     transform: (response: any) => response?.data ?? response,
     ...(defaultFn ? { default: defaultFn as any } : {}),
   });
+}
+
+export async function useApiLazy<T = any>(
+  path: string,
+  opts: UseApiOptions<T> = {}
+) {
+  const headers = useRequestHeaders(["cookie", "authorization"]);
+  const runtimeConfig = useRuntimeConfig();
+  const { apiPrefix } = runtimeConfig.public;
+  const { method, body, query } = opts;
+
+  const cleanPath = path.replace(/^\/?api\/?/, "");
+
+  try {
+    const res: any = await $fetch<T>(cleanPath, {
+      baseURL: apiPrefix,
+      method,
+      body,
+      headers,
+      query,
+    });
+    return {
+      data: ref(res?.data),
+      error: null,
+      pending: false,
+      refresh: async () => res,
+    };
+  } catch (error) {
+    return {
+      data: ref(null),
+      error,
+      pending: false,
+      refresh: async () => null,
+    };
+  }
 }

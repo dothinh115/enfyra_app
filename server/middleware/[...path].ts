@@ -15,6 +15,7 @@ export default defineEventHandler(async (event: H3Event) => {
 
   // ✅ Refresh token nếu cần
   const newAccessToken = await refreshToken(event);
+
   if (newAccessToken) {
     headers.authorization = `Bearer ${newAccessToken}`;
   }

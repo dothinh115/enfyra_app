@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { columnTypes } from "~/utils/types/table.type";
+import { UInput, UTextarea, USwitch, USelect } from "#components";
+
 const props = defineProps<{
   modelValue: any[];
 }>();
@@ -11,42 +13,139 @@ const { columns: columnData, tables } = useGlobalState();
 const columns = useModel(props, "modelValue");
 const isNew = ref(false);
 const route = useRoute();
+const currentError = ref<Record<string, string>>({});
+
+const columnDefTable = computed(() =>
+  tables.value.find((t) => t.name === "column_definition")
+);
+
+const columnInfoMap = computed(() => {
+  const map = new Map<string, any>();
+  for (const col of columnDefTable.value?.columns || []) {
+    map.set(col.name, col);
+  }
+  return map;
+});
+
+function getComponentConfigByKey(key: string) {
+  const column = columnInfoMap.value.get(key);
+  const type = column?.type;
+
+  const fieldProps = {
+    class: "",
+  };
+
+  if (!column) {
+    return {
+      component: UInput,
+      componentProps: {},
+      fieldProps,
+    };
+  }
+
+  if (key === "type") {
+    return {
+      component: USelect,
+      componentProps: {
+        items: columnTypes,
+        placeholder: "Chọn kiểu dữ liệu",
+        class: "w-full",
+      },
+      fieldProps,
+    };
+  }
+
+  if (type === "boolean") {
+    return {
+      component: USwitch,
+      componentProps: {
+        label: column.description || key,
+      },
+      fieldProps,
+    };
+  }
+
+  if (type === "simple-json") {
+    return {
+      component: UTextarea,
+      componentProps: {
+        autoresize: true,
+        placeholder: column.placeholder || key,
+        rows: 4,
+        class: "w-full font-mono text-xs",
+        variant: "subtle",
+      },
+      fieldProps: {
+        class: "col-span-2",
+      },
+    };
+  }
+
+  if (type === "text") {
+    return {
+      component: UTextarea,
+      componentProps: {
+        autoresize: true,
+        placeholder: column.placeholder || key,
+        rows: 4,
+        class: "w-full",
+        variant: "subtle",
+      },
+      fieldProps: {
+        class: "col-span-2",
+      },
+    };
+  }
+
+  return {
+    component: UInput,
+    componentProps: {
+      placeholder: column.placeholder || key,
+      type: type === "int" ? "number" : "text",
+      class: "w-full",
+    },
+    fieldProps,
+  };
+}
 
 function createEmptyColumn(): any {
-  const tableName = route.params.table as string;
-  const table = tables.value.find((t) => t.name === tableName);
-  const column: any = {};
-  column.error = {};
-  column.name = "";
-  column.type = "varchar";
-  column.isNullable = true;
-  if (!table) return column;
-
-  const omit = ["id", "createdAt", "updatedAt", "table"];
-
-  for (const def of columnData?.value) {
-    if (def.table !== table.id) continue;
-    if (omit.includes(def.name)) continue;
-
-    column[def.name] =
-      def.default !== null && def.default !== undefined
-        ? def.default
-        : def.type === "boolean"
-        ? false
-        : def.type === "simple-json"
-        ? {}
-        : def.type === "text" || def.type === "varchar"
-        ? ""
-        : def.type === "enum"
-        ? def.enumValues?.[0] ?? ""
-        : def.type === "int"
-        ? 0
-        : null;
+  const columnDefTable = tables.value.find(
+    (t) => t.name === "column_definition"
+  );
+  if (!columnDefTable) {
+    console.error("Không tìm thấy bảng column_definition!");
+    return {};
   }
-  column.name = "";
-  column.type = "varchar";
+
+  const column: any = {};
+
+  for (const def of columnDefTable.columns.sort(
+    (a: any, b: any) => a.id - b.id
+  )) {
+    // Tính default cho từng type
+    let value;
+    if (def.default !== null && def.default !== undefined) {
+      value = def.default;
+    } else if (def.type === "boolean") {
+      value = false;
+    } else if (def.type === "simple-json") {
+      value = "";
+    } else if (def.type === "text" || def.type === "varchar") {
+      value = "";
+    } else if (def.type === "enum") {
+      value = def.enumValues?.[0] ?? "";
+    } else if (def.type === "int") {
+      value = 0;
+    } else {
+      value = null;
+    }
+
+    column[def.name] = value;
+  }
+
   column._editing = false;
   column.error = {};
+
   return column;
 }
 
@@ -60,7 +159,7 @@ function editColumn(col: any, index: number) {
 
 function saveColumn() {
   validate();
-  if (Object.keys(currentColumn.value.error).length > 0) return;
+  if (Object.keys(currentError.value).length > 0) return;
 
   const newCol = { ...currentColumn.value };
 
@@ -100,18 +199,22 @@ function validate() {
   } else if (!tableNameOrFieldRegexCheck.test(currentColumn.value?.name)) {
     errors.name =
       "Chỉ cho phép chữ cái, số, _ và không bắt đầu bằng số hoặc _!";
-  } else {
-    delete errors.name;
   }
+
   if (!currentColumn.value?.type) {
     errors.type = "Phải chọn kiểu dữ liệu";
-  } else {
-    delete errors.type;
   }
-  if (!currentColumn.value?.isNullable && !currentColumn.value?.isGenerated) {
+
+  if (
+    !currentColumn.value?.isNullable &&
+    !currentColumn.value?.isGenerated &&
+    (currentColumn.value?.default === "" ||
+      currentColumn.value?.default === undefined)
+  ) {
     errors.default = "Không được để trống!";
-  } else delete errors.default;
-  if (currentColumn.value) currentColumn.value.error = errors;
+  }
+
+  currentError.value = errors;
 }
 </script>
 
@@ -174,7 +277,8 @@ function validate() {
       <template #header>
         <div class="flex justify-between items-center w-full">
           <div class="text-base font-semibold">
-            Sửa cột: {{ currentColumn?.name || "Cột mới" }}
+            {{ editingIndex !== null ? "Sửa cột: " : "" }}
+            {{ currentColumn?.name || "Cột mới" }}
           </div>
           <UButton
             icon="lucide:x"
@@ -189,102 +293,16 @@ function validate() {
 
       <!-- Body modal -->
       <template #body>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <UFormField label="Tên cột" :error="currentColumn.error?.name">
-            <UInput
-              v-model="currentColumn.name"
-              placeholder="Tên cột"
-              :error="currentColumn.error?.name"
-            />
-          </UFormField>
-
-          <UFormField label="Kiểu dữ liệu" :error="currentColumn.error?.type">
-            <USelect
-              v-model="currentColumn.type"
-              :items="columnTypes"
-              placeholder="Chọn kiểu dữ liệu"
-            />
-          </UFormField>
-
-          <div
-            class="flex items-center gap-2"
-            v-if="currentColumn.name !== 'id'"
-          >
-            <USwitch v-model="currentColumn.isNullable" />
-            <span class="text-sm text-muted">Cho phép null</span>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <USwitch v-model="currentColumn.isIndex" />
-            <span class="text-sm text-muted">Chỉ mục</span>
-          </div>
-
-          <!-- Boolean: chọn true/false -->
-          <UFormField
-            v-if="currentColumn.type === 'boolean'"
-            label="Giá trị mặc định"
-            class="md:col-span-2 flex items-center space-x-2"
-          >
-            <USelect
-              v-model="currentColumn.default"
-              :items="[
-                { label: 'true', value: true },
-                { label: 'false', value: false },
-                { label: 'Không đặt', value: null },
-              ]"
-              placeholder="Chọn giá trị mặc định"
-            />
-          </UFormField>
-
-          <!-- Giá trị mặc định cho text -->
-          <UFormField
-            v-else-if="currentColumn.type === 'text'"
-            label="Giá trị mặc định"
-            class="md:col-span-2"
-          >
-            <UTextarea
-              v-model="currentColumn.default"
-              placeholder="Giá trị mặc định"
-              autoresize
-              class="w-full"
-            />
-          </UFormField>
-
-          <!-- Giá trị mặc định cho varchar, int -->
-          <UFormField
-            v-else-if="['varchar', 'int'].includes(currentColumn.type)"
-            label="Giá trị mặc định"
-            class="md:col-span-2"
-            :error="currentColumn.error?.default"
-          >
-            <UInput
-              v-model="currentColumn.default"
-              class="w-full"
-              placeholder="Giá trị mặc định"
-              :type="currentColumn.type === 'int' ? 'number' : 'string'"
-              :color="currentColumn.error?.default ? 'error' : 'primary'"
-            />
-          </UFormField>
-          <UFormField label="Placeholder" class="md:col-span-2">
-            <UInput
-              v-model="currentColumn.placeholder"
-              placeholder="Placeholder"
-              class="md:col-span-2 w-full"
-            />
-          </UFormField>
-          <UFormField label="Mô tả cho cột này" class="md:col-span-2">
-            <UTextarea
-              v-model="currentColumn.description"
-              placeholder="..."
-              class="w-full"
-            />
-          </UFormField>
-        </div>
+        <DynamicFormEditor
+          v-model="currentColumn"
+          tableName="column_definition"
+          :errors="currentError"
+        />
       </template>
 
       <!-- Footer modal -->
       <template #footer>
-        <div class="flex w-full px-4 pb-4 space-x-2 justify-end">
+        <div class="flex w-full space-x-2 justify-end">
           <UButton
             icon="lucide:check"
             label="Lưu"

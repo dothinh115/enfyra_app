@@ -64,6 +64,8 @@ function editRelation(rel: any, index: number) {
 }
 
 function validatePropertyName(rel: any) {
+  if (!rel) return {};
+
   rel.error ||= {};
 
   if (!rel.propertyName?.trim()) {
@@ -79,6 +81,8 @@ function validatePropertyName(rel: any) {
 }
 
 function validateType(rel: any) {
+  if (!rel) return {};
+
   rel.error ||= {};
   if (!rel.type) {
     rel.error.type = "Phải chọn loại quan hệ";
@@ -90,6 +94,8 @@ function validateType(rel: any) {
 }
 
 function validateTargetTable(rel: any) {
+  if (!rel) return {};
+
   rel.error ||= {};
   if (!rel.targetTable) {
     rel.error.targetTable = "Phải chọn bảng đích";
@@ -292,7 +298,7 @@ watch(
             label="Lưu"
             @click="saveRelation()"
             color="primary"
-            :disabled="currentRelation.isSystem"
+            :disabled="!currentRelation.isSystem"
           />
         </div>
       </template>

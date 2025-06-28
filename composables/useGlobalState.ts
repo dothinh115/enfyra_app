@@ -13,14 +13,13 @@ export const useGlobalState = () => {
   const toast = useToast();
 
   async function fetchTable() {
-    const fieldArr = ["*", "columns.*", "relations.*"];
-    const fields = fieldArr.join(",");
+    const fields = ["*", "columns.*", "relations.*"].join(",");
+    const sort = ["id"].join(",");
     try {
       const { data } = await useApi("/table_definition", {
-        query: { fields, limit: 0 },
+        query: { fields, limit: 0, sort },
       });
       tables.value = data.value.data;
-      console.log(tables.value);
     } catch (error) {
       toast.add({
         title: "Error",
@@ -31,18 +30,19 @@ export const useGlobalState = () => {
   }
 
   async function fetchRoute() {
-    const fieldArr = [
+    const fields = [
       "*",
       "mainTable.*",
       "routePermissions.*",
       "handlers.*",
       "middlewares.*",
       "hooks.*",
-    ];
-    const fields = fieldArr.join(",");
+    ].join(",");
+    const sort = ["id"].join(",");
+
     try {
       const { data } = await useApi("/route_definition", {
-        query: { fields, limit: 0 },
+        query: { fields, limit: 0, sort },
       });
       routes.value = data.value.data;
     } catch (error) {
@@ -62,7 +62,6 @@ export const useGlobalState = () => {
         query: { fields, limit: 0 },
       });
       columns.value = data.value.data;
-      console.log(columns.value);
     } catch (error) {
       toast.add({
         title: "Error",
@@ -97,7 +96,6 @@ export const useGlobalState = () => {
         query: { fields, limit: 0 },
       });
       settings.value = data.value.data[0];
-      console.log(data.value.data);
     } catch (error) {
       toast.add({
         title: "Error",

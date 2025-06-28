@@ -1,5 +1,5 @@
 export function useAuth() {
-  const me = ref<any>(null);
+  const me = useState<any | null>("global:me", () => null);
 
   const fetchUser = async () => {
     try {

@@ -22,20 +22,22 @@ const route = useRoute();
       Tạo bảng mới
     </UButton>
     <UButton
-      v-for="item in routes"
+      v-for="item in tables.filter((table) =>
+        routes.some((route) => table.name === route.mainTable.name)
+      )"
       :key="item.id"
       size="lg"
       variant="ghost"
       color="neutral"
       :icon="item.icon"
-      :to="`/collections/${item.mainTable.name}`"
+      :to="`/collections/${item.name}`"
       class="hover:bg-primary/20"
       active-class="bg-primary/20 text-white  shadow hover:!bg-primary/20"
     >
       <template #trailing>
         <Icon name="lucide:arrow-right" class="ml-auto" />
       </template>
-      {{ item.path }}
+      {{ item.name }}
     </UButton>
   </nav>
   <nav
@@ -46,14 +48,29 @@ const route = useRoute();
       size="lg"
       variant="ghost"
       color="neutral"
-      :to="`/settings`"
+      :to="`/settings/general`"
       class="hover:bg-primary/20"
+      exact
       active-class="bg-primary/20 text-white  shadow hover:!bg-primary/20"
     >
       <template #trailing>
         <Icon name="lucide:arrow-right" class="ml-auto" />
       </template>
-      Settings
+      General
+    </UButton>
+    <UButton
+      size="lg"
+      variant="ghost"
+      color="neutral"
+      :to="`/settings/routings`"
+      class="hover:bg-primary/20"
+      exact
+      active-class="bg-primary/20 text-white  shadow hover:!bg-primary/20"
+    >
+      <template #trailing>
+        <Icon name="lucide:arrow-right" class="ml-auto" />
+      </template>
+      Routings
     </UButton>
   </nav>
 </template>

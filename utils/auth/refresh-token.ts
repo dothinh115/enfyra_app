@@ -8,18 +8,27 @@ import {
 
 export async function refreshToken(event: H3Event): Promise<string | null> {
   const config = useRuntimeConfig();
+
   const accessToken = getCookie(event, ACCESS_TOKEN_KEY);
   const expTimeStr = getCookie(event, EXP_TIME_KEY);
-  const refToken = getCookie(event, REFRESH_TOKEN_KEY);
+  const refreshToken = getCookie(event, REFRESH_TOKEN_KEY);
   const now = Date.now();
 
-  if (!accessToken || !expTimeStr) return null;
-
-  const expTime = parseInt(expTimeStr);
-  if (now < expTime - 10_000) {
-    return accessToken;
+  // Nếu không có refreshToken thì chịu
+  if (!refreshToken) {
+    console.warn("⚠️ No refreshToken, cannot refresh");
+    return null;
   }
 
+  const expTime = expTimeStr ? parseInt(expTimeStr) : 0;
+  const tokenStillValid = accessToken && now < expTime - 10_000;
+
+  // Nếu token còn hạn thì dùng luôn
+  if (tokenStillValid) {
+    return accessToken!;
+  }
+
+  // Nếu token hết hạn hoặc không có, đi refresh
   try {
     const response: any = await $fetch<{
       accessToken: string;
@@ -31,14 +40,14 @@ export async function refreshToken(event: H3Event): Promise<string | null> {
         cookie: getHeader(event, "cookie") || "",
       },
       body: {
-        refreshToken: refToken,
+        refreshToken,
       },
     });
 
     const {
       accessToken: newAccessToken,
-      refreshToken,
-      expTime,
+      refreshToken: newRefreshToken,
+      expTime: newExpTime,
     } = response.data;
 
     const cookieOptions = {
@@ -49,16 +58,24 @@ export async function refreshToken(event: H3Event): Promise<string | null> {
     };
 
     setCookie(event, ACCESS_TOKEN_KEY, newAccessToken, cookieOptions);
-    setCookie(event, REFRESH_TOKEN_KEY, refreshToken, cookieOptions);
-    setCookie(event, EXP_TIME_KEY, String(expTime), cookieOptions);
+    setCookie(event, REFRESH_TOKEN_KEY, newRefreshToken, cookieOptions);
+    setCookie(event, EXP_TIME_KEY, String(newExpTime), cookieOptions);
+
+    console.log("✅ Token refreshed successfully");
 
     return newAccessToken;
-  } catch (err) {
+  } catch (err: any) {
     console.warn("⚠️ Refresh token failed:", err);
 
-    deleteCookie(event, ACCESS_TOKEN_KEY);
-    deleteCookie(event, REFRESH_TOKEN_KEY);
-    deleteCookie(event, EXP_TIME_KEY);
+    // Nếu lỗi có code 401/403 thì xoá token
+    const shouldDelete =
+      err?.response?.status === 401 || err?.response?.status === 403;
+
+    if (shouldDelete) {
+      deleteCookie(event, ACCESS_TOKEN_KEY);
+      deleteCookie(event, REFRESH_TOKEN_KEY);
+      deleteCookie(event, EXP_TIME_KEY);
+    }
 
     return null;
   }
