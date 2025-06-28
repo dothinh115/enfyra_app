@@ -43,7 +43,11 @@ watch(
 );
 
 function removeItem(item: string) {
-  model.value = model.value?.filter((i) => i !== item);
+  if (!props.multiple) model.value = model.value?.filter((i) => i !== item);
+  else
+    proxySelected.value = (proxySelected.value as string[])?.filter(
+      (i) => i !== item
+    );
 }
 </script>
 
