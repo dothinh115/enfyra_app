@@ -17,13 +17,16 @@
 
         <!-- Hiển thị field quan hệ -->
         <div class="mt-6 space-y-4">
-          <div
-            v-for="relation in currentTable?.relations || []"
-            :key="relation.propertyName"
-          >
+          <div v-for="relation in allRelations || []" :key="relation.id">
             <RelationInlineEditor
               :relationMeta="relation"
-              v-model="newRecord[relation.propertyName]"
+              v-model="
+                newRecord[
+                  relation.targetTable.id === currentTable.id
+                    ? relation.inversePropertyName
+                    : relation.propertyName
+                ]
+              "
             />
           </div>
         </div>
@@ -34,13 +37,20 @@
 
 <script setup lang="ts">
 const route = useRoute();
-const { tables, globalForm, globalFormLoading } = useGlobalState();
+const { tables, globalForm, globalFormLoading, relations } = useGlobalState();
 const toast = useToast();
 const currentTable = tables.value.find(
   (table) => table.name === route.params.table
 );
 const { confirm } = useConfirm();
 const newRecord = ref<Record<string, any>>({});
+
+const allRelations = computed(() => {
+  return [
+    ...(currentTable?.relations || []),
+    ...relations.value.filter((rel) => rel.targetTable.id === currentTable.id),
+  ];
+});
 
 function createNewRecord() {
   if (!currentTable) return;

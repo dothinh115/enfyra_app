@@ -19,12 +19,18 @@
         <!-- Hiển thị field quan hệ -->
         <div class="mt-6 space-y-4">
           <div
-            v-for="relation in currentTable?.relations || []"
+            v-for="relation in allRelations || []"
             :key="relation.propertyName"
           >
             <RelationInlineEditor
               :relationMeta="relation"
-              v-model="currentRecord[relation.propertyName]"
+              v-model="
+                currentRecord[
+                  relation.targetTable.id === currentTable.id
+                    ? relation.inversePropertyName
+                    : relation.propertyName
+                ]
+              "
             />
           </div>
         </div>
@@ -35,7 +41,7 @@
 
 <script setup lang="ts">
 const route = useRoute();
-const { tables, globalForm, globalFormLoading } = useGlobalState();
+const { tables, globalForm, globalFormLoading, relations } = useGlobalState();
 const toast = useToast();
 
 const currentTable = tables.value.find(
@@ -57,6 +63,13 @@ const { data } = await useApiLazy(`/${route.params.table}`, {
 
 onMounted(() => {
   currentRecord.value = data.value.data[0];
+});
+
+const allRelations = computed(() => {
+  return [
+    ...(currentTable?.relations || []),
+    ...relations.value.filter((rel) => rel.targetTable.id === currentTable.id),
+  ];
 });
 
 async function letsCreate() {

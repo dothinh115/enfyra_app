@@ -55,12 +55,13 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits(["apply"]);
-
+const route = useRoute();
 const selected = ref<any[]>([...props.selectedIds]);
 const page = ref(1);
 const limit = 10;
 const total = ref(0);
 const showModal = ref(true);
+const data = ref();
 
 watch(
   () => props.selectedIds,
@@ -70,56 +71,74 @@ watch(
 );
 
 const { tables } = useGlobalState();
-
-const targetTable = computed(() =>
-  tables.value.find((t) => t.id === props.relationMeta.targetTable.id)
+let targetTable = tables.value.find(
+  (t) => t.id === props.relationMeta.targetTable.id
 );
 
-const {
-  data,
-  pending,
-  refresh: fetchRecords,
-} = await useApiLazy(`/${targetTable.value?.name}`, {
-  query: {
-    fields: "*",
-    page: page.value,
-    limit,
-    meta: "totalCount",
-  },
-});
+if (targetTable?.name === route.params.table) {
+  targetTable = tables.value.find(
+    (t) => t.id === props.relationMeta.sourceTable.id
+  );
+}
 
-watch(showModal, (val) => {
-  if (val) {
-    page.value = 1;
-    fetchRecords();
+async function fetchData() {
+  const { data: item } = await useApiLazy(`/${targetTable?.name}`, {
+    query: {
+      fields: "*",
+      page: page.value,
+      limit,
+      meta: "totalCount",
+    },
+  });
+  data.value = item.value;
+}
+
+watch(
+  () => showModal.value,
+  async (val) => {
+    if (val) {
+      page.value = 1;
+      await fetchData();
+    }
   }
-});
+);
 
-watch(page, () => {
-  fetchRecords();
-});
+watch(
+  () => page.value,
+  async () => {
+    await fetchData();
+  }
+);
 
-watch(data, () => {
-  total.value = data.value?.meta?.totalCount || 0;
+watch(
+  () => data.value,
+  () => {
+    total.value = data.value?.meta?.totalCount || 0;
+  }
+);
+
+onMounted(async () => {
+  await fetchData();
 });
 
 function toggle(id: any) {
   if (props.multiple) {
-    if (selected.value.includes(id)) {
-      selected.value = selected.value.filter((i) => i !== id);
+    if (selected.value.find((sel) => sel.id === id)) {
+      selected.value = selected.value.filter((i) => i.id !== id);
     } else {
-      selected.value.push(id);
+      selected.value.push({ id });
     }
   } else {
-    selected.value = [id];
+    selected.value = [{ id }];
   }
 }
 
 function isSelected(id: any) {
-  return selected.value.includes(id);
+  return selected.value.some((sel) => sel.id === id);
 }
 
 function apply() {
+  console.log(selected.value);
   emit("apply", selected.value);
   showModal.value = false;
 }

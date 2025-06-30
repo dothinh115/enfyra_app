@@ -24,9 +24,7 @@ watch(
 function applySelection(ids: any[]) {
   emit(
     "update:modelValue",
-    props.relationMeta.type === "many-to-one"
-      ? { id: ids[0] }
-      : ids.map((item) => ({ id: item }))
+    props.relationMeta.type === "many-to-one" ? ids[0] : ids
   );
   showModal.value = false;
 }

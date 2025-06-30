@@ -195,24 +195,25 @@ onMounted(async () => {
         :columns="columns"
         :empty-state="{ icon: 'i-lucide-database', label: 'Không có dữ liệu' }"
       />
+      <template #footer>
+        <div class="flex justify-center">
+          <UPagination
+            v-model:page="page"
+            :items-per-page="pageLimit"
+            :total="total"
+            show-edges
+            :sibling-count="1"
+            :to="
+              (p) => ({
+                path: route.path,
+                query: { ...route.query, page: p },
+              })
+            "
+            color="secondary"
+            active-color="secondary"
+          />
+        </div>
+      </template>
     </UCard>
-    <div class="flex justify-center mt-6">
-      <UPagination
-        v-model:page="page"
-        :items-per-page="pageLimit"
-        :total="total"
-        show-edges
-        :sibling-count="1"
-        :to="
-          (p) => ({
-            path: route.path,
-            query: { ...route.query, page: p },
-          })
-        "
-        color="secondary"
-        active-color="secondary"
-        v-if="page > 1"
-      />
-    </div>
   </div>
 </template>
