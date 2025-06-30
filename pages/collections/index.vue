@@ -135,7 +135,6 @@ async function save() {
     });
     router.push(`/collections/${data.value.data[0].name}`);
   } else {
-    console.log(error, error.value);
     toast.add({
       title: "Error",
       color: "error",

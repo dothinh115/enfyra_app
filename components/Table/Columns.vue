@@ -29,14 +29,14 @@ function createEmptyColumn(): any {
   )) {
     // Tính default cho từng type
     let value;
-    if (def.default !== null && def.default !== undefined) {
-      value = def.default;
+    if (def.defaultValue !== null && def.defaultValue !== undefined) {
+      value = def.defaultValue;
     } else if (def.type === "boolean") {
       value = false;
     } else if (def.type === "simple-json") {
-      value = "";
+      value = null;
     } else if (def.type === "text" || def.type === "varchar") {
-      value = "";
+      value = null;
     } else if (def.type === "enum") {
       value = def.enumValues?.[0] ?? "";
     } else if (def.type === "int") {
@@ -47,7 +47,6 @@ function createEmptyColumn(): any {
 
     column[def.name] = value;
   }
-
   return column;
 }
 
@@ -85,15 +84,14 @@ function addNewColumn() {
   currentColumn.value.isNullable = true;
   currentColumn.value.isUpdatable = true;
   editingIndex.value = null;
+  delete currentColumn.value.id;
 }
 
 watch(
   () => currentColumn.value?.name,
   (newVal, oldVal) => {
-    if (!oldVal) return;
-    if (newVal) {
-      validate("name");
-    }
+    if (oldVal === null || oldVal === undefined) return;
+    validate("name");
   }
 );
 
@@ -131,6 +129,7 @@ onMounted(() => {
   primaryColumn.isPrimary = true;
   primaryColumn.isGenerated = true;
   primaryColumn.isNullable = false;
+  delete primaryColumn.id;
   if (!columns.value.length) columns.value.push(primaryColumn);
 });
 </script>
@@ -214,11 +213,27 @@ onMounted(() => {
           v-model="currentColumn"
           tableName="column_definition"
           :errors="errors"
-          :excluded="['isSystem', 'id', 'enumValues', 'createdAt', 'updatedAt']"
+          :includes="currentColumn.name === 'id' ? ['name', 'type'] : undefined"
+          :excluded="[
+            'isSystem',
+            'id',
+            'enumValues',
+            'createdAt',
+            'updatedAt',
+            'isPrimary',
+          ]"
           :type-map="{
             type: {
               type: 'select',
-              options: columnTypes,
+              options:
+                currentColumn.name === 'id'
+                  ? columnTypes.filter((colType) =>
+                      ['uuid', 'int'].includes(colType.value)
+                    )
+                  : columnTypes,
+            },
+            name: {
+              disabled: currentColumn.name === 'id',
             },
           }"
         />

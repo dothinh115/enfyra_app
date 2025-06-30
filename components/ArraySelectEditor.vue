@@ -5,20 +5,20 @@ const props = defineProps<{
 }>();
 
 const model = defineModel<any[]>();
+
 if (!Array.isArray(model.value)) {
   model.value = [];
 }
-const emit = defineEmits(["update:modelValue"]);
 const selectedArr = ref<string[]>(model.value);
 
-function addItem() {
+function changeItem() {
   model.value = selectedArr.value as any;
 }
 
 watch(
   () => selectedArr.value,
   () => {
-    addItem();
+    changeItem();
   }
 );
 </script>

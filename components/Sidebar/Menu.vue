@@ -76,4 +76,29 @@ const route = useRoute();
       Routings
     </UButton>
   </nav>
+  <nav
+    v-else-if="route.path.startsWith('/data')"
+    class="flex flex-col space-y-3"
+  >
+    <UButton
+      v-for="item in tables.filter((table) =>
+        routes.some(
+          (route) => table.name === route.mainTable.name && !table.isSystem
+        )
+      )"
+      :key="item.id"
+      size="lg"
+      variant="ghost"
+      color="neutral"
+      :icon="item.icon"
+      :to="`/data/${item.name}`"
+      class="hover:bg-primary/20"
+      active-class="bg-primary/20 text-white shadow hover:!bg-primary/20"
+    >
+      <template #trailing>
+        <Icon name="lucide:arrow-right" class="ml-auto" />
+      </template>
+      {{ item.name }}
+    </UButton>
+  </nav>
 </template>

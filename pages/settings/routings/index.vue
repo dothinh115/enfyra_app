@@ -61,7 +61,7 @@ async function toggleEnabled(route: any) {
       <ULink
         :to="`/settings/routings/${route.id}`"
         v-for="route in routes"
-        class="cursor-pointer relative z-10"
+        class="cursor-pointer relative z-10 cursor-pointer"
       >
         <UCard
           :key="route.id"

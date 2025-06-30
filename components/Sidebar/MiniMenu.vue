@@ -14,6 +14,11 @@ const items = [
     route: "/",
   },
   {
+    label: "List",
+    icon: "lucide:list",
+    route: "/data",
+  },
+  {
     label: "Collections",
     icon: "lucide:database",
     route: "/collections",

@@ -20,10 +20,10 @@ const props = defineProps<{
   >;
 }>();
 
+const { tables } = useGlobalState();
+
 const visibleKeys = computed(() => {
-  const columnDefTable = tables.value.find(
-    (t) => t.name === "column_definition"
-  );
+  const columnDefTable = tables.value.find((t) => t.name === props.tableName);
   const allKeys = Object.keys(formData.value || {});
 
   let filtered: string[];
@@ -55,8 +55,6 @@ const formData = computed({
   set: (val) => emit("update:modelValue", val),
 });
 
-const { tables } = useGlobalState();
-
 const currentTable = computed(() =>
   tables.value.find((t) => t.name === props.tableName)
 );
@@ -80,7 +78,6 @@ function getComponentConfigByKey(key: string) {
   const finalType = config.type || column?.type;
   const disabled = config.disabled ?? false;
 
-  // props chung cho input-like
   const commonInputProps = {
     class: "w-full",
     placeholder: config.placeholder || column?.placeholder || key,
@@ -88,7 +85,6 @@ function getComponentConfigByKey(key: string) {
     ...(config.componentProps || {}),
   };
 
-  // props riêng cho UFormField
   const fieldProps = {
     ...(config.fieldProps || {}),
   };
