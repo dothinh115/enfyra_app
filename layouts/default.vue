@@ -38,7 +38,15 @@
         </div>
         <div v-else-if="route.path === '/settings/routings'"></div>
 
-        <div v-else-if="route.path.startsWith('/settings')">
+        <div
+          v-else-if="
+            route.path.startsWith('/settings') ||
+            route.path.startsWith(`/data/${route.params.table}/create`) ||
+            route.path.startsWith(
+              `/data/${route.params.table}/${route.params.id}`
+            )
+          "
+        >
           <UButton
             :label="'Save'"
             :icon="'lucide:newspaper'"
@@ -48,9 +56,18 @@
             @click="globalForm?.submit()"
           />
         </div>
-        <div class="flex gap-2 items-center" v-else>
-          <UButton icon="lucide:filter" label="Filter" />
-          <UAvatar />
+        <div
+          class="flex gap-2 items-center"
+          v-else-if="route.path.startsWith('/data')"
+        >
+          <UButton
+            :icon="'lucide:plus'"
+            color="primary"
+            variant="solid"
+            size="xl"
+            class="rounded-full"
+            :to="`/data/${route.params.table}/create`"
+          />
         </div>
       </header>
 

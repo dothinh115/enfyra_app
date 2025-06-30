@@ -42,10 +42,8 @@ function createEmptyRelation(): any {
   relation.isIndex = false;
   relation.isNullable = false;
   relation.description = "";
-  relation._editing = false;
-  relation.error = {};
+  relation.isSystem = false;
   delete relation.sourceTable;
-
   return relation;
 }
 
@@ -60,56 +58,29 @@ function editRelation(rel: any, index: number) {
   isEditing.value = true;
   isNew.value = false;
   editingIndex.value = index;
-  currentRelation.value = { ...toRaw(rel) };
-}
-
-function validatePropertyName(rel: any) {
-  if (!rel) return {};
-
-  rel.error ||= {};
-
-  if (!rel.propertyName?.trim()) {
-    rel.error.propertyName = "Tên quan hệ là bắt buộc";
-  } else if (!tableNameOrFieldRegexCheck.test(rel.propertyName)) {
-    rel.error.propertyName =
-      "Chỉ cho phép chữ cái, số, _ và không bắt đầu bằng số hoặc _!";
-  } else {
-    delete rel.error.propertyName;
-  }
-
-  return rel.error;
-}
-
-function validateType(rel: any) {
-  if (!rel) return {};
-
-  rel.error ||= {};
-  if (!rel.type) {
-    rel.error.type = "Phải chọn loại quan hệ";
-  } else {
-    delete rel.error.type;
-  }
-
-  return rel.error;
-}
-
-function validateTargetTable(rel: any) {
-  if (!rel) return {};
-
-  rel.error ||= {};
-  if (!rel.targetTable) {
-    rel.error.targetTable = "Phải chọn bảng đích";
-  } else {
-    delete rel.error.targetTable;
-  }
-  return rel.error;
+  currentRelation.value = { ...toRaw(rel), error: {} };
 }
 
 function validateRelation(rel: any) {
-  validatePropertyName(rel);
-  validateType(rel);
-  validateTargetTable(rel);
-  return rel.error;
+  const error: Record<string, string> = {};
+
+  if (!rel.propertyName?.trim()) {
+    error.propertyName = "Tên quan hệ là bắt buộc";
+  } else if (!tableNameOrFieldRegexCheck.test(rel.propertyName)) {
+    error.propertyName =
+      "Chỉ cho phép chữ cái, số, _ và không bắt đầu bằng số hoặc _!";
+  }
+
+  if (!rel.type) {
+    error.type = "Phải chọn loại quan hệ";
+  }
+
+  if (!rel.targetTable) {
+    error.targetTable = "Phải chọn bảng đích";
+  }
+
+  rel.error = error;
+  return error;
 }
 
 function saveRelation() {
@@ -128,33 +99,6 @@ function saveRelation() {
   isEditing.value = false;
   currentRelation.value = null;
 }
-
-watch(
-  () => currentRelation.value?.propertyName,
-  (newVal, oldVal) => {
-    if (oldVal !== undefined) {
-      validatePropertyName(currentRelation.value);
-    }
-  }
-);
-
-watch(
-  () => currentRelation.value?.type,
-  (newVal, oldVal) => {
-    if (oldVal !== undefined) {
-      validateType(currentRelation.value);
-    }
-  }
-);
-
-watch(
-  () => currentRelation.value?.targetTable,
-  (newVal, oldVal) => {
-    if (oldVal !== undefined) {
-      validateTargetTable(currentRelation.value);
-    }
-  }
-);
 </script>
 
 <template>
@@ -169,7 +113,6 @@ watch(
       :key="rel.id ?? index"
       class="flex items-center justify-between rounded-lg border border-muted hover:bg-muted/50 transition"
     >
-      <!-- Phần click để chỉnh sửa -->
       <div
         class="flex items-center gap-2 flex-1 cursor-pointer px-4 py-3"
         @click="editRelation(rel, index)"
@@ -180,11 +123,17 @@ watch(
         </span>
 
         <UBadge size="xs" color="info" v-if="rel.type">{{ rel.type }}</UBadge>
+        <UBadge size="xs" color="info" v-if="rel.targetTable">
+          →
+          {{
+            props.tableOptions.find((t) => t.value === rel.targetTable)
+              ?.label ?? rel.targetTable
+          }}
+        </UBadge>
         <UBadge size="xs" color="info" v-if="rel.isNullable">nullable</UBadge>
         <UBadge size="xs" color="info" v-if="rel.isIndex">index</UBadge>
       </div>
 
-      <!-- Nút xoá -->
       <UButton
         icon="lucide:trash"
         color="error"
@@ -196,7 +145,6 @@ watch(
       />
     </div>
 
-    <!-- Thêm quan hệ -->
     <div class="flex justify-end pt-2">
       <UButton
         icon="lucide:plus"
@@ -209,7 +157,6 @@ watch(
   <!-- Modal sửa quan hệ -->
   <Teleport to="body">
     <UModal v-model:open="isEditing" v-if="currentRelation">
-      <!-- Header modal -->
       <template #header>
         <div class="flex justify-between items-center w-full">
           <div class="text-base font-semibold">
@@ -226,71 +173,34 @@ watch(
         </div>
       </template>
 
-      <!-- Body modal -->
       <template #body>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <UFormField
-            label="Tên quan hệ"
-            :error="currentRelation.error.propertyName"
-          >
-            <UInput
-              v-model="currentRelation.propertyName"
-              placeholder="Tên quan hệ"
-              :error="!!currentRelation.error.propertyName"
-            />
-          </UFormField>
-
-          <UFormField label="Loại quan hệ" :error="currentRelation.error.type">
-            <USelect
-              v-model="currentRelation.type"
-              :items="relationTypes"
-              placeholder="Loại quan hệ"
-              :error="!!currentRelation.error.type"
-            />
-          </UFormField>
-
-          <UFormField label="Tên quan hệ ngược (optional)">
-            <UInput
-              v-model="currentRelation.inversePropertyName"
-              placeholder="Tên quan hệ ngược "
-            />
-          </UFormField>
-
-          <UFormField
-            label="Bảng đích"
-            :error="currentRelation.error.targetTable"
-          >
-            <USelect
-              v-model="currentRelation.targetTable"
-              :items="props.tableOptions"
-              placeholder="Chọn bảng"
-              class="w-auto"
-              :error="!!currentRelation.error.targetTable"
-            />
-          </UFormField>
-
-          <div class="flex items-center gap-2">
-            <USwitch v-model="currentRelation.isNullable" />
-            <span class="text-sm text-muted">Cho phép null</span>
-          </div>
-
-          <div
-            class="flex items-center gap-2"
-            v-if="currentRelation.type === 'many-to-one'"
-          >
-            <USwitch v-model="currentRelation.isIndex" />
-            <span class="text-sm text-muted">Chỉ mục</span>
-          </div>
-
-          <UTextarea
-            v-model="currentRelation.description"
-            placeholder="Mô tả"
-            class="md:col-span-2"
-          />
-        </div>
+        <DynamicFormEditor
+          v-model="currentRelation"
+          tableName="relation_definition"
+          :errors="currentRelation?.error"
+          :excluded="[
+            'id',
+            'createdAt',
+            'updatedAt',
+            'table',
+            'sourceTable',
+            'isSystem',
+            'isEager',
+            'isInverseEager',
+          ]"
+          :type-map="{
+            targetTable: {
+              type: 'select',
+              options: tableOptions,
+            },
+            type: {
+              type: 'select',
+              options: relationTypes,
+            },
+          }"
+        />
       </template>
 
-      <!-- Footer modal -->
       <template #footer>
         <div class="flex w-full px-4 pb-4 space-x-2 justify-end">
           <UButton
@@ -298,7 +208,7 @@ watch(
             label="Lưu"
             @click="saveRelation()"
             color="primary"
-            :disabled="!currentRelation.isSystem"
+            :disabled="currentRelation.isSystem"
           />
         </div>
       </template>

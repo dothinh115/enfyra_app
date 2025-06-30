@@ -87,14 +87,6 @@ function addNewColumn() {
   delete currentColumn.value.id;
 }
 
-watch(
-  () => currentColumn.value?.name,
-  (newVal, oldVal) => {
-    if (oldVal === null || oldVal === undefined) return;
-    validate("name");
-  }
-);
-
 function validate(property?: string) {
   if (property === "name") {
     if (!currentColumn.value?.name?.trim()) {
@@ -200,7 +192,10 @@ onMounted(() => {
             icon="lucide:x"
             color="error"
             variant="soft"
-            @click="isEditing = false"
+            @click="
+              isEditing = false;
+              currentColumn = null;
+            "
           >
             Huỷ
           </UButton>

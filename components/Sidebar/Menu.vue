@@ -93,7 +93,10 @@ const route = useRoute();
       :icon="item.icon"
       :to="`/data/${item.name}`"
       class="hover:bg-primary/20"
-      active-class="bg-primary/20 text-white shadow hover:!bg-primary/20"
+      :class="
+        route.path.startsWith(`/data/${item.name}`) &&
+        'bg-primary/20 text-white shadow hover:!bg-primary/20'
+      "
     >
       <template #trailing>
         <Icon name="lucide:arrow-right" class="ml-auto" />
