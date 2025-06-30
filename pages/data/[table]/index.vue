@@ -10,7 +10,8 @@ const pageLimit = 10;
 const fieldSelectArr = ref<string[]>([]);
 const data = ref();
 const table = computed(() => tables.value.find((t) => t.name === tableName));
-
+const { confirm } = useConfirm();
+const toast = useToast();
 fieldSelectArr.value = table.value.columns.map((col: any) => col.name);
 
 async function fetchData() {
@@ -86,7 +87,7 @@ function generateAdvancedColumns(
                   label: "Delete",
                   icon: "lucide:trash-2",
                   color: "error",
-                  onclick: () => console.log("Xoá", row.original),
+                  onClick: async () => await handleDelete(row.original.id),
                 },
               ],
             ],
@@ -109,6 +110,34 @@ function generateAdvancedColumns(
   });
 
   return result;
+}
+
+async function handleDelete(id: number | string) {
+  const ok = await confirm({
+    content: "Are you sure??",
+    title: "",
+  });
+  if (ok) {
+    const { data, error } = await useApiLazy(`/${route.params.table}/${id}`, {
+      method: "delete",
+    });
+    if (data.value.message === "Success") {
+      await fetchData();
+      toast.add({
+        title: "Success",
+        description: "Record deleted",
+        color: "success",
+      });
+    }
+
+    if (error.value) {
+      toast.add({
+        title: "Error",
+        description: error.value?.message,
+        color: "error",
+      });
+    }
+  }
 }
 
 watch(
@@ -182,6 +211,7 @@ onMounted(async () => {
         "
         color="secondary"
         active-color="secondary"
+        v-if="page > 1"
       />
     </div>
   </div>
