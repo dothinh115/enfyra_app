@@ -224,7 +224,7 @@ async function deleteTable() {
           <TableRelations
             v-model="table.relations"
             :table-options="
-              tables?.map((t) => ({ label: t.name, value: t.id }))
+              tables?.map((t) => ({ label: t.name, value: { id: t.id } }))
             "
           />
           <div>

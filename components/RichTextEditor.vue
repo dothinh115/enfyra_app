@@ -37,7 +37,7 @@ onMounted(async () => {
     skin_url: "/tinymce/skins/ui/oxide-dark",
     content_css: "/tinymce/skins/content/dark/content.css",
     icons_url: "/tinymce/icons/default/icons.min.js",
-    plugins: ["link", "lists", "code", "table", "paste"],
+    plugins: ["link", "lists", "code", "table"],
     skin: "oxide-dark",
     external_plugins: {
       link: "/tinymce/plugins/link/plugin.min.js",

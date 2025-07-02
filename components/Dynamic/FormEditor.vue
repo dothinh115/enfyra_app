@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import { computed, resolveComponent, type ShallowRef } from "vue";
+import { computed, resolveComponent } from "vue";
 import { UInput, UTextarea, USwitch, USelect } from "#components";
-import { Editor, EditorContent, useEditor } from "@tiptap/vue-3";
-import StarterKit from "@tiptap/starter-kit";
 
 const props = defineProps<{
   modelValue: Record<string, any>;

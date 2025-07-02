@@ -6,7 +6,7 @@ const props = defineProps<{
   modelValue: any[];
   tableOptions: { label: string; value: any }[];
 }>();
-
+console.log(props.tableOptions);
 const relations = useModel(props, "modelValue");
 const { relations: relationData } = useGlobalState();
 
@@ -128,7 +128,7 @@ function saveRelation() {
           →
           {{
             props.tableOptions.find((t) => t.value === rel.targetTable)
-              ?.label ?? rel.targetTable
+              ?.label ?? rel.targetTable.id
           }}
         </UBadge>
         <UBadge size="xs" color="info" v-if="rel.isNullable">nullable</UBadge>
