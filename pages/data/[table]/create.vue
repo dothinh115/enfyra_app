@@ -42,6 +42,7 @@ const toast = useToast();
 const currentTable = tables.value.find(
   (table) => table.name === route.params.table
 );
+const test = ref("abc");
 const { confirm } = useConfirm();
 const newRecord = ref<Record<string, any>>({});
 

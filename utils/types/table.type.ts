@@ -1,11 +1,12 @@
 export const columnTypes = [
   { label: "UUID", value: "uuid", icon: "ph:key" },
   { label: "Integer", value: "int", icon: "tabler:123" },
-  { label: "Float", value: "float", icon: "mdi:decimal" }, // ← icon mới
+  { label: "Float", value: "float", icon: "mdi:decimal" },
   { label: "Varchar", value: "varchar", icon: "mdi:format-text" },
   { label: "Boolean", value: "boolean", icon: "mdi:toggle-switch" },
   { label: "Date", value: "date", icon: "mdi:calendar" },
   { label: "Text", value: "text", icon: "mdi:file-document-outline" },
+  { label: "Rich Text", value: "richtext", icon: "mdi:format-text" },
 ];
 
 export const relationTypes = [

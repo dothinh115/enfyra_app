@@ -4,10 +4,19 @@ const props = defineProps<{
   modelValue: any;
 }>();
 const emit = defineEmits(["update:modelValue"]);
-
 const showModal = ref(false);
-
 const selectedIds = ref<any[]>([]);
+const { tables } = useGlobalState();
+const route = useRoute();
+let isInverse = false;
+
+let targetTable = tables.value.find(
+  (t) => t.id === props.relationMeta.targetTable.id
+);
+
+if (targetTable?.name === route.params.table) {
+  isInverse = true;
+}
 
 watch(
   () => props.modelValue,
@@ -44,7 +53,9 @@ function removeId(id: any) {
 <template>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
     <UFormField
-      :label="relationMeta.propertyName"
+      :label="
+        isInverse ? relationMeta.inversePropertyName : relationMeta.propertyName
+      "
       class="rounded-lg border border-muted p-4"
     >
       <template #description>

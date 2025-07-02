@@ -52,6 +52,7 @@ function openNewRelationModal() {
   isNew.value = true;
   editingIndex.value = null;
   currentRelation.value = createEmptyRelation();
+  console.log(currentRelation.value);
 }
 
 function editRelation(rel: any, index: number) {
@@ -178,15 +179,15 @@ function saveRelation() {
           v-model="currentRelation"
           tableName="relation_definition"
           :errors="currentRelation?.error"
+          mode="relation"
           :excluded="[
             'id',
             'createdAt',
             'updatedAt',
-            'table',
-            'sourceTable',
             'isSystem',
             'isEager',
             'isInverseEager',
+            'sourceTable',
           ]"
           :type-map="{
             targetTable: {

@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { computed, resolveComponent } from "vue";
+import { computed, resolveComponent, type ShallowRef } from "vue";
 import { UInput, UTextarea, USwitch, USelect } from "#components";
+import { Editor, EditorContent, useEditor } from "@tiptap/vue-3";
+import StarterKit from "@tiptap/starter-kit";
 
 const props = defineProps<{
   modelValue: Record<string, any>;
@@ -8,6 +10,7 @@ const props = defineProps<{
   excluded?: string[];
   includes?: string[];
   errors?: Record<string, string>;
+  mode?: "relation" | "column";
   typeMap?: Record<
     string,
     | string
@@ -19,6 +22,7 @@ const props = defineProps<{
       }
   >;
 }>();
+const mode = ref(props.mode ?? "column");
 
 const { tables } = useGlobalState();
 
@@ -39,12 +43,15 @@ const visibleKeys = computed(() => {
   if (!columnDefTable) return filtered;
 
   // Sắp xếp theo id trong column_definition
-  const sorted = columnDefTable.columns
+  const totalFields =
+    mode.value === "relation"
+      ? [...columnDefTable.relations, ...columnDefTable.columns]
+      : columnDefTable.columns;
+  const sorted = totalFields
     .slice()
     .sort((a: any, b: any) => a.id - b.id)
-    .map((col: any) => col.name)
+    .map((col: any) => col.name || col.propertyName)
     .filter((name: string) => filtered.includes(name));
-
   return sorted;
 });
 
@@ -163,6 +170,23 @@ function getComponentConfigByKey(key: string) {
         },
       },
       fieldProps,
+    };
+  }
+
+  if (finalType === "richtext") {
+    return {
+      component: resolveComponent("RichTextEditor"),
+      componentProps: {
+        "v-model": formData.value[key] ?? "",
+        editable: !disabled,
+        "onUpdate:modelValue": (val: string) => {
+          formData.value[key] = val;
+        },
+      },
+      fieldProps: {
+        ...fieldProps,
+        class: "col-span-2",
+      },
     };
   }
 
