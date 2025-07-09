@@ -1,0 +1,10 @@
+[
+    {
+        "name": "field-validate",
+        "menu": {
+            "mini": "field",
+            "menu": "setting"
+        },
+        "component": "/plugins/field-validate/plugin.js"
+    }
+]

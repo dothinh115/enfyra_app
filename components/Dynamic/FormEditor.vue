@@ -8,7 +8,6 @@ const props = defineProps<{
   excluded?: string[];
   includes?: string[];
   errors?: Record<string, string>;
-  mode?: "relation" | "column";
   typeMap?: Record<
     string,
     | string
@@ -20,9 +19,8 @@ const props = defineProps<{
       }
   >;
 }>();
-const mode = ref(props.mode ?? "column");
 
-const { tables } = useGlobalState();
+const { tables, schemas } = useGlobalState();
 
 const visibleKeys = computed(() => {
   const columnDefTable = tables.value.find((t) => t.name === props.tableName);
@@ -41,15 +39,24 @@ const visibleKeys = computed(() => {
   if (!columnDefTable) return filtered;
 
   // Sắp xếp theo id trong column_definition
-  const totalFields =
-    mode.value === "relation"
-      ? [...columnDefTable.relations, ...columnDefTable.columns]
-      : columnDefTable.columns;
+  const totalFields = schemas.value[props.tableName].definition;
   const sorted = totalFields
     .slice()
-    .sort((a: any, b: any) => a.id - b.id)
+    .sort((a: any, b: any) => {
+      const isSpecial = (field: any) =>
+        field.name === "createdAt" || field.name === "updatedAt";
+      if (isSpecial(a) && !isSpecial(b)) return 1;
+      if (!isSpecial(a) && isSpecial(b)) return -1;
+
+      if (a.fieldType !== b.fieldType) {
+        return a.fieldType === "column" ? -1 : 1;
+      }
+
+      return a.id - b.id;
+    })
     .map((col: any) => col.name || col.propertyName)
     .filter((name: string) => filtered.includes(name));
+
   return sorted;
 });
 
@@ -60,20 +67,22 @@ const formData = computed({
   set: (val) => emit("update:modelValue", val),
 });
 
-const currentTable = computed(() =>
-  tables.value.find((t) => t.name === props.tableName)
-);
-
 const columnMap = computed(() => {
   const map = new Map<string, any>();
-  for (const col of currentTable.value?.columns || []) {
-    map.set(col.name, col);
+  const definition = schemas.value[props.tableName]?.definition || [];
+
+  for (const field of definition) {
+    const key = field.name || field.propertyName;
+    if (key) map.set(key, field);
   }
+
   return map;
 });
 
 function getComponentConfigByKey(key: string) {
   const column = columnMap.value.get(key);
+  const isRelation = column?.fieldType === "relation";
+
   const manualConfig = props.typeMap?.[key];
   const config =
     typeof manualConfig === "string"
@@ -81,7 +90,8 @@ function getComponentConfigByKey(key: string) {
       : manualConfig || {};
 
   const finalType = config.type || column?.type;
-  const disabled = config.disabled ?? false;
+  const isCreatedOrUpdatedAt = key === "createdAt" || key === "updatedAt";
+  const disabled = config.disabled ?? isCreatedOrUpdatedAt;
 
   const commonInputProps = {
     class: "w-full",
@@ -94,14 +104,22 @@ function getComponentConfigByKey(key: string) {
     ...(config.fieldProps || {}),
   };
 
-  if (!column && !finalType) {
+  // 👉 Nếu là relation field → dùng RelationSelectorField
+  if (isRelation) {
     return {
-      component: UInput,
-      componentProps: commonInputProps,
+      component: resolveComponent("RelationInlineEditor"),
+      componentProps: {
+        relationMeta: column,
+        modelValue: formData.value[key],
+        "onUpdate:modelValue": (val: any) => {
+          formData.value[key] = val;
+        },
+      },
       fieldProps,
     };
   }
 
+  // 👉 Kiểu boolean
   if (finalType === "boolean") {
     return {
       component: USwitch,
@@ -114,6 +132,7 @@ function getComponentConfigByKey(key: string) {
     };
   }
 
+  // 👉 Kiểu select
   if (finalType === "select") {
     return {
       component: USelect,
@@ -125,6 +144,7 @@ function getComponentConfigByKey(key: string) {
     };
   }
 
+  // 👉 Mảng đơn giản
   if (finalType === "array") {
     return {
       component: resolveComponent("SimpleArrayEditor"),
@@ -139,6 +159,7 @@ function getComponentConfigByKey(key: string) {
     };
   }
 
+  // 👉 Văn bản dài hoặc json
   if (finalType === "simple-json" || finalType === "text") {
     return {
       component: UTextarea,
@@ -156,6 +177,24 @@ function getComponentConfigByKey(key: string) {
     };
   }
 
+  if (finalType === "code") {
+    return {
+      component: resolveComponent("CodeEditor"),
+      componentProps: {
+        modelValue: formData.value[key] ?? "",
+        language: config.language ?? "javascript",
+        "onUpdate:modelValue": (val: string) => {
+          formData.value[key] = val;
+        },
+      },
+      fieldProps: {
+        ...fieldProps,
+        class: "col-span-2",
+      },
+    };
+  }
+
+  // 👉 Mảng dạng select
   if (finalType === "array-select") {
     return {
       component: resolveComponent("ArraySelectEditor"),
@@ -171,6 +210,7 @@ function getComponentConfigByKey(key: string) {
     };
   }
 
+  // 👉 Richtext
   if (finalType === "richtext") {
     return {
       component: resolveComponent("RichTextEditor"),
@@ -188,6 +228,7 @@ function getComponentConfigByKey(key: string) {
     };
   }
 
+  // 👉 Default: Input thường
   return {
     component: UInput,
     componentProps: {

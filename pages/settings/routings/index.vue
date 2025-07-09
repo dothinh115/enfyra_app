@@ -14,7 +14,7 @@ async function fetchRoute(page = 1, limit: number) {
     "middlewares.*",
     "hooks.*",
   ].join(",");
-  const sort = ["id"].join(",");
+  const sort = ["-createdAt"].join(",");
 
   try {
     const { data } = await useApiLazy("/route_definition", {

@@ -9,6 +9,7 @@ export const useGlobalState = () => {
     "global:form:loading",
     () => false
   );
+  const schemas = useState<any>("global:schemas", () => []);
 
   const toast = useToast();
 
@@ -89,7 +90,7 @@ export const useGlobalState = () => {
   }
 
   async function fetchSetting() {
-    const fieldArr = ["*"];
+    const fieldArr = ["*", "actionPermissionValue.*"];
     const fields = fieldArr.join(",");
     try {
       const { data } = await useApi("/setting_definition", {
@@ -106,13 +107,125 @@ export const useGlobalState = () => {
   }
 
   async function fetchSchema() {
-    return await Promise.all([
+    await Promise.all([
       fetchTable(),
       fetchRelation(),
       fetchRoute(),
       fetchColumn(),
       fetchSetting(),
     ]);
+    schemas.value = convertToEnfyraSchema(tables.value);
+  }
+
+  function convertToEnfyraSchema(input: any[]): Record<string, any> {
+    const schema: Record<string, any> = {};
+    const seenRelationKeys = new Set<string>();
+
+    // 1. Chuẩn hóa bảng
+    for (const t of input) {
+      schema[t.name] = {
+        ...t,
+        definition: [],
+      };
+      delete schema[t.name].columns;
+      delete schema[t.name].relations;
+    }
+
+    // 2. Columns
+    for (const t of input) {
+      for (const col of t.columns || []) {
+        schema[t.name].definition.push({
+          ...col,
+          fieldType: "column",
+        });
+      }
+    }
+
+    for (const tableName in schema) {
+      const def = schema[tableName].definition;
+
+      const shouldInject = (name: string) =>
+        !def.some((d: any) => d.name === name && d.fieldType === "column");
+
+      if (shouldInject("createdAt")) {
+        def.push({
+          name: "createdAt",
+          type: "timestamp",
+          isNullable: false,
+          isSystem: true,
+          isUpdatable: false,
+          isHidden: false,
+          fieldType: "column",
+          isVirtual: true,
+        });
+      }
+
+      if (shouldInject("updatedAt")) {
+        def.push({
+          name: "updatedAt",
+          type: "timestamp",
+          isNullable: false,
+          isSystem: true,
+          isUpdatable: false,
+          isHidden: false,
+          fieldType: "column",
+          isVirtual: true,
+        });
+      }
+    }
+
+    // 3. Relations + inverse
+    for (const t of input) {
+      for (const rel of t.relations || []) {
+        const sourceTable = t.name;
+        if (!rel.propertyName || !rel.targetTable || !rel.sourceTable) continue;
+
+        const directKey = `${sourceTable}:${rel.propertyName}`;
+        if (!seenRelationKeys.has(directKey)) {
+          schema[sourceTable].definition.push({
+            ...rel,
+            name: rel.propertyName,
+            fieldType: "relation",
+          });
+          seenRelationKeys.add(directKey);
+        }
+
+        // Nếu có inverse → sinh chiều ngược lại với target giữ nguyên định dạng object
+        if (rel.inversePropertyName) {
+          const targetTableName = input.find(
+            (t) => t.id === rel.targetTable.id
+          )?.name;
+          const inverseKey = `${targetTableName}:${rel.inversePropertyName}`;
+          if (!seenRelationKeys.has(inverseKey)) {
+            const inverseRel = {
+              ...rel,
+              name: rel.inversePropertyName,
+              propertyName: rel.inversePropertyName,
+              inversePropertyName: rel.propertyName,
+              sourceTable: rel.targetTable,
+              targetTable: rel.sourceTable,
+              type: inverseRelationType(rel.type),
+              fieldType: "relation",
+            };
+            schema[targetTableName].definition.push(inverseRel);
+            seenRelationKeys.add(inverseKey);
+          }
+        }
+      }
+    }
+
+    return schema;
+  }
+
+  function inverseRelationType(type: string): string {
+    switch (type) {
+      case "one-to-many":
+        return "many-to-one";
+      case "many-to-one":
+        return "one-to-many";
+      default:
+        return type;
+    }
   }
 
   return {
@@ -121,6 +234,7 @@ export const useGlobalState = () => {
     columns,
     settings,
     relations,
+    schemas,
     globalForm,
     globalFormLoading,
     fetchSchema,

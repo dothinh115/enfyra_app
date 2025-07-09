@@ -7,6 +7,7 @@ export const columnTypes = [
   { label: "Date", value: "date", icon: "mdi:calendar" },
   { label: "Text", value: "text", icon: "mdi:file-document-outline" },
   { label: "Rich Text", value: "richtext", icon: "mdi:format-text" },
+  { label: "Code", value: "code", icon: "mdi:code-braces-box" },
 ];
 
 export const relationTypes = [

@@ -6,17 +6,6 @@ const props = defineProps<{
 const emit = defineEmits(["update:modelValue"]);
 const showModal = ref(false);
 const selectedIds = ref<any[]>([]);
-const { tables } = useGlobalState();
-const route = useRoute();
-let isInverse = false;
-
-let targetTable = tables.value.find(
-  (t) => t.id === props.relationMeta.targetTable.id
-);
-
-if (targetTable?.name === route.params.table) {
-  isInverse = true;
-}
 
 watch(
   () => props.modelValue,
@@ -51,60 +40,42 @@ function removeId(id: any) {
 </script>
 
 <template>
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-    <UFormField
-      :label="
-        isInverse ? relationMeta.inversePropertyName : relationMeta.propertyName
-      "
-      class="rounded-lg border border-muted p-4"
+  <div class="flex flex-wrap gap-2 items-center">
+    <UBadge
+      v-for="item in selectedIds"
+      :key="item.id"
+      size="lg"
+      color="primary"
+      variant="soft"
+      class="flex items-center gap-1"
     >
-      <template #description>
-        <span
-          class="block min-h-[1.25rem] text-xs text-muted-foreground italic"
-        >
-          {{ relationMeta.description || "" }}
-        </span>
-      </template>
+      {{ item.id }}
+      <button
+        @click.stop="removeId(item.id)"
+        class="ml-1 text-xs hover:text-red-500 cursor-pointer"
+        title="Xoá"
+      >
+        ✕
+      </button>
+    </UBadge>
 
-      <div class="flex flex-wrap gap-2 items-center">
-        <UBadge
-          v-for="item in selectedIds"
-          :key="item.id"
-          size="lg"
-          color="primary"
-          variant="soft"
-          class="flex items-center gap-1"
-        >
-          {{ item.id }}
-          <button
-            @click.stop="removeId(item.id)"
-            class="ml-1 text-xs hover:text-red-500"
-            title="Xoá"
-          >
-            ✕
-          </button>
-        </UBadge>
-
-        <UButton
-          icon="lucide:pencil"
-          size="sm"
-          variant="outline"
-          color="secondary"
-          @click="showModal = true"
-          class="rounded-full"
-        />
-      </div>
-
-      <UModal v-model:open="showModal">
-        <template #body>
-          <RelationSelectorTable
-            :relationMeta="relationMeta"
-            :selected-ids="selectedIds"
-            :multiple="relationMeta.type === 'many-to-many'"
-            @apply="applySelection"
-          />
-        </template>
-      </UModal>
-    </UFormField>
+    <UButton
+      icon="lucide:pencil"
+      size="md"
+      variant="outline"
+      color="secondary"
+      @click="showModal = true"
+      class="rounded-full"
+    />
   </div>
+  <Teleport to="body">
+    <UDrawer v-model:open="showModal" direction="right" class="min-w-xl">
+      <template #body>
+        <RelationSelectorTable
+          :relationMeta="relationMeta"
+          :selected-ids="selectedIds"
+          :multiple="relationMeta.type === 'many-to-many'"
+          @apply="applySelection"
+      /></template> </UDrawer
+  ></Teleport>
 </template>

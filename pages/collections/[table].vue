@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { reactive, watch, ref, nextTick } from "vue";
 import { useRoute } from "vue-router";
 import { useGlobalState } from "~/composables/useGlobalState";
 import { useConfirm } from "~/composables/useConfirm";
@@ -11,39 +10,31 @@ const { confirm } = useConfirm();
 const toast = useToast();
 
 const tableName = ref(route.params.table as string);
-const table = reactive<any>({});
+const table = ref<any>();
 
-function assignToTable(source: any) {
-  Object.assign(table, JSON.parse(JSON.stringify(source)));
-
-  table.uniques ||= [];
-  table.indexes ||= [];
-  table.columns ||= [];
-  table.relations ||= [];
+const { data } = await useApiLazy("/table_definition", {
+  query: {
+    fields: "*,columns.*,relations.*",
+    filter: {
+      name: {
+        _eq: route.params.table,
+      },
+    },
+  },
+});
+if (data.value.data) {
+  table.value = data.value.data[0];
 }
 
 watch(
-  () => route.params.table,
-  async (newTableName) => {
-    tableName.value = newTableName as string;
-    const found = tables.value.find((t) => t.name === tableName.value);
-    if (found) {
-      assignToTable(found);
-      await nextTick();
-    }
-  },
-  { immediate: true }
-);
-
-watch(
-  () => table.columns.map((col: any) => col.type),
+  () => table.value.columns.map((col: any) => col.type),
   (newTypes, oldTypes) => {
     const notIndexable = ["text", "varchar", "simple-json"];
     newTypes.forEach((type: any, i: number) => {
       if (type !== oldTypes[i]) {
         // 👉 Cột thứ i vừa đổi type
         if (notIndexable.includes(type)) {
-          table.columns[i].isIndex = false;
+          table.value.columns[i].isIndex = false;
         }
       }
     });
@@ -78,11 +69,11 @@ function validateRelation(rel: any) {
 
 function validateAll() {
   let isValid = true;
-  for (const col of table.columns as any) {
+  for (const col of table.value.columns as any) {
     validateColumn(col);
     if (col.error?.name || col.error?.type) isValid = false;
   }
-  for (const rel of table.relations as any) {
+  for (const rel of table.value.relations as any) {
     validateRelation(rel);
     if (rel.error?.propertyName || rel.error?.type || rel.error?.targetTable)
       isValid = false;
@@ -112,24 +103,6 @@ async function save() {
   await patchTable();
 }
 
-function getCleanTablePayload() {
-  const clone = JSON.parse(JSON.stringify(table));
-
-  for (const col of clone.columns) {
-    delete col._editing;
-    delete col.error;
-  }
-  for (const rel of clone.relations) {
-    delete rel._editing;
-    delete rel.error;
-  }
-
-  if (!clone.uniques?.length) delete clone.uniques;
-  if (!clone.indexes?.length) delete clone.indexes;
-
-  return clone;
-}
-
 async function patchTable() {
   const toastId = toast.add({
     title: "Đang xử lý...",
@@ -137,21 +110,17 @@ async function patchTable() {
     description: "Đang reload schema...",
   });
 
-  const payload = getCleanTablePayload();
-
-  const { data, error } = await useApiLazy(`/table_definition/${table.id}`, {
-    method: "patch",
-    body: payload,
-  });
+  const { data, error } = await useApiLazy(
+    `/table_definition/${table.value.id}`,
+    {
+      method: "patch",
+      body: table.value,
+    }
+  );
 
   toast.remove(toastId.id);
   if (data.value) {
     await fetchSchema();
-    const updated = tables.value.find((t) => t.id === table.id);
-    if (updated) {
-      assignToTable(updated);
-      await nextTick();
-    }
     toast.add({
       title: "Thành công",
       color: "success",
@@ -172,7 +141,7 @@ async function handleDelete() {
   globalFormLoading.value = true;
 
   const ok = await confirm({
-    content: `Bạn chắc chắn muốn xoá bảng ${table.name}?`,
+    content: `Bạn chắc chắn muốn xoá bảng ${table.value.name}?`,
   });
   if (!ok) {
     globalFormLoading.value = false;
@@ -188,9 +157,12 @@ async function deleteTable() {
     color: "info",
     description: "Đang reload schema...",
   });
-  const { data, error } = await useApiLazy(`/table_definition/${table.id}`, {
-    method: "delete",
-  });
+  const { data, error } = await useApiLazy(
+    `/table_definition/${table.value.id}`,
+    {
+      method: "delete",
+    }
+  );
   toast.remove(toastId.id);
 
   if (data.value) {

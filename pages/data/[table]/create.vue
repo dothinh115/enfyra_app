@@ -1,66 +1,22 @@
-<template>
-  <UForm :state="newRecord" @submit="letsCreate" ref="globalForm">
-    <UCard variant="subtle">
-      <template #header>
-        <div class="flex items-center justify-between">
-          <div class="text-lg font-semibold capitalize">
-            {{ route.params.table }}: new record
-          </div>
-        </div>
-      </template>
-
-      <template #default>
-        <DynamicFormEditor
-          :table-name="(route.params.table as string)"
-          v-model="newRecord"
-        />
-
-        <!-- Hiển thị field quan hệ -->
-        <div class="mt-6 space-y-4">
-          <div v-for="relation in allRelations || []" :key="relation.id">
-            <RelationInlineEditor
-              :relationMeta="relation"
-              v-model="
-                newRecord[
-                  relation.targetTable.id === currentTable.id
-                    ? relation.inversePropertyName
-                    : relation.propertyName
-                ]
-              "
-            />
-          </div>
-        </div>
-      </template>
-    </UCard>
-  </UForm>
-</template>
-
 <script setup lang="ts">
 const route = useRoute();
-const { tables, globalForm, globalFormLoading, relations } = useGlobalState();
+const { tables, globalForm, globalFormLoading, schemas } = useGlobalState();
 const toast = useToast();
 const currentTable = tables.value.find(
   (table) => table.name === route.params.table
 );
-const test = ref("abc");
 const { confirm } = useConfirm();
 const newRecord = ref<Record<string, any>>({});
-
-const allRelations = computed(() => {
-  return [
-    ...(currentTable?.relations || []),
-    ...relations.value.filter((rel) => rel.targetTable.id === currentTable.id),
-  ];
-});
 
 function createNewRecord() {
   if (!currentTable) return;
   const newRecord: any = {};
-  for (const col of currentTable.columns) {
+  for (const col of schemas.value[route.params.table as string].definition) {
     if (col.name === "id") continue;
-    newRecord[col.name] = !col.isNullable ? col.defaultValue : null;
+    newRecord[col.name] = !currentTable.columns[col.name]?.isNullable
+      ? currentTable.columns[col.name]?.defaultValue
+      : null;
   }
-
   return newRecord;
 }
 
@@ -104,3 +60,25 @@ async function handleCreate() {
   }
 }
 </script>
+
+<template>
+  <UForm :state="newRecord" @submit="letsCreate" ref="globalForm">
+    <UCard variant="subtle">
+      <template #header>
+        <div class="flex items-center justify-between">
+          <div class="text-lg font-semibold capitalize">
+            {{ route.params.table }}: new record
+          </div>
+        </div>
+      </template>
+
+      <template #default>
+        <DynamicFormEditor
+          :table-name="(route.params.table as string)"
+          v-model="newRecord"
+          :excluded="['createdAt', 'updatedAt']"
+        />
+      </template>
+    </UCard>
+  </UForm>
+</template>

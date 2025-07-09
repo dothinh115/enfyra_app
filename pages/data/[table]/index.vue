@@ -36,6 +36,7 @@ const actionCol: ColumnConfig = {
   size: 40,
   cell: ({ row }) =>
     h("div", { class: "flex justify-end" }, [
+      // @ts-ignore
       h(
         resolveComponent("UDropdownMenu"),
         {
@@ -44,14 +45,13 @@ const actionCol: ColumnConfig = {
               {
                 label: "Edit",
                 icon: "lucide:pencil",
-                onClick: async () =>
-                  await navigateTo(`${route.path}/${row.id}`),
+                onClick: () => navigateTo(`${route.path}/${row.id}`),
               },
               {
                 label: "Delete",
                 icon: "lucide:trash-2",
                 color: "error",
-                onClick: async () => await handleDelete(row.id),
+                onClick: () => handleDelete(row.id),
               },
             ],
           ],

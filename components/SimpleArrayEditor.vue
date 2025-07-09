@@ -1,10 +1,21 @@
 <script setup lang="ts">
 const emit = defineEmits(["update:modelValue"]);
+
 const model = defineModel<any[]>();
+
+const props = defineProps<{
+  options: Record<string, any>[];
+  labelKey: string;
+  valueKey: string;
+  disabled?: boolean;
+}>();
+
 const input = ref("");
+
 if (!Array.isArray(model.value)) {
   model.value = [];
 }
+
 function addItem() {
   const val = input.value.trim();
   if (val && !model.value?.includes(val)) {

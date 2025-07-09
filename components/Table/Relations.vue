@@ -6,7 +6,6 @@ const props = defineProps<{
   modelValue: any[];
   tableOptions: { label: string; value: any }[];
 }>();
-console.log(props.tableOptions);
 const relations = useModel(props, "modelValue");
 const { relations: relationData } = useGlobalState();
 
@@ -52,7 +51,6 @@ function openNewRelationModal() {
   isNew.value = true;
   editingIndex.value = null;
   currentRelation.value = createEmptyRelation();
-  console.log(currentRelation.value);
 }
 
 function editRelation(rel: any, index: number) {
@@ -179,7 +177,6 @@ function saveRelation() {
           v-model="currentRelation"
           tableName="relation_definition"
           :errors="currentRelation?.error"
-          mode="relation"
           :excluded="[
             'id',
             'createdAt',

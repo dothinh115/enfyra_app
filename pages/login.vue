@@ -9,7 +9,7 @@
           <div class="flex justify-center items-center gap-3">
             <Icon name="lucide:shield-check" class="text-primary" size="40" />
             <h1 class="lg:text-3xl md:text-xl text-lg font-bold text-primary">
-              Dynamiq CMS
+              Enfyra CMS
             </h1>
           </div>
           <p class="text-sm text-gray-400">Đăng nhập để tiếp tục</p>

@@ -1,44 +1,3 @@
-<template>
-  <UForm :state="currentRecord" @submit="letsCreate" ref="globalForm">
-    <UCard variant="subtle">
-      <template #header>
-        <div class="flex items-center justify-between">
-          <div class="text-lg font-semibold capitalize">
-            {{ route.params.table }}: new record
-          </div>
-        </div>
-      </template>
-
-      <template #default>
-        <DynamicFormEditor
-          :table-name="(route.params.table as string)"
-          v-model="currentRecord"
-          :excluded="['id']"
-        />
-
-        <!-- Hiển thị field quan hệ -->
-        <div class="mt-6 space-y-4">
-          <div
-            v-for="relation in allRelations || []"
-            :key="relation.propertyName"
-          >
-            <RelationInlineEditor
-              :relationMeta="relation"
-              v-model="
-                currentRecord[
-                  relation.targetTable.id === currentTable.id
-                    ? relation.inversePropertyName
-                    : relation.propertyName
-                ]
-              "
-            />
-          </div>
-        </div>
-      </template>
-    </UCard>
-  </UForm>
-</template>
-
 <script setup lang="ts">
 const route = useRoute();
 const { tables, globalForm, globalFormLoading, relations } = useGlobalState();
@@ -111,3 +70,25 @@ async function handleUpdate() {
   }
 }
 </script>
+
+<template>
+  <UForm :state="currentRecord" @submit="letsCreate" ref="globalForm">
+    <UCard variant="subtle">
+      <template #header>
+        <div class="flex items-center justify-between">
+          <div class="text-lg font-semibold capitalize">
+            {{ route.params.table }}: new record
+          </div>
+        </div>
+      </template>
+
+      <template #default>
+        <DynamicFormEditor
+          :table-name="(route.params.table as string)"
+          v-model="currentRecord"
+          :excluded="['id']"
+        />
+      </template>
+    </UCard>
+  </UForm>
+</template>
