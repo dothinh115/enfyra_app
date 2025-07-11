@@ -122,7 +122,7 @@ watch(
             disabled: true,
           },
           isEnabled: {
-            disabled: true,
+            disabled: detail?.isSystem === true,
           },
         }"
       />

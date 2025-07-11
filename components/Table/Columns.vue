@@ -107,11 +107,10 @@ function validate(property?: string) {
   if (
     !currentColumn.value?.isNullable &&
     !currentColumn.value?.isGenerated &&
-    (currentColumn.value?.default === "" ||
-      currentColumn.value?.default === undefined)
+    !currentColumn.value?.defaultValue
   ) {
-    errors.value.default = "Không được để trống!";
-  } else delete errors.value.default;
+    errors.value.defaultValue = "Không được để trống!";
+  } else delete errors.value.defaultValue;
 }
 
 onMounted(() => {

@@ -2,11 +2,13 @@
 const props = defineProps<{
   relationMeta: any;
   modelValue: any;
+  disabled?: boolean;
 }>();
 const emit = defineEmits(["update:modelValue"]);
 const showModal = ref(false);
 const selectedIds = ref<any[]>([]);
-
+const { schemas } = useGlobalState();
+console.log(schemas.value);
 watch(
   () => props.modelValue,
   () => {
@@ -54,6 +56,7 @@ function removeId(id: any) {
         @click.stop="removeId(item.id)"
         class="ml-1 text-xs hover:text-red-500 cursor-pointer"
         title="Xoá"
+        v-if="!props.disabled"
       >
         ✕
       </button>
@@ -69,13 +72,38 @@ function removeId(id: any) {
     />
   </div>
   <Teleport to="body">
-    <UDrawer v-model:open="showModal" direction="right" class="min-w-xl">
+    <UDrawer
+      v-model:open="showModal"
+      direction="right"
+      class="min-w-xl"
+      :ui="{
+        header:
+          'border-b border-muted text-muted pb-2 flex items-center justify-between',
+      }"
+    >
+      <template #header>
+        <h2>
+          {{ props.relationMeta.propertyName }}
+        </h2>
+        <UButton
+          @click="showModal = false"
+          icon="lucide:x"
+          color="error"
+          variant="ghost"
+          size="xl"
+        />
+      </template>
       <template #body>
         <RelationSelectorTable
           :relationMeta="relationMeta"
           :selected-ids="selectedIds"
-          :multiple="relationMeta.type === 'many-to-many'"
+          :multiple="
+            relationMeta.type === 'many-to-many' ||
+            relationMeta.type === 'one-to-many'
+          "
           @apply="applySelection"
-      /></template> </UDrawer
+          :disabled="props.disabled"
+        />
+      </template> </UDrawer
   ></Teleport>
 </template>

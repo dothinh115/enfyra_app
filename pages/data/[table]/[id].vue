@@ -1,11 +1,8 @@
 <script setup lang="ts">
 const route = useRoute();
-const { tables, globalForm, globalFormLoading, relations } = useGlobalState();
+const { globalForm, globalFormLoading } = useGlobalState();
 const toast = useToast();
 
-const currentTable = tables.value.find(
-  (table) => table.name === route.params.table
-);
 const { confirm } = useConfirm();
 const currentRecord = ref<Record<string, any>>({});
 
@@ -22,13 +19,6 @@ const { data } = await useApiLazy(`/${route.params.table}`, {
 
 onMounted(() => {
   currentRecord.value = data.value.data[0];
-});
-
-const allRelations = computed(() => {
-  return [
-    ...(currentTable?.relations || []),
-    ...relations.value.filter((rel) => rel.targetTable.id === currentTable.id),
-  ];
 });
 
 async function letsCreate() {

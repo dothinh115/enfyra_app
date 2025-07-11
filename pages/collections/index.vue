@@ -3,7 +3,7 @@ const router = useRouter();
 const { tables, globalForm, globalFormLoading, fetchSchema } = useGlobalState();
 const { confirm } = useConfirm();
 const toast = useToast();
-
+const errors = ref<Record<string, string>>({});
 const table = reactive<any>({
   name: "",
   description: "",
@@ -41,60 +41,70 @@ watch(
 );
 
 function validateColumn(col: any) {
-  col.error = {};
-  if (!col.isNullable && !col.name?.trim())
-    col.error.name = "Tên cột là bắt buộc";
-  else if (!tableNameOrFieldRegexCheck.test(col.name?.trim()))
-    col.error.name =
-      "Chỉ cho phép chữ cái, số, _ và không bắt đầu bằng số hoặc _!";
-  else col.error.name = "";
-  if (!col.type?.trim()) col.error.type = "Phải chọn kiểu dữ liệu";
+  if (!col.name?.trim()) {
+    errors.value["name"] = "Tên cột là bắt buộc";
+  } else if (!tableNameOrFieldRegexCheck.test(col.name.trim())) {
+    errors.value["name"] = "Tên không hợp lệ";
+  } else {
+    delete errors.value["name"];
+  }
+
+  if (!col.type?.trim()) {
+    errors.value["type"] = "Phải chọn kiểu dữ liệu";
+  } else {
+    delete errors.value["type"];
+  }
 }
 
 function validateRelation(rel: any) {
-  rel.error = {};
-  if (!rel.propertyName?.trim())
-    rel.error.propertyName = "Tên quan hệ là bắt buộc";
-  else if (!tableNameOrFieldRegexCheck.test(rel.propertyName?.trim()))
-    rel.error.name =
-      "Chỉ cho phép chữ cái, số, _ và không bắt đầu bằng số hoặc _!";
-  else rel.error.name = "";
-  if (!rel.type?.trim()) rel.error.type = "Phải chọn loại quan hệ";
-  else rel.error.type = "";
-  if (rel.targetTable === null || rel.targetTable === undefined)
-    rel.error.targetTable = "Phải chọn bảng đích";
-  else rel.error.targetTable = "";
+  if (!rel.propertyName?.trim()) {
+    errors.value.propertyName = "Tên quan hệ là bắt buộc";
+    return false;
+  } else if (!tableNameOrFieldRegexCheck.test(rel.propertyName.trim())) {
+    errors.value.propertyName = "Tên không hợp lệ";
+    return false;
+  }
+
+  if (!rel.type?.trim()) {
+    errors.value.type = "Phải chọn loại quan hệ";
+    return false;
+  }
+
+  if (!rel.targetTable) {
+    errors.value.targetTable = "Phải chọn bảng đích";
+    return false;
+  }
+
+  delete errors.value.propertyName;
+  delete errors.value.type;
+  delete errors.value.targetTable;
+  return true;
 }
 
 function validateAll() {
-  let isValid = true;
+  errors.value = {};
 
+  // Validate table name
   const name = table.name.trim();
   if (name === "") {
-    nameError.value = "Không được để trống!";
-    isValid = false;
+    errors.value["name"] = "Không được để trống!";
   } else if (!tableNameOrFieldRegexCheck.test(name)) {
-    nameError.value =
-      "Chỉ cho phép chữ cái, số, _ và không bắt đầu bằng số hoặc _!";
-    isValid = false;
+    errors.value["name"] = "Tên không hợp lệ";
   } else if (name === "table") {
-    nameError.value = "Tên table không được là `table`";
-    isValid = false;
-  } else {
-    nameError.value = "";
-    isValid = true;
+    errors.value["name"] = "Tên bảng không được là `table`";
   }
 
-  for (const col of table.columns as any[]) {
-    validateColumn(col);
-    if (col.error?.name || col.error?.type) isValid = false;
+  // Gọi validate cho từng column và relation
+  for (const col of table.columns) {
+    validateColumn(col); // tự gán vào error.value
   }
-  for (const rel of table.relations as any[]) {
+
+  for (const rel of table.relations) {
     validateRelation(rel);
-    if (rel.error?.propertyName || rel.error?.type || rel.error?.targetTable)
-      isValid = false;
   }
-  return isValid;
+
+  // Nếu error vẫn trống → hợp lệ
+  return Object.keys(errors.value).length === 0;
 }
 
 function getCleanTablePayload() {

@@ -13,6 +13,7 @@ async function fetchRoute(page = 1, limit: number) {
     "handlers.*",
     "middlewares.*",
     "hooks.*",
+    "publishedMethods.*",
   ].join(",");
   const sort = ["-createdAt"].join(",");
 
@@ -38,6 +39,7 @@ watch(
     if (!newVal) page.value = 1;
     else page.value = Number(newVal);
     await fetchRoute(page.value, pageLimit);
+    console.log(routes.value);
   },
   {
     immediate: true,
@@ -97,7 +99,7 @@ async function toggleEnabled(route: any) {
                       size="xs"
                       color="secondary"
                     >
-                      {{ m }}
+                      {{ m.method }}
                     </UBadge>
                   </div>
                 </div>

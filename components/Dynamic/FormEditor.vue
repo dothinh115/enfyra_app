@@ -15,50 +15,14 @@ const props = defineProps<{
         type?: string;
         disabled?: boolean;
         placeholder?: string;
+        componentProps?: Record<string, any>;
+        fieldProps?: Record<string, any>;
         [key: string]: any;
       }
   >;
 }>();
 
 const { tables, schemas } = useGlobalState();
-
-const visibleKeys = computed(() => {
-  const columnDefTable = tables.value.find((t) => t.name === props.tableName);
-  const allKeys = Object.keys(formData.value || {});
-
-  let filtered: string[];
-
-  if (props.includes?.length) {
-    filtered = allKeys.filter((key) => props.includes!.includes(key));
-  } else if (props.excluded?.length) {
-    filtered = allKeys.filter((key) => !props.excluded!.includes(key));
-  } else {
-    filtered = allKeys;
-  }
-
-  if (!columnDefTable) return filtered;
-
-  // Sắp xếp theo id trong column_definition
-  const totalFields = schemas.value[props.tableName].definition;
-  const sorted = totalFields
-    .slice()
-    .sort((a: any, b: any) => {
-      const isSpecial = (field: any) =>
-        field.name === "createdAt" || field.name === "updatedAt";
-      if (isSpecial(a) && !isSpecial(b)) return 1;
-      if (!isSpecial(a) && isSpecial(b)) return -1;
-
-      if (a.fieldType !== b.fieldType) {
-        return a.fieldType === "column" ? -1 : 1;
-      }
-
-      return a.id - b.id;
-    })
-    .map((col: any) => col.name || col.propertyName)
-    .filter((name: string) => filtered.includes(name));
-
-  return sorted;
-});
 
 const emit = defineEmits(["update:modelValue"]);
 
@@ -70,13 +34,43 @@ const formData = computed({
 const columnMap = computed(() => {
   const map = new Map<string, any>();
   const definition = schemas.value[props.tableName]?.definition || [];
-
   for (const field of definition) {
     const key = field.name || field.propertyName;
     if (key) map.set(key, field);
   }
-
   return map;
+});
+
+const visibleKeys = computed(() => {
+  const table = tables.value.find((t) => t.name === props.tableName);
+  const allKeys = Object.keys(formData.value || {});
+  let filtered: string[];
+
+  if (props.includes?.length) {
+    filtered = allKeys.filter((key) => props.includes!.includes(key));
+  } else if (props.excluded?.length) {
+    filtered = allKeys.filter((key) => !props.excluded!.includes(key));
+  } else {
+    filtered = allKeys;
+  }
+
+  if (!table) return filtered;
+
+  const definition = schemas.value[props.tableName].definition || [];
+  const sorted = definition
+    .slice()
+    .sort((a: any, b: any) => {
+      const isSpecial = (f: any) =>
+        f.name === "createdAt" || f.name === "updatedAt";
+      if (isSpecial(a) && !isSpecial(b)) return 1;
+      if (!isSpecial(a) && isSpecial(b)) return -1;
+      if (a.fieldType !== b.fieldType) return a.fieldType === "column" ? -1 : 1;
+      return a.id - b.id;
+    })
+    .map((col: any) => col.name || col.propertyName)
+    .filter((name: string) => filtered.includes(name));
+
+  return sorted;
 });
 
 function getComponentConfigByKey(key: string) {
@@ -90,25 +84,25 @@ function getComponentConfigByKey(key: string) {
       : manualConfig || {};
 
   const finalType = config.type || column?.type;
-  const isCreatedOrUpdatedAt = key === "createdAt" || key === "updatedAt";
-  const disabled = config.disabled ?? isCreatedOrUpdatedAt;
-
-  const commonInputProps = {
-    class: "w-full",
-    placeholder: config.placeholder || column?.placeholder || key,
-    disabled,
-    ...(config.componentProps || {}),
-  };
+  const isSystemField = key === "createdAt" || key === "updatedAt";
+  const disabled = config.disabled ?? isSystemField;
 
   const fieldProps = {
-    ...(config.fieldProps || {}),
+    ...config.fieldProps,
   };
 
-  // 👉 Nếu là relation field → dùng RelationSelectorField
+  const componentPropsBase = {
+    disabled,
+    placeholder: config.placeholder || column?.placeholder || key,
+    class: "w-full",
+    ...config.componentProps,
+  };
+
   if (isRelation) {
     return {
       component: resolveComponent("RelationInlineEditor"),
       componentProps: {
+        ...componentPropsBase,
         relationMeta: column,
         modelValue: formData.value[key],
         "onUpdate:modelValue": (val: any) => {
@@ -119,37 +113,33 @@ function getComponentConfigByKey(key: string) {
     };
   }
 
-  // 👉 Kiểu boolean
   if (finalType === "boolean") {
     return {
       component: USwitch,
       componentProps: {
+        ...componentPropsBase,
         label: column?.description || key,
-        disabled,
-        ...(config.componentProps || {}),
       },
       fieldProps,
     };
   }
 
-  // 👉 Kiểu select
   if (finalType === "select") {
     return {
       component: USelect,
       componentProps: {
-        ...commonInputProps,
+        ...componentPropsBase,
         items: config.options ?? [],
       },
       fieldProps,
     };
   }
 
-  // 👉 Mảng đơn giản
   if (finalType === "array") {
     return {
       component: resolveComponent("SimpleArrayEditor"),
       componentProps: {
-        ...commonInputProps,
+        ...componentPropsBase,
         modelValue: formData.value[key] ?? [],
         "onUpdate:modelValue": (val: string[]) => {
           formData.value[key] = val;
@@ -159,12 +149,11 @@ function getComponentConfigByKey(key: string) {
     };
   }
 
-  // 👉 Văn bản dài hoặc json
   if (finalType === "simple-json" || finalType === "text") {
     return {
       component: UTextarea,
       componentProps: {
-        ...commonInputProps,
+        ...componentPropsBase,
         rows: 4,
         variant: "subtle",
         autoresize: true,
@@ -181,6 +170,7 @@ function getComponentConfigByKey(key: string) {
     return {
       component: resolveComponent("CodeEditor"),
       componentProps: {
+        ...componentPropsBase,
         modelValue: formData.value[key] ?? "",
         language: config.language ?? "javascript",
         "onUpdate:modelValue": (val: string) => {
@@ -194,12 +184,11 @@ function getComponentConfigByKey(key: string) {
     };
   }
 
-  // 👉 Mảng dạng select
   if (finalType === "array-select") {
     return {
       component: resolveComponent("ArraySelectEditor"),
       componentProps: {
-        ...commonInputProps,
+        ...componentPropsBase,
         options: config.options ?? [],
         modelValue: formData.value[key] ?? [],
         "onUpdate:modelValue": (val: string[]) => {
@@ -210,11 +199,11 @@ function getComponentConfigByKey(key: string) {
     };
   }
 
-  // 👉 Richtext
   if (finalType === "richtext") {
     return {
       component: resolveComponent("RichTextEditor"),
       componentProps: {
+        ...componentPropsBase,
         "v-model": formData.value[key] ?? "",
         editable: !disabled,
         "onUpdate:modelValue": (val: string) => {
@@ -228,11 +217,10 @@ function getComponentConfigByKey(key: string) {
     };
   }
 
-  // 👉 Default: Input thường
   return {
     component: UInput,
     componentProps: {
-      ...commonInputProps,
+      ...componentPropsBase,
       type: finalType === "int" ? "number" : "text",
     },
     fieldProps,
@@ -247,7 +235,7 @@ function getComponentConfigByKey(key: string) {
         v-bind="getComponentConfigByKey(key).fieldProps"
         :label="key"
         class="rounded-lg border border-muted p-4"
-        :error="props.errors && props.errors[key]"
+        :error="props.errors?.[key]"
       >
         <template #description>
           <span
