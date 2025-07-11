@@ -237,7 +237,7 @@ function getComponentConfigByKey(key: string) {
         class="rounded-lg border border-muted p-4"
         :error="props.errors?.[key]"
       >
-        <template #description>
+        <template #description v-if="columnMap.get(key)?.description">
           <span
             class="block min-h-[1.25rem] text-xs text-muted-foreground italic"
           >
