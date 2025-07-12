@@ -207,6 +207,7 @@ export const useGlobalState = () => {
               type: inverseRelationType(rel.type),
               fieldType: "relation",
             };
+            delete inverseRel.id;
             schema[targetTableName].definition.push(inverseRel);
             seenRelationKeys.add(inverseKey);
           }

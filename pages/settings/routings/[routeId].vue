@@ -108,7 +108,6 @@ watch(
           'isSystem',
           'routePermissions',
           'middlewares',
-          'handlers',
           'hooks',
           'targetTables',
         ]"
@@ -126,34 +125,6 @@ watch(
           },
         }"
       />
-    </UCard>
-
-    <!-- Optional detail info -->
-    <UCard class="mt-6" v-if="detail.middlewares?.length">
-      <template #header>Middlewares</template>
-      <ul class="list-disc ml-6 text-sm text-gray-200">
-        <li v-for="m in detail.middlewares" :key="m.id">
-          {{ m.name || "Unnamed" }}
-        </li>
-      </ul>
-    </UCard>
-
-    <UCard class="mt-4" v-if="detail.hooks?.length">
-      <template #header>Hooks</template>
-      <ul class="list-disc ml-6 text-sm text-gray-200">
-        <li v-for="h in detail.hooks" :key="h.id">
-          {{ h.name || "Unnamed" }}
-        </li>
-      </ul>
-    </UCard>
-
-    <UCard class="mt-4" v-if="detail.handlers?.length">
-      <template #header>Handlers</template>
-      <ul class="list-disc ml-6 text-sm text-gray-200">
-        <li v-for="h in detail.handlers" :key="h.id">
-          {{ h.name || "Unnamed" }}
-        </li>
-      </ul>
     </UCard>
   </UForm>
 </template>

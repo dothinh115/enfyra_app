@@ -7,8 +7,6 @@ const props = defineProps<{
 const emit = defineEmits(["update:modelValue"]);
 const showModal = ref(false);
 const selectedIds = ref<any[]>([]);
-const { schemas } = useGlobalState();
-console.log(schemas.value);
 watch(
   () => props.modelValue,
   () => {

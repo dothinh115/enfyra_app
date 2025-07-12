@@ -17,6 +17,12 @@ const showCreateDrawer = ref(false);
 const createForm = ref<Record<string, any>>({});
 const creating = ref(false);
 const createErrors = ref<Record<string, string>>({});
+const detailModal = ref(false);
+const detailRecord = ref<Record<string, any>>({});
+function viewDetails(item: Record<string, any>) {
+  detailRecord.value = item;
+  detailModal.value = true;
+}
 
 const { schemas } = useGlobalState();
 watch(
@@ -38,6 +44,7 @@ async function fetchData() {
       page: page.value,
       limit,
       meta: "totalCount",
+      sort: "-createdAt",
     },
   });
   data.value = item.value;
@@ -100,7 +107,6 @@ async function createNewRecord() {
 function initCreateForm() {
   if (!targetTable?.name) return;
   const definition = schemas.value[targetTable.name]?.definition || [];
-
   const initial: Record<string, any> = {};
 
   for (const field of definition) {
@@ -108,10 +114,10 @@ function initCreateForm() {
     if (
       !key ||
       ["id", "createdAt", "updatedAt"].includes(field.name) ||
-      field.fieldType !== "column"
+      (props.relationMeta.inversePropertyName &&
+        field.name === props.relationMeta.inversePropertyName)
     )
       continue;
-
     // Khởi tạo theo type
     switch (field.type) {
       case "boolean":
@@ -156,6 +162,11 @@ watch(
     total.value = data.value?.meta?.totalCount || 0;
   }
 );
+function formatValue(value: any): string {
+  if (value === null || value === undefined) return "—";
+  if (typeof value === "object") return JSON.stringify(value, null, 2);
+  return String(value);
+}
 
 onMounted(async () => {
   await fetchData();
@@ -185,18 +196,26 @@ function apply() {
 }
 
 function getDisplayLabel(item: Record<string, any>): string {
-  const keys = Object.keys(item);
-  if (keys.length === 0) return `ID: ${item.id}`;
+  if (!item || typeof item !== "object") return "";
 
-  // Ưu tiên theo name, title, propertyName
-  const preferred = keys.find(
-    (k) => ["name", "title", "propertyName"].includes(k) && k !== "id"
-  );
-  if (preferred && item[preferred]) return item[preferred];
+  // Ưu tiên các key phổ biến
+  const preferredKeys = ["name", "title", "propertyName", "path"];
+  for (const key of preferredKeys) {
+    if (key in item && item[key] !== undefined && item[key] !== null) {
+      const val = String(item[key]).trim();
+      if (val !== "") return val;
+    }
+  }
 
-  // Nếu không có ưu tiên → lấy field đầu tiên khác id
-  const fallback = keys.find((k) => k !== "id");
-  if (fallback && item[fallback]) return item[fallback];
+  // Duyệt toàn bộ field (trừ id), tìm field đầu tiên có giá trị hiển thị được
+  for (const key of Object.keys(item)) {
+    if (key === "id") continue;
+    const val = item[key];
+    if (val !== undefined && val !== null) {
+      const str = String(val).trim();
+      if (str !== "") return str;
+    }
+  }
 
   // Nếu không có gì hết
   return `ID: ${item.id}`;
@@ -223,23 +242,33 @@ function getDisplayLabel(item: Record<string, any>): string {
       v-for="item in data?.data || []"
       :key="item.id"
       class="w-full px-4 py-3 hover:bg-muted transition flex items-center justify-between cursor-pointer"
-      @click="toggle(item.id)"
+      @click.stop="toggle(item.id)"
       variant="outline"
       :color="isSelected(item.id) ? 'primary' : 'neutral'"
       :class="{
         '!cursor-not-allowed': props.disabled,
       }"
     >
-      <div class="overflow-hidden">
-        ID: {{ item.id }} -
-        <span class="truncate"> {{ getDisplayLabel(item) }}</span>
+      <div class="flex items-center gap-2 w-full justify-between">
+        <div class="overflow-hidden truncate">
+          ID: {{ item.id }} -
+          <span class="truncate">{{ getDisplayLabel(item) }}</span>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <UButton
+            icon="lucide:info"
+            size="xs"
+            color="primary"
+            variant="ghost"
+            @click.stop="viewDetails(item)"
+          />
+          <Icon
+            v-if="isSelected(item.id)"
+            name="lucide:check"
+            class="w-4 h-4 text-primary shrink-0"
+          />
+        </div>
       </div>
-
-      <Icon
-        v-if="isSelected(item.id)"
-        name="lucide:check"
-        class="w-4 h-4 text-primary shrink-0"
-      />
     </UButton>
 
     <!-- Footer modal -->
@@ -315,5 +344,26 @@ function getDisplayLabel(item: Record<string, any>): string {
         </div>
       </template>
     </UDrawer>
+  </Teleport>
+  <Teleport to="body">
+    <UModal v-model:open="detailModal">
+      <template #header>
+        <div class="text-base font-semibold">Chi tiết bản ghi</div>
+      </template>
+      <template #body>
+        <div class="text-sm space-y-2 max-h-[60vh] overflow-y-auto px-1">
+          <div
+            v-for="(value, key) in detailRecord"
+            :key="key"
+            class="flex items-start gap-2"
+          >
+            <div class="font-medium w-32 truncate">{{ key }}</div>
+            <div class="text-muted-foreground break-all">
+              {{ formatValue(value) }}
+            </div>
+          </div>
+        </div>
+      </template>
+    </UModal>
   </Teleport>
 </template>
