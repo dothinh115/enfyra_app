@@ -56,7 +56,7 @@ onMounted(async () => {
       table-name="setting_definition"
       :excluded="['id', 'isInit', 'isSystem']"
       :type-map="{
-        actionPermissionValue: {
+        methods: {
           componentProps: {
             disabled: true,
           },

@@ -3,6 +3,7 @@ const props = defineProps<{
   relationMeta: any;
   modelValue: any;
   disabled?: boolean;
+  allowDelete?: boolean;
 }>();
 const emit = defineEmits(["update:modelValue"]);
 const showModal = ref(false);
@@ -101,6 +102,7 @@ function removeId(id: any) {
           "
           @apply="applySelection"
           :disabled="props.disabled"
+          :allowDelete
         />
       </template> </UDrawer
   ></Teleport>

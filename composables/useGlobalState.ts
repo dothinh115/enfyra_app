@@ -90,7 +90,7 @@ export const useGlobalState = () => {
   }
 
   async function fetchSetting() {
-    const fieldArr = ["*", "actionPermissionValue.*"];
+    const fieldArr = ["*", "methods.*"];
     const fields = fieldArr.join(",");
     try {
       const { data } = await useApi("/setting_definition", {

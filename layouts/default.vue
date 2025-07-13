@@ -37,7 +37,32 @@
           />
         </div>
         <div v-else-if="route.path === '/settings/routings'"></div>
-
+        <div
+          class="flex gap-2 items-center"
+          v-else-if="route.path.startsWith('/settings/handlers')"
+        >
+          <UButton
+            :label="'Save'"
+            :icon="'lucide:newspaper'"
+            color="primary"
+            variant="solid"
+            :loading="globalFormLoading"
+            @click="globalForm?.submit()"
+            v-if="
+              route.path.startsWith(`/settings/handlers/create`) ||
+              route.path.startsWith(`/settings/handlers/${route.params.id}`)
+            "
+          />
+          <UButton
+            :icon="'lucide:plus'"
+            color="primary"
+            variant="solid"
+            size="xl"
+            class="rounded-full"
+            :to="`/settings/handlers/create`"
+            v-else
+          />
+        </div>
         <div
           v-else-if="
             route.path.startsWith('/settings') ||

@@ -108,14 +108,13 @@ watch(
           'isSystem',
           'routePermissions',
           'middlewares',
-          'hooks',
           'targetTables',
         ]"
         :type-map="{
           publishedMethods: {
             type: 'array-select',
-            options: settings.actionPermissionValue.map((map:any) => map.method),
-            labelKey: 'method'
+            options: settings.methods.map((map:any) => map.method),
+            labelKey: 'method',
           },
           path: {
             disabled: true,
@@ -123,6 +122,11 @@ watch(
           isEnabled: {
             disabled: detail?.isSystem === true,
           },
+          handlers: {
+            componentProps: {
+              allowDelete: true
+            }
+          }
         }"
       />
     </UCard>

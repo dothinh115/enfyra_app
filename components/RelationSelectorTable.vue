@@ -4,6 +4,7 @@ const props = defineProps<{
   selectedIds: any[];
   multiple?: boolean;
   disabled?: boolean;
+  allowDelete?: boolean;
 }>();
 
 const emit = defineEmits(["apply"]);
@@ -23,6 +24,7 @@ function viewDetails(item: Record<string, any>) {
   detailRecord.value = item;
   detailModal.value = true;
 }
+const { confirm } = useConfirm();
 
 const { schemas } = useGlobalState();
 watch(
@@ -101,6 +103,26 @@ async function createNewRecord() {
     console.error("Failed to create", e);
   } finally {
     creating.value = false;
+  }
+}
+
+async function deleteRecord(id: any) {
+  if (!targetTable?.name || props.disabled) return;
+  const ok = await confirm({
+    title: "Are you sure??",
+  });
+  if (!ok) return;
+
+  try {
+    await useApiLazy(`/${targetTable.name}/${id}`, {
+      method: "delete",
+    });
+    if (selected.value.some((item) => item.id === id)) {
+      selected.value = selected.value.filter((item) => item.id !== id);
+    }
+    await fetchData();
+  } catch (e) {
+    console.error("Lỗi khi xóa bản ghi:", e);
   }
 }
 
@@ -250,7 +272,12 @@ function getDisplayLabel(item: Record<string, any>): string {
       }"
     >
       <div class="flex items-center gap-2 w-full justify-between">
-        <div class="overflow-hidden truncate">
+        <div class="overflow-hidden truncate flex items-center gap-2">
+          <Icon
+            v-if="isSelected(item.id)"
+            name="lucide:check"
+            class="w-4 h-4 text-primary shrink-0"
+          />
           ID: {{ item.id }} -
           <span class="truncate">{{ getDisplayLabel(item) }}</span>
         </div>
@@ -262,10 +289,13 @@ function getDisplayLabel(item: Record<string, any>): string {
             variant="ghost"
             @click.stop="viewDetails(item)"
           />
-          <Icon
-            v-if="isSelected(item.id)"
-            name="lucide:check"
-            class="w-4 h-4 text-primary shrink-0"
+          <UButton
+            icon="lucide:trash-2"
+            size="xs"
+            color="error"
+            variant="ghost"
+            v-if="props.allowDelete"
+            @click.stop="deleteRecord(item.id)"
           />
         </div>
       </div>
@@ -306,7 +336,6 @@ function getDisplayLabel(item: Record<string, any>): string {
       v-model:open="showCreateDrawer"
       direction="right"
       class="min-w-xl"
-      inset
       :ui="{
         header:
           'border-b border-muted text-muted pb-2 flex justify-between items-center',
