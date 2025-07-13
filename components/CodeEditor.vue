@@ -92,7 +92,7 @@ const customVscodeTheme = EditorView.baseTheme({
   ".ͼd": {
     color: "#9CDCFE", // variable name (changed from #DCDCaa for VSCode accuracy)
   },
-  ".ͼh": {
+  ".ͼg": {
     color: "#DCDCAA", // function name
   },
   ".ͼe": {
