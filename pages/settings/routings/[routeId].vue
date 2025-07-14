@@ -104,29 +104,22 @@ watch(
           'id',
           'createdAt',
           'updatedAt',
-          'mainTable',
           'isSystem',
           'routePermissions',
           'middlewares',
-          'targetTables',
         ]"
         :type-map="{
-          publishedMethods: {
-            type: 'array-select',
-            options: settings.methods.map((map:any) => map.method),
-            labelKey: 'method',
-          },
           path: {
-            disabled: true,
+            disabled: detail?.isSystem === true,
           },
           isEnabled: {
             disabled: detail?.isSystem === true,
           },
           handlers: {
             componentProps: {
-              allowDelete: true
-            }
-          }
+              allowDelete: true,
+            },
+          },
         }"
       />
     </UCard>

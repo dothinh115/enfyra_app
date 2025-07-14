@@ -6,17 +6,6 @@
         :table-name="tableName"
         :errors="createErrors"
       />
-
-      <div class="flex justify-end gap-2 pt-4 border-t border-muted">
-        <UButton
-          icon="lucide:plus"
-          color="primary"
-          :loading="creating"
-          @click="handleCreate"
-        >
-          Tạo handler
-        </UButton>
-      </div>
     </UForm>
   </div>
 </template>
@@ -24,7 +13,6 @@
 <script setup lang="ts">
 const router = useRouter();
 const toast = useToast();
-const creating = ref(false);
 const createForm = ref<Record<string, any>>({});
 const createErrors = ref<Record<string, string>>({});
 const tableName = "route_handler_definition";
@@ -64,28 +52,24 @@ function validate(): boolean {
 
 async function handleCreate() {
   if (!validate()) return;
-  creating.value = true;
 
-  try {
-    const { data } = await useApiLazy(`/${tableName}`, {
-      method: "post",
-      body: createForm.value,
-    });
-
+  const { data, error } = await useApiLazy(`/${tableName}`, {
+    method: "post",
+    body: createForm.value,
+  });
+  if (data.value?.data) {
     toast.add({
       title: "Tạo handler thành công",
       color: "success",
     });
-
     router.push(`/settings/handlers/${data.value.data[0].id}`);
-  } catch (e) {
+  }
+  if (error.value) {
     toast.add({
       title: "Lỗi",
-      description: "Không thể tạo handler",
+      description: error.value.message,
       color: "error",
     });
-  } finally {
-    creating.value = false;
   }
 }
 </script>

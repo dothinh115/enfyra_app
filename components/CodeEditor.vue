@@ -125,7 +125,7 @@ const extensions = [
 </script>
 
 <template>
-  <div class="rounded-xl overflow-hidden ring-1 ring-slate-700">
+  <div class="rounded-md overflow-hidden ring-1 ring-slate-700">
     <NuxtCodeMirror
       :class="'cm-custom'"
       v-model="code"
