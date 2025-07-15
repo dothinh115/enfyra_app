@@ -42,57 +42,8 @@ watch(
   { deep: true }
 );
 
-function validateColumn(col: any) {
-  col.error = {};
-  if (!col.isNullable && !col.name?.trim())
-    col.error.name = "Tên cột là bắt buộc";
-  else if (!tableNameOrFieldRegexCheck.test(col.name?.trim()))
-    col.error.name =
-      "Chỉ cho phép chữ cái, số, _ và không bắt đầu bằng số hoặc _!";
-  else col.error.name = "";
-  if (!col.type?.trim()) col.error.type = "Phải chọn kiểu dữ liệu";
-}
-
-function validateRelation(rel: any) {
-  rel.error = {};
-  if (!rel.propertyName?.trim())
-    rel.error.propertyName = "Tên quan hệ là bắt buộc";
-  else if (!tableNameOrFieldRegexCheck.test(rel.propertyName?.trim()))
-    rel.error.name =
-      "Chỉ cho phép chữ cái, số, _ và không bắt đầu bằng số hoặc _!";
-  else rel.error.name = "";
-  if (!rel.type?.trim()) rel.error.type = "Phải chọn loại quan hệ";
-  if (rel.targetTable === null || rel.targetTable === undefined)
-    rel.error.targetTable = "Phải chọn bảng đích";
-  else rel.error.targetTable = "";
-}
-
-function validateAll() {
-  let isValid = true;
-  for (const col of table.value.columns as any) {
-    validateColumn(col);
-    if (col.error?.name || col.error?.type) isValid = false;
-  }
-  for (const rel of table.value.relations as any) {
-    validateRelation(rel);
-    if (rel.error?.propertyName || rel.error?.type || rel.error?.targetTable)
-      isValid = false;
-  }
-  return isValid;
-}
-
 async function save() {
   globalFormLoading.value = true;
-
-  if (!validateAll()) {
-    toast.add({
-      title: "Dữ liệu không hợp lệ",
-      color: "error",
-      description: "Vui lòng kiểm tra lại các trường có lỗi.",
-    });
-    globalFormLoading.value = false;
-    return;
-  }
   const ok = await confirm({
     content: "Bạn chắc chắn muốn sửa cấu trúc bảng?",
   });

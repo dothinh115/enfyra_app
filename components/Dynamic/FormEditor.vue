@@ -240,10 +240,10 @@ function getComponentConfigByKey(key: string) {
         <template #description v-if="columnMap.get(key)?.description">
           <span
             class="block min-h-[1.25rem] text-xs text-muted-foreground italic"
-          >
-            {{ columnMap.get(key)?.description || "" }}
-          </span>
+            v-html="columnMap.get(key)?.description"
+          />
         </template>
+
         <component
           :is="getComponentConfigByKey(key).component"
           v-bind="getComponentConfigByKey(key).componentProps"

@@ -7,6 +7,7 @@ export interface ColumnConfig {
   maxWidth?: number;
   maxChar?: number;
   size?: number;
+  tableName: string;
   cell?: (ctx: { row: Record<string, any>; index: number }) => any;
 }
 
@@ -20,7 +21,6 @@ const charPx = computed(() => props.charWidth ?? 6);
 
 const defaultVisibleKeys = computed(() => {
   const cols = props.columns;
-  // Ưu tiên một số cột đặc biệt
   const important = ["id", "name", "title", "__actions"];
   const selected: string[] = [];
 

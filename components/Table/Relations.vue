@@ -206,7 +206,6 @@ function saveRelation() {
             label="Lưu"
             @click="saveRelation()"
             color="primary"
-            :disabled="currentRelation.isSystem"
           />
         </div>
       </template>

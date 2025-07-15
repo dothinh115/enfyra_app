@@ -241,7 +241,6 @@ onMounted(() => {
             label="Lưu"
             @click="saveColumn()"
             color="primary"
-            :disabled="currentColumn.isSystem"
           />
         </div>
       </template>

@@ -24,9 +24,9 @@ async function fetchData() {
 
 const columns = computed<ColumnConfig[]>(() => {
   return buildColumnConfigs(
-    table.value.columns.filter((col: any) =>
-      fieldSelectArr.value.includes(col.name)
-    )
+    table.value.columns
+      .sort((a: any, b: any) => a.id - b.id)
+      .filter((col: any) => fieldSelectArr.value.includes(col.name))
   );
 });
 
@@ -34,6 +34,7 @@ const actionCol: ColumnConfig = {
   accessorKey: "__actions",
   header: "",
   size: 40,
+  tableName,
   cell: ({ row }) =>
     h("div", { class: "flex justify-end" }, [
       // @ts-ignore
@@ -88,6 +89,7 @@ function buildColumnConfigs(colsMeta: any[]): ColumnConfig[] {
       header: name,
       maxWidth,
       maxChar,
+      tableName,
     };
   });
   result.push(actionCol);
