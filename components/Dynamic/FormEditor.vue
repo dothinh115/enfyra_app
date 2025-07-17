@@ -180,7 +180,7 @@ function getComponentConfigByKey(key: string) {
           const updatedErrors = { ...props.errors };
 
           if (diags?.length > 0) {
-            updatedErrors[key] = diags[0]?.message || "Code có lỗi";
+            updatedErrors[key] = "Code error";
           } else {
             delete updatedErrors[key];
           }
