@@ -1,48 +1,56 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
+import { useToast } from "#imports";
 
 const toast = useToast();
 const loading = ref(false);
 const setting = ref<any>(null);
+const errors = ref<Record<string, string>>({});
 
 async function loadSetting() {
   loading.value = true;
-  try {
-    const { data } = await useApiLazy("/setting_definition");
-    setting.value = data.value.data[0];
-  } catch (e: any) {
+  const { data, error } = await useApiLazy("/setting_definition");
+  if (error.value) {
     toast.add({
       title: "Lỗi khi tải cấu hình",
-      description: e.message,
+      description: error.value.message,
       color: "error",
     });
-  } finally {
-    loading.value = false;
+  } else {
+    setting.value = data.value.data[0];
   }
+  loading.value = false;
 }
 
 async function saveSetting() {
   loading.value = true;
-  try {
-    await useApiLazy(`/setting_definition/${setting.value.id}`, {
+  const { error } = await useApiLazy(
+    `/setting_definition/${setting.value.id}`,
+    {
       method: "patch",
       body: setting.value,
-    });
-    toast.add({ title: "Đã lưu cấu hình", color: "primary" });
-  } catch (e: any) {
+    }
+  );
+
+  if (error.value) {
     toast.add({
       title: "Lỗi khi lưu cấu hình",
-      description: e.message,
+      description: error.value.message,
       color: "error",
     });
-  } finally {
-    loading.value = false;
+    // Nếu response có validation lỗi dạng { errors: { field: message } }, gán vào errors:
+    if (error.value.data?.errors) {
+      errors.value = error.value.data.errors;
+    }
+  } else {
+    toast.add({ title: "Đã lưu cấu hình", color: "primary" });
+    errors.value = {};
   }
+
+  loading.value = false;
 }
 
-onMounted(async () => {
-  await loadSetting();
-});
+onMounted(loadSetting);
 </script>
 
 <template>
@@ -54,6 +62,7 @@ onMounted(async () => {
     <DynamicFormEditor
       v-model="setting"
       table-name="setting_definition"
+      v-model:errors="errors"
       :excluded="['id', 'isInit', 'isSystem']"
       :type-map="{
         methods: {

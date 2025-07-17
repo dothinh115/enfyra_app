@@ -106,6 +106,7 @@ async function toggleEnabled(hook: any) {
       <UPagination
         v-model:page="page"
         :items-per-page="pageLimit"
+        v-if="page > 1"
         :total="total"
         show-edges
         :sibling-count="1"
