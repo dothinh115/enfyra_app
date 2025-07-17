@@ -81,7 +81,6 @@ async function fetchRouteDetail(routeId: number) {
         "*," +
         "mainTable.*," +
         "handlers.*," +
-        "middlewares.*," +
         "hooks.*," +
         "routePermissions.*," +
         "targetTables.*",

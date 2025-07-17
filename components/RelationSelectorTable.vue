@@ -47,6 +47,36 @@ async function fetchData() {
       limit,
       meta: "totalCount",
       sort: "-createdAt",
+      filter: {
+        or: [
+          {
+            isSystem: {
+              _eq:
+                targetTable && targetTable?.name === "method_definition"
+                  ? true
+                  : false,
+            },
+          },
+          ...(targetTable?.name === "table_definition"
+            ? [
+                {
+                  or: [
+                    {
+                      name: {
+                        _eq: "setting_definition",
+                      },
+                    },
+                    {
+                      name: {
+                        _eq: "user_definition",
+                      },
+                    },
+                  ],
+                },
+              ]
+            : []),
+        ],
+      },
     },
   });
   data.value = item.value?.data;
@@ -246,7 +276,7 @@ function getDisplayLabel(item: Record<string, any>): string {
 
 <template>
   <div class="space-y-4">
-    <!-- <div>
+    <div>
       <UButton
         icon="lucide:plus"
         block
@@ -258,7 +288,7 @@ function getDisplayLabel(item: Record<string, any>): string {
       >
         Thêm bản ghi mới
       </UButton>
-    </div> -->
+    </div>
     <UButton
       v-for="item in data || []"
       :key="item.id"
