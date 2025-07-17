@@ -43,6 +43,9 @@ const diagnosticExtension = linter((view) => {
         languageOptions: {
           ecmaVersion: 2020,
           sourceType: "module",
+          globals: {
+            $ctx: true,
+          },
         },
         rules: {
           "no-undef": "error",
