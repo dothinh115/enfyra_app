@@ -206,7 +206,7 @@ onMounted(() => {
         <DynamicFormEditor
           v-model="currentColumn"
           tableName="column_definition"
-          :errors="errors"
+          v-model:errors="errors"
           :includes="currentColumn.name === 'id' ? ['name', 'type'] : undefined"
           :excluded="[
             'isSystem',

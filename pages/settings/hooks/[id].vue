@@ -1,7 +1,7 @@
 <template>
   <UForm
     v-if="detail"
-    :state="detail"
+    :state="form"
     ref="globalForm"
     @submit="updateHook"
     class="space-y-6"
@@ -33,7 +33,8 @@
       </template>
 
       <DynamicFormEditor
-        v-model="detail"
+        v-model="form"
+        v-model:errors="errors"
         :table-name="'hook_definition'"
         :excluded="['id', 'createdAt', 'updatedAt', 'isSystem']"
         :type-map="{
@@ -56,11 +57,44 @@ const route = useRoute();
 const router = useRouter();
 const toast = useToast();
 const { confirm } = useConfirm();
-
-const detail = ref<any>(null);
 const { globalForm, globalFormLoading } = useGlobalState();
 
+const detail = ref<Record<string, any> | null>(null);
+const form = ref<Record<string, any>>({});
+const errors = ref<Record<string, string>>({});
+
+const tableName = "hook_definition";
 const id = route.params.id as string;
+
+const { getField } = useSchema(tableName);
+
+function validate(): boolean {
+  let isValid = true;
+  const currentErrors: Record<string, string> = { ...errors.value };
+
+  for (const key of Object.keys(form.value)) {
+    const field = getField(key);
+    if (!field) continue;
+
+    const val = form.value[key];
+    const nullable = field.isNullable ?? true;
+
+    const empty =
+      val === null ||
+      val === undefined ||
+      (typeof val === "string" && val.trim() === "");
+
+    if (!nullable && empty) {
+      currentErrors[key] = "Trường này là bắt buộc";
+      isValid = false;
+    } else {
+      delete currentErrors[key];
+    }
+  }
+
+  errors.value = currentErrors;
+  return isValid;
+}
 
 async function fetchHookDetail() {
   const { data, error } = await useApiLazy("/hook_definition", {
@@ -90,18 +124,34 @@ async function fetchHookDetail() {
   }
 
   detail.value = data.value.data[0];
+  form.value = { ...detail.value };
+  errors.value = {};
 }
 
 async function updateHook() {
+  const isValid = validate();
+  const hasCodeError = Object.keys(errors.value).length > 0;
+
+  if (!isValid || hasCodeError) {
+    toast.add({
+      title: "Có lỗi",
+      description: "Vui lòng kiểm tra lại các trường bị lỗi.",
+      color: "error",
+    });
+    return;
+  }
+
   globalFormLoading.value = true;
 
   const { data, error } = await useApiLazy(
-    `/hook_definition/${detail.value.id}`,
+    `/hook_definition/${detail.value?.id}`,
     {
       method: "patch",
-      body: detail.value,
+      body: form.value,
     }
   );
+
+  globalFormLoading.value = false;
 
   if (error.value) {
     toast.add({
@@ -116,18 +166,19 @@ async function updateHook() {
       color: "primary",
     });
   }
-
-  globalFormLoading.value = false;
 }
 
 async function deleteHook() {
   const ok = await confirm({ title: "Bạn có chắc chắn muốn xoá hook này?" });
-  if (!ok || detail.value.isSystem) return;
+  if (!ok || detail.value?.isSystem) return;
 
   globalFormLoading.value = true;
+
   const { data, error } = await useApiLazy(`/hook_definition/${id}`, {
     method: "delete",
   });
+
+  globalFormLoading.value = false;
 
   if (data.value) {
     toast.add({
@@ -143,8 +194,6 @@ async function deleteHook() {
       color: "error",
     });
   }
-
-  globalFormLoading.value = false;
 }
 
 onMounted(fetchHookDetail);

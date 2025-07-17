@@ -4,7 +4,7 @@
       <DynamicFormEditor
         v-model="form"
         :table-name="tableName"
-        :errors="errors"
+        v-model:errors="errors"
         :type-map="{
           id: {
             disabled: true,

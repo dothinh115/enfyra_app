@@ -1,10 +1,10 @@
 <template>
   <div class="mx-auto space-y-6">
-    <UForm state="createForm" ref="globalForm" @submit="handleCreate">
+    <UForm :state="createForm" ref="globalForm" @submit="handleCreate">
       <DynamicFormEditor
         v-model="createForm"
         :table-name="tableName"
-        :errors="createErrors"
+        v-model:errors="createErrors"
       />
     </UForm>
   </div>

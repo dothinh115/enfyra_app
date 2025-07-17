@@ -6,6 +6,7 @@ const props = defineProps<{
   modelValue: any[];
   tableOptions: { label: string; value: any }[];
 }>();
+
 const relations = useModel(props, "modelValue");
 const { relations: relationData } = useGlobalState();
 
@@ -13,6 +14,7 @@ const isEditing = ref(false);
 const isNew = ref(false);
 const editingIndex = ref<number | null>(null);
 const currentRelation = ref<any>(null);
+const relationErrors = ref<Record<number, Record<string, string>>>({});
 
 function createEmptyRelation(): any {
   const base = relationData.value.find((r) => r.propertyName !== "id") ?? {};
@@ -57,10 +59,10 @@ function editRelation(rel: any, index: number) {
   isEditing.value = true;
   isNew.value = false;
   editingIndex.value = index;
-  currentRelation.value = { ...toRaw(rel), error: {} };
+  currentRelation.value = { ...toRaw(rel) };
 }
 
-function validateRelation(rel: any) {
+function validateRelation(rel: any): Record<string, string> {
   const error: Record<string, string> = {};
 
   if (!rel.propertyName?.trim()) {
@@ -78,14 +80,20 @@ function validateRelation(rel: any) {
     error.targetTable = "Phải chọn bảng đích";
   }
 
-  rel.error = error;
   return error;
 }
 
 function saveRelation() {
   const rel = currentRelation.value;
+  const index = editingIndex.value ?? relations.value.length;
   const errors = validateRelation(rel);
-  if (Object.keys(errors).length > 0) return;
+
+  if (Object.keys(errors).length > 0) {
+    relationErrors.value[index] = errors;
+    return;
+  }
+
+  delete relationErrors.value[index];
 
   const newRel = { ...rel };
 
@@ -175,8 +183,8 @@ function saveRelation() {
       <template #body>
         <DynamicFormEditor
           v-model="currentRelation"
+          v-model:errors="relationErrors[editingIndex ?? relations.length]"
           tableName="relation_definition"
-          :errors="currentRelation?.error"
           :excluded="[
             'id',
             'createdAt',

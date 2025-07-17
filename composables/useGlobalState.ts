@@ -36,7 +36,6 @@ export const useGlobalState = () => {
       "mainTable.*",
       "routePermissions.*",
       "handlers.*",
-      "middlewares.*",
       "hooks.*",
     ].join(",");
     const sort = ["id"].join(",");

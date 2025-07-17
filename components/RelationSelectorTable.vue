@@ -49,7 +49,7 @@ async function fetchData() {
       sort: "-createdAt",
     },
   });
-  data.value = item.value;
+  data.value = item.value?.data;
 }
 
 function validateCreateForm(): boolean {
@@ -94,7 +94,7 @@ async function createNewRecord() {
       body: createForm.value,
     });
 
-    selected.value.push({ id: data.value.data[0].id });
+    selected.value.push({ id: data.value[0].id });
     await fetchData();
     showCreateDrawer.value = false;
     createForm.value = {};
@@ -221,7 +221,7 @@ function getDisplayLabel(item: Record<string, any>): string {
   if (!item || typeof item !== "object") return "";
 
   // Ưu tiên các key phổ biến
-  const preferredKeys = ["name", "title", "propertyName", "path"];
+  const preferredKeys = ["name", "title", "propertyName", "path", "method"];
   for (const key of preferredKeys) {
     if (key in item && item[key] !== undefined && item[key] !== null) {
       const val = String(item[key]).trim();
@@ -246,8 +246,7 @@ function getDisplayLabel(item: Record<string, any>): string {
 
 <template>
   <div class="space-y-4">
-    <!-- Danh sách chọn -->
-    <div>
+    <!-- <div>
       <UButton
         icon="lucide:plus"
         block
@@ -259,9 +258,9 @@ function getDisplayLabel(item: Record<string, any>): string {
       >
         Thêm bản ghi mới
       </UButton>
-    </div>
+    </div> -->
     <UButton
-      v-for="item in data?.data || []"
+      v-for="item in data || []"
       :key="item.id"
       class="w-full px-4 py-3 hover:bg-muted transition flex items-center justify-between cursor-pointer"
       @click.stop="toggle(item.id)"
@@ -300,7 +299,7 @@ function getDisplayLabel(item: Record<string, any>): string {
         </div>
       </div>
     </UButton>
-
+    <div v-if="data?.length === 0">No record found!</div>
     <!-- Footer modal -->
     <div class="flex items-center justify-between pt-2">
       <div class="text-xs text-muted-foreground flex items-center gap-2">

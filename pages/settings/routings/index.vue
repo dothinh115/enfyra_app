@@ -11,7 +11,6 @@ async function fetchRoute(page = 1, limit: number) {
     "mainTable.*",
     "routePermissions.*",
     "handlers.*",
-    "middlewares.*",
     "hooks.*",
     "publishedMethods.*",
   ].join(",");
@@ -39,7 +38,6 @@ watch(
     if (!newVal) page.value = 1;
     else page.value = Number(newVal);
     await fetchRoute(page.value, pageLimit);
-    console.log(routes.value);
   },
   {
     immediate: true,

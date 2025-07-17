@@ -4,8 +4,7 @@
       <DynamicFormEditor
         v-model="createForm"
         :table-name="tableName"
-        :errors="createErrors"
-        @update:errors="(val) => (createErrors = val)"
+        v-model:errors="createErrors"
       />
     </UForm>
   </div>

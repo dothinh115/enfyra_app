@@ -4,10 +4,10 @@ import { UInput, UTextarea, USwitch, USelect } from "#components";
 
 const props = defineProps<{
   modelValue: Record<string, any>;
+  errors: Record<string, string>;
   tableName: string;
   excluded?: string[];
   includes?: string[];
-  errors?: Record<string, string>;
   typeMap?: Record<
     string,
     | string
@@ -22,9 +22,9 @@ const props = defineProps<{
   >;
 }>();
 
-const { tables, schemas } = useGlobalState();
-
 const emit = defineEmits(["update:modelValue", "update:errors"]);
+
+const { tables, schemas } = useGlobalState();
 
 const formData = computed({
   get: () => props.modelValue,
@@ -177,15 +177,13 @@ function getComponentConfigByKey(key: string) {
           formData.value[key] = val;
         },
         onDiagnostics: (diags: any[]) => {
-          const updatedErrors = { ...props.errors };
-
+          const updated = { ...props.errors };
           if (diags?.length > 0) {
-            updatedErrors[key] = "Code error";
+            updated[key] = "Code error";
           } else {
-            delete updatedErrors[key];
+            delete updated[key];
           }
-
-          emit("update:errors", updatedErrors);
+          emit("update:errors", updated);
         },
       },
       fieldProps: {
