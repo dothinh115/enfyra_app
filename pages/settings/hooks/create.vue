@@ -1,10 +1,11 @@
 <template>
   <div class="mx-auto space-y-6">
-    <UForm state="createForm" ref="globalForm" @submit="handleCreate">
+    <UForm :state="createForm" ref="globalForm" @submit="handleCreate">
       <DynamicFormEditor
         v-model="createForm"
         :table-name="tableName"
         :errors="createErrors"
+        @update:errors="(val) => (createErrors = val)"
       />
     </UForm>
   </div>
@@ -15,7 +16,8 @@ const router = useRouter();
 const toast = useToast();
 const createForm = ref<Record<string, any>>({});
 const createErrors = ref<Record<string, string>>({});
-const tableName = "route_handler_definition";
+const tableName = "hook_definition";
+
 const { generateEmptyForm, getField } = useSchema(tableName);
 const { globalForm } = useGlobalState();
 
@@ -24,7 +26,6 @@ onMounted(() => {
 });
 
 function validate(): boolean {
-  const errors: Record<string, string> = {};
   let isValid = true;
 
   for (const key of Object.keys(createForm.value)) {
@@ -40,29 +41,42 @@ function validate(): boolean {
       (typeof val === "string" && val.trim() === "");
 
     if (!nullable && empty) {
-      errors[key] = "Trường này là bắt buộc";
+      createErrors.value[key] = "Trường này là bắt buộc";
       isValid = false;
+    } else {
+      // ✅ chỉ xóa lỗi liên quan field này
+      if (createErrors.value[key] === "Trường này là bắt buộc") {
+        delete createErrors.value[key];
+      }
     }
   }
 
-  createErrors.value = errors;
   return isValid;
 }
 
 async function handleCreate() {
-  if (!validate()) return;
-
+  const valid = validate();
+  if (!valid || Object.keys(createErrors.value).length > 0) {
+    toast.add({
+      title: "Có lỗi",
+      description: "Vui lòng kiểm tra lại các trường bị lỗi.",
+      color: "error",
+    });
+    return;
+  }
   const { data, error } = await useApiLazy(`/${tableName}`, {
     method: "post",
     body: createForm.value,
   });
+
   if (data.value?.data) {
     toast.add({
-      title: "Tạo handler thành công",
+      title: "Tạo hook thành công",
       color: "success",
     });
-    router.push(`/settings/handlers/${data.value.data[0].id}`);
+    router.push(`/settings/hooks/${data.value.data[0].id}`);
   }
+
   if (error.value) {
     toast.add({
       title: "Lỗi",

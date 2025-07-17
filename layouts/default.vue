@@ -36,7 +36,54 @@
             @click="globalForm?.submit()"
           />
         </div>
-        <div v-else-if="route.path === '/settings/routings'"></div>
+        <div v-else-if="route.path.startsWith('/settings/routings')">
+          <UButton
+            :label="'Save'"
+            :icon="'lucide:newspaper'"
+            color="primary"
+            variant="solid"
+            :loading="globalFormLoading"
+            @click="globalForm?.submit()"
+            v-if="
+              route.path.startsWith(`/settings/routings/create`) ||
+              route.path.startsWith(
+                `/settings/routings/${route.params.routeId}`
+              )
+            "
+          />
+          <UButton
+            :icon="'lucide:plus'"
+            color="primary"
+            variant="solid"
+            size="xl"
+            class="rounded-full"
+            :to="`/settings/routings/create`"
+            v-else
+          />
+        </div>
+        <div v-else-if="route.path.startsWith('/settings/hooks')">
+          <UButton
+            :label="'Save'"
+            :icon="'lucide:newspaper'"
+            color="primary"
+            variant="solid"
+            :loading="globalFormLoading"
+            @click="globalForm?.submit()"
+            v-if="
+              route.path.startsWith(`/settings/hooks/create`) ||
+              route.path.startsWith(`/settings/hooks/${route.params.id}`)
+            "
+          />
+          <UButton
+            :icon="'lucide:plus'"
+            color="primary"
+            variant="solid"
+            size="xl"
+            class="rounded-full"
+            :to="`/settings/hooks/create`"
+            v-else
+          />
+        </div>
         <div
           class="flex gap-2 items-center"
           v-else-if="route.path.startsWith('/settings/handlers')"

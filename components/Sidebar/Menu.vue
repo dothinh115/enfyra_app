@@ -93,6 +93,24 @@ const route = useRoute();
       </template>
       Handlers
     </UButton>
+    <UButton
+      size="lg"
+      variant="ghost"
+      color="neutral"
+      :to="{
+        name: 'settings-hooks',
+      }"
+      class="hover:bg-primary/20"
+      :class="
+        route.path.startsWith('/settings/hooks') &&
+        'bg-primary/20 text-white shadow hover:!bg-primary/20'
+      "
+    >
+      <template #trailing>
+        <Icon name="lucide:arrow-right" class="ml-auto" />
+      </template>
+      Hooks
+    </UButton>
   </nav>
   <nav
     v-else-if="route.path.startsWith('/data')"

@@ -24,7 +24,8 @@ export function useSchema(tableName: string) {
     definition.value.filter((field: any) => {
       const key = field.name || field.propertyName;
       if (!key) return false;
-      if (["id", "createdAt", "updatedAt"].includes(key)) return false;
+      if (["id", "createdAt", "updatedAt", "isSystem"].includes(key))
+        return false;
       return true;
     })
   );
@@ -34,7 +35,6 @@ export function useSchema(tableName: string) {
 
     for (const field of editableFields.value) {
       const key = field.name || field.propertyName;
-      if (!key) continue;
 
       // Ưu tiên defaultValue nếu có
       if (field.defaultValue !== undefined) {

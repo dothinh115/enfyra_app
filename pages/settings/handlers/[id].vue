@@ -1,6 +1,6 @@
 <template>
   <div class="mx-auto space-y-6">
-    <UForm state="form" ref="globalForm" @submit="save">
+    <UForm :state="form" ref="globalForm" @submit="save">
       <DynamicFormEditor
         v-model="form"
         :table-name="tableName"

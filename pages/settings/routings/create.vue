@@ -15,7 +15,8 @@ const router = useRouter();
 const toast = useToast();
 const createForm = ref<Record<string, any>>({});
 const createErrors = ref<Record<string, string>>({});
-const tableName = "route_handler_definition";
+const tableName = "route_definition";
+
 const { generateEmptyForm, getField } = useSchema(tableName);
 const { globalForm } = useGlobalState();
 
@@ -56,13 +57,15 @@ async function handleCreate() {
     method: "post",
     body: createForm.value,
   });
+
   if (data.value?.data) {
     toast.add({
-      title: "Tạo handler thành công",
+      title: "Tạo route thành công",
       color: "success",
     });
-    router.push(`/settings/handlers/${data.value.data[0].id}`);
+    router.push(`/settings/routes/${data.value.data[0].id}`);
   }
+
   if (error.value) {
     toast.add({
       title: "Lỗi",

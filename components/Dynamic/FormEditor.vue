@@ -24,7 +24,7 @@ const props = defineProps<{
 
 const { tables, schemas } = useGlobalState();
 
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits(["update:modelValue", "update:errors"]);
 
 const formData = computed({
   get: () => props.modelValue,
@@ -176,6 +176,17 @@ function getComponentConfigByKey(key: string) {
         "onUpdate:modelValue": (val: string) => {
           formData.value[key] = val;
         },
+        onDiagnostics: (diags: any[]) => {
+          const updatedErrors = { ...props.errors };
+
+          if (diags?.length > 0) {
+            updatedErrors[key] = diags[0]?.message || "Code có lỗi";
+          } else {
+            delete updatedErrors[key];
+          }
+
+          emit("update:errors", updatedErrors);
+        },
       },
       fieldProps: {
         ...fieldProps,
@@ -238,10 +249,7 @@ function getComponentConfigByKey(key: string) {
         :error="props.errors?.[key]"
       >
         <template #description v-if="columnMap.get(key)?.description">
-          <span
-            class="block min-h-[1.25rem] text-xs text-muted-foreground italic"
-            v-html="columnMap.get(key)?.description"
-          />
+          <div class="prose" v-html="columnMap.get(key)?.description" />
         </template>
 
         <component

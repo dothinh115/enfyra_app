@@ -1,32 +1,81 @@
 <script setup lang="ts">
-import { closeBrackets } from "@codemirror/autocomplete";
 import { javascript } from "@codemirror/lang-javascript";
-import { bracketMatching, indentOnInput } from "@codemirror/language";
-import { lintGutter } from "@codemirror/lint";
+import { linter, lintGutter } from "@codemirror/lint";
+import type { Diagnostic } from "@codemirror/lint";
+
 import {
-  highlightActiveLine,
   lineNumbers,
+  highlightActiveLine,
   keymap,
   EditorView,
   drawSelection,
 } from "@codemirror/view";
 import { indentWithTab } from "@codemirror/commands";
+import { closeBrackets } from "@codemirror/autocomplete";
+import { bracketMatching, indentOnInput } from "@codemirror/language";
+import eslint from "eslint-linter-browserify";
 
 const props = defineProps<{
-  modelValue: string | undefined;
+  modelValue?: string;
   language?: string;
 }>();
 
-const emit = defineEmits(["update:modelValue"]);
-const code = ref(props.modelValue ?? "");
-watch(
-  () => code.value,
-  (newVal) => {
-    emit("update:modelValue", newVal);
-  }
-);
+const emit = defineEmits(["update:modelValue", "diagnostics"]);
 
-const customVscodeTheme = EditorView.baseTheme({
+const code = ref(props.modelValue ?? "");
+
+watch(code, (val) => {
+  emit("update:modelValue", val);
+});
+
+const linterInstance = new eslint.Linter();
+
+const diagnosticExtension = linter((view) => {
+  const raw = view.state.doc.toString();
+
+  const wrapped = `(async () => {\n${raw}\n})()`; // ✅ bọc trước khi lint
+
+  const result = linterInstance.verify(
+    wrapped,
+    [
+      {
+        files: ["**/*.js"],
+        languageOptions: {
+          ecmaVersion: 2020,
+          sourceType: "module",
+        },
+        rules: {
+          "no-undef": "error",
+          "no-unused-vars": "warn",
+          "no-empty-function": "off", // ✅ cho phép function empty nếu cần
+        },
+      },
+    ],
+    { filename: "file.js" }
+  );
+
+  const adjustment = 1; // vì bạn thêm 1 dòng đầu: `(async () => {`
+
+  const diagnostics: Diagnostic[] = result.map((msg) => {
+    const userLine = Math.max(1, msg.line - adjustment); // đảm bảo >= 1
+    const line = view.state.doc.line(userLine);
+
+    const from = msg.column ? line.from + msg.column - 1 : line.from;
+    const to = msg.endColumn ? line.from + msg.endColumn - 1 : line.to;
+
+    return {
+      from,
+      to,
+      message: msg.message,
+      severity: msg.severity === 2 ? "error" : "warning",
+    };
+  });
+
+  emit("diagnostics", diagnostics);
+  return diagnostics;
+});
+
+const customTheme = EditorView.baseTheme({
   "&": {
     backgroundColor: "#1e1e1e",
     color: "#d4d4d4",
@@ -118,23 +167,22 @@ const extensions = [
   lintGutter(),
   lineNumbers(),
   keymap.of([indentWithTab]),
-  ctxAutocomplete,
-  customVscodeTheme,
   drawSelection(),
+  diagnosticExtension,
+  customTheme,
 ];
 </script>
 
 <template>
   <div class="rounded-md overflow-hidden ring-1 ring-slate-700">
     <NuxtCodeMirror
-      :class="'cm-custom'"
       v-model="code"
       :extensions="extensions"
       theme="dark"
       height="400px"
-      basicSetup
+      basic-setup
       :editable="true"
-      :readOnly="false"
+      :read-only="false"
     />
   </div>
 </template>

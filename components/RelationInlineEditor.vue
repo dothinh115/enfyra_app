@@ -5,6 +5,8 @@ const props = defineProps<{
   disabled?: boolean;
   allowDelete?: boolean;
 }>();
+defineOptions({ inheritAttrs: false });
+
 const emit = defineEmits(["update:modelValue"]);
 const showModal = ref(false);
 const selectedIds = ref<any[]>([]);

@@ -1,4 +1,4 @@
-import { defineEventHandler, proxyRequest, H3Event } from "h3";
+import { defineEventHandler, H3Event } from "h3";
 import { refreshToken } from "../../utils/auth/refresh-token";
 
 export default defineEventHandler(async (event: H3Event) => {
