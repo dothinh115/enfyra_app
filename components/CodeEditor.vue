@@ -33,7 +33,7 @@ const linterInstance = new eslint.Linter();
 const diagnosticExtension = linter((view) => {
   const raw = view.state.doc.toString();
 
-  const wrapped = `(async () => {\n${raw}\n})()`; // ✅ bọc trước khi lint
+  const wrapped = `(async () => {\n${raw}\n})()`;
 
   const result = linterInstance.verify(
     wrapped,
@@ -50,17 +50,17 @@ const diagnosticExtension = linter((view) => {
         rules: {
           "no-undef": "error",
           "no-unused-vars": "warn",
-          "no-empty-function": "off", // ✅ cho phép function empty nếu cần
+          "no-empty-function": "off",
         },
       },
     ],
     { filename: "file.js" }
   );
 
-  const adjustment = 1; // vì bạn thêm 1 dòng đầu: `(async () => {`
+  const adjustment = 1;
 
   const diagnostics: Diagnostic[] = result.map((msg) => {
-    const userLine = Math.max(1, msg.line - adjustment); // đảm bảo >= 1
+    const userLine = Math.max(1, msg.line - adjustment);
     const line = view.state.doc.line(userLine);
 
     const from = msg.column ? line.from + msg.column - 1 : line.from;
