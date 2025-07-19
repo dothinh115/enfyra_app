@@ -13,58 +13,36 @@
 <script setup lang="ts">
 const router = useRouter();
 const toast = useToast();
-const createForm = ref<Record<string, any>>({});
-const createErrors = ref<Record<string, string>>({});
+
 const tableName = "route_definition";
 
-const { generateEmptyForm, getField } = useSchema(tableName);
+const createForm = ref<Record<string, any>>({});
+const createErrors = ref<Record<string, string>>({});
+
+const { generateEmptyForm, validate } = useSchema(tableName);
 const { globalForm } = useGlobalState();
 
 onMounted(() => {
   createForm.value = generateEmptyForm();
 });
 
-function validate(): boolean {
-  const errors: Record<string, string> = {};
-  let isValid = true;
-
-  for (const key of Object.keys(createForm.value)) {
-    const field = getField(key);
-    if (!field) continue;
-
-    const val = createForm.value[key];
-    const nullable = field.isNullable ?? true;
-
-    const empty =
-      val === null ||
-      val === undefined ||
-      (typeof val === "string" && val.trim() === "");
-
-    if (!nullable && empty) {
-      errors[key] = "Trường này là bắt buộc";
-      isValid = false;
-    }
-  }
-
-  createErrors.value = errors;
-  return isValid;
-}
-
 async function handleCreate() {
-  if (!validate()) return;
+  const { isValid, errors } = validate(createForm.value);
+
+  if (!isValid) {
+    createErrors.value = errors;
+    toast.add({
+      title: "Có lỗi",
+      description: "Vui lòng kiểm tra lại các trường bị lỗi.",
+      color: "error",
+    });
+    return;
+  }
 
   const { data, error } = await useApiLazy(`/${tableName}`, {
     method: "post",
     body: createForm.value,
   });
-
-  if (data.value?.data) {
-    toast.add({
-      title: "Tạo route thành công",
-      color: "success",
-    });
-    router.push(`/settings/routes/${data.value.data[0].id}`);
-  }
 
   if (error.value) {
     toast.add({
@@ -72,6 +50,14 @@ async function handleCreate() {
       description: error.value.message,
       color: "error",
     });
+    return;
   }
+
+  toast.add({
+    title: "Tạo route thành công",
+    color: "success",
+  });
+
+  router.push(`/settings/routes/${data.value.data[0].id}`);
 }
 </script>

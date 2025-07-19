@@ -247,7 +247,7 @@ function getComponentConfigByKey(key: string) {
         :error="props.errors?.[key]"
       >
         <template #description v-if="columnMap.get(key)?.description">
-          <div class="prose" v-html="columnMap.get(key)?.description" />
+          <div v-html="columnMap.get(key)?.description" />
         </template>
 
         <component

@@ -66,16 +66,15 @@ const toast = useToast();
 const { confirm } = useConfirm();
 const { globalForm, globalFormLoading } = useGlobalState();
 
+const tableName = "route_definition";
 const detail = ref<Record<string, any> | null>(null);
 const form = ref<Record<string, any>>({});
 const errors = ref<Record<string, string>>({});
-const tableName = "route_definition";
 
-// Load schema helpers
-const { getField } = useSchema(tableName);
+const { validate } = useSchema(tableName);
 
 async function fetchRouteDetail(routeId: number) {
-  const { data } = await useApiLazy("/route_definition", {
+  const { data, error } = await useApiLazy("/route_definition", {
     query: {
       fields:
         "*," +
@@ -88,9 +87,7 @@ async function fetchRouteDetail(routeId: number) {
     },
   });
 
-  const routeData = data.value.data?.[0];
-
-  if (!routeData) {
+  if (error.value || !data.value?.data?.[0]) {
     toast.add({
       title: "Not found",
       description: "This route does not exist.",
@@ -100,44 +97,16 @@ async function fetchRouteDetail(routeId: number) {
     return;
   }
 
-  detail.value = routeData;
-  form.value = routeData;
+  detail.value = data.value.data[0];
+  form.value = { ...detail.value };
   errors.value = {};
 }
 
-function validate(): boolean {
-  let isValid = true;
-  const currentErrors: Record<string, string> = { ...errors.value };
-
-  for (const key of Object.keys(form.value)) {
-    const field = getField(key);
-    if (!field) continue;
-
-    const val = form.value[key];
-    const nullable = field.isNullable ?? true;
-
-    const empty =
-      val === null ||
-      val === undefined ||
-      (typeof val === "string" && val.trim() === "");
-
-    if (!nullable && empty) {
-      currentErrors[key] = "Trường này là bắt buộc";
-      isValid = false;
-    } else {
-      delete currentErrors[key];
-    }
-  }
-
-  errors.value = currentErrors;
-  return isValid;
-}
-
 async function updateRoute() {
-  const isValid = validate();
-  const hasCodeError = Object.keys(errors.value).length > 0;
+  const { isValid, errors: validationErrors } = validate(form.value);
 
-  if (!isValid || hasCodeError) {
+  if (!isValid) {
+    errors.value = validationErrors;
     toast.add({
       title: "Có lỗi",
       description: "Vui lòng kiểm tra lại các trường bị lỗi.",

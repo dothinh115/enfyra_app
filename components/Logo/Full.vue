@@ -3,8 +3,8 @@
     <div
       class="w-6 h-6 bg-primary rounded flex items-center justify-center text-white text-sm"
     >
-      D
+      E
     </div>
-    Dynamiq
+    Enfyra
   </div>
 </template>

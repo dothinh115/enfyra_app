@@ -32,64 +32,59 @@ const form = ref<Record<string, any>>({});
 const errors = ref<Record<string, string>>({});
 const loading = ref(false);
 const saving = ref(false);
+
 const { globalForm } = useGlobalState();
-const { getField } = useSchema(tableName);
+const { validate } = useSchema(tableName);
 
 async function fetchHandler() {
   loading.value = true;
-  try {
-    const { data } = await useApiLazy(`/${tableName}`, {
-      query: { fields: "*", filter: { id: { _eq: route.params.id } } },
-    });
-    form.value = data.value.data[0];
-  } catch (e) {
+
+  const { data, error } = await useApiLazy(`/${tableName}`, {
+    query: { fields: "*", filter: { id: { _eq: id } } },
+  });
+
+  if (error.value) {
     toast.add({ title: "Không thể tải handler", color: "error" });
-  } finally {
     loading.value = false;
-  }
-}
-
-// Validate trước khi lưu
-function validate(): boolean {
-  const result: Record<string, string> = {};
-  let valid = true;
-
-  for (const key of Object.keys(form.value)) {
-    const field = getField(key);
-    if (!field) continue;
-
-    const nullable = field.isNullable ?? true;
-    const value = form.value[key];
-
-    const empty =
-      value === null ||
-      value === undefined ||
-      (typeof value === "string" && value.trim() === "");
-
-    if (!nullable && empty) {
-      result[key] = "Trường này là bắt buộc";
-      valid = false;
-    }
+    return;
   }
 
-  errors.value = result;
-  return valid;
+  form.value = data.value?.data?.[0] || {};
+  loading.value = false;
 }
 
 async function save() {
-  if (!validate()) return;
-  saving.value = true;
-  try {
-    await useApiLazy(`/${tableName}/${id}`, {
-      method: "patch",
-      body: form.value,
+  const { isValid, errors: validationErrors } = validate(form.value);
+
+  if (!isValid) {
+    errors.value = validationErrors;
+    toast.add({
+      title: "Thiếu thông tin",
+      description: "Vui lòng điền đầy đủ các trường bắt buộc.",
+      color: "error",
     });
-    toast.add({ title: "Đã lưu handler", color: "success" });
-  } catch (e) {
-    toast.add({ title: "Lỗi khi lưu", color: "error" });
-  } finally {
-    saving.value = false;
+    return;
   }
+
+  saving.value = true;
+
+  const { error } = await useApiLazy(`/${tableName}/${id}`, {
+    method: "patch",
+    body: form.value,
+  });
+
+  if (error.value) {
+    toast.add({
+      title: "Lỗi khi lưu",
+      description: error.value.message,
+      color: "error",
+    });
+  } else {
+    toast.add({ title: "Đã lưu handler", color: "success" });
+    errors.value = {};
+  }
+
+  saving.value = false;
 }
 
 onMounted(fetchHandler);

@@ -38,6 +38,7 @@ const { tables } = useGlobalState();
 let targetTable = tables.value.find(
   (t) => t.id === props.relationMeta.targetTable.id
 );
+const { generateEmptyForm, validate } = useSchema(targetTable?.name);
 
 async function fetchData() {
   const { data: item } = await useApiLazy(`/${targetTable?.name}`, {
@@ -57,7 +58,9 @@ async function fetchData() {
                   : false,
             },
           },
-          ...(targetTable?.name === "table_definition"
+          ...(["table_definition", "route_definition"].includes(
+            targetTable?.name
+          )
             ? [
                 {
                   or: [
@@ -71,6 +74,16 @@ async function fetchData() {
                         _eq: "user_definition",
                       },
                     },
+                    {
+                      path: {
+                        _contains: "user_definition",
+                      },
+                    },
+                    {
+                      path: {
+                        _contains: "setting_definition",
+                      },
+                    },
                   ],
                 },
               ]
@@ -82,40 +95,15 @@ async function fetchData() {
   data.value = item.value?.data;
 }
 
-function validateCreateForm(): boolean {
-  const errors: Record<string, string> = {};
-  let isValid = true;
-
-  const columnMap = new Map<string, any>();
-  const definition = schemas.value[targetTable?.name]?.definition || [];
-  for (const field of definition) {
-    const key = field.name || field.propertyName;
-    if (key) columnMap.set(key, field);
-  }
-
-  for (const key of Object.keys(createForm.value)) {
-    const field = columnMap.get(key);
-    const value = createForm.value[key];
-    const nullable = field?.isNullable ?? true;
-
-    const empty =
-      value === null ||
-      value === undefined ||
-      (typeof value === "string" && value.trim() === "");
-
-    if (!nullable && empty) {
-      errors[key] = "Trường này là bắt buộc";
-      isValid = false;
-    }
-  }
-
-  createErrors.value = errors;
-  return isValid;
-}
-
 async function createNewRecord() {
   if (!targetTable?.name) return;
-  if (!validateCreateForm()) return;
+
+  const { isValid, errors } = validate(createForm.value);
+
+  if (!isValid) {
+    createErrors.value = errors;
+    return;
+  }
 
   creating.value = true;
   try {
@@ -158,33 +146,9 @@ async function deleteRecord(id: any) {
 
 function initCreateForm() {
   if (!targetTable?.name) return;
-  const definition = schemas.value[targetTable.name]?.definition || [];
-  const initial: Record<string, any> = {};
-
-  for (const field of definition) {
-    const key = field.name || field.propertyName;
-    if (
-      !key ||
-      ["id", "createdAt", "updatedAt"].includes(field.name) ||
-      (props.relationMeta.inversePropertyName &&
-        field.name === props.relationMeta.inversePropertyName)
-    )
-      continue;
-    // Khởi tạo theo type
-    switch (field.type) {
-      case "boolean":
-        initial[key] = false;
-        break;
-      case "array":
-      case "int":
-        initial[key] = 0;
-        break;
-      default:
-        initial[key] = "";
-    }
-  }
-
-  createForm.value = initial;
+  createForm.value = generateEmptyForm({
+    excluded: [props.relationMeta.inversePropertyName],
+  });
 }
 
 watch(showCreateDrawer, (val) => {

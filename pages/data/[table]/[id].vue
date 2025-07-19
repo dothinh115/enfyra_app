@@ -2,6 +2,8 @@
 const route = useRoute();
 const { globalForm, globalFormLoading } = useGlobalState();
 const toast = useToast();
+const { validate } = useSchema(route.params.table as string);
+const updateErrors = ref<Record<string, string>>({});
 
 const { confirm } = useConfirm();
 const currentRecord = ref<Record<string, any>>({});
@@ -31,6 +33,18 @@ async function letsCreate() {
 }
 
 async function handleUpdate() {
+  const { isValid, errors } = validate(currentRecord.value);
+
+  if (!isValid) {
+    updateErrors.value = errors;
+    toast.add({
+      title: "Thiếu thông tin",
+      description: "Vui lòng điền đầy đủ các trường bắt buộc.",
+      color: "error",
+    });
+    return;
+  }
+
   globalFormLoading.value = true;
 
   const { data, error } = await useApiLazy(
@@ -40,24 +54,26 @@ async function handleUpdate() {
       body: currentRecord.value,
     }
   );
-  if (data.value.data) {
-    toast.add({
-      title: "Success",
-      color: "success",
-      description: "Record updated!",
-    });
-    globalFormLoading.value = false;
-    await navigateTo(`/data/${route.params.table}/${data.value.data[0].id}`);
-  }
+
   if (error.value) {
     globalFormLoading.value = false;
-
     toast.add({
       title: "Error",
       color: "error",
-      description: error.value?.message,
+      description: error.value.message || "Đã xảy ra lỗi",
     });
+    return;
   }
+
+  toast.add({
+    title: "Success",
+    color: "success",
+    description: "Record updated!",
+  });
+  updateErrors.value = {};
+  globalFormLoading.value = false;
+
+  await navigateTo(`/data/${route.params.table}/${data.value.data[0].id}`);
 }
 </script>
 
@@ -77,6 +93,7 @@ async function handleUpdate() {
           :table-name="(route.params.table as string)"
           v-model="currentRecord"
           :excluded="['id']"
+          v-model:errors="updateErrors"
         />
       </template>
     </UCard>

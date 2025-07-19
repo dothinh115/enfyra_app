@@ -30,11 +30,15 @@ export function useSchema(tableName: string) {
     })
   );
 
-  function generateEmptyForm(): Record<string, any> {
+  function generateEmptyForm(options?: {
+    excluded?: string[];
+  }): Record<string, any> {
+    const { excluded = [] } = options || {};
     const result: Record<string, any> = {};
 
     for (const field of editableFields.value) {
       const key = field.name || field.propertyName;
+      if (!key || excluded.includes(key)) continue;
 
       // Ưu tiên defaultValue nếu có
       if (field.defaultValue !== undefined) {
@@ -85,10 +89,41 @@ export function useSchema(tableName: string) {
     return result;
   }
 
+  function validate(record: Record<string, any>): {
+    isValid: boolean;
+    errors: Record<string, string>;
+  } {
+    const errors: Record<string, string> = {};
+    let isValid = true;
+
+    for (const [key, value] of Object.entries(record)) {
+      const field = getField(key);
+      if (!field) continue;
+
+      const isRelation = field.fieldType === "relation";
+      const isInverse = isRelation && !!field.inversePropertyName;
+      if (isInverse) continue;
+
+      const nullable = field.isNullable ?? true;
+
+      const empty =
+        value === null ||
+        value === undefined ||
+        (typeof value === "string" && value.trim() === "");
+
+      if (!nullable && empty) {
+        errors[key] = "Trường này là bắt buộc";
+        isValid = false;
+      }
+    }
+
+    return { isValid, errors };
+  }
+
   return {
     definition,
-    getField,
     fieldMap,
     generateEmptyForm,
+    validate,
   };
 }

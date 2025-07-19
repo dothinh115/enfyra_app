@@ -1,29 +1,52 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { useToast } from "#imports";
-
 const toast = useToast();
-const loading = ref(false);
-const setting = ref<any>(null);
+const setting = ref<Record<string, any>>({});
 const errors = ref<Record<string, string>>({});
+const { globalForm, globalFormLoading } = useGlobalState();
+const { generateEmptyForm, validate } = useSchema("setting_definition");
 
 async function loadSetting() {
-  loading.value = true;
-  const { data, error } = await useApiLazy("/setting_definition");
+  globalFormLoading.value = true;
+
+  const { data, error } = await useApi(`/setting_definition`, {
+    query: {
+      fields: "*",
+      limit: 1,
+    },
+  });
+
   if (error.value) {
     toast.add({
       title: "Lỗi khi tải cấu hình",
       description: error.value.message,
       color: "error",
     });
-  } else {
-    setting.value = data.value.data[0];
+    globalFormLoading.value = false;
+    return;
   }
-  loading.value = false;
+
+  const firstRecord = data.value?.data?.[0];
+  setting.value = firstRecord || generateEmptyForm();
+
+  globalFormLoading.value = false;
 }
 
 async function saveSetting() {
-  loading.value = true;
+  if (!setting.value) return;
+
+  const { isValid, errors: validationErrors } = validate(setting.value);
+  if (!isValid) {
+    errors.value = validationErrors;
+    toast.add({
+      title: "Thiếu thông tin",
+      description: "Vui lòng điền đầy đủ các trường bắt buộc.",
+      color: "error",
+    });
+    return;
+  }
+
+  globalFormLoading.value = true;
+
   const { error } = await useApiLazy(
     `/setting_definition/${setting.value.id}`,
     {
@@ -38,39 +61,43 @@ async function saveSetting() {
       description: error.value.message,
       color: "error",
     });
-    // Nếu response có validation lỗi dạng { errors: { field: message } }, gán vào errors:
+
     if (error.value.data?.errors) {
       errors.value = error.value.data.errors;
     }
-  } else {
-    toast.add({ title: "Đã lưu cấu hình", color: "primary" });
-    errors.value = {};
+
+    globalFormLoading.value = false;
+    return;
   }
 
-  loading.value = false;
+  toast.add({ title: "Đã lưu cấu hình", color: "primary" });
+  errors.value = {};
+  globalFormLoading.value = false;
 }
 
 onMounted(loadSetting);
 </script>
 
 <template>
-  <UCard v-if="setting" :loading="loading">
-    <template #header>
-      <div class="font-semibold text-base">Cấu hình hệ thống</div>
-    </template>
+  <UForm @submit="saveSetting" ref="globalForm" :state="setting">
+    <UCard :loading="globalFormLoading">
+      <template #header>
+        <div class="font-semibold text-base">Cấu hình hệ thống</div>
+      </template>
 
-    <DynamicFormEditor
-      v-model="setting"
-      table-name="setting_definition"
-      v-model:errors="errors"
-      :excluded="['id', 'isInit', 'isSystem']"
-      :type-map="{
-        methods: {
-          componentProps: {
-            disabled: true,
+      <DynamicFormEditor
+        v-model="setting"
+        table-name="setting_definition"
+        v-model:errors="errors"
+        :excluded="['id', 'isInit', 'isSystem']"
+        :type-map="{
+          methods: {
+            componentProps: {
+              disabled: true,
+            },
           },
-        },
-      }"
-    />
-  </UCard>
+        }"
+      />
+    </UCard>
+  </UForm>
 </template>

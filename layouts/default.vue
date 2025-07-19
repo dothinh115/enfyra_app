@@ -20,6 +20,7 @@
       >
         <BreadCrumbs />
 
+        <!-- Action Buttons -->
         <div v-if="route.path.startsWith('/collections')">
           <UButton
             :label="
@@ -38,76 +39,88 @@
         </div>
         <div v-else-if="route.path.startsWith('/settings/routings')">
           <UButton
-            :label="'Save'"
-            :icon="'lucide:newspaper'"
-            color="primary"
-            variant="solid"
-            :loading="globalFormLoading"
-            @click="globalForm?.submit()"
             v-if="
-              route.path.startsWith(`/settings/routings/create`) ||
+              route.path.startsWith('/settings/routings/create') ||
               route.path.startsWith(
                 `/settings/routings/${route.params.routeId}`
               )
             "
+            label="Save"
+            icon="lucide:newspaper"
+            color="primary"
+            variant="solid"
+            :loading="globalFormLoading"
+            @click="globalForm?.submit()"
           />
           <UButton
-            :icon="'lucide:plus'"
+            v-else
+            icon="lucide:plus"
             color="primary"
             variant="solid"
             size="xl"
             class="rounded-full"
             :to="`/settings/routings/create`"
-            v-else
           />
         </div>
         <div v-else-if="route.path.startsWith('/settings/hooks')">
           <UButton
-            :label="'Save'"
-            :icon="'lucide:newspaper'"
+            v-if="
+              route.path.startsWith('/settings/hooks/create') ||
+              route.path.startsWith(`/settings/hooks/${route.params.id}`)
+            "
+            label="Save"
+            icon="lucide:newspaper"
             color="primary"
             variant="solid"
             :loading="globalFormLoading"
             @click="globalForm?.submit()"
-            v-if="
-              route.path.startsWith(`/settings/hooks/create`) ||
-              route.path.startsWith(`/settings/hooks/${route.params.id}`)
-            "
           />
           <UButton
-            :icon="'lucide:plus'"
+            v-else
+            icon="lucide:plus"
             color="primary"
             variant="solid"
             size="xl"
             class="rounded-full"
             :to="`/settings/hooks/create`"
-            v-else
           />
         </div>
         <div
-          class="flex gap-2 items-center"
           v-else-if="route.path.startsWith('/settings/handlers')"
+          class="flex gap-2 items-center"
         >
           <UButton
-            :label="'Save'"
-            :icon="'lucide:newspaper'"
+            v-if="
+              route.path.startsWith('/settings/handlers/create') ||
+              route.path.startsWith(`/settings/handlers/${route.params.id}`)
+            "
+            label="Save"
+            icon="lucide:newspaper"
             color="primary"
             variant="solid"
             :loading="globalFormLoading"
             @click="globalForm?.submit()"
-            v-if="
-              route.path.startsWith(`/settings/handlers/create`) ||
-              route.path.startsWith(`/settings/handlers/${route.params.id}`)
-            "
           />
           <UButton
-            :icon="'lucide:plus'"
+            v-else
+            icon="lucide:plus"
             color="primary"
             variant="solid"
             size="xl"
             class="rounded-full"
             :to="`/settings/handlers/create`"
-            v-else
+          />
+        </div>
+        <div
+          v-else-if="route.path.startsWith('/settings/general')"
+          class="flex gap-2 items-center"
+        >
+          <UButton
+            icon="lucide:newspaper"
+            color="primary"
+            variant="solid"
+            label="Save"
+            @click="globalForm?.submit()"
           />
         </div>
         <div
@@ -120,8 +133,8 @@
           "
         >
           <UButton
-            :label="'Save'"
-            :icon="'lucide:newspaper'"
+            label="Save"
+            icon="lucide:newspaper"
             color="primary"
             variant="solid"
             :loading="globalFormLoading"
@@ -129,11 +142,11 @@
           />
         </div>
         <div
-          class="flex gap-2 items-center"
           v-else-if="route.path.startsWith('/data')"
+          class="flex gap-2 items-center"
         >
           <UButton
-            :icon="'lucide:plus'"
+            icon="lucide:plus"
             color="primary"
             variant="solid"
             size="xl"
@@ -143,17 +156,46 @@
         </div>
       </header>
 
-      <!-- Page content -->
+      <!-- 🆕 Sub Header (with Back Button) -->
+      <div
+        class="h-12 px-6 border-b border-gray-700 flex items-center justify-between bg-background shrink-0"
+      >
+        <slot name="subheader">
+          <!-- Fallback nội dung nếu không có slot -->
+          <div class="flex items-center gap-3">
+            <UButton
+              icon="lucide:arrow-left"
+              variant="ghost"
+              color="primary"
+              @click="$router.back()"
+              :disabled="!canGoBack"
+              label="Back"
+            />
+          </div>
+        </slot>
+      </div>
+
+      <!-- Page Content -->
       <section class="flex-1 min-h-0 overflow-auto p-6">
         <slot />
       </section>
     </main>
   </div>
+
+  <!-- Confirm Modal -->
   <GlobalConfirm />
 </template>
 
 <script setup lang="ts">
 const route = useRoute();
 const { fetchSchema, globalForm, globalFormLoading } = useGlobalState();
+
+const canGoBack = computed(() => {
+  if (typeof window !== "undefined") {
+    return window.history.length > 1;
+  }
+  return false;
+});
+
 await fetchSchema();
 </script>
