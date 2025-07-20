@@ -44,7 +44,9 @@ async function fetchUser() {
 }
 
 async function saveUser() {
-  const { isValid, errors: validationErrors } = validate(user.value);
+  const payload = { ...user.value };
+  if (!payload.password) delete payload.password; // để không ghi đè bằng null
+  const { isValid, errors: validationErrors } = validate(payload);
 
   if (!isValid) {
     errors.value = validationErrors;
@@ -57,9 +59,6 @@ async function saveUser() {
   }
 
   globalFormLoading.value = true;
-
-  const payload = { ...user.value };
-  if (!payload.password) delete payload.password; // để không ghi đè bằng null
 
   const { error } = await useApiLazy(`/${tableName}/${user.value.id}`, {
     method: "patch",
