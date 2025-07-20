@@ -107,7 +107,7 @@ async function deleteUser() {
     title: "Đã xoá người dùng",
     color: "success",
   });
-  await navigateTo("settings/users");
+  await navigateTo("/settings/users");
 }
 
 onMounted(fetchUser);

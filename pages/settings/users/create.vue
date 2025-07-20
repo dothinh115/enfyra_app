@@ -1,20 +1,16 @@
 <template>
-  <div class="mx-auto space-y-6">
+  <UForm
+    class="mx-auto space-y-6"
+    :state="form"
+    ref="globalForm"
+    @submit="handleCreate"
+  >
     <DynamicFormEditor
       v-model="form"
       v-model:errors="errors"
       :table-name="tableName"
     />
-
-    <div class="flex justify-end">
-      <UButton
-        label="Tạo người dùng"
-        icon="i-heroicons-plus"
-        :loading="loading"
-        @click="handleCreate"
-      />
-    </div>
-  </div>
+  </UForm>
 </template>
 
 <script setup lang="ts">
@@ -25,8 +21,7 @@ const tableName = "user_definition";
 
 const form = ref<Record<string, any>>({});
 const errors = ref<Record<string, string>>({});
-const loading = ref(false);
-
+const { globalForm, globalFormLoading } = useGlobalState();
 const { generateEmptyForm, validate } = useSchema(tableName);
 
 onMounted(() => {
@@ -46,14 +41,14 @@ async function handleCreate() {
     return;
   }
 
-  loading.value = true;
+  globalFormLoading.value = true;
 
   const { data, error } = await useApiLazy(`/${tableName}`, {
     method: "post",
     body: form.value,
   });
 
-  loading.value = false;
+  globalFormLoading.value = false;
 
   if (error.value) {
     toast.add({
