@@ -93,8 +93,7 @@ async function toggleEnabled(hook: any) {
                 @update:model-value="toggleEnabled(hook)"
                 label="Is enabled"
                 @click.prevent
-                :disabled="hook.isSystem"
-                :color="hook.isSystem ? 'error' : 'primary'"
+                v-if="!hook.isSystem"
               />
             </div>
           </div>

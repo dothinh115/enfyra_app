@@ -110,8 +110,7 @@ async function toggleEnabled(route: any) {
                 @update:model-value="toggleEnabled(route)"
                 label="Is enabled"
                 @click.prevent
-                :disabled="route.isSystem"
-                :color="route.isSystem ? 'error' : 'primary'"
+                v-if="!route.isSystem"
               />
             </div>
           </div>

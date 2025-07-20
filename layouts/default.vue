@@ -167,8 +167,8 @@
               variant="soft"
               color="primary"
               @click="$router.back()"
-              :disabled="!canGoBack"
               label="Back"
+              :disabled="disableBack"
             />
           </div>
         </slot>
@@ -186,15 +186,28 @@
 </template>
 
 <script setup lang="ts">
+import { useRoute, useRouter } from "vue-router";
+import { computed } from "vue";
+import { useGlobalState } from "~/composables/useGlobalState";
+
 const route = useRoute();
+const router = useRouter();
 const { fetchSchema, globalForm, globalFormLoading } = useGlobalState();
 
-const canGoBack = computed(() => {
-  if (typeof window !== "undefined") {
-    return window.history.length > 1;
-  }
-  return false;
+// ✅ Tính toán segment breadcrumb từ route
+const segments = computed(() => {
+  const parts = route.path.split("/").filter(Boolean);
+
+  return parts.map((part, i) => {
+    const label = decodeURIComponent(part);
+    const icon = "lucide:chevron-right";
+    const to = "/" + parts.slice(0, i + 1).join("/");
+    return { label, icon, to };
+  });
 });
+
+// ✅ Disable nút quay lại nếu chỉ còn 1 segment (gốc)
+const disableBack = computed(() => segments.value.length <= 1);
 
 await fetchSchema();
 </script>
