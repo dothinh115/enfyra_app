@@ -80,33 +80,71 @@ async function saveUser() {
   toast.add({ title: "Đã lưu thông tin", color: "primary" });
   errors.value = {};
 }
+
+async function deleteUser() {
+  const ok = await useConfirm().confirm({
+    content: `Bạn chắc chắn muốn xoá người dùng "${user.value.name}"?`,
+  });
+  if (!ok) return;
+
+  globalFormLoading.value = true;
+
+  const { error } = await useApiLazy(`/${tableName}/${user.value.id}`, {
+    method: "delete",
+  });
+
+  globalFormLoading.value = false;
+
+  if (error.value) {
+    toast.add({
+      title: "Lỗi khi xoá",
+      description: error.value.message,
+      color: "error",
+    });
+    return;
+  }
+
+  toast.add({
+    title: "Đã xoá người dùng",
+    color: "success",
+  });
+  await navigateTo("settings/users");
+}
+
 onMounted(fetchUser);
 </script>
 
 <template>
   <UForm :state="user" ref="globalForm" @submit="saveUser">
-    <div class="mb-4">
-      <UButton icon="lucide:arrow-left" variant="ghost" @click="$router.back()">
-        Quay lại
-      </UButton>
-    </div>
-
     <UCard :loading="globalFormLoading" v-if="user">
       <template #header>
-        <div class="flex items-center gap-4">
-          <UAvatar
-            v-if="user.avatar"
-            :src="user.avatar"
-            :alt="user.name"
-            size="xl"
-          />
-          <UAvatar v-else :alt="user.name" size="xl">
-            {{ user.email?.charAt(0)?.toUpperCase() || "?" }}
-          </UAvatar>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <UAvatar
+              v-if="user.avatar"
+              :src="user.avatar"
+              :alt="user.name"
+              size="xl"
+            />
+            <UAvatar v-else :alt="user.name" size="xl">
+              {{ user.email?.charAt(0)?.toUpperCase() || "?" }}
+            </UAvatar>
+            <div>
+              <div class="text-xl font-semibold">{{ user.name }}</div>
+              <div class="text-sm text-muted-foreground">{{ user.email }}</div>
+            </div>
+          </div>
 
           <div>
-            <div class="text-xl font-semibold">{{ user.name }}</div>
-            <div class="text-sm text-muted-foreground">{{ user.email }}</div>
+            <UButton
+              icon="lucide:trash"
+              label="Xoá người dùng"
+              color="error"
+              variant="solid"
+              :disabled="user.isSystem || user.isRootAdmin"
+              :loading="globalFormLoading"
+              @click="deleteUser"
+            />
           </div>
         </div>
       </template>

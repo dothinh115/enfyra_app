@@ -24,7 +24,11 @@ export function useSchema(tableName: string) {
     definition.value.filter((field: any) => {
       const key = field.name || field.propertyName;
       if (!key) return false;
-      if (["id", "createdAt", "updatedAt", "isSystem"].includes(key))
+      if (
+        ["id", "createdAt", "updatedAt", "isSystem", "isRootAdmin"].includes(
+          key
+        )
+      )
         return false;
       return true;
     })
