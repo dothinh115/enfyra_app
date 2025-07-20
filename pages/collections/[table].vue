@@ -9,7 +9,6 @@ const { tables, globalForm, globalFormLoading, fetchSchema } = useGlobalState();
 const { confirm } = useConfirm();
 const toast = useToast();
 
-const tableName = ref(route.params.table as string);
 const table = ref<any>();
 
 const { data } = await useApiLazy("/table_definition", {

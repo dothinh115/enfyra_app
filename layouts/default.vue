@@ -156,7 +156,6 @@
         </div>
       </header>
 
-      <!-- 🆕 Sub Header (with Back Button) -->
       <div
         class="h-12 px-6 border-b border-gray-700 flex items-center justify-between bg-background shrink-0"
       >
@@ -165,7 +164,7 @@
           <div class="flex items-center gap-3">
             <UButton
               icon="lucide:arrow-left"
-              variant="ghost"
+              variant="soft"
               color="primary"
               @click="$router.back()"
               :disabled="!canGoBack"

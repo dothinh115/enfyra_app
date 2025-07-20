@@ -94,7 +94,7 @@ async function toggleEnabled(hook: any) {
                 label="Is enabled"
                 @click.prevent
                 :disabled="hook.isSystem"
-                :color="hook.isSystem ? 'warning' : 'primary'"
+                :color="hook.isSystem ? 'error' : 'primary'"
               />
             </div>
           </div>

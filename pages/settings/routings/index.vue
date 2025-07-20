@@ -111,7 +111,7 @@ async function toggleEnabled(route: any) {
                 label="Is enabled"
                 @click.prevent
                 :disabled="route.isSystem"
-                :color="route.isSystem ? 'warning' : 'primary'"
+                :color="route.isSystem ? 'error' : 'primary'"
               />
             </div>
           </div>

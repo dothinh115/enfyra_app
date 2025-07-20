@@ -11,7 +11,6 @@
 </template>
 
 <script setup lang="ts">
-const router = useRouter();
 const toast = useToast();
 
 const tableName = "route_handler_definition";
@@ -58,6 +57,6 @@ async function handleCreate() {
     color: "success",
   });
 
-  router.push(`/settings/handlers/${data.value.data[0].id}`);
+  await navigateTo(`/settings/handlers/${data.value.data[0].id}`);
 }
 </script>
