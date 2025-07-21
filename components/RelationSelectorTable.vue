@@ -211,20 +211,38 @@ function apply() {
   showModal.value = false;
 }
 
-function getDisplayLabel(item: Record<string, any>): string {
+function getDisplayLabel(
+  item: Record<string, any>,
+  tableMeta?: { definition: { fieldType: string; propertyName: string }[] }
+): string {
   if (!item || typeof item !== "object") return "";
 
-  // Ưu tiên các key phổ biến
+  // Lấy danh sách relation keys
+  const relationKeys = new Set(
+    (tableMeta?.definition || [])
+      .filter((def) => def.fieldType === "relation")
+      .map((def) => def.propertyName)
+  );
+
+  // Lọc ra các field không phải relation
+  const nonRelationKeys = Object.keys(item).filter(
+    (key) => !relationKeys.has(key)
+  );
+
+  // Ưu tiên các key phổ biến nhưng chỉ trong non-relation
   const preferredKeys = ["name", "title", "propertyName", "path", "method"];
   for (const key of preferredKeys) {
-    if (key in item && item[key] !== undefined && item[key] !== null) {
-      const val = String(item[key]).trim();
-      if (val !== "") return val;
+    if (nonRelationKeys.includes(key)) {
+      const val = item[key];
+      if (val !== undefined && val !== null) {
+        const str = String(val).trim();
+        if (str !== "") return str;
+      }
     }
   }
 
-  // Duyệt toàn bộ field (trừ id), tìm field đầu tiên có giá trị hiển thị được
-  for (const key of Object.keys(item)) {
+  // Nếu không có key ưu tiên, duyệt toàn bộ non-relation fields còn lại (trừ id)
+  for (const key of nonRelationKeys) {
     if (key === "id") continue;
     const val = item[key];
     if (val !== undefined && val !== null) {
@@ -234,7 +252,7 @@ function getDisplayLabel(item: Record<string, any>): string {
   }
 
   // Nếu không có gì hết
-  return `ID: ${item.id}`;
+  return item.id ? `ID: ${item.id}` : "";
 }
 </script>
 
@@ -272,7 +290,9 @@ function getDisplayLabel(item: Record<string, any>): string {
             class="w-4 h-4 text-primary shrink-0"
           />
           ID: {{ item.id }} -
-          <span class="truncate">{{ getDisplayLabel(item) }}</span>
+          <span class="truncate">{{
+            getDisplayLabel(item, schemas[targetTable?.name])
+          }}</span>
         </div>
         <div class="flex items-center gap-2 shrink-0">
           <UButton

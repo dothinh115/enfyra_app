@@ -40,6 +40,11 @@ function removeId(id: any) {
     selectedIds.value = updated;
   }
 }
+
+function shortenId(id: string | number): string {
+  const str = String(id);
+  return str.length <= 6 ? str : `${str.slice(0, 4)}...`;
+}
 </script>
 
 <template>
@@ -52,7 +57,7 @@ function removeId(id: any) {
       variant="soft"
       class="flex items-center gap-1"
     >
-      {{ item.id }}
+      {{ shortenId(item.id) }}
       <button
         @click.stop="removeId(item.id)"
         class="ml-1 text-xs hover:text-red-500 cursor-pointer"

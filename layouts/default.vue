@@ -138,6 +138,32 @@
           />
         </div>
         <div
+          v-else-if="route.path.startsWith('/settings/roles')"
+          class="flex gap-2 items-center"
+        >
+          <UButton
+            v-if="
+              route.path.startsWith('/settings/roles/create') ||
+              route.path.startsWith(`/settings/roles/${route.params.id}`)
+            "
+            label="Save"
+            icon="lucide:newspaper"
+            color="primary"
+            variant="solid"
+            :loading="globalFormLoading"
+            @click="globalForm?.submit()"
+          />
+          <UButton
+            v-else
+            icon="lucide:plus"
+            color="primary"
+            variant="solid"
+            size="xl"
+            class="rounded-full"
+            :to="`/settings/roles/create`"
+          />
+        </div>
+        <div
           v-else-if="route.path.startsWith('/settings/general')"
           class="flex gap-2 items-center"
         >

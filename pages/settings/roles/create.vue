@@ -1,10 +1,10 @@
 <template>
   <div class="mx-auto space-y-6">
-    <UForm state="createForm" ref="globalForm" @submit="handleCreate">
+    <UForm :state="createForm" ref="globalForm" @submit="handleCreate">
       <DynamicFormEditor
         v-model="createForm"
         :table-name="tableName"
-        :errors="createErrors"
+        v-model:errors="createErrors"
       />
     </UForm>
   </div>
@@ -13,7 +13,7 @@
 <script setup lang="ts">
 const toast = useToast();
 
-const tableName = "route_definition";
+const tableName = "role_definition";
 
 const createForm = ref<Record<string, any>>({});
 const createErrors = ref<Record<string, string>>({});
@@ -31,8 +31,8 @@ async function handleCreate() {
   if (!isValid) {
     createErrors.value = errors;
     toast.add({
-      title: "Có lỗi",
-      description: "Vui lòng kiểm tra lại các trường bị lỗi.",
+      title: "Thiếu thông tin",
+      description: "Vui lòng điền đầy đủ các trường bắt buộc.",
       color: "error",
     });
     return;
@@ -45,7 +45,7 @@ async function handleCreate() {
 
   if (error.value) {
     toast.add({
-      title: "Lỗi",
+      title: "Lỗi khi tạo vai trò",
       description: error.value.message,
       color: "error",
     });
@@ -53,10 +53,10 @@ async function handleCreate() {
   }
 
   toast.add({
-    title: "Tạo route thành công",
+    title: "Tạo vai trò thành công",
     color: "success",
   });
 
-  await navigateTo(`/settings/routings/${data.value.data[0].id}`);
+  await navigateTo(`/settings/roles/${data.value.data[0].id}`);
 }
 </script>

@@ -15,7 +15,10 @@ const props = defineProps<{
         type?: string;
         disabled?: boolean;
         placeholder?: string;
-        componentProps?: Record<string, any>;
+        componentProps?: {
+          allowDelete?: boolean;
+          [key: string]: any;
+        };
         fieldProps?: Record<string, any>;
         [key: string]: any;
       }

@@ -129,6 +129,24 @@ const route = useRoute();
       </template>
       Users
     </UButton>
+    <UButton
+      size="lg"
+      variant="ghost"
+      color="neutral"
+      :to="{
+        name: 'settings-roles',
+      }"
+      class="hover:bg-primary/20"
+      :class="
+        route.path.startsWith('/settings/roles') &&
+        'bg-primary/20 text-white shadow hover:!bg-primary/20'
+      "
+    >
+      <template #trailing>
+        <Icon name="lucide:arrow-right" class="ml-auto" />
+      </template>
+      Roles
+    </UButton>
   </nav>
   <nav
     v-else-if="route.path.startsWith('/data')"
