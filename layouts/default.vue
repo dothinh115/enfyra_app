@@ -234,16 +234,17 @@
   </div>
 
   <!-- Confirm Modal -->
+  <div id="others-overlay"></div>
+
   <GlobalConfirm />
 </template>
 
 <script setup lang="ts">
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import { computed } from "vue";
 import { useGlobalState } from "~/composables/useGlobalState";
 
 const route = useRoute();
-const router = useRouter();
 const { fetchSchema, globalForm, globalFormLoading } = useGlobalState();
 
 // ✅ Tính toán segment breadcrumb từ route

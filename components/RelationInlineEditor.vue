@@ -100,7 +100,7 @@ function shortenId(id: string | number): string {
         />
       </template>
       <template #body>
-        <RelationSelectorTable
+        <RelationSelector
           :relationMeta="relationMeta"
           :selected-ids="selectedIds"
           :multiple="
@@ -111,6 +111,7 @@ function shortenId(id: string | number): string {
           :disabled="props.disabled"
           :allowDelete
         />
-      </template> </UDrawer
-  ></Teleport>
+      </template>
+    </UDrawer>
+  </Teleport>
 </template>

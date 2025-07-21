@@ -23,6 +23,7 @@ const props = defineProps<{
         [key: string]: any;
       }
   >;
+  readonly?: boolean;
 }>();
 
 const emit = defineEmits(["update:modelValue", "update:errors"]);
@@ -215,7 +216,6 @@ function getComponentConfigByKey(key: string) {
     return {
       component: resolveComponent("RichTextEditor"),
       componentProps: {
-        ...componentPropsBase,
         "v-model": formData.value[key] ?? "",
         editable: !disabled,
         "onUpdate:modelValue": (val: string) => {
@@ -238,6 +238,46 @@ function getComponentConfigByKey(key: string) {
     fieldProps,
   };
 }
+
+function renderValue(key: string): string {
+  const val = formData.value[key];
+  const column = columnMap.value.get(key);
+  const isRelation = column?.fieldType === "relation";
+
+  if (val === null || val === undefined) return "—";
+
+  // Nếu là relation (1-1 hoặc 1-n)
+  if (isRelation) {
+    if (Array.isArray(val)) {
+      const ids = val.map((item) =>
+        item && typeof item === "object" && "id" in item ? item.id : "?"
+      );
+      return ids.length ? ids.join(", ") : "—";
+    }
+
+    if (typeof val === "object") {
+      return "id" in val ? String(val.id) : JSON.stringify(val, null, 2);
+    }
+  }
+
+  // Boolean
+  if (typeof val === "boolean") return val ? "true" : "false";
+
+  // Array (not relation)
+  if (Array.isArray(val)) return val.length ? val.join(", ") : "—";
+
+  // Object (non-relation)
+  if (typeof val === "object") {
+    try {
+      return JSON.stringify(val, null, 2);
+    } catch {
+      return "[object]";
+    }
+  }
+
+  // Default: primitive
+  return String(val);
+}
 </script>
 
 <template>
@@ -254,10 +294,14 @@ function getComponentConfigByKey(key: string) {
         </template>
 
         <component
+          v-if="!props.readonly"
           :is="getComponentConfigByKey(key).component"
           v-bind="getComponentConfigByKey(key).componentProps"
           v-model="formData[key]"
         />
+        <div v-else class="text-sm whitespace-pre-wrap font-mono">
+          {{ renderValue(key) }}
+        </div>
       </UFormField>
     </template>
   </div>

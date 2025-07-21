@@ -64,18 +64,19 @@ watch(
 
 <template>
   <div class="space-y-6">
-    <div class="space-y-3" v-if="roles.length">
-      <ULink
-        v-for="role in roles"
-        :key="role.id"
-        :to="`/settings/roles/${role.id}`"
+    <div v-if="roles.length">
+      <div
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
       >
         <UCard
-          class="hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+          v-for="role in roles"
+          :key="role.id"
+          class="hover:bg-gray-50 dark:hover:bg-gray-800 transition cursor-pointer"
           variant="subtle"
+          @click="$router.push(`/settings/roles/${role.id}`)"
         >
-          <div class="flex justify-between items-start gap-4">
-            <div class="space-y-1 flex-1">
+          <div class="flex flex-col h-full justify-between">
+            <div class="space-y-1">
               <div class="text-base font-semibold text-primary">
                 {{ role.name || "Chưa đặt tên" }}
               </div>
@@ -86,17 +87,19 @@ watch(
                 {{ role.description }}
               </div>
             </div>
-            <div class="shrink-0">
+
+            <div class="flex justify-end pt-4">
               <UButton
                 icon="lucide:trash-2"
-                size="xl"
+                size="sm"
                 color="error"
-                @click.stop.prevent="deleteRole(role.id)"
+                variant="ghost"
+                @click.stop="deleteRole(role.id)"
               />
             </div>
           </div>
         </UCard>
-      </ULink>
+      </div>
     </div>
 
     <div v-else class="text-sm text-gray-400 text-center">
