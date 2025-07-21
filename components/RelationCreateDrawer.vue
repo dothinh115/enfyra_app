@@ -56,13 +56,17 @@ async function createNewRecord() {
   <Teleport to="body">
     <UDrawer v-model:open="show" direction="right" class="min-w-xl">
       <template #header>
-        <h2>Tạo mới {{ targetTable?.name }}</h2>
-        <UButton
-          icon="lucide:x"
-          @click="show = false"
-          variant="ghost"
-          color="error"
-        />
+        <div
+          class="flex items-center justify-between border-b border-muted pb-2"
+        >
+          <h2>New {{ targetTable?.name }}</h2>
+          <UButton
+            icon="lucide:x"
+            @click="show = false"
+            variant="ghost"
+            color="error"
+          />
+        </div>
       </template>
       <template #body>
         <DynamicFormEditor
@@ -70,7 +74,7 @@ async function createNewRecord() {
           :table-name="targetTable?.name"
           :errors="createErrors"
         />
-        <div class="flex justify-end border-t pt-2 mt-4">
+        <div class="flex justify-end border-t border-muted pt-2 mt-4">
           <UButton
             icon="lucide:plus"
             @click="createNewRecord"
