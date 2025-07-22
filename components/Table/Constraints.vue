@@ -8,8 +8,6 @@ const props = defineProps<{
 
 const table = useModel(props, "modelValue");
 
-const { me } = useAuth();
-
 function addGroup(list: string[][]) {
   list.push([""]);
 }
@@ -47,7 +45,7 @@ function removeGroup(list: string[][], groupIndex: number) {
           :items="props.columnNames.filter((name: string) => group[fIndex] === name || !group.includes(name))"
           v-model="table.uniques[gIndex][fIndex]"
           size="sm"
-          class="min-w-[180px]"
+          class="min-w-[180px] min-h-[28px]"
         />
 
         <UButton
@@ -91,7 +89,7 @@ function removeGroup(list: string[][], groupIndex: number) {
           :items="props.columnNames.filter((name: string) => group[fIndex] === name || !group.includes(name))"
           v-model="table.indexes[gIndex][fIndex]"
           size="sm"
-          class="min-w-[180px]"
+          class="min-w-[180px] min-h-[28px]"
         />
 
         <UButton

@@ -4,16 +4,10 @@ const page = ref(1);
 const pageLimit = 7;
 const total = ref(0);
 const route = useRoute();
-
+const tableName = "route_definition";
+const { getFullRelationQuery } = useSchema(tableName);
 async function fetchRoute(page = 1, limit: number) {
-  const fields = [
-    "*",
-    "mainTable.*",
-    "routePermissions.*",
-    "handlers.*",
-    "hooks.*",
-    "publishedMethods.*",
-  ].join(",");
+  const fields = [getFullRelationQuery()].join(",");
   const sort = ["-createdAt"].join(",");
 
   try {

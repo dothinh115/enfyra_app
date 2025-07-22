@@ -8,28 +8,35 @@ const route = useRoute();
 const { tables, globalForm, globalFormLoading, fetchSchema } = useGlobalState();
 const { confirm } = useConfirm();
 const toast = useToast();
+const tableName = "table_definition";
+const { getFullRelationQuery } = useSchema(tableName);
 
 const table = ref<any>();
 
-const { data } = await useApiLazy("/table_definition", {
-  query: {
-    fields: "*,columns.*,relations.*",
-    filter: {
-      name: {
-        _eq: route.params.table,
+async function fetchData() {
+  const { data } = await useApiLazy("/table_definition", {
+    query: {
+      fields: getFullRelationQuery(),
+      filter: {
+        name: {
+          _eq: route.params.table,
+        },
       },
     },
-  },
-});
-if (data.value.data) {
-  table.value = data.value.data[0];
+  });
+  if (data.value.data) {
+    table.value = data.value.data[0];
+  }
 }
 
+onMounted(fetchData);
+
 watch(
-  () => table.value.columns.map((col: any) => col.type),
+  () => table.value?.columns.map((col: any) => col.type),
   (newTypes, oldTypes) => {
+    if (!newTypes || !oldTypes) return;
     const notIndexable = ["text", "varchar", "simple-json"];
-    newTypes.forEach((type: any, i: number) => {
+    newTypes?.forEach((type: any, i: number) => {
       if (type !== oldTypes[i]) {
         // 👉 Cột thứ i vừa đổi type
         if (notIndexable.includes(type)) {
@@ -134,19 +141,19 @@ async function deleteTable() {
 </script>
 
 <template>
-  <UForm @submit.prevent="save" :state="table" ref="globalForm">
+  <UForm @submit.prevent="save" :state="table" ref="globalForm" v-if="table">
     <div class="mx-auto">
       <TableForm v-model="table" @save="save">
         <div class="space-y-6">
           <TableConstraints
             v-model="table"
-            :column-names="table.columns?.map((c:any) => c.name)"
+            :column-names="table.columns?.map((c:any) => c?.name)"
           />
           <TableColumns v-model="table.columns" />
           <TableRelations
             v-model="table.relations"
             :table-options="
-              tables?.map((t) => ({ label: t.name, value: { id: t.id } }))
+              tables?.map((t) => ({ label: t?.name, value: { id: t.id } }))
             "
           />
           <div>

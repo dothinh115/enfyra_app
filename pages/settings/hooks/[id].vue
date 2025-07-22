@@ -56,22 +56,21 @@
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
+const tableName = "hook_definition";
 const { confirm } = useConfirm();
 const { globalForm, globalFormLoading } = useGlobalState();
-
-const tableName = "hook_definition";
 const id = route.params.id as string;
 
 const detail = ref<Record<string, any> | null>(null);
 const form = ref<Record<string, any>>({});
 const errors = ref<Record<string, string>>({});
 
-const { validate } = useSchema(tableName);
+const { validate, getFullRelationQuery } = useSchema(tableName);
 
 async function fetchHookDetail() {
   const { data, error } = await useApiLazy("/hook_definition", {
     query: {
-      fields: "*," + "route.path," + "route.mainTable.name",
+      fields: getFullRelationQuery(),
       filter: { id: { _eq: id } },
     },
   });

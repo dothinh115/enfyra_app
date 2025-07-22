@@ -34,12 +34,12 @@
 
 <script setup lang="ts">
 const route = useRoute();
-const router = useRouter();
 const toast = useToast();
 const { confirm } = useConfirm();
 
 const id = route.params.id as string;
 const tableName = "role_definition";
+const { getFullRelationQuery } = useSchema(tableName);
 
 const form = ref<Record<string, any>>({});
 const errors = ref<Record<string, string>>({});
@@ -55,7 +55,7 @@ async function fetchRole() {
 
   const { data, error } = await useApiLazy(`/${tableName}`, {
     query: {
-      fields: "*",
+      fields: getFullRelationQuery(),
       filter: { id: { _eq: id } },
     },
   });

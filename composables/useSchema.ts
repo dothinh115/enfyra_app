@@ -124,10 +124,21 @@ export function useSchema(tableName: string) {
     return { isValid, errors };
   }
 
+  function getFullRelationQuery(): string {
+    if (!definition.value.length) return "*";
+
+    const relations = definition.value
+      .filter((field: any) => field.fieldType === "relation")
+      .map((field: any) => `${field.propertyName}.*`);
+
+    return ["*", ...relations].join(",");
+  }
+
   return {
     definition,
     fieldMap,
     generateEmptyForm,
     validate,
+    getFullRelationQuery,
   };
 }

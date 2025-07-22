@@ -71,18 +71,12 @@ const detail = ref<Record<string, any> | null>(null);
 const form = ref<Record<string, any>>({});
 const errors = ref<Record<string, string>>({});
 
-const { validate } = useSchema(tableName);
+const { validate, getFullRelationQuery } = useSchema(tableName);
 
 async function fetchRouteDetail(routeId: number) {
   const { data, error } = await useApiLazy("/route_definition", {
     query: {
-      fields:
-        "*," +
-        "mainTable.*," +
-        "handlers.*," +
-        "hooks.*," +
-        "routePermissions.*," +
-        "targetTables.*",
+      fields: getFullRelationQuery(),
       filter: { id: { _eq: routeId } },
     },
   });

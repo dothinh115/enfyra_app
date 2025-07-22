@@ -27,20 +27,19 @@ const toast = useToast();
 
 const id = route.params.id as string;
 const tableName = "route_handler_definition";
-
 const form = ref<Record<string, any>>({});
 const errors = ref<Record<string, string>>({});
 const loading = ref(false);
 const saving = ref(false);
 
 const { globalForm } = useGlobalState();
-const { validate } = useSchema(tableName);
+const { validate, getFullRelationQuery } = useSchema(tableName);
 
 async function fetchHandler() {
   loading.value = true;
 
   const { data, error } = await useApiLazy(`/${tableName}`, {
-    query: { fields: "*", filter: { id: { _eq: id } } },
+    query: { fields: getFullRelationQuery(), filter: { id: { _eq: id } } },
   });
 
   if (error.value) {

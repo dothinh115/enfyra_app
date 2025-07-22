@@ -9,14 +9,14 @@ const tableName = "user_definition";
 const user = ref<Record<string, any>>({});
 const errors = ref<Record<string, string>>({});
 
-const { validate } = useSchema(tableName);
+const { validate, getFullRelationQuery } = useSchema(tableName);
 
 async function fetchUser() {
   globalFormLoading.value = true;
 
   const { data, error } = await useApiLazy(`/${tableName}`, {
     query: {
-      fields: "*,role.*",
+      fields: getFullRelationQuery(),
       filter: {
         id: { _eq: route.params.id },
       },

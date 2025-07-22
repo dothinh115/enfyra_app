@@ -5,13 +5,15 @@ const pageLimit = 10;
 const total = ref(0);
 const routeHandlers = ref<any[]>([]);
 const route = useRoute();
+const tableName = "route_handler_definition";
 const { confirm } = useConfirm();
+const { getFullRelationQuery } = useSchema(tableName);
 
 async function fetchRouteHandlers(page = 1, limit = 10) {
   try {
     const { data } = await useApiLazy("/route_handler_definition", {
       query: {
-        fields: "*, route.path, method.method",
+        fields: getFullRelationQuery(),
         sort: "-createdAt",
         meta: "*",
         page,

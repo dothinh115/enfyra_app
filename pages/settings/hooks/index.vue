@@ -4,16 +4,20 @@ const page = ref(1);
 const pageLimit = 7;
 const total = ref(0);
 const route = useRoute();
-
+const tableName = "hook_definition";
 const hooks = ref<any[]>([]);
+const { getFullRelationQuery } = useSchema(tableName);
 
 async function fetchHooks(page = 1, limit: number) {
-  const fields = ["*", "route.path", "route.mainTable.name"].join(",");
-  const sort = ["-createdAt"].join(",");
-
   try {
     const { data } = await useApiLazy("/hook_definition", {
-      query: { fields, sort, meta: "*", page, limit },
+      query: {
+        fields: getFullRelationQuery(),
+        sort: "-createdAt",
+        meta: "*",
+        page,
+        limit,
+      },
     });
     hooks.value = data.value.data;
     total.value = data.value.meta.totalCount;
