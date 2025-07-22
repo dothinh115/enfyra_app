@@ -124,7 +124,7 @@ export function useSchema(tableName: string) {
     return { isValid, errors };
   }
 
-  function getFullRelationQuery(): string {
+  function getIncludeFields(): string {
     if (!definition.value.length) return "*";
 
     const relations = definition.value
@@ -139,6 +139,6 @@ export function useSchema(tableName: string) {
     fieldMap,
     generateEmptyForm,
     validate,
-    getFullRelationQuery,
+    getIncludeFields,
   };
 }

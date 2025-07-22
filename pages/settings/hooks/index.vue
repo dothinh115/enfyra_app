@@ -6,13 +6,13 @@ const total = ref(0);
 const route = useRoute();
 const tableName = "hook_definition";
 const hooks = ref<any[]>([]);
-const { getFullRelationQuery } = useSchema(tableName);
+const { getIncludeFields } = useSchema(tableName);
 
 async function fetchHooks(page = 1, limit: number) {
   try {
     const { data } = await useApiLazy("/hook_definition", {
       query: {
-        fields: getFullRelationQuery(),
+        fields: getIncludeFields(),
         sort: "-createdAt",
         meta: "*",
         page,
@@ -70,24 +70,28 @@ async function toggleEnabled(hook: any) {
                 }}</span>
               </div>
 
-              <div class="flex items-center space-x-1" v-if="hook.type">
-                <span class="text-xs text-gray-400">Type:</span>
-                <UBadge color="secondary" size="xs">{{ hook.type }}</UBadge>
-              </div>
-
-              <div class="flex items-center space-x-1" v-if="hook.route?.path">
+              <div class="flex items-center space-x-1">
                 <span class="text-xs text-gray-400">Route:</span>
-                <span class="text-sm text-gray-300">{{ hook.route.path }}</span>
+                <span class="text-sm text-gray-300">{{
+                  hook.route?.path ?? "All path"
+                }}</span>
               </div>
 
-              <div
-                class="flex items-center space-x-1"
-                v-if="hook.route?.mainTable?.name"
-              >
-                <span class="text-xs text-gray-400">Main table:</span>
-                <span class="text-sm text-gray-300">{{
-                  hook.route.mainTable.name
-                }}</span>
+              <div class="flex items-center space-x-1 flex-wrap">
+                <span class="text-xs text-gray-400">Method:</span>
+                <UBadge
+                  color="primary"
+                  size="xs"
+                  variant="solid"
+                  v-for="(item, index) in hook.methods"
+                  :key="index"
+                  v-if="hook.methods.length"
+                >
+                  {{ item?.method }}
+                </UBadge>
+                <UBadge color="primary" size="xs" variant="solid" v-else>
+                  All methods
+                </UBadge>
               </div>
             </div>
 

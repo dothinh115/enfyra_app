@@ -39,7 +39,7 @@ const { confirm } = useConfirm();
 
 const id = route.params.id as string;
 const tableName = "role_definition";
-const { getFullRelationQuery } = useSchema(tableName);
+const { getIncludeFields } = useSchema(tableName);
 
 const form = ref<Record<string, any>>({});
 const errors = ref<Record<string, string>>({});
@@ -55,7 +55,7 @@ async function fetchRole() {
 
   const { data, error } = await useApiLazy(`/${tableName}`, {
     query: {
-      fields: getFullRelationQuery(),
+      fields: getIncludeFields(),
       filter: { id: { _eq: id } },
     },
   });

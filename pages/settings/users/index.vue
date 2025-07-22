@@ -75,13 +75,13 @@ const total = ref(0);
 const limit = 12;
 const loading = ref(false);
 const tableName = "user_definition";
-const { getFullRelationQuery } = useSchema(tableName);
+const { getIncludeFields } = useSchema(tableName);
 
 async function fetchUsers() {
   loading.value = true;
   const { data } = await useApiLazy("/user_definition", {
     query: {
-      fields: getFullRelationQuery(),
+      fields: getIncludeFields(),
       page: page.value,
       limit,
       sort: "-createdAt",

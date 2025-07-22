@@ -9,14 +9,14 @@ const { tables, globalForm, globalFormLoading, fetchSchema } = useGlobalState();
 const { confirm } = useConfirm();
 const toast = useToast();
 const tableName = "table_definition";
-const { getFullRelationQuery } = useSchema(tableName);
+const { getIncludeFields } = useSchema(tableName);
 
 const table = ref<any>();
 
 async function fetchData() {
   const { data } = await useApiLazy("/table_definition", {
     query: {
-      fields: getFullRelationQuery(),
+      fields: getIncludeFields(),
       filter: {
         name: {
           _eq: route.params.table,

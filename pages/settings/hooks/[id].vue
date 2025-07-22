@@ -65,12 +65,12 @@ const detail = ref<Record<string, any> | null>(null);
 const form = ref<Record<string, any>>({});
 const errors = ref<Record<string, string>>({});
 
-const { validate, getFullRelationQuery } = useSchema(tableName);
+const { validate, getIncludeFields } = useSchema(tableName);
 
 async function fetchHookDetail() {
   const { data, error } = await useApiLazy("/hook_definition", {
     query: {
-      fields: getFullRelationQuery(),
+      fields: getIncludeFields(),
       filter: { id: { _eq: id } },
     },
   });

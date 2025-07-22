@@ -7,13 +7,13 @@ const roles = ref<any[]>([]);
 const route = useRoute();
 const tableName = "role_definition";
 const { confirm } = useConfirm();
-const { getFullRelationQuery } = useSchema(tableName);
+const { getIncludeFields } = useSchema(tableName);
 
 async function fetchRoles(page = 1, limit = 10) {
   try {
     const { data } = await useApiLazy("/role_definition", {
       query: {
-        fields: getFullRelationQuery(),
+        fields: getIncludeFields(),
         sort: "-createdAt",
         meta: "*",
         page,

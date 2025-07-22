@@ -33,13 +33,13 @@ const loading = ref(false);
 const saving = ref(false);
 
 const { globalForm } = useGlobalState();
-const { validate, getFullRelationQuery } = useSchema(tableName);
+const { validate, getIncludeFields } = useSchema(tableName);
 
 async function fetchHandler() {
   loading.value = true;
 
   const { data, error } = await useApiLazy(`/${tableName}`, {
-    query: { fields: getFullRelationQuery(), filter: { id: { _eq: id } } },
+    query: { fields: getIncludeFields(), filter: { id: { _eq: id } } },
   });
 
   if (error.value) {
