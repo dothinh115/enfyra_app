@@ -78,7 +78,7 @@ async function toggleEnabled(hook: any) {
               </div>
 
               <div class="flex items-center space-x-1 flex-wrap">
-                <span class="text-xs text-gray-400">Method:</span>
+                <span class="text-xs text-gray-400">Methods:</span>
                 <UBadge
                   color="primary"
                   size="xs"
