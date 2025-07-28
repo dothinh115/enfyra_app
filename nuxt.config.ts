@@ -6,6 +6,12 @@ export default defineNuxtConfig({
   modules: ["@nuxt/icon", "@nuxt/ui", "@nuxtjs/tailwindcss", "nuxt-codemirror"],
   ssr: false,
   css: ["./assets/css/main.css"],
+  imports: {
+    dirs: [
+      // Auto-import from utils
+      'utils/**'
+    ]
+  },
   vite: {
     plugins: [tailwindcss()],
   },
