@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { FilterGroup } from "~/utils/filter/FilterTypes";
+import FilterBuilder from "~/components/Filter/FilterBuilder.vue";
 
 const props = defineProps<{
   modelValue: boolean;
@@ -7,14 +8,6 @@ const props = defineProps<{
   schemas: Record<string, any>;
   tableName: string;
 }>();
-
-// Debug
-watch(
-  () => props.modelValue,
-  (newValue) => {
-    console.log("FilterDrawer modelValue changed:", newValue);
-  }
-);
 
 const emit = defineEmits<{
   "update:modelValue": [value: boolean];
@@ -90,29 +83,29 @@ function hasActiveFilters(group: FilterGroup): boolean {
       direction="right"
     >
       <template #header>
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <UIcon name="i-lucide-filter" class="w-5 h-5" />
-              <div>
-                <h3 class="text-lg font-semibold">Filter {{ tableName }}</h3>
-                <p class="text-sm text-gray-500 mt-1">
-                  {{
-                    hasActiveConditions
-                      ? `${localFilter.conditions.length} condition(s) configured`
-                      : "No filters applied"
-                  }}
-                </p>
-              </div>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <UIcon name="i-lucide-filter" class="w-5 h-5" />
+            <div>
+              <h3 class="text-lg font-semibold">Filter {{ tableName }}</h3>
+              <p class="text-sm text-gray-500 mt-1">
+                {{
+                  hasActiveConditions
+                    ? `${localFilter.conditions.length} condition(s) configured`
+                    : "No filters applied"
+                }}
+              </p>
             </div>
-
-            <UButton
-              icon="i-lucide-x"
-              size="sm"
-              color="neutral"
-              variant="ghost"
-              @click="handleClose"
-            />
           </div>
+
+          <UButton
+            icon="i-lucide-x"
+            size="sm"
+            color="neutral"
+            variant="ghost"
+            @click="handleClose"
+          />
+        </div>
       </template>
 
       <template #body>
@@ -131,35 +124,35 @@ function hasActiveFilters(group: FilterGroup): boolean {
       </template>
 
       <template #footer>
-          <div class="flex items-center justify-between">
-            <div class="text-sm text-gray-500">
-              {{
-                hasActiveConditions
-                  ? "Ready to apply filters"
-                  : "Add conditions above to filter results"
-              }}
-            </div>
-
-            <div class="flex items-center gap-3">
-              <UButton
-                variant="ghost"
-                @click="handleClear"
-                :disabled="!hasActiveConditions"
-              >
-                Clear All
-              </UButton>
-
-              <UButton @click="handleClose" variant="outline"> Cancel </UButton>
-
-              <UButton
-                @click="handleApply"
-                :disabled="!hasActiveConditions"
-                class="min-w-[80px]"
-              >
-                Apply
-              </UButton>
-            </div>
+        <div class="flex items-center justify-between">
+          <div class="text-sm text-gray-500">
+            {{
+              hasActiveConditions
+                ? "Ready to apply filters"
+                : "Add conditions above to filter results"
+            }}
           </div>
+
+          <div class="flex items-center gap-3">
+            <UButton
+              variant="ghost"
+              @click="handleClear"
+              :disabled="!hasActiveConditions"
+            >
+              Clear All
+            </UButton>
+
+            <UButton @click="handleClose" variant="outline"> Cancel </UButton>
+
+            <UButton
+              @click="handleApply"
+              :disabled="!hasActiveConditions"
+              class="min-w-[80px]"
+            >
+              Apply
+            </UButton>
+          </div>
+        </div>
       </template>
     </UDrawer>
   </Teleport>

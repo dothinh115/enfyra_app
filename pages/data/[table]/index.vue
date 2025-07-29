@@ -12,36 +12,38 @@ const data = ref();
 const table = computed(() => tables.value.find((t) => t.name === tableName));
 const { confirm } = useConfirm();
 const toast = useToast();
-const { createEmptyFilter, buildQuery, hasActiveFilters, getFilterSummary } = useFilterQuery();
+const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
 
 // Filter state
 const showFilterDrawer = ref(false);
 const currentFilter = ref(createEmptyFilter());
 
 // Initialize fieldSelectArr from schema
-watch(schemas, (newSchemas) => {
-  const schema = newSchemas[tableName];
-  if (schema?.definition) {
-    fieldSelectArr.value = schema.definition
-      .filter((field: any) => field.fieldType === 'column')
-      .map((field: any) => field.name);
-  }
-}, { immediate: true });
-
-// Removed filterFields - now handled directly by FilterBuilder
-
-// mapColumnTypeToFilterType moved to FilterOperators utils
+watch(
+  schemas,
+  (newSchemas) => {
+    const schema = newSchemas[tableName];
+    if (schema?.definition) {
+      fieldSelectArr.value = schema.definition
+        .filter((field: any) => field.fieldType === "column")
+        .map((field: any) => field.name);
+    }
+  },
+  { immediate: true }
+);
 
 async function fetchData() {
-  const filterQuery = hasActiveFilters(currentFilter.value) ? buildQuery(currentFilter.value) : {};
-  
+  const filterQuery = hasActiveFilters(currentFilter.value)
+    ? buildQuery(currentFilter.value)
+    : {};
+
   const { data: item } = await useApi(`/${tableName}`, {
-    query: { 
-      limit: pageLimit, 
-      page: page.value, 
-      fields: "*", 
+    query: {
+      limit: pageLimit,
+      page: page.value,
+      fields: "*",
       meta: "*",
-      ...(Object.keys(filterQuery).length > 0 && { filter: filterQuery })
+      ...(Object.keys(filterQuery).length > 0 && { filter: filterQuery }),
     },
   });
   total.value = item.value?.meta.totalCount;
@@ -59,9 +61,9 @@ function clearFilter() {
 }
 
 function openFilterDrawer() {
-  console.log('Opening filter drawer...'); // Debug
+  console.log("Opening filter drawer..."); // Debug
   showFilterDrawer.value = true;
-  console.log('showFilterDrawer:', showFilterDrawer.value); // Debug
+  console.log("showFilterDrawer:", showFilterDrawer.value); // Debug
 }
 
 // filterSummary removed - now handled in FilterDrawer
@@ -69,11 +71,15 @@ function openFilterDrawer() {
 const columns = computed<ColumnConfig[]>(() => {
   const schema = schemas.value[tableName];
   if (!schema?.definition) return [];
-  
+
   const columnFields = schema.definition
-    .filter((field: any) => field.fieldType === 'column' && fieldSelectArr.value.includes(field.name))
+    .filter(
+      (field: any) =>
+        field.fieldType === "column" &&
+        fieldSelectArr.value.includes(field.name)
+    )
     .sort((a: any, b: any) => a.id - b.id);
-    
+
   return buildColumnConfigs(columnFields);
 });
 
@@ -199,19 +205,23 @@ onMounted(async () => {
             <UButton icon="i-lucide-refresh-ccw" @click="fetchData()" />
           </div>
           <div class="flex items-center gap-2">
-            <UButton 
+            <UButton
               icon="i-lucide-filter"
               :variant="hasActiveFilters(currentFilter) ? 'solid' : 'outline'"
-              :color="hasActiveFilters(currentFilter) ? 'primary' : 'gray'"
+              :color="hasActiveFilters(currentFilter) ? 'primary' : 'neutral'"
               @click="openFilterDrawer"
               size="sm"
             >
-              {{ hasActiveFilters(currentFilter) ? `Filtered (${currentFilter.conditions.length})` : 'Filter' }}
+              {{
+                hasActiveFilters(currentFilter)
+                  ? `Filtered (${currentFilter.conditions.length})`
+                  : "Filter"
+              }}
             </UButton>
           </div>
         </div>
       </template>
-      
+
       <!-- Data Table -->
 
       <DataTable
@@ -241,7 +251,7 @@ onMounted(async () => {
     </UCard>
 
     <!-- Filter Drawer -->
-    <FilterDrawer 
+    <FilterDrawer
       v-model="showFilterDrawer"
       v-model:filter-value="currentFilter"
       :schemas="schemas"

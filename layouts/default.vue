@@ -175,28 +175,7 @@
             @click="globalForm?.submit()"
           />
         </div>
-        <div
-          v-else-if="
-            route.path.startsWith('/settings') ||
-            route.path.startsWith(`/data/${route.params.table}/create`) ||
-            route.path.startsWith(
-              `/data/${route.params.table}/${route.params.id}`
-            )
-          "
-        >
-          <UButton
-            label="Save"
-            icon="lucide:newspaper"
-            color="primary"
-            variant="solid"
-            :loading="globalFormLoading"
-            @click="globalForm?.submit()"
-          />
-        </div>
-        <div
-          v-else-if="route.path.startsWith('/data')"
-          class="flex gap-2 items-center"
-        >
+        <div v-else-if="route.path.startsWith(`/data`)">
           <UButton
             icon="lucide:plus"
             color="primary"
@@ -204,6 +183,21 @@
             size="xl"
             class="rounded-full"
             :to="`/data/${route.params.table}/create`"
+            v-if="route.path.startsWith(`/data/${route.params.table}`)"
+          />
+          <UButton
+            label="Save"
+            icon="lucide:newspaper"
+            color="primary"
+            variant="solid"
+            :loading="globalFormLoading"
+            @click="globalForm?.submit()"
+            v-else-if="
+              route.path.startsWith(`/data/${route.params.table}/create`) ||
+              route.path.startsWith(
+                `/data/${route.params.table}/${route.params.id}`
+              )
+            "
           />
         </div>
       </header>

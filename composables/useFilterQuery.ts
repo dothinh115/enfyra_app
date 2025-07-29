@@ -1,5 +1,3 @@
-import type { FilterCondition, FilterGroup } from '~/components/FilterBuilder.vue';
-
 export function useFilterQuery() {
   function buildQuery(filter: FilterGroup): Record<string, any> {
     const filterObj = buildFilterObject(filter);
@@ -10,8 +8,8 @@ export function useFilterQuery() {
     if (!group.conditions.length) return null;
 
     const conditions = group.conditions
-      .map(condition => {
-        if ('field' in condition) {
+      .map((condition) => {
+        if ("field" in condition) {
           // It's a FilterCondition
           return buildConditionObject(condition);
         } else {
@@ -28,31 +26,36 @@ export function useFilterQuery() {
     }
 
     // Multiple conditions - use _and/_or
-    if (group.operator === 'or') {
+    if (group.operator === "or") {
       return { _or: conditions };
     } else {
       return { _and: conditions };
     }
   }
 
-  function buildConditionObject(condition: FilterCondition): Record<string, any> | null {
+  function buildConditionObject(
+    condition: FilterCondition
+  ): Record<string, any> | null {
     const { field, operator, value } = condition;
 
     if (!field || !operator) return null;
 
     // Handle nested field paths (e.g., "user.profile.name")
-    const buildNestedObject = (path: string, operatorObj: Record<string, any>): Record<string, any> => {
-      const parts = path.split('.');
+    const buildNestedObject = (
+      path: string,
+      operatorObj: Record<string, any>
+    ): Record<string, any> => {
+      const parts = path.split(".");
       if (parts.length === 1) {
         return { [parts[0]]: operatorObj };
       }
-      
+
       const [first, ...rest] = parts;
-      return { [first]: buildNestedObject(rest.join('.'), operatorObj) };
+      return { [first]: buildNestedObject(rest.join("."), operatorObj) };
     };
 
     // Handle _is_null special case
-    if (operator === '_is_null') {
+    if (operator === "_is_null") {
       return buildNestedObject(field, { [operator]: true });
     }
 
@@ -60,13 +63,13 @@ export function useFilterQuery() {
     if (!value && value !== 0 && value !== false) return null;
 
     // For _between, value should be an array of 2 elements
-    if (operator === '_between') {
+    if (operator === "_between") {
       if (!Array.isArray(value) || value.length !== 2) return null;
       return buildNestedObject(field, { [operator]: value });
     }
 
     // For _in and _not_in, ensure value is an array
-    if (['_in', '_not_in'].includes(operator)) {
+    if (["_in", "_not_in"].includes(operator)) {
       const arrayValue = Array.isArray(value) ? value : [value];
       return buildNestedObject(field, { [operator]: arrayValue });
     }
@@ -75,8 +78,10 @@ export function useFilterQuery() {
     return buildNestedObject(field, { [operator]: value });
   }
 
-  function parseFilterFromUrl(searchParams: URLSearchParams): FilterGroup | null {
-    const filterParam = searchParams.get('filter');
+  function parseFilterFromUrl(
+    searchParams: URLSearchParams
+  ): FilterGroup | null {
+    const filterParam = searchParams.get("filter");
     if (!filterParam) return null;
 
     try {
@@ -87,21 +92,21 @@ export function useFilterQuery() {
   }
 
   function encodeFilterToUrl(filter: FilterGroup): string {
-    if (!filter.conditions.length) return '';
+    if (!filter.conditions.length) return "";
     return encodeURIComponent(JSON.stringify(filter));
   }
 
   function createEmptyFilter(): FilterGroup {
     return {
       id: Math.random().toString(36).substr(2, 9),
-      operator: 'and',
-      conditions: []
+      operator: "and",
+      conditions: [],
     };
   }
 
   function hasActiveFilters(filter: FilterGroup): boolean {
-    return filter.conditions.some(condition => {
-      if ('field' in condition) {
+    return filter.conditions.some((condition) => {
+      if ("field" in condition) {
         return condition.field && condition.operator;
       } else {
         return hasActiveFilters(condition);
@@ -109,41 +114,52 @@ export function useFilterQuery() {
     });
   }
 
-  function getFilterSummary(filter: FilterGroup, fields: Array<{ key: string; label: string }>): string {
-    if (!hasActiveFilters(filter)) return 'No filters';
+  function getFilterSummary(
+    filter: FilterGroup,
+    fields: Array<{ key: string; label: string }>
+  ): string {
+    if (!hasActiveFilters(filter)) return "No filters";
 
     const summaries = filter.conditions
-      .map(condition => {
-        if ('field' in condition) {
-          const field = fields.find(f => f.key === condition.field);
+      .map((condition) => {
+        if ("field" in condition) {
+          const field = fields.find((f) => f.key === condition.field);
           const fieldLabel = field?.label || condition.field;
-          
+
           switch (condition.operator) {
-            case '_eq':
+            case "_eq":
               return `${fieldLabel} = ${condition.value}`;
-            case '_neq':
+            case "_neq":
               return `${fieldLabel} ≠ ${condition.value}`;
-            case '_gt':
+            case "_gt":
               return `${fieldLabel} > ${condition.value}`;
-            case '_gte':
+            case "_gte":
               return `${fieldLabel} ≥ ${condition.value}`;
-            case '_lt':
+            case "_lt":
               return `${fieldLabel} < ${condition.value}`;
-            case '_lte':
+            case "_lte":
               return `${fieldLabel} ≤ ${condition.value}`;
-            case '_contains':
+            case "_contains":
               return `${fieldLabel} contains "${condition.value}"`;
-            case '_starts_with':
+            case "_starts_with":
               return `${fieldLabel} starts with "${condition.value}"`;
-            case '_ends_with':
+            case "_ends_with":
               return `${fieldLabel} ends with "${condition.value}"`;
-            case '_is_null':
+            case "_is_null":
               return `${fieldLabel} is null`;
-            case '_in':
-              return `${fieldLabel} in [${Array.isArray(condition.value) ? condition.value.join(', ') : condition.value}]`;
-            case '_not_in':
-              return `${fieldLabel} not in [${Array.isArray(condition.value) ? condition.value.join(', ') : condition.value}]`;
-            case '_between':
+            case "_in":
+              return `${fieldLabel} in [${
+                Array.isArray(condition.value)
+                  ? condition.value.join(", ")
+                  : condition.value
+              }]`;
+            case "_not_in":
+              return `${fieldLabel} not in [${
+                Array.isArray(condition.value)
+                  ? condition.value.join(", ")
+                  : condition.value
+              }]`;
+            case "_between":
               return `${fieldLabel} between ${condition.value?.[0]} and ${condition.value?.[1]}`;
             default:
               return `${fieldLabel} ${condition.operator} ${condition.value}`;
@@ -154,10 +170,10 @@ export function useFilterQuery() {
       })
       .filter(Boolean);
 
-    if (summaries.length === 0) return 'No filters';
+    if (summaries.length === 0) return "No filters";
     if (summaries.length === 1) return summaries[0];
 
-    const connector = filter.operator === 'or' ? ' OR ' : ' AND ';
+    const connector = filter.operator === "or" ? " OR " : " AND ";
     return `(${summaries.join(connector)})`;
   }
 
@@ -169,6 +185,6 @@ export function useFilterQuery() {
     encodeFilterToUrl,
     createEmptyFilter,
     hasActiveFilters,
-    getFilterSummary
+    getFilterSummary,
   };
 }
