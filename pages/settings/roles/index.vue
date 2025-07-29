@@ -10,26 +10,27 @@ const { confirm } = useConfirm();
 const { getIncludeFields } = useSchema(tableName);
 
 async function fetchRoles(page = 1, limit = 10) {
-  try {
-    const { data } = await useApiLazy("/role_definition", {
-      query: {
-        fields: getIncludeFields(),
-        sort: "-createdAt",
-        meta: "*",
-        page,
-        limit,
-      },
-    });
+  const { data, error } = await useApiLazy("/role_definition", {
+    query: {
+      fields: getIncludeFields(),
+      sort: "-createdAt",
+      meta: "*",
+      page,
+      limit,
+    },
+  });
 
-    roles.value = data.value.data;
-    total.value = data.value.meta.totalCount;
-  } catch (error) {
+  if (error.value) {
     toast.add({
       title: "Lỗi",
       description: "Không thể tải danh sách vai trò",
       color: "error",
     });
+    return;
   }
+
+  roles.value = data.value.data;
+  total.value = data.value.meta.totalCount;
 }
 
 async function deleteRole(id: string) {
@@ -39,19 +40,21 @@ async function deleteRole(id: string) {
   });
   if (!ok) return;
 
-  try {
-    await useApi(`/role_definition/${id}`, {
-      method: "delete",
-    });
-    toast.add({ title: "Đã xoá vai trò", color: "success" });
-    await fetchRoles(page.value, pageLimit);
-  } catch (error) {
+  const { error } = await useApiLazy(`/role_definition/${id}`, {
+    method: "delete",
+  });
+  
+  if (error.value) {
     toast.add({
       title: "Lỗi",
       description: "Không thể xoá vai trò",
       color: "error",
     });
+    return;
   }
+  
+  toast.add({ title: "Đã xoá vai trò", color: "success" });
+  await fetchRoles(page.value, pageLimit);
 }
 
 watch(

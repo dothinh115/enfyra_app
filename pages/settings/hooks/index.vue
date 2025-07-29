@@ -9,25 +9,27 @@ const hooks = ref<any[]>([]);
 const { getIncludeFields } = useSchema(tableName);
 
 async function fetchHooks(page = 1, limit: number) {
-  try {
-    const { data } = await useApiLazy("/hook_definition", {
-      query: {
-        fields: getIncludeFields(),
-        sort: "-createdAt",
-        meta: "*",
-        page,
-        limit,
-      },
-    });
-    hooks.value = data.value.data;
-    total.value = data.value.meta.totalCount;
-  } catch (error) {
+  const { data, error } = await useApiLazy("/hook_definition", {
+    query: {
+      fields: getIncludeFields(),
+      sort: "-createdAt",
+      meta: "*",
+      page,
+      limit,
+    },
+  });
+  
+  if (error.value) {
     toast.add({
       title: "Lỗi",
       description: "Không thể tải danh sách hooks",
       color: "error",
     });
+    return;
   }
+  
+  hooks.value = data.value.data;
+  total.value = data.value.meta.totalCount;
 }
 
 watch(
@@ -41,7 +43,7 @@ watch(
 
 async function toggleEnabled(hook: any) {
   hook.isEnabled = !hook.isEnabled;
-  await useApi(`/hook_definition/${hook.id}`, {
+  await useApiLazy(`/hook_definition/${hook.id}`, {
     method: "patch",
     body: { isEnabled: hook.isEnabled },
   });

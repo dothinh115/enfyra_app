@@ -10,19 +10,21 @@ async function fetchRoute(page = 1, limit: number) {
   const fields = [getIncludeFields()].join(",");
   const sort = ["-createdAt"].join(",");
 
-  try {
-    const { data } = await useApiLazy("/route_definition", {
-      query: { fields, sort, meta: "*", page, limit },
-    });
-    routes.value = data.value.data;
-    total.value = data.value.meta.totalCount;
-  } catch (error) {
+  const { data, error } = await useApiLazy("/route_definition", {
+    query: { fields, sort, meta: "*", page, limit },
+  });
+  
+  if (error.value) {
     toast.add({
       title: "Error",
       description: "Cannot fetch routes...",
       color: "error",
     });
+    return;
   }
+  
+  routes.value = data.value.data;
+  total.value = data.value.meta.totalCount;
 }
 const routes = ref<any[]>([]);
 
@@ -40,7 +42,7 @@ watch(
 
 async function toggleEnabled(route: any) {
   route.isEnabled = !route.isEnabled;
-  const { data } = await useApi(`/route_definition/${route.id}`, {
+  const { data } = await useApiLazy(`/route_definition/${route.id}`, {
     method: "patch",
     body: {
       isEnabled: route.isEnabled,

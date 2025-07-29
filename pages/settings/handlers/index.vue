@@ -10,25 +10,27 @@ const { confirm } = useConfirm();
 const { getIncludeFields } = useSchema(tableName);
 
 async function fetchRouteHandlers(page = 1, limit = 10) {
-  try {
-    const { data } = await useApiLazy("/route_handler_definition", {
-      query: {
-        fields: getIncludeFields(),
-        sort: "-createdAt",
-        meta: "*",
-        page,
-        limit,
-      },
-    });
-    routeHandlers.value = data.value.data;
-    total.value = data.value.meta.totalCount;
-  } catch (error) {
+  const { data, error } = await useApiLazy("/route_handler_definition", {
+    query: {
+      fields: getIncludeFields(),
+      sort: "-createdAt",
+      meta: "*",
+      page,
+      limit,
+    },
+  });
+  
+  if (error.value) {
     toast.add({
       title: "Lỗi",
       description: "Không thể tải danh sách route handlers",
       color: "error",
     });
+    return;
   }
+  
+  routeHandlers.value = data.value.data;
+  total.value = data.value.meta.totalCount;
 }
 
 async function deleteHandler(id: number) {
@@ -37,19 +39,21 @@ async function deleteHandler(id: number) {
   });
   if (!ok) return;
 
-  try {
-    await useApi(`/route_handler_definition/${id}`, {
-      method: "delete",
-    });
-    toast.add({ title: "Đã xoá", color: "success" });
-    await fetchRouteHandlers(page.value, pageLimit);
-  } catch (error) {
+  const { error } = await useApiLazy(`/route_handler_definition/${id}`, {
+    method: "delete",
+  });
+  
+  if (error.value) {
     toast.add({
       title: "Lỗi",
       description: "Không thể xoá handler",
       color: "error",
     });
+    return;
   }
+  
+  toast.add({ title: "Đã xoá", color: "success" });
+  await fetchRouteHandlers(page.value, pageLimit);
 }
 
 watch(

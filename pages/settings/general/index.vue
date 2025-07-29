@@ -8,7 +8,7 @@ const { generateEmptyForm, validate } = useSchema("setting_definition");
 async function loadSetting() {
   globalFormLoading.value = true;
 
-  const { data, error } = await useApi(`/setting_definition`, {
+  const { data, error } = await useApiLazy(`/setting_definition`, {
     query: {
       fields: "*",
       limit: 1,

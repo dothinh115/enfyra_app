@@ -37,7 +37,7 @@ async function fetchData() {
     ? buildQuery(currentFilter.value)
     : {};
 
-  const { data: item } = await useApi(`/${tableName}`, {
+  const { data: item } = await useApiLazy(`/${tableName}`, {
     query: {
       limit: pageLimit,
       page: page.value,
