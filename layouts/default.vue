@@ -18,7 +18,7 @@
       <header
         class="h-16 px-6 border-b border-gray-600 flex items-center justify-between bg-background shrink-0"
       >
-        <Breadcrumbs />
+        <BreadCrumbs />
 
         <!-- Action Buttons -->
         <div v-if="route.path.startsWith('/collections')">

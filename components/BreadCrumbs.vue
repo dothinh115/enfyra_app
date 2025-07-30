@@ -27,11 +27,11 @@ const rootIcon = computed(() => props.icon || "lucide:home");
 <template>
   <nav class="text-sm text-gray-400 flex items-center gap-1">
     <!-- Breadcrumb -->
-    <Icon :name="rootIcon" class="text-base text-primary" />
+    <UIcon :name="rootIcon" class="text-base text-primary" />
     <NuxtLink to="/" class="hover:underline text-primary">Home</NuxtLink>
 
     <template v-for="(seg, i) in segments" :key="seg.to">
-      <Icon :name="seg.icon" class="text-sm text-gray-500" />
+      <UIcon :name="seg.icon" class="text-sm text-gray-500" />
       <NuxtLink
         v-if="i < segments.length - 1"
         :to="seg.to"
