@@ -68,7 +68,7 @@ jobs:
 
             # Aggressive registry cleanup (remove ALL old images except current)
             echo "Aggressive registry cleanup..."
-            microk8s ctr images list -q | grep -E "($PROJECT_NAME|localhost:32000)" | tail -n +5 | xargs -r microk8s ctr images remove || true
+            microk8s ctr images list -q | grep -E "($PROJECT_NAME:|localhost:32000)" | tail -n +5 | xargs -r microk8s ctr images remove || true
 
             # Containerd aggressive cleanup
             echo "Running containerd aggressive cleanup..."
@@ -82,8 +82,8 @@ jobs:
             microk8s ctr content prune references || true
 
             # Aggressive image removal to allow snapshot cleanup
-            echo "Removing ALL old project images from containerd..."
-            microk8s ctr images list -q | grep -E "enfyra.*:" | grep -v latest | head -10 | xargs -r microk8s ctr images remove || true
+            echo "Removing ALL old $PROJECT_NAME images from containerd..."
+            microk8s ctr images list -q | grep "$PROJECT_NAME:" | head -10 | xargs -r microk8s ctr images remove || true
             
             # Remove registry images
             echo "Removing registry images..."
