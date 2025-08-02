@@ -46,26 +46,32 @@ jobs:
             export K8S_MODE=$(yq ".kubernetes.provider" ~/configs/$PROJECT_NAME.yaml 2>/dev/null || echo "microk8s")
             echo "K8S_MODE detected: $K8S_MODE"
             
-            # Import image to MicroK8s  
+            # Import image to MicroK8s using fastest available method
             if [ "$K8S_MODE" = "microk8s" ]; then
               echo "=== Importing image $PROJECT_NAME:$IMAGE_TAG to MicroK8s ==="
               
-              # Clean up old tar files first
-              echo "Cleaning up old tar files in /tmp..."
-              rm -f /tmp/$PROJECT_NAME-*.tar 2>/dev/null || true
-              
-              echo "Saving Docker image to tar file..."
-              docker save $PROJECT_NAME:$IMAGE_TAG -o /tmp/$PROJECT_NAME-$IMAGE_TAG.tar
-              echo "Tar file created: $(ls -lh /tmp/$PROJECT_NAME-$IMAGE_TAG.tar)"
-              
-              echo "Importing to MicroK8s..."
-              microk8s ctr image import /tmp/$PROJECT_NAME-$IMAGE_TAG.tar
+              # Check if registry addon is available (fastest method)
+              if microk8s status --addon registry 2>/dev/null | grep -q "enabled"; then
+                echo "Using registry method..."
+                docker tag $PROJECT_NAME:$IMAGE_TAG localhost:32000/$PROJECT_NAME:$IMAGE_TAG
+                docker push localhost:32000/$PROJECT_NAME:$IMAGE_TAG
+                echo "Pushed to local registry"
+              else
+                # Method 1: Try direct pipe (faster than tar)
+                echo "Attempting direct pipe import..."
+                if timeout 300 docker save $PROJECT_NAME:$IMAGE_TAG | microk8s ctr image import -; then
+                  echo "Direct pipe import successful"
+                else
+                  echo "Direct pipe failed/timeout, using tar method..."
+                  # Fallback to tar method with timeout
+                  timeout 180 docker save $PROJECT_NAME:$IMAGE_TAG -o /tmp/$PROJECT_NAME-$IMAGE_TAG.tar
+                  timeout 180 microk8s ctr image import /tmp/$PROJECT_NAME-$IMAGE_TAG.tar
+                  rm -f /tmp/$PROJECT_NAME-$IMAGE_TAG.tar
+                fi
+              fi
               
               echo "Verifying import..."
               microk8s ctr images list | grep $PROJECT_NAME:$IMAGE_TAG || echo "ERROR: Image not found after import!"
-              
-              echo "Cleaning up..."
-              rm -f /tmp/$PROJECT_NAME-$IMAGE_TAG.tar
               echo "=== Image import completed ==="
             fi
 
