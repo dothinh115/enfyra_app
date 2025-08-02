@@ -98,32 +98,32 @@ jobs:
             echo "NUCLEAR: Removing ALL registry images..."
             microk8s ctr images list -q | grep "localhost:32000" | xargs -r microk8s ctr images remove || true
             
-            # NUCLEAR OPTION: Stop MicroK8s and wipe everything
-            echo "NUCLEAR: Stopping MicroK8s for complete cleanup..."
-            microk8s stop
+            # SAFE APPROACH: Configure aggressive kubelet GC (zero downtime)
+            echo "Configuring aggressive kubelet garbage collection..."
+            
+            # Configure kubelet for aggressive cleanup
+            KUBELET_ARGS="/var/snap/microk8s/current/args/kubelet"
+            cp $KUBELET_ARGS $KUBELET_ARGS.backup
+            
+            # Remove old GC settings if they exist
+            sed -i '/--image-gc-/d' $KUBELET_ARGS
+            
+            # Add aggressive GC settings
+            echo "--image-gc-high-threshold=30" >> $KUBELET_ARGS
+            echo "--image-gc-low-threshold=25" >> $KUBELET_ARGS
+            echo "--minimum-container-ttl-duration=30s" >> $KUBELET_ARGS
+            echo "--maximum-dead-containers=10" >> $KUBELET_ARGS
+            echo "--maximum-dead-containers-per-container=1" >> $KUBELET_ARGS
+            
+            # Restart kubelet to apply settings (minimal disruption)
+            echo "Restarting kubelet with aggressive GC..."
+            snap restart microk8s.daemon-kubelet
             sleep 10
             
-            # Remove ALL snapshots (no dependencies when stopped)
-            echo "NUCLEAR: Removing ALL snapshots..."
-            rm -rf /var/snap/microk8s/common/var/lib/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/*
-            
-            # Remove registry storage
-            echo "NUCLEAR: Removing registry storage..."
-            rm -rf /var/snap/microk8s/common/default-storage/*
-            
-            # Clean containerd content
-            echo "NUCLEAR: Cleaning containerd content..."
-            rm -rf /var/snap/microk8s/common/var/lib/containerd/io.containerd.content.v1.content/blobs/*
-            
-            # Start MicroK8s back
-            echo "NUCLEAR: Starting MicroK8s..."
-            microk8s start
-            sleep 20
-            
-            # Wait for services and enable registry
-            echo "NUCLEAR: Waiting for services..."
-            microk8s status --wait-ready --timeout 60 || true
-            microk8s enable registry || true
+            # Trigger immediate garbage collection
+            echo "Triggering immediate garbage collection..."
+            kubectl delete pods --field-selector=status.phase=Succeeded --all-namespaces || true
+            kubectl delete pods --field-selector=status.phase=Failed --all-namespaces || true
             
             # Final Docker cleanup after nuclear reset
             echo "Final Docker cleanup..."
