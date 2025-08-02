@@ -15,21 +15,34 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           password: ${{ secrets.VPS_PASSWORD }}
           script: |
-            echo "=== Pre-deployment cleanup ==="
+            echo "=== Pre-deployment cleanup (safe) ==="
             
-            # Remove ALL old images to break dependencies
-            docker images --format "{{.Repository}}:{{.Tag}}" | grep -E "(enfyra|localhost:32000)" | xargs -r docker rmi -f || true
-            microk8s ctr images list -q | grep -E "(enfyra|localhost:32000)" | xargs -r microk8s ctr images remove || true
+            # Get current running image to preserve
+            CURRENT_IMAGE=$(kubectl get deployment enfyra-cms-deployment -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || echo "none")
+            echo "Current running image: $CURRENT_IMAGE"
             
-            # Aggressive cleanup cycles
-            for i in {1..5}; do
-              echo "Pre-cleanup cycle $i"
-              microk8s ctr content prune references || true
-              docker system prune -af --volumes || true
+            # Remove old Docker images (keep current + latest)
+            docker images enfyra-cms --format "{{.Repository}}:{{.Tag}}" | grep -v latest | while read img; do
+              if [ "$img" != "$CURRENT_IMAGE" ]; then
+                echo "Removing old Docker image: $img"
+                docker rmi -f "$img" || true
+              fi
             done
             
-            # Clean registry storage
-            rm -rf /var/snap/microk8s/common/default-storage/*/docker/registry/v2/blobs/* 2>/dev/null || true
+            # Clean old registry images (but preserve current)
+            microk8s ctr images list -q | grep "localhost:32000/enfyra-cms:" | while read img; do
+              if [ "$img" != "$CURRENT_IMAGE" ]; then
+                echo "Removing old registry image: $img"  
+                microk8s ctr images remove "$img" || true
+              fi
+            done
+            
+            # Safe cleanup cycles (only unused content)
+            for i in {1..3}; do
+              echo "Safe cleanup cycle $i"
+              microk8s ctr content prune references || true
+              docker image prune -f || true
+            done
             
             echo "Pre-cleanup completed"
             df -h /
