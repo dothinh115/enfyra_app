@@ -78,6 +78,7 @@ export const useGlobalState = () => {
   }
 
   async function fetchSchema() {
+    console.log('🔥 fetchSchema called - only 3 APIs should be called');
     globalLoading.value = true;
     await Promise.all([fetchTable(), fetchRoute(), fetchSetting()]);
     schemas.value = convertToEnfyraSchema(tables.value);
