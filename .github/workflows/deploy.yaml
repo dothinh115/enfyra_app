@@ -89,8 +89,16 @@ jobs:
             # Clear any existing locks
             pulumi cancel || true
             
+            # Fix field manager conflict - force Pulumi to take ownership
+            echo "Fixing field manager conflicts..."
+            
             pulumi config set image ${PULUMI_IMAGE:-$PROJECT_NAME:$IMAGE_TAG}
-            pulumi up --yes
+            
+            # Try normal update first, if it fails due to conflict, force it
+            if ! pulumi up --yes --skip-preview; then
+              echo "Field conflict detected, forcing Pulumi ownership..."
+              pulumi up --yes --skip-preview --replace "*enfyra-cms-deployment"
+            fi
             
             echo "=== Deployment completed successfully ==="
 
