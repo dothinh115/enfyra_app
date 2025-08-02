@@ -108,6 +108,8 @@ jobs:
   cleanup:
     needs: deploy
     uses: ./.github/workflows/cleanup.yaml
+    with:
+      project_name: 'enfyra-cms'
     secrets:
       VPS_HOST: ${{ secrets.VPS_HOST }}
       VPS_USER: ${{ secrets.VPS_USER }}

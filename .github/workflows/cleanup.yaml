@@ -2,7 +2,18 @@ name: Cleanup Server Storage
 
 on:
   workflow_dispatch: # Manual trigger
+    inputs:
+      project_name:
+        description: 'Project name to cleanup'
+        required: true
+        default: 'enfyra-cms'
+        type: string
   workflow_call: # Called by other workflows
+    inputs:
+      project_name:
+        description: 'Project name to cleanup'
+        required: true
+        type: string
     secrets:
       VPS_HOST:
         required: true
@@ -25,7 +36,7 @@ jobs:
             echo "=== Starting Server Storage Cleanup ==="
 
             # Set project variables
-            export PROJECT_NAME="enfyra-cms"
+            export PROJECT_NAME="${{ inputs.project_name }}"
 
             # Docker cleanup
             echo "=== Docker Cleanup ==="
