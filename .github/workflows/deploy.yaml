@@ -19,10 +19,15 @@ jobs:
             git clean -fd
             git pull origin main
             docker build -t enfyra-cms:latest .
-            which pulumi || echo "Pulumi not found in PATH"
-            ls -la /usr/local/bin/pulumi || echo "Pulumi not in /usr/local/bin"
-            ls -la ~/.pulumi/bin/pulumi || echo "Pulumi not in ~/.pulumi/bin"
-            export PATH=$PATH:~/.pulumi/bin:/usr/local/bin
+            
+            # Fix PATH for pulumi
+            export PATH=$PATH:$HOME/.pulumi/bin:/usr/local/bin
+            
+            # Debug info
+            echo "PATH: $PATH"
+            which pulumi || echo "Pulumi still not found"
+            
+            # Run pulumi commands
             pulumi version
             pulumi stack select enfyra-cms
             pulumi preview
