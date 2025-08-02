@@ -109,9 +109,17 @@ jobs:
               echo "Running containerd garbage collection..."
               microk8s ctr content prune || true
               
+              # Force cleanup old content (older than 7 days)
+              echo "Force cleaning old containerd content..."
+              microk8s ctr content list | grep -E '[0-9]{4}-[0-9]{2}-[0-9]{2}' | awk '{print $1}' | head -50 | xargs -r microk8s ctr content delete || true
+              
               # Clean up unused snapshots
               echo "Cleaning up unused containerd snapshots..."
-              microk8s ctr snapshots list | grep -v "DIGEST" | awk '{print $1}' | xargs -r microk8s ctr snapshots remove || true
+              microk8s ctr snapshots list | tail -n +2 | awk '{print $1}' | head -20 | xargs -r microk8s ctr snapshots remove || true
+              
+              # Clean up leases
+              echo "Cleaning up containerd leases..."
+              microk8s ctr leases list | tail -n +2 | awk '{print $1}' | xargs -r microk8s ctr leases delete || true
               
             else
               echo "Cleaning up old kubeadm/containerd images..."
