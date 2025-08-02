@@ -1,8 +1,8 @@
 name: Cleanup Server Storage
 
 on:
-  workflow_dispatch:  # Manual trigger
-  workflow_call:      # Called by other workflows
+  workflow_dispatch: # Manual trigger
+  workflow_call: # Called by other workflows
     secrets:
       VPS_HOST:
         required: true
@@ -23,25 +23,22 @@ jobs:
           password: ${{ secrets.VPS_PASSWORD }}
           script: |
             echo "=== Starting Server Storage Cleanup ==="
-            
+
             # Set project variables
             export PROJECT_NAME="enfyra-cms"
-            export BACKEND_PROJECT_NAME="enfyra-backend"
-            
+
             # Docker cleanup
             echo "=== Docker Cleanup ==="
-            
+
             # Remove old project images (keep only latest 2)
             echo "Removing old $PROJECT_NAME Docker images..."
             docker images $PROJECT_NAME --format "{{.Repository}}:{{.Tag}}" | tail -n +3 | xargs -r docker rmi -f || true
-            
-            echo "Removing old $BACKEND_PROJECT_NAME Docker images..."
-            docker images $BACKEND_PROJECT_NAME --format "{{.Repository}}:{{.Tag}}" | tail -n +3 | xargs -r docker rmi -f || true
-            
+
+
             # Remove ALL localhost:32000 registry images (they're cached locally)
             echo "Removing ALL registry images..."
             docker images localhost:32000/* --format "{{.Repository}}:{{.Tag}}" | xargs -r docker rmi -f || true
-            
+
             # Comprehensive cleanup
             docker image prune -af || true
             docker container prune -f || true
@@ -49,25 +46,34 @@ jobs:
             docker network prune -f || true
             docker builder prune -af || true
             docker system prune -af --volumes || true
-            
+
             # MicroK8s cleanup
             echo "=== MicroK8s Cleanup ==="
-            
+
             # Clean old images for both projects (keep only latest 2)
             echo "Cleaning old $PROJECT_NAME images..."
             microk8s ctr images list -q | grep "$PROJECT_NAME:" | sort -r | tail -n +3 | xargs -r microk8s ctr images remove || true
-            
-            echo "Cleaning old $BACKEND_PROJECT_NAME images..."
-            microk8s ctr images list -q | grep "$BACKEND_PROJECT_NAME:" | sort -r | tail -n +3 | xargs -r microk8s ctr images remove || true
-            
+
+
             # Aggressive registry cleanup (remove ALL old images except current)
             echo "Aggressive registry cleanup..."
-            microk8s ctr images list -q | grep -E "(enfyra|localhost:32000)" | tail -n +5 | xargs -r microk8s ctr images remove || true
-            
-            # Containerd garbage collection
-            echo "Running containerd prune..."
-            microk8s ctr content prune || true
-            
+            microk8s ctr images list -q | grep -E "($PROJECT_NAME|localhost:32000)" | tail -n +5 | xargs -r microk8s ctr images remove || true
+
+            # Containerd aggressive cleanup
+            echo "Running containerd aggressive cleanup..."
+
+            # Remove ALL localhost:32000 registry images from containerd
+            echo "Removing registry images from containerd..."
+            microk8s ctr images list name~='localhost:32000' -q | xargs -r microk8s ctr images remove || true
+
+            # Prune references (recommended cleanup)
+            echo "Pruning containerd references..."
+            microk8s ctr content prune references || true
+
+            # Snapshot cleanup (if snapshots are not in use)
+            echo "Cleaning snapshots..."
+            microk8s ctr snapshots ls | tail -n +2 | awk '{print $1}' | head -20 | xargs -r microk8s ctr snapshots remove || true
+
             # Clean registry garbage (if using registry)
             if microk8s status --addon registry &>/dev/null; then
               echo "Cleaning registry..."
@@ -76,28 +82,28 @@ jobs:
                 kubectl exec --namespace="container-registry" $registry_pod -- /bin/registry garbage-collect /etc/docker/registry/config.yml || true
               fi
             fi
-            
+
             # Remove evicted pods
             echo "Removing evicted pods..."
             kubectl get pods --all-namespaces | grep Evicted | awk '{print $2 " --namespace=" $1}' | xargs -r kubectl delete pod || true
-            
+
             # Clean old replica sets
             echo "Cleaning old replica sets..."
             kubectl get replicaset --all-namespaces | grep '0         0         0' | awk '{print $2 " --namespace=" $1}' | head -10 | xargs -r kubectl delete replicaset || true
-            
+
             # Clean temp files
             echo "Cleaning temp files..."
-            rm -rf /tmp/enfyra-*.tar /tmp/$PROJECT_NAME-*.tar || true
-            
+            rm -rf /tmp/$PROJECT_NAME-*.tar || true
+
             # Clean container logs
             echo "Truncating container logs..."
             find /var/lib/docker/containers/ -name "*.log" -exec truncate -s 0 {} \; 2>/dev/null || true
-            
+
             # Final disk usage report
             echo "=== Final Disk Usage ==="
             df -h /
             echo "=== Docker Usage ==="
             docker system df || true
             echo "=== MicroK8s Images ==="
-            microk8s ctr images list | grep -E "(enfyra|SIZE)" | head -10
+            microk8s ctr images list | grep -E "($PROJECT_NAME|SIZE)" | head -10
             echo "=== Cleanup Completed ==="
