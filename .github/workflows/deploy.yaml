@@ -46,16 +46,34 @@ jobs:
             export K8S_MODE=$(yq ".kubernetes.provider" ~/configs/$PROJECT_NAME.yaml 2>/dev/null || echo "microk8s")
             echo "K8S_MODE detected: $K8S_MODE"
             
-            # Configure image for MicroK8s - Skip import, use Docker directly
+            # Configure image for MicroK8s - Use registry for faster deployment
             if [ "$K8S_MODE" = "microk8s" ]; then
-              echo "=== Configuring image for MicroK8s ==="
+              echo "=== Pushing to local registry ==="
               
-              # Use Docker daemon directly - no import needed!
-              echo "Using Docker daemon directly (no import required)..."
-              export PULUMI_IMAGE="$PROJECT_NAME:$IMAGE_TAG"
-              echo "Image configured: $PULUMI_IMAGE"
+              # Enable MicroK8s registry if not enabled
+              microk8s enable registry || true
               
-              echo "=== Image configuration completed ==="
+              # Tag and push to local registry
+              LOCAL_REGISTRY="localhost:32000"
+              REGISTRY_IMAGE="$LOCAL_REGISTRY/$PROJECT_NAME:$IMAGE_TAG"
+              
+              echo "Tagging image for registry: $REGISTRY_IMAGE"
+              docker tag $PROJECT_NAME:$IMAGE_TAG $REGISTRY_IMAGE
+              
+              echo "Pushing to MicroK8s registry..."
+              docker push $REGISTRY_IMAGE
+              
+              # Verify push success
+              if docker manifest inspect $REGISTRY_IMAGE >/dev/null 2>&1; then
+                echo "✅ Image successfully pushed to registry"
+                export PULUMI_IMAGE="$REGISTRY_IMAGE"
+              else
+                echo "❌ Failed to push to registry, falling back to import"
+                docker save $PROJECT_NAME:$IMAGE_TAG | microk8s ctr image import -
+                export PULUMI_IMAGE="$PROJECT_NAME:$IMAGE_TAG"
+              fi
+              
+              echo "=== MicroK8s image ready ==="
             fi
 
             # Setup Kubernetes config
