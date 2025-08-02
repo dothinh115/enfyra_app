@@ -98,55 +98,36 @@ jobs:
             echo "NUCLEAR: Removing ALL registry images..."
             microk8s ctr images list -q | grep "localhost:32000" | xargs -r microk8s ctr images remove || true
             
-            # NUCLEAR: Scale down pods to release snapshots
-            echo "NUCLEAR: Scaling down pods to release snapshots..."
-            kubectl scale deployment --all --replicas=0 --timeout=60s || true
+            # NUCLEAR OPTION: Stop MicroK8s and wipe everything
+            echo "NUCLEAR: Stopping MicroK8s for complete cleanup..."
+            microk8s stop
             sleep 10
             
-            # NUCLEAR: Force remove snapshots (most aggressive)
-            echo "NUCLEAR: Force removing snapshots..."
-            for attempt in {1..3}; do
-              echo "Snapshot removal attempt $attempt"
-              microk8s ctr snapshots ls | tail -n +2 | awk '{print $1}' | head -30 | xargs -r microk8s ctr snapshots remove || true
-              sleep 3
-            done
+            # Remove ALL snapshots (no dependencies when stopped)
+            echo "NUCLEAR: Removing ALL snapshots..."
+            rm -rf /var/snap/microk8s/common/var/lib/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/*
             
-            # Scale pods back up
-            echo "Scaling pods back up..."
-            kubectl scale deployment --all --replicas=1 || true
+            # Remove registry storage
+            echo "NUCLEAR: Removing registry storage..."
+            rm -rf /var/snap/microk8s/common/default-storage/*
             
-            # Multiple aggressive cleanup cycles
-            echo "Multiple aggressive cleanup cycles..."
-            for i in {1..10}; do
-              echo "Aggressive cycle $i..."
-              microk8s ctr content prune references || true
-              docker system prune -af --volumes || true
-              sleep 1
-            done
-
-            # Aggressive registry cleanup
-            if microk8s status --addon registry &>/dev/null; then
-              echo "Cleaning registry blobs and garbage collection..."
-              
-              # Get registry pod
-              registry_pod=$(kubectl --namespace="container-registry" get pods --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' 2>/dev/null | head -1)
-              if [ ! -z "$registry_pod" ]; then
-                # Run garbage collection multiple times
-                for i in {1..3}; do
-                  echo "Registry GC cycle $i..."
-                  kubectl exec --namespace="container-registry" $registry_pod -- /bin/registry garbage-collect /etc/docker/registry/config.yml || true
-                  sleep 2
-                done
-                
-                # Also try direct cleanup of old blobs
-                echo "Direct registry storage cleanup..."
-                kubectl exec --namespace="container-registry" $registry_pod -- find /var/lib/registry -name "*.sha256" -mtime +1 -delete || true
-              fi
-              
-              # Alternative: Clean registry storage directly from host
-              echo "Host-level registry cleanup..."
-              find /var/snap/microk8s/common/default-storage/*/docker/registry/v2/blobs -name "sha256" -type d -exec find {} -name "*" -mtime +0 -delete \; 2>/dev/null || true
-            fi
+            # Clean containerd content
+            echo "NUCLEAR: Cleaning containerd content..."
+            rm -rf /var/snap/microk8s/common/var/lib/containerd/io.containerd.content.v1.content/blobs/*
+            
+            # Start MicroK8s back
+            echo "NUCLEAR: Starting MicroK8s..."
+            microk8s start
+            sleep 20
+            
+            # Wait for services and enable registry
+            echo "NUCLEAR: Waiting for services..."
+            microk8s status --wait-ready --timeout 60 || true
+            microk8s enable registry || true
+            
+            # Final Docker cleanup after nuclear reset
+            echo "Final Docker cleanup..."
+            docker system prune -af --volumes || true
 
             # Remove evicted pods
             echo "Removing evicted pods..."
