@@ -69,3 +69,18 @@ jobs:
             
             pulumi config set image enfyra-cms:$IMAGE_TAG
             pulumi up --yes
+
+            # Cleanup old Docker images (keep latest 3)
+            echo "=== Cleaning up old Docker images ==="
+            docker images enfyra-cms --format "table {{.Repository}}:{{.Tag}}\t{{.CreatedAt}}" | grep -v REPOSITORY
+            
+            # Remove old enfyra-cms images except latest 3
+            docker images enfyra-cms --format "{{.Repository}}:{{.Tag}}" | grep -v latest | tail -n +4 | xargs -r docker rmi || true
+            
+            # Cleanup old MicroK8s images except latest 3  
+            if [ "$K8S_MODE" = "microk8s" ]; then
+              echo "Cleaning up old MicroK8s images..."
+              microk8s ctr images list -q | grep enfyra-cms | grep -v latest | tail -n +4 | xargs -r microk8s ctr images remove || true
+            fi
+            
+            echo "=== Cleanup completed ==="
