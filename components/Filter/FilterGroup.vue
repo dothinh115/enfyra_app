@@ -14,7 +14,6 @@ const props = defineProps<{
   rootTableName?: string;
   readonly?: boolean;
 }>();
-
 const emit = defineEmits<{
   "update:group": [group: FilterGroupType];
   remove: [];
@@ -117,8 +116,16 @@ function isCondition(
             class="mb-3 p-2 bg-blue-50 rounded text-sm text-blue-700"
           >
             <span class="font-medium">Filtering in relation:</span>
-            {{ item.relationContext }} 
-            <span class="text-gray-500">({{ getTargetTableNameForGroup(item, schemas, rootTableName || tableName) }})</span>
+            {{ item.relationContext }}
+            <span class="text-gray-500"
+              >({{
+                getTargetTableNameForGroup(
+                  item,
+                  schemas,
+                  rootTableName || tableName
+                )
+              }})</span
+            >
           </div>
 
           <FilterGroup
