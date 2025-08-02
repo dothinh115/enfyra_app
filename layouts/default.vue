@@ -183,7 +183,7 @@
             size="xl"
             class="rounded-full"
             :to="`/data/${route.params.table}/create`"
-            v-if="route.path.startsWith(`/data/${route.params.table}`)"
+            v-if="route.path === `/data/${route.params.table}`"
           />
           <UButton
             label="Save"
@@ -231,25 +231,23 @@
   <div id="others-overlay"></div>
 
   <GlobalConfirm />
-  <GlobalLoading 
+  <GlobalLoading
     :show="globalLoading"
     title="Processing Schema"
     description="This may take a moment due to server latency"
   />
-  <RouteLoading 
-    :show="routeLoading"
-    message="Navigating..."
-  />
+  <RouteLoading :show="routeLoading" message="Navigating..." />
 </template>
 
 <script setup lang="ts">
-import { useRoute } from "vue-router";
-import { computed } from "vue";
-import { useGlobalState } from "~/composables/useGlobalState";
-
 const route = useRoute();
-const { fetchSchema, globalForm, globalFormLoading, globalLoading, routeLoading } = useGlobalState();
-
+const {
+  fetchSchema,
+  globalForm,
+  globalFormLoading,
+  globalLoading,
+  routeLoading,
+} = useGlobalState();
 // ✅ Tính toán segment breadcrumb từ route
 const segments = computed(() => {
   const parts = route.path.split("/").filter(Boolean);

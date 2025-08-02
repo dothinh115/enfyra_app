@@ -14,7 +14,12 @@ const data = ref<any[]>([]);
 const page = ref(1);
 const limit = 10;
 const total = ref(0);
+const loading = ref(false);
 const showCreateDrawer = ref(false);
+const showFilterDrawer = ref(false);
+const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
+const currentFilter = ref(createEmptyFilter());
+const { schemas } = useGlobalState();
 const targetTable = useGlobalState().tables.value.find(
   (t) => t.id === props.relationMeta.targetTable.id
 );
@@ -61,17 +66,31 @@ watch(
 );
 
 async function fetchData() {
-  const { data: item } = await useApiLazy(`/${targetTable?.name}`, {
-    query: {
+  loading.value = true;
+  try {
+    const filterQuery = hasActiveFilters(currentFilter.value)
+      ? buildQuery(currentFilter.value)
+      : {};
+
+    const queryParams: any = {
       fields: "*",
       page: page.value,
       limit,
       meta: "totalCount",
       sort: "-createdAt",
-    },
-  });
-  data.value = item.value?.data;
-  total.value = item.value?.meta?.totalCount || 0;
+      ...(Object.keys(filterQuery).length > 0 && { filter: filterQuery }),
+    };
+
+    const { data: item } = await useApiLazy(`/${targetTable?.name}`, {
+      query: queryParams,
+    });
+    data.value = item.value?.data;
+    total.value = item.value?.meta?.totalCount || 0;
+  } catch (error) {
+    console.error("Error fetching relation data:", error);
+  } finally {
+    loading.value = false;
+  }
 }
 
 function toggle(id: any) {
@@ -98,6 +117,20 @@ function apply() {
 function viewDetails(item: any) {
   detailRecord.value = item;
   detailModal.value = true;
+}
+
+function applyFilter() {
+  page.value = 1; // Reset to first page when filter changes
+  fetchData();
+}
+
+function clearFilter() {
+  currentFilter.value = createEmptyFilter();
+  applyFilter();
+}
+
+function openFilterDrawer() {
+  showFilterDrawer.value = true;
 }
 
 onMounted(fetchData);
@@ -157,19 +190,63 @@ function getDisplayLabel(
 
 <template>
   <div class="space-y-4">
-    <UButton
-      icon="lucide:plus"
-      block
-      variant="soft"
-      color="primary"
-      class="w-full"
-      @click="showCreateDrawer = true"
-      :disabled="props.disabled"
-    >
-      Thêm bản ghi mới
-    </UButton>
+    <!-- Header with Filter and Create buttons -->
+    <div class="flex gap-2 justify-between">
+      <UButton
+        icon="i-lucide-filter"
+        :variant="hasActiveFilters(currentFilter) ? 'solid' : 'outline'"
+        :color="hasActiveFilters(currentFilter) ? 'primary' : 'neutral'"
+        @click="openFilterDrawer"
+        size="sm"
+      >
+        {{
+          hasActiveFilters(currentFilter)
+            ? `Filtered (${currentFilter.conditions.length})`
+            : "Filter"
+        }}
+      </UButton>
+      
+      <UButton
+        icon="lucide:plus"
+        variant="soft"
+        color="primary"
+        size="sm"
+        @click="showCreateDrawer = true"
+        :disabled="props.disabled"
+      >
+        Add New
+      </UButton>
+    </div>
 
+    <!-- Loading State -->
+    <div v-if="loading" class="flex flex-col items-center justify-center py-8 gap-3">
+      <div class="relative">
+        <div class="w-8 h-8 border-2 border-primary/20 rounded-full"></div>
+        <div class="absolute inset-0 w-8 h-8 border-2 border-transparent border-t-primary rounded-full animate-spin"></div>
+      </div>
+      <p class="text-sm text-muted-foreground">Loading relations...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div v-else-if="!loading && data.length === 0" class="flex flex-col items-center justify-center py-8 gap-3">
+      <Icon name="lucide:database" class="w-12 h-12 text-muted-foreground" />
+      <p class="text-sm text-muted-foreground">
+        {{ hasActiveFilters(currentFilter) ? 'No relations found with current filters' : 'No relations available' }}
+      </p>
+      <UButton
+        v-if="hasActiveFilters(currentFilter)"
+        icon="lucide:x"
+        variant="soft"
+        size="sm"
+        @click="clearFilter"
+      >
+        Clear filters
+      </UButton>
+    </div>
+
+    <!-- Data List -->
     <UButton
+      v-else
       v-for="item in data"
       :key="item.id"
       class="w-full px-4 py-3 hover:bg-muted flex items-center justify-between"
@@ -210,13 +287,13 @@ function getDisplayLabel(
           icon="i-lucide-chevron-left"
           size="xs"
           @click="page--"
-          :disabled="page <= 1"
+          :disabled="page <= 1 || loading"
         />
         <UButton
           icon="i-lucide-chevron-right"
           size="xs"
           @click="page++"
-          :disabled="page >= Math.ceil(total / limit)"
+          :disabled="page >= Math.ceil(total / limit) || loading"
         />
       </div>
       <UButton
@@ -242,5 +319,15 @@ function getDisplayLabel(
     v-model="detailModal"
     :record="detailRecord"
     :table-name="targetTable?.name"
+  />
+
+  <!-- Filter Drawer -->
+  <FilterDrawer
+    v-model="showFilterDrawer"
+    v-model:filter-value="currentFilter"
+    :schemas="schemas"
+    :table-name="targetTable?.name || ''"
+    @apply="applyFilter"
+    @clear="clearFilter"
   />
 </template>
