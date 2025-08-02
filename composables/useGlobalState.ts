@@ -1,8 +1,6 @@
 export const useGlobalState = () => {
   const tables = useState<any[]>("global:tables", () => []);
   const routes = useState<any[]>("global:routes", () => []);
-  const columns = useState<any[]>("global:columns", () => []);
-  const relations = useState<any[]>("global:relations", () => []);
   const settings = useState<any>("global:settings", () => {});
   const globalForm = useState<any>("global:form", () => null);
   const globalFormLoading = useState<boolean>(
@@ -78,7 +76,7 @@ export const useGlobalState = () => {
   }
 
   async function fetchSchema() {
-    console.log('🔥 fetchSchema called - only 3 APIs should be called');
+    console.log("🔥 fetchSchema called - only 3 APIs should be called");
     globalLoading.value = true;
     await Promise.all([fetchTable(), fetchRoute(), fetchSetting()]);
     schemas.value = convertToEnfyraSchema(tables.value);

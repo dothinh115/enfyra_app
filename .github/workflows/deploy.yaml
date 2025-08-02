@@ -43,3 +43,12 @@ jobs:
             pulumi login file://$(pwd)/.pulumi
             pulumi stack select enfyra-cms
             pulumi up --yes
+
+            # Force restart deployment to pull new image
+            if [ "$K8S_MODE" = "microk8s" ]; then
+              microk8s kubectl rollout restart deployment/enfyra-cms
+              microk8s kubectl rollout status deployment/enfyra-cms
+            else
+              kubectl rollout restart deployment/enfyra-cms
+              kubectl rollout status deployment/enfyra-cms
+            fi
