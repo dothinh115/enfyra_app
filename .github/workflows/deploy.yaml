@@ -25,7 +25,22 @@ jobs:
             git clean -fd
             git pull origin main
             export IMAGE_TAG=$(git rev-parse --short HEAD)
-            docker build -t $PROJECT_NAME:$IMAGE_TAG .
+            
+            # Build with timeout and retry
+            echo "Building Docker image $PROJECT_NAME:$IMAGE_TAG..."
+            if ! timeout 600 docker build -t $PROJECT_NAME:$IMAGE_TAG . ; then
+              echo "Build failed or timed out, retrying..."
+              docker system prune -f || true
+              timeout 600 docker build -t $PROJECT_NAME:$IMAGE_TAG . || exit 1
+            fi
+            
+            # Verify build success
+            if ! docker images $PROJECT_NAME:$IMAGE_TAG | grep -q $IMAGE_TAG; then
+              echo "ERROR: Docker image build failed!"
+              exit 1
+            fi
+            
+            echo "Build completed successfully"
             
             # Detect K8s mode early
             export K8S_MODE=$(yq ".kubernetes.provider" ~/configs/$PROJECT_NAME.yaml 2>/dev/null || echo "microk8s")
