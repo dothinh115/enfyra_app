@@ -105,6 +105,14 @@ jobs:
               echo "Removing dangling containerd images..."
               microk8s ctr images list -q | grep "sha256:" | xargs -r microk8s ctr images remove || true
               
+              # Run containerd garbage collection
+              echo "Running containerd garbage collection..."
+              microk8s ctr content prune || true
+              
+              # Clean up unused snapshots
+              echo "Cleaning up unused containerd snapshots..."
+              microk8s ctr snapshots list | grep -v "DIGEST" | awk '{print $1}' | xargs -r microk8s ctr snapshots remove || true
+              
             else
               echo "Cleaning up old kubeadm/containerd images..."
               # List all project images, keep latest 3, remove older ones
