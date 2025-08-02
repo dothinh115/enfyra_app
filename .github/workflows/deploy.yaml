@@ -14,21 +14,17 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           password: ${{ secrets.VPS_PASSWORD }}
           script: |
+            export PATH=$PATH:$HOME/.pulumi/bin
+            
+            # Update source code in /apps/enfyra-cms
             cd /apps/enfyra-cms
             git reset --hard HEAD
             git clean -fd
             git pull origin main
             docker build -t enfyra-cms:latest .
             
-            # Fix PATH for pulumi
-            export PATH=$PATH:$HOME/.pulumi/bin:/usr/local/bin
-            
-            # Debug info
-            echo "PATH: $PATH"
-            which pulumi || echo "Pulumi still not found"
-            
-            # Run pulumi commands
+            # Run Pulumi in correct directory
+            cd /deployments/enfyra-cms
             pulumi version
             pulumi stack select enfyra-cms
-            pulumi preview
             pulumi up --yes
