@@ -46,33 +46,34 @@ jobs:
             export K8S_MODE=$(yq ".kubernetes.provider" ~/configs/$PROJECT_NAME.yaml 2>/dev/null || echo "microk8s")
             echo "K8S_MODE detected: $K8S_MODE"
             
-            # Import image to MicroK8s using fastest available method
+            # Configure image for MicroK8s
             if [ "$K8S_MODE" = "microk8s" ]; then
-              echo "=== Importing image $PROJECT_NAME:$IMAGE_TAG to MicroK8s ==="
+              echo "=== Configuring image for MicroK8s ==="
               
-              # Check if registry addon is available (fastest method)
+              # Check if we can use microk8s docker directly
               if microk8s status --addon registry 2>/dev/null | grep -q "enabled"; then
-                echo "Using registry method..."
+                echo "Using MicroK8s registry..."
+                # Tag for local registry
                 docker tag $PROJECT_NAME:$IMAGE_TAG localhost:32000/$PROJECT_NAME:$IMAGE_TAG
                 docker push localhost:32000/$PROJECT_NAME:$IMAGE_TAG
-                echo "Pushed to local registry"
+                # Update Pulumi to use registry image
+                export PULUMI_IMAGE="localhost:32000/$PROJECT_NAME:$IMAGE_TAG"
+                echo "Using registry image: $PULUMI_IMAGE"
               else
-                # Method 1: Try direct pipe (faster than tar)
-                echo "Attempting direct pipe import..."
-                if timeout 300 docker save $PROJECT_NAME:$IMAGE_TAG | microk8s ctr image import -; then
-                  echo "Direct pipe import successful"
+                echo "Using local Docker daemon approach..."
+                # Use containerd namespace directly - much faster
+                docker tag $PROJECT_NAME:$IMAGE_TAG $PROJECT_NAME:$IMAGE_TAG
+                # Import only if not exists
+                if ! microk8s ctr images list | grep -q "$PROJECT_NAME:$IMAGE_TAG"; then
+                  echo "Quick import via pipe..."
+                  docker save $PROJECT_NAME:$IMAGE_TAG | microk8s ctr image import -
                 else
-                  echo "Direct pipe failed/timeout, using tar method..."
-                  # Fallback to tar method with timeout
-                  timeout 180 docker save $PROJECT_NAME:$IMAGE_TAG -o /tmp/$PROJECT_NAME-$IMAGE_TAG.tar
-                  timeout 180 microk8s ctr image import /tmp/$PROJECT_NAME-$IMAGE_TAG.tar
-                  rm -f /tmp/$PROJECT_NAME-$IMAGE_TAG.tar
+                  echo "Image already exists in MicroK8s"
                 fi
+                export PULUMI_IMAGE="$PROJECT_NAME:$IMAGE_TAG"
               fi
               
-              echo "Verifying import..."
-              microk8s ctr images list | grep $PROJECT_NAME:$IMAGE_TAG || echo "ERROR: Image not found after import!"
-              echo "=== Image import completed ==="
+              echo "=== Image configuration completed ==="
             fi
 
             # Setup Kubernetes config
@@ -98,7 +99,7 @@ jobs:
             # Clear any existing locks
             pulumi cancel || true
             
-            pulumi config set image $PROJECT_NAME:$IMAGE_TAG
+            pulumi config set image ${PULUMI_IMAGE:-$PROJECT_NAME:$IMAGE_TAG}
             pulumi up --yes
 
             # Cleanup old Docker images (keep latest 3)
