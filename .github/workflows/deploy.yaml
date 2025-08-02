@@ -26,6 +26,7 @@ jobs:
             # Run Pulumi in correct directory
             cd /deployments/enfyra-cms
             pulumi version
+            export PULUMI_CONFIG_PASSPHRASE=''
             pulumi login file://$(pwd)/.pulumi
             pulumi stack select enfyra-cms
             pulumi up --yes
