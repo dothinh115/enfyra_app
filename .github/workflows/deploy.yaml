@@ -21,6 +21,11 @@ jobs:
             git pull origin main
             export IMAGE_TAG=$(git rev-parse --short HEAD)
             docker build -t enfyra-cms:$IMAGE_TAG .
+            
+            # Import image to MicroK8s
+            if [ "$K8S_MODE" = "microk8s" ]; then
+              docker save enfyra-cms:$IMAGE_TAG | microk8s ctr image import -
+            fi
 
             # Setup Kubernetes config based on provider type
             # Read from config file to determine k8s mode
