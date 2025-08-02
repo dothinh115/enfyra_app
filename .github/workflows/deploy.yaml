@@ -103,13 +103,13 @@ jobs:
             pulumi up --yes
             
             echo "=== Deployment completed successfully ==="
-
-  # Call cleanup workflow after successful deployment
-  cleanup:
-    needs: deploy
-    uses: ./.github/workflows/cleanup.yaml
-    secrets:
-      VPS_HOST: ${{ secrets.VPS_HOST }}
-      VPS_USER: ${{ secrets.VPS_USER }}
-      VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}
+            
+            # Trigger cleanup workflow via API
+            echo "=== Triggering cleanup workflow ==="
+            curl -X POST \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              https://api.github.com/repos/${{ github.repository }}/actions/workflows/cleanup.yaml/dispatches \
+              -d '{"ref":"main"}' || echo "Failed to trigger cleanup workflow"
 
