@@ -4,8 +4,39 @@ on:
     branches: [main]
 
 jobs:
+  # Cleanup BEFORE deploy to prevent disk buildup
+  pre-cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pre-deployment Cleanup
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: |
+            echo "=== Pre-deployment cleanup ==="
+            
+            # Remove ALL old images to break dependencies
+            docker images --format "{{.Repository}}:{{.Tag}}" | grep -E "(enfyra|localhost:32000)" | xargs -r docker rmi -f || true
+            microk8s ctr images list -q | grep -E "(enfyra|localhost:32000)" | xargs -r microk8s ctr images remove || true
+            
+            # Aggressive cleanup cycles
+            for i in {1..5}; do
+              echo "Pre-cleanup cycle $i"
+              microk8s ctr content prune references || true
+              docker system prune -af --volumes || true
+            done
+            
+            # Clean registry storage
+            rm -rf /var/snap/microk8s/common/default-storage/*/docker/registry/v2/blobs/* 2>/dev/null || true
+            
+            echo "Pre-cleanup completed"
+            df -h /
+
   deploy:
     runs-on: ubuntu-latest
+    needs: pre-cleanup
     steps:
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v0.1.5
@@ -100,15 +131,4 @@ jobs:
             pulumi up --yes
             
             echo "=== Deployment completed successfully ==="
-
-  # Call cleanup workflow after successful deployment
-  cleanup:
-    needs: deploy
-    uses: ./.github/workflows/cleanup.yaml
-    with:
-      project_name: 'enfyra-cms'
-    secrets:
-      VPS_HOST: ${{ secrets.VPS_HOST }}
-      VPS_USER: ${{ secrets.VPS_USER }}
-      VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}
 
