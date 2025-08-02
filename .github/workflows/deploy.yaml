@@ -43,5 +43,5 @@ jobs:
             pulumi version
             pulumi login file://$(pwd)/.pulumi
             pulumi stack select enfyra-cms
-            pulumi config set imageTag $IMAGE_TAG
+            pulumi config set image enfyra-cms:$IMAGE_TAG
             pulumi up --yes
