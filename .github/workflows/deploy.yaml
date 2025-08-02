@@ -46,31 +46,24 @@ jobs:
             export K8S_MODE=$(yq ".kubernetes.provider" ~/configs/$PROJECT_NAME.yaml 2>/dev/null || echo "microk8s")
             echo "K8S_MODE detected: $K8S_MODE"
             
-            # Configure image for MicroK8s - Use registry for faster deployment
+            # Configure image for MicroK8s - Use direct import (no registry)
             if [ "$K8S_MODE" = "microk8s" ]; then
-              echo "=== Pushing to local registry ==="
+              echo "=== Importing image to MicroK8s ==="
               
-              # Enable MicroK8s registry if not enabled
-              microk8s enable registry || true
+              # Direct import to MicroK8s containerd (faster & reliable)
+              echo "Importing $PROJECT_NAME:$IMAGE_TAG to MicroK8s..."
+              docker save $PROJECT_NAME:$IMAGE_TAG | microk8s ctr image import -
               
-              # Tag and push to local registry
-              LOCAL_REGISTRY="localhost:32000"
-              REGISTRY_IMAGE="$LOCAL_REGISTRY/$PROJECT_NAME:$IMAGE_TAG"
-              
-              echo "Tagging image for registry: $REGISTRY_IMAGE"
-              docker tag $PROJECT_NAME:$IMAGE_TAG $REGISTRY_IMAGE
-              
-              echo "Pushing to MicroK8s registry..."
-              if docker push $REGISTRY_IMAGE; then
-                echo "✅ Image successfully pushed to registry"
-                export PULUMI_IMAGE="$REGISTRY_IMAGE"
-              else
-                echo "❌ Failed to push to registry, falling back to import"
-                docker save $PROJECT_NAME:$IMAGE_TAG | microk8s ctr image import -
+              # Verify import success
+              if microk8s ctr images list | grep -q "$PROJECT_NAME:$IMAGE_TAG"; then
+                echo "✅ Image successfully imported to MicroK8s"
                 export PULUMI_IMAGE="$PROJECT_NAME:$IMAGE_TAG"
+              else
+                echo "❌ Failed to import image"
+                exit 1
               fi
               
-              echo "=== MicroK8s image ready ==="
+              echo "=== MicroK8s import completed ==="
             fi
 
             # Setup Kubernetes config
