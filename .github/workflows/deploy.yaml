@@ -22,6 +22,10 @@ jobs:
             export IMAGE_TAG=$(git rev-parse --short HEAD)
             docker build -t enfyra-cms:$IMAGE_TAG .
             
+            # Detect K8s mode early
+            export K8S_MODE=$(yq '.kubernetes.provider' ~/configs/enfyra-cms.yaml 2>/dev/null || echo "microk8s")
+            echo "K8S_MODE detected: $K8S_MODE"
+            
             # Import image to MicroK8s  
             if [ "$K8S_MODE" = "microk8s" ]; then
               echo "=== Importing image enfyra-cms:$IMAGE_TAG to MicroK8s ==="
@@ -40,10 +44,8 @@ jobs:
               echo "=== Image import completed ==="
             fi
 
-            # Setup Kubernetes config based on provider type
-            # Read from config file to determine k8s mode
+            # Setup Kubernetes config
             cd /deployments/enfyra-cms
-            K8S_MODE=$(yq '.kubernetes.provider' ~/configs/enfyra-cms.yaml 2>/dev/null || echo "microk8s")
 
             if [ "$K8S_MODE" = "microk8s" ]; then
               echo "Using MicroK8s configuration"
