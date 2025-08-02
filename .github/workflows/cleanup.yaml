@@ -38,7 +38,10 @@ jobs:
             # Set project variables and K8s config
             export PROJECT_NAME="${{ inputs.project_name }}"
             export KUBECONFIG=/var/snap/microk8s/current/credentials/client.config
-            export PATH=$PATH:/snap/microk8s/current/bin
+            
+            # Export kubectl path
+            export PATH=$PATH:/snap/microk8s/8148:/snap/bin
+            alias kubectl='microk8s.kubectl'
 
             # Docker cleanup
             echo "=== Docker Cleanup ==="
@@ -52,12 +55,16 @@ jobs:
             echo "Removing ALL registry images..."
             docker images localhost:32000/* --format "{{.Repository}}:{{.Tag}}" | xargs -r docker rmi -f || true
 
+            # FORCE build cache cleanup (2GB+ problem)
+            echo "FORCE cleaning build cache..."
+            docker builder prune -af --filter until=1h || true
+            docker builder prune -af || true
+            
             # Comprehensive cleanup
             docker image prune -af || true
             docker container prune -f || true
             docker volume prune -f || true
             docker network prune -f || true
-            docker builder prune -af || true
             docker system prune -af --volumes || true
 
             # MicroK8s cleanup
