@@ -30,6 +30,19 @@ jobs:
             
             # Docker cleanup
             echo "=== Docker Cleanup ==="
+            
+            # Remove old project images (keep only latest 2)
+            echo "Removing old $PROJECT_NAME Docker images..."
+            docker images $PROJECT_NAME --format "{{.Repository}}:{{.Tag}}" | tail -n +3 | xargs -r docker rmi -f || true
+            
+            echo "Removing old $BACKEND_PROJECT_NAME Docker images..."
+            docker images $BACKEND_PROJECT_NAME --format "{{.Repository}}:{{.Tag}}" | tail -n +3 | xargs -r docker rmi -f || true
+            
+            # Remove ALL localhost:32000 registry images (they're cached locally)
+            echo "Removing ALL registry images..."
+            docker images localhost:32000/* --format "{{.Repository}}:{{.Tag}}" | xargs -r docker rmi -f || true
+            
+            # Comprehensive cleanup
             docker image prune -af || true
             docker container prune -f || true
             docker volume prune -f || true
@@ -40,12 +53,16 @@ jobs:
             # MicroK8s cleanup
             echo "=== MicroK8s Cleanup ==="
             
-            # Clean old images for both projects
+            # Clean old images for both projects (keep only latest 2)
             echo "Cleaning old $PROJECT_NAME images..."
-            microk8s ctr images list -q | grep "$PROJECT_NAME:" | grep -v latest | tail -n +3 | xargs -r microk8s ctr images remove || true
+            microk8s ctr images list -q | grep "$PROJECT_NAME:" | sort -r | tail -n +3 | xargs -r microk8s ctr images remove || true
             
             echo "Cleaning old $BACKEND_PROJECT_NAME images..."
-            microk8s ctr images list -q | grep "$BACKEND_PROJECT_NAME:" | grep -v latest | tail -n +3 | xargs -r microk8s ctr images remove || true
+            microk8s ctr images list -q | grep "$BACKEND_PROJECT_NAME:" | sort -r | tail -n +3 | xargs -r microk8s ctr images remove || true
+            
+            # Aggressive registry cleanup (remove ALL old images except current)
+            echo "Aggressive registry cleanup..."
+            microk8s ctr images list -q | grep -E "(enfyra|localhost:32000)" | tail -n +5 | xargs -r microk8s ctr images remove || true
             
             # Containerd garbage collection
             echo "Running containerd prune..."
