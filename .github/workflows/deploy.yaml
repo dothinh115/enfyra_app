@@ -24,11 +24,20 @@ jobs:
             
             # Import image to MicroK8s  
             if [ "$K8S_MODE" = "microk8s" ]; then
-              echo "Importing image enfyra-cms:$IMAGE_TAG to MicroK8s..."
+              echo "=== Importing image enfyra-cms:$IMAGE_TAG to MicroK8s ==="
+              echo "Saving Docker image to tar file..."
               docker save enfyra-cms:$IMAGE_TAG -o /tmp/enfyra-cms-$IMAGE_TAG.tar
+              echo "Tar file created: $(ls -lh /tmp/enfyra-cms-$IMAGE_TAG.tar)"
+              
+              echo "Importing to MicroK8s..."
               microk8s ctr image import /tmp/enfyra-cms-$IMAGE_TAG.tar
+              
+              echo "Verifying import..."
+              microk8s ctr images list | grep enfyra-cms:$IMAGE_TAG || echo "ERROR: Image not found after import!"
+              
+              echo "Cleaning up..."
               rm -f /tmp/enfyra-cms-$IMAGE_TAG.tar
-              echo "Image import completed"
+              echo "=== Image import completed ==="
             fi
 
             # Setup Kubernetes config based on provider type
