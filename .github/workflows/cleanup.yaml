@@ -35,8 +35,10 @@ jobs:
           script: |
             echo "=== Starting Server Storage Cleanup ==="
 
-            # Set project variables
+            # Set project variables and K8s config
             export PROJECT_NAME="${{ inputs.project_name }}"
+            export KUBECONFIG=/var/snap/microk8s/current/credentials/client.config
+            export PATH=$PATH:/snap/microk8s/current/bin
 
             # Docker cleanup
             echo "=== Docker Cleanup ==="
@@ -89,9 +91,22 @@ jobs:
             echo "NUCLEAR: Removing ALL registry images..."
             microk8s ctr images list -q | grep "localhost:32000" | xargs -r microk8s ctr images remove || true
             
+            # NUCLEAR: Scale down pods to release snapshots
+            echo "NUCLEAR: Scaling down pods to release snapshots..."
+            kubectl scale deployment --all --replicas=0 --timeout=60s || true
+            sleep 10
+            
             # NUCLEAR: Force remove snapshots (most aggressive)
             echo "NUCLEAR: Force removing snapshots..."
-            microk8s ctr snapshots ls | tail -n +2 | awk '{print $1}' | head -50 | xargs -r microk8s ctr snapshots remove || true
+            for attempt in {1..3}; do
+              echo "Snapshot removal attempt $attempt"
+              microk8s ctr snapshots ls | tail -n +2 | awk '{print $1}' | head -30 | xargs -r microk8s ctr snapshots remove || true
+              sleep 3
+            done
+            
+            # Scale pods back up
+            echo "Scaling pods back up..."
+            kubectl scale deployment --all --replicas=1 || true
             
             # Multiple aggressive cleanup cycles
             echo "Multiple aggressive cleanup cycles..."
