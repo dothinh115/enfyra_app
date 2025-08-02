@@ -19,7 +19,8 @@ jobs:
             git reset --hard HEAD
             git clean -fd
             git pull origin main
-            docker build -t enfyra-cms:latest .
+            export IMAGE_TAG=$(git rev-parse --short HEAD)
+            docker build -t enfyra-cms:$IMAGE_TAG .
 
             # Setup Kubernetes config based on provider type
             # Read from config file to determine k8s mode
@@ -38,17 +39,9 @@ jobs:
             export PATH=$PATH:$HOME/.pulumi/bin
             export PULUMI_CONFIG_PASSPHRASE=''
 
-            # Run Pulumi deployment
+            # Run Pulumi deployment with new image tag
             pulumi version
             pulumi login file://$(pwd)/.pulumi
             pulumi stack select enfyra-cms
+            pulumi config set imageTag $IMAGE_TAG
             pulumi up --yes
-
-            # Force restart deployment to pull new image
-            if [ "$K8S_MODE" = "microk8s" ]; then
-              microk8s kubectl rollout restart deployment/enfyra-cms
-              microk8s kubectl rollout status deployment/enfyra-cms
-            else
-              kubectl rollout restart deployment/enfyra-cms
-              kubectl rollout status deployment/enfyra-cms
-            fi
