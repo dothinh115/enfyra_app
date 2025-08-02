@@ -2,11 +2,12 @@
 const toast = useToast();
 const setting = ref<Record<string, any>>({});
 const errors = ref<Record<string, string>>({});
+const loading = ref(false);
 const { globalForm, globalFormLoading } = useGlobalState();
 const { generateEmptyForm, validate } = useSchema("setting_definition");
 
 async function loadSetting() {
-  globalFormLoading.value = true;
+  loading.value = true;
 
   const { data, error } = await useApiLazy(`/setting_definition`, {
     query: {
@@ -21,14 +22,14 @@ async function loadSetting() {
       description: error.value.message,
       color: "error",
     });
-    globalFormLoading.value = false;
+    loading.value = false;
     return;
   }
 
   const firstRecord = data.value?.data?.[0];
   setting.value = firstRecord || generateEmptyForm();
 
-  globalFormLoading.value = false;
+  loading.value = false;
 }
 
 async function saveSetting() {
@@ -79,7 +80,15 @@ onMounted(loadSetting);
 </script>
 
 <template>
-  <UForm @submit="saveSetting" ref="globalForm" :state="setting">
+  <div v-if="loading" class="flex flex-col items-center justify-center py-16 gap-4">
+    <div class="relative">
+      <div class="w-12 h-12 border-4 border-primary/20 rounded-full"></div>
+      <div class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
+    </div>
+    <p class="text-sm text-muted-foreground">Loading settings...</p>
+  </div>
+
+  <UForm v-else @submit="saveSetting" ref="globalForm" :state="setting">
     <UCard :loading="globalFormLoading">
       <template #header>
         <div class="font-semibold text-base">Cấu hình hệ thống</div>

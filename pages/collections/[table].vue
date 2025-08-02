@@ -6,14 +6,17 @@ import { useToast } from "#imports";
 
 const route = useRoute();
 const { tables, globalForm, globalFormLoading, fetchSchema } = useGlobalState();
+const { createButtonLoader } = useButtonLoading();
 const { confirm } = useConfirm();
 const toast = useToast();
 const tableName = "table_definition";
 const { getIncludeFields } = useSchema(tableName);
 
 const table = ref<any>();
+const loading = ref(false);
 
 async function fetchData() {
+  loading.value = true;
   const { data } = await useApiLazy("/table_definition", {
     query: {
       fields: getIncludeFields(),
@@ -27,6 +30,7 @@ async function fetchData() {
   if (data.value.data) {
     table.value = data.value.data[0];
   }
+  loading.value = false;
 }
 
 onMounted(fetchData);
@@ -61,11 +65,8 @@ async function save() {
 }
 
 async function patchTable() {
-  const toastId = toast.add({
-    title: "Đang xử lý...",
-    color: "info",
-    description: "Đang reload schema...",
-  });
+  const { globalLoading } = useGlobalState();
+  globalLoading.value = true;
 
   const { data, error } = await useApiLazy(
     `/table_definition/${table.value.id}`,
@@ -75,7 +76,6 @@ async function patchTable() {
     }
   );
 
-  toast.remove(toastId.id);
   if (data.value) {
     await fetchSchema();
     toast.add({
@@ -91,44 +91,44 @@ async function patchTable() {
     });
   }
 
+  globalLoading.value = false;
   globalFormLoading.value = false;
 }
 
 async function handleDelete() {
-  globalFormLoading.value = true;
-
+  const deleteLoader = createButtonLoader('delete-table');
+  
   const ok = await confirm({
     content: `Bạn chắc chắn muốn xoá bảng ${table.value.name}?`,
   });
   if (!ok) {
-    globalFormLoading.value = false;
     return;
   }
-  await deleteTable();
-  globalFormLoading.value = false;
+  
+  await deleteLoader.withLoading(async () => {
+    await deleteTable();
+  });
 }
 
 async function deleteTable() {
-  const toastId = toast.add({
-    title: "Đang xử lý...",
-    color: "info",
-    description: "Đang reload schema...",
-  });
+  const { globalLoading } = useGlobalState();
+  globalLoading.value = true;
+
   const { data, error } = await useApiLazy(
     `/table_definition/${table.value.id}`,
     {
       method: "delete",
     }
   );
-  toast.remove(toastId.id);
 
   if (data.value) {
+    await fetchSchema();
     toast.add({
       title: "Thành công",
       color: "success",
-      description: "Schema đã được reload!",
+      description: "Bảng đã được xóa!",
     });
-    await fetchSchema();
+    globalLoading.value = false;
     return navigateTo(`/collections`);
   } else if (error.value) {
     toast.add({
@@ -136,41 +136,60 @@ async function deleteTable() {
       color: "error",
       description: error.value?.message,
     });
+    globalLoading.value = false;
   }
 }
 </script>
 
 <template>
-  <UForm @submit.prevent="save" :state="table" ref="globalForm" v-if="table">
-    <div class="mx-auto">
-      <TableForm v-model="table" @save="save">
-        <div class="space-y-6">
-          <TableConstraints
-            v-model="table"
-            :column-names="table.columns?.map((c:any) => c?.name)"
-          />
-          <TableColumns v-model="table.columns" />
-          <TableRelations
-            v-model="table.relations"
-            :table-options="
-              tables?.map((t) => ({ label: t?.name, value: { id: t.id } }))
-            "
-          />
-          <div>
-            <UButton
-              icon="lucide:delete"
-              size="lg"
-              color="error"
-              variant="solid"
-              class="hover:cursor-pointer"
-              @click="handleDelete"
-              :disabled="table.isSystem"
-              :loading="globalFormLoading"
-              >Xoá bảng</UButton
-            >
-          </div>
-        </div>
-      </TableForm>
+  <div class="relative">
+    <!-- Loading state -->
+    <div v-if="loading" class="flex flex-col items-center justify-center py-20 gap-4">
+      <div class="relative">
+        <div class="w-12 h-12 border-4 border-primary/20 rounded-full"></div>
+        <div class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
+      </div>
+      <p class="text-sm text-muted-foreground">Loading table structure...</p>
     </div>
-  </UForm>
+
+    <!-- Form content -->
+    <UForm @submit.prevent="save" :state="table" ref="globalForm" v-else-if="table">
+      <div class="mx-auto">
+        <TableForm v-model="table" @save="save">
+          <div class="space-y-6">
+            <TableConstraints
+              v-model="table"
+              :column-names="table.columns?.map((c:any) => c?.name)"
+            />
+            <TableColumns v-model="table.columns" />
+            <TableRelations
+              v-model="table.relations"
+              :table-options="
+                tables?.map((t) => ({ label: t?.name, value: { id: t.id } }))
+              "
+            />
+            <div>
+              <UButton
+                icon="lucide:delete"
+                size="lg"
+                color="error"
+                variant="solid"
+                class="hover:cursor-pointer"
+                @click="handleDelete"
+                :disabled="table.isSystem"
+                :loading="createButtonLoader('delete-table').isLoading.value"
+                >Xoá bảng</UButton
+              >
+            </div>
+          </div>
+        </TableForm>
+      </div>
+    </UForm>
+
+    <!-- Empty state -->
+    <div v-else class="flex flex-col items-center justify-center py-20 gap-4">
+      <UIcon name="i-lucide-database-x" class="w-12 h-12 text-muted-foreground" />
+      <p class="text-sm text-muted-foreground">Table not found</p>
+    </div>
+  </div>
 </template>

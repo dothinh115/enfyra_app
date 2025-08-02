@@ -120,21 +120,18 @@ async function save() {
 
   const ok = await confirm({ content: "Are u sure?" });
   if (!ok) {
+    globalFormLoading.value = false;
     return;
   }
 
-  const toastId = toast.add({
-    title: "Loading...",
-    color: "info",
-    description: "Creating new table...",
-  });
+  const { globalLoading } = useGlobalState();
+  globalLoading.value = true;
 
   const payload = getCleanTablePayload();
   const { data, error } = await useApiLazy("/table_definition", {
     method: "post",
     body: payload,
   });
-  toast.remove(toastId.id);
 
   if (data.value) {
     await fetchSchema();
@@ -151,6 +148,7 @@ async function save() {
       description: error.value?.message,
     });
   }
+  globalLoading.value = false;
   globalFormLoading.value = false;
 }
 </script>

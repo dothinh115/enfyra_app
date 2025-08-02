@@ -7,8 +7,10 @@ const route = useRoute();
 const tableName = "hook_definition";
 const hooks = ref<any[]>([]);
 const { getIncludeFields } = useSchema(tableName);
+const loading = ref(false);
 
 async function fetchHooks(page = 1, limit: number) {
+  loading.value = true;
   const { data, error } = await useApiLazy("/hook_definition", {
     query: {
       fields: getIncludeFields(),
@@ -25,11 +27,13 @@ async function fetchHooks(page = 1, limit: number) {
       description: "Không thể tải danh sách hooks",
       color: "error",
     });
+    loading.value = false;
     return;
   }
   
   hooks.value = data.value.data;
   total.value = data.value.meta.totalCount;
+  loading.value = false;
 }
 
 watch(
@@ -52,7 +56,14 @@ async function toggleEnabled(hook: any) {
 
 <template>
   <div class="space-y-6">
-    <div class="space-y-3 flex flex-col">
+    <div v-if="loading" class="flex flex-col items-center justify-center py-16 gap-4">
+      <div class="relative">
+        <div class="w-12 h-12 border-4 border-primary/20 rounded-full"></div>
+        <div class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
+      </div>
+      <p class="text-sm text-muted-foreground">Loading hooks...</p>
+    </div>
+    <div class="space-y-3 flex flex-col" v-else-if="hooks.length">
       <ULink
         :to="`/settings/hooks/${hook.id}`"
         v-for="hook in hooks"
@@ -110,12 +121,13 @@ async function toggleEnabled(hook: any) {
         </UCard>
       </ULink>
     </div>
+    <div v-else-if="!loading" class="text-center py-8 text-muted-foreground">No hooks found.</div>
 
     <div class="flex justify-center mt-6">
       <UPagination
         v-model:page="page"
         :items-per-page="pageLimit"
-        v-if="page > 1"
+        v-if="page > 1 && !loading"
         :total="total"
         show-edges
         :sibling-count="1"

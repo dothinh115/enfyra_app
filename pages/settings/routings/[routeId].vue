@@ -1,6 +1,16 @@
 <template>
+  <!-- Loading state -->
+  <div v-if="loading" class="flex flex-col items-center justify-center py-20 gap-4">
+    <div class="relative">
+      <div class="w-12 h-12 border-4 border-primary/20 rounded-full"></div>
+      <div class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
+    </div>
+    <p class="text-sm text-muted-foreground">Loading route...</p>
+  </div>
+
+  <!-- Form content -->
   <UForm
-    v-if="detail"
+    v-else-if="detail"
     :state="form"
     ref="globalForm"
     @submit="updateRoute"
@@ -21,6 +31,7 @@
         icon="lucide:trash-2"
         size="xl"
         color="error"
+        :loading="createButtonLoader('delete-route').isLoading.value"
         @click="deleteRoute"
       />
     </div>
@@ -65,15 +76,19 @@ const router = useRouter();
 const toast = useToast();
 const { confirm } = useConfirm();
 const { globalForm, globalFormLoading } = useGlobalState();
+const { createButtonLoader } = useButtonLoading();
 
 const tableName = "route_definition";
 const detail = ref<Record<string, any> | null>(null);
 const form = ref<Record<string, any>>({});
 const errors = ref<Record<string, string>>({});
+const loading = ref(false);
 
 const { validate, getIncludeFields } = useSchema(tableName);
 
 async function fetchRouteDetail(routeId: number) {
+  loading.value = true;
+  
   const { data, error } = await useApiLazy("/route_definition", {
     query: {
       fields: getIncludeFields(),
@@ -88,12 +103,14 @@ async function fetchRouteDetail(routeId: number) {
       color: "error",
     });
     router.replace("/settings/routings");
+    loading.value = false;
     return;
   }
 
   detail.value = data.value.data[0];
   form.value = { ...detail.value };
   errors.value = {};
+  loading.value = false;
 }
 
 async function updateRoute() {
@@ -138,27 +155,26 @@ async function deleteRoute() {
   const ok = await confirm({ title: "Are you sure?" });
   if (!ok || detail.value?.isSystem) return;
 
-  globalFormLoading.value = true;
+  const deleteLoader = createButtonLoader('delete-route');
+  await deleteLoader.withLoading(async () => {
+    const { data, error } = await useApiLazy(
+      `/route_definition/${route.params.routeId}`,
+      { method: "delete" }
+    );
 
-  const { data, error } = await useApiLazy(
-    `/route_definition/${route.params.routeId}`,
-    { method: "delete" }
-  );
+    if (error.value) {
+      toast.add({ title: "Error", description: "Delete failed", color: "error" });
+      return;
+    }
 
-  globalFormLoading.value = false;
+    toast.add({
+      title: "Deleted",
+      description: "Route has been removed.",
+      color: "primary",
+    });
 
-  if (error.value) {
-    toast.add({ title: "Error", description: "Delete failed", color: "error" });
-    return;
-  }
-
-  toast.add({
-    title: "Deleted",
-    description: "Route has been removed.",
-    color: "primary",
+    router.push("/settings/routings");
   });
-
-  router.push("/settings/routings");
 }
 
 onMounted(() => fetchRouteDetail(Number(route.params.routeId)));

@@ -1,6 +1,10 @@
 <template>
+  <div v-if="loading" class="flex justify-center py-8">
+    <div class="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+  </div>
+  
   <UForm
-    v-if="detail"
+    v-else-if="detail"
     :state="form"
     ref="globalForm"
     @submit="updateHook"
@@ -18,6 +22,7 @@
         icon="lucide:trash-2"
         size="xl"
         color="error"
+        :loading="createButtonLoader('delete-hook').isLoading.value"
         @click="deleteHook"
       />
     </div>
@@ -59,21 +64,25 @@ const toast = useToast();
 const tableName = "hook_definition";
 const { confirm } = useConfirm();
 const { globalForm, globalFormLoading } = useGlobalState();
+const { createButtonLoader } = useButtonLoading();
 const id = route.params.id as string;
 
 const detail = ref<Record<string, any> | null>(null);
 const form = ref<Record<string, any>>({});
 const errors = ref<Record<string, string>>({});
+const loading = ref(false);
 
 const { validate, getIncludeFields } = useSchema(tableName);
 
 async function fetchHookDetail() {
+  loading.value = true;
   const { data, error } = await useApiLazy("/hook_definition", {
     query: {
       fields: getIncludeFields(),
       filter: { id: { _eq: id } },
     },
   });
+  loading.value = false;
 
   if (error.value) {
     toast.add({
@@ -142,28 +151,27 @@ async function deleteHook() {
   const ok = await confirm({ title: "Bạn có chắc chắn muốn xoá hook này?" });
   if (!ok || detail.value?.isSystem) return;
 
-  globalFormLoading.value = true;
+  const deleteLoader = createButtonLoader('delete-hook');
+  await deleteLoader.withLoading(async () => {
+    const { data, error } = await useApiLazy(`/hook_definition/${id}`, {
+      method: "delete",
+    });
 
-  const { data, error } = await useApiLazy(`/hook_definition/${id}`, {
-    method: "delete",
+    if (data.value) {
+      toast.add({
+        title: "Đã xoá",
+        description: "Hook đã bị xoá",
+        color: "primary",
+      });
+      router.push("/settings/hooks");
+    } else if (error.value) {
+      toast.add({
+        title: "Lỗi",
+        description: "Không thể xoá",
+        color: "error",
+      });
+    }
   });
-
-  globalFormLoading.value = false;
-
-  if (data.value) {
-    toast.add({
-      title: "Đã xoá",
-      description: "Hook đã bị xoá",
-      color: "primary",
-    });
-    router.push("/settings/hooks");
-  } else if (error.value) {
-    toast.add({
-      title: "Lỗi",
-      description: "Không thể xoá",
-      color: "error",
-    });
-  }
 }
 
 onMounted(fetchHookDetail);

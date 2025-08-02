@@ -231,6 +231,15 @@
   <div id="others-overlay"></div>
 
   <GlobalConfirm />
+  <GlobalLoading 
+    :show="globalLoading"
+    title="Processing Schema"
+    description="This may take a moment due to server latency"
+  />
+  <RouteLoading 
+    :show="routeLoading"
+    message="Navigating..."
+  />
 </template>
 
 <script setup lang="ts">
@@ -239,7 +248,7 @@ import { computed } from "vue";
 import { useGlobalState } from "~/composables/useGlobalState";
 
 const route = useRoute();
-const { fetchSchema, globalForm, globalFormLoading } = useGlobalState();
+const { fetchSchema, globalForm, globalFormLoading, globalLoading, routeLoading } = useGlobalState();
 
 // ✅ Tính toán segment breadcrumb từ route
 const segments = computed(() => {

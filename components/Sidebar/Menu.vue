@@ -1,12 +1,20 @@
 <script setup lang="ts">
-const { routes, tables } = useGlobalState();
+const { routes, tables, globalLoading } = useGlobalState();
 const route = useRoute();
 </script>
 
 <template>
+  <!-- Loading skeleton -->
+  <div v-if="globalLoading" class="flex flex-col space-y-3">
+    <div v-for="i in 5" :key="i" class="animate-pulse">
+      <div class="h-10 bg-muted/50 rounded-lg"></div>
+    </div>
+  </div>
+
+  <!-- Collections menu -->
   <nav
+    v-else-if="route.path.startsWith('/collections')"
     class="flex flex-col space-y-3"
-    v-if="route.path.startsWith('/collections')"
   >
     <UButton
       size="lg"

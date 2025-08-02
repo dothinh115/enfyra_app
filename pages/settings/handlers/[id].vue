@@ -1,6 +1,16 @@
 <template>
   <div class="mx-auto space-y-6">
-    <UForm :state="form" ref="globalForm" @submit="save">
+    <!-- Loading state -->
+    <div v-if="loading" class="flex flex-col items-center justify-center py-20 gap-4">
+      <div class="relative">
+        <div class="w-12 h-12 border-4 border-primary/20 rounded-full"></div>
+        <div class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
+      </div>
+      <p class="text-sm text-muted-foreground">Loading handler...</p>
+    </div>
+
+    <!-- Form content -->
+    <UForm v-else :state="form" ref="globalForm" @submit="save">
       <DynamicFormEditor
         v-model="form"
         :table-name="tableName"

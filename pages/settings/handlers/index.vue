@@ -8,8 +8,10 @@ const route = useRoute();
 const tableName = "route_handler_definition";
 const { confirm } = useConfirm();
 const { getIncludeFields } = useSchema(tableName);
+const loading = ref(false);
 
 async function fetchRouteHandlers(page = 1, limit = 10) {
+  loading.value = true;
   const { data, error } = await useApiLazy("/route_handler_definition", {
     query: {
       fields: getIncludeFields(),
@@ -26,11 +28,13 @@ async function fetchRouteHandlers(page = 1, limit = 10) {
       description: "Không thể tải danh sách route handlers",
       color: "error",
     });
+    loading.value = false;
     return;
   }
   
   routeHandlers.value = data.value.data;
   total.value = data.value.meta.totalCount;
+  loading.value = false;
 }
 
 async function deleteHandler(id: number) {
@@ -68,7 +72,14 @@ watch(
 
 <template>
   <div class="space-y-6">
-    <div class="space-y-3" v-if="routeHandlers.length">
+    <div v-if="loading" class="flex flex-col items-center justify-center py-16 gap-4">
+      <div class="relative">
+        <div class="w-12 h-12 border-4 border-primary/20 rounded-full"></div>
+        <div class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
+      </div>
+      <p class="text-sm text-muted-foreground">Loading handlers...</p>
+    </div>
+    <div class="space-y-3" v-else-if="routeHandlers.length">
       <ULink
         v-for="handler in routeHandlers"
         :key="handler.id"
@@ -107,7 +118,7 @@ watch(
         </UCard>
       </ULink>
     </div>
-    <div v-else>No records found.</div>
+    <div v-else-if="!loading">No records found.</div>
     <div class="flex justify-center mt-6">
       <UPagination
         v-model:page="page"
@@ -123,7 +134,7 @@ watch(
         "
         color="secondary"
         active-color="secondary"
-        v-if="page > 1"
+        v-if="page > 1 && !loading"
       />
     </div>
   </div>

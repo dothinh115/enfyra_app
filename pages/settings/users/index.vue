@@ -2,7 +2,13 @@
   <div class="space-y-4">
     <div class="text-xl font-semibold">Users</div>
 
-    <div v-if="loading" class="text-muted text-sm">Loading...</div>
+    <div v-if="loading" class="flex flex-col items-center justify-center py-16 gap-4">
+      <div class="relative">
+        <div class="w-12 h-12 border-4 border-primary/20 rounded-full"></div>
+        <div class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
+      </div>
+      <p class="text-sm text-muted-foreground">Loading users...</p>
+    </div>
 
     <div
       v-else
@@ -57,7 +63,7 @@
       </UCard>
     </div>
 
-    <div class="flex justify-center mt-4">
+    <div class="flex justify-center mt-4" v-if="!loading">
       <UPagination
         v-model="page"
         :page-count="limit"

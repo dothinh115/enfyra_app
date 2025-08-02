@@ -9,6 +9,18 @@ export const useGlobalState = () => {
     "global:form:loading",
     () => false
   );
+  const globalLoading = useState<boolean>(
+    "global:loading",
+    () => false
+  );
+  const routeLoading = useState<boolean>(
+    "global:route:loading",
+    () => false
+  );
+  const buttonLoadingStates = useState<Record<string, boolean>>(
+    "global:button:loading",
+    () => ({})
+  );
   const schemas = useState<any>("global:schemas", () => []);
 
   const toast = useToast();
@@ -106,6 +118,7 @@ export const useGlobalState = () => {
   }
 
   async function fetchSchema() {
+    globalLoading.value = true;
     await Promise.all([
       fetchTable(),
       fetchRelation(),
@@ -114,6 +127,7 @@ export const useGlobalState = () => {
       fetchSetting(),
     ]);
     schemas.value = convertToEnfyraSchema(tables.value);
+    globalLoading.value = false;
   }
 
   function convertToEnfyraSchema(input: any[]): Record<string, any> {
@@ -228,6 +242,21 @@ export const useGlobalState = () => {
     }
   }
 
+  function setButtonLoading(buttonId: string, loading: boolean) {
+    buttonLoadingStates.value = {
+      ...buttonLoadingStates.value,
+      [buttonId]: loading
+    };
+  }
+
+  function getButtonLoading(buttonId: string): boolean {
+    return buttonLoadingStates.value[buttonId] || false;
+  }
+
+  function setRouteLoading(loading: boolean) {
+    routeLoading.value = loading;
+  }
+
   return {
     tables,
     routes,
@@ -237,6 +266,12 @@ export const useGlobalState = () => {
     schemas,
     globalForm,
     globalFormLoading,
+    globalLoading,
+    routeLoading,
+    buttonLoadingStates,
     fetchSchema,
+    setButtonLoading,
+    getButtonLoading,
+    setRouteLoading,
   };
 };

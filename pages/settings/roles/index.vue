@@ -4,12 +4,14 @@ const page = ref(1);
 const pageLimit = 10;
 const total = ref(0);
 const roles = ref<any[]>([]);
+const loading = ref(false);
 const route = useRoute();
 const tableName = "role_definition";
 const { confirm } = useConfirm();
 const { getIncludeFields } = useSchema(tableName);
 
 async function fetchRoles(page = 1, limit = 10) {
+  loading.value = true;
   const { data, error } = await useApiLazy("/role_definition", {
     query: {
       fields: getIncludeFields(),
@@ -26,11 +28,13 @@ async function fetchRoles(page = 1, limit = 10) {
       description: "Không thể tải danh sách vai trò",
       color: "error",
     });
+    loading.value = false;
     return;
   }
 
   roles.value = data.value.data;
   total.value = data.value.meta.totalCount;
+  loading.value = false;
 }
 
 async function deleteRole(id: string) {
@@ -69,7 +73,15 @@ watch(
 
 <template>
   <div class="space-y-6">
-    <div v-if="roles.length">
+    <div v-if="loading" class="flex flex-col items-center justify-center py-16 gap-4">
+      <div class="relative">
+        <div class="w-12 h-12 border-4 border-primary/20 rounded-full"></div>
+        <div class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
+      </div>
+      <p class="text-sm text-muted-foreground">Loading roles...</p>
+    </div>
+    
+    <div v-else-if="roles.length">
       <div
         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
       >
@@ -121,7 +133,7 @@ watch(
         :to="(p) => ({ path: route.path, query: { ...route.query, page: p } })"
         color="secondary"
         active-color="secondary"
-        v-if="total > pageLimit"
+        v-if="total > pageLimit && !loading"
       />
     </div>
   </div>

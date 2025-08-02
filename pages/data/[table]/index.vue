@@ -9,10 +9,12 @@ const page = ref(1);
 const pageLimit = 10;
 const fieldSelectArr = ref<string[]>([]);
 const data = ref();
+const loading = ref(false);
 const table = computed(() => tables.value.find((t) => t.name === tableName));
 const { confirm } = useConfirm();
 const toast = useToast();
 const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
+const { createButtonLoader } = useButtonLoading();
 
 // Filter state
 const showFilterDrawer = ref(false);
@@ -33,6 +35,8 @@ watch(
 );
 
 async function fetchData() {
+  loading.value = true;
+  
   const filterQuery = hasActiveFilters(currentFilter.value)
     ? buildQuery(currentFilter.value)
     : {};
@@ -48,6 +52,7 @@ async function fetchData() {
   });
   total.value = item.value?.meta.totalCount;
   data.value = item.value;
+  loading.value = false;
 }
 
 function applyFilter() {
@@ -105,6 +110,7 @@ const actionCol: ColumnConfig = {
                 label: "Delete",
                 icon: "lucide:trash-2",
                 color: "error",
+                loading: createButtonLoader(`delete-${row.id}`).isLoading.value,
                 onClick: () => handleDelete(row.id),
               },
             ],
@@ -155,25 +161,28 @@ async function handleDelete(id: number | string) {
     title: "",
   });
   if (ok) {
-    const { data, error } = await useApiLazy(`/${route.params.table}/${id}`, {
-      method: "delete",
-    });
-    if (data.value.message === "Success") {
-      await fetchData();
-      toast.add({
-        title: "Success",
-        description: "Record deleted",
-        color: "success",
+    const deleteLoader = createButtonLoader(`delete-${id}`);
+    await deleteLoader.withLoading(async () => {
+      const { data, error } = await useApiLazy(`/${route.params.table}/${id}`, {
+        method: "delete",
       });
-    }
+      if (data.value.message === "Success") {
+        await fetchData();
+        toast.add({
+          title: "Success",
+          description: "Record deleted",
+          color: "success",
+        });
+      }
 
-    if (error.value) {
-      toast.add({
-        title: "Error",
-        description: error.value?.message,
-        color: "error",
-      });
-    }
+      if (error.value) {
+        toast.add({
+          title: "Error",
+          description: error.value?.message,
+          color: "error",
+        });
+      }
+    });
   }
 }
 
@@ -202,7 +211,11 @@ onMounted(async () => {
             class="text-xl font-semibold capitalize flex items-center space-x-2"
           >
             <span>{{ table?.name || "Records" }}</span>
-            <UButton icon="i-lucide-refresh-ccw" @click="fetchData()" />
+            <UButton 
+              icon="i-lucide-refresh-ccw" 
+              @click="fetchData()" 
+              :loading="loading"
+            />
           </div>
           <div class="flex items-center gap-2">
             <UButton
@@ -224,12 +237,20 @@ onMounted(async () => {
 
       <!-- Data Table -->
 
+      <div v-if="loading" class="flex flex-col items-center justify-center py-16 gap-4">
+        <div class="relative">
+          <div class="w-12 h-12 border-4 border-primary/20 rounded-full"></div>
+          <div class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
+        </div>
+        <p class="text-sm text-muted-foreground">Loading data...</p>
+      </div>
       <DataTable
+        v-else
         :data="data?.data || []"
         :columns="columns"
         :empty-state="{ icon: 'i-lucide-database', label: 'Không có dữ liệu' }"
       />
-      <template #footer>
+      <template #footer v-if="!loading">
         <div class="flex justify-center">
           <UPagination
             v-model:page="page"

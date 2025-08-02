@@ -6,7 +6,9 @@ const total = ref(0);
 const route = useRoute();
 const tableName = "route_definition";
 const { getIncludeFields } = useSchema(tableName);
+const loading = ref(false);
 async function fetchRoute(page = 1, limit: number) {
+  loading.value = true;
   const fields = [getIncludeFields()].join(",");
   const sort = ["-createdAt"].join(",");
 
@@ -20,11 +22,13 @@ async function fetchRoute(page = 1, limit: number) {
       description: "Cannot fetch routes...",
       color: "error",
     });
+    loading.value = false;
     return;
   }
   
   routes.value = data.value.data;
   total.value = data.value.meta.totalCount;
+  loading.value = false;
 }
 const routes = ref<any[]>([]);
 
@@ -53,7 +57,14 @@ async function toggleEnabled(route: any) {
 
 <template>
   <div class="space-y-6">
-    <div class="space-y-3 flex flex-col">
+    <div v-if="loading" class="flex flex-col items-center justify-center py-16 gap-4">
+      <div class="relative">
+        <div class="w-12 h-12 border-4 border-primary/20 rounded-full"></div>
+        <div class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
+      </div>
+      <p class="text-sm text-muted-foreground">Loading routes...</p>
+    </div>
+    <div class="space-y-3 flex flex-col" v-else-if="routes.length">
       <ULink
         :to="`/settings/routings/${route.id}`"
         v-for="route in routes"
@@ -113,6 +124,7 @@ async function toggleEnabled(route: any) {
         </UCard>
       </ULink>
     </div>
+    <div v-else-if="!loading" class="text-center py-8 text-muted-foreground">No routes found.</div>
 
     <div class="flex justify-center mt-6">
       <UPagination
@@ -129,6 +141,7 @@ async function toggleEnabled(route: any) {
         "
         color="secondary"
         active-color="secondary"
+        v-if="!loading"
       />
     </div>
   </div>

@@ -3,16 +3,18 @@ const route = useRoute();
 const router = useRouter();
 const toast = useToast();
 const { globalForm, globalFormLoading } = useGlobalState();
+const { createButtonLoader } = useButtonLoading();
 
 const tableName = "user_definition";
 
 const user = ref<Record<string, any>>({});
 const errors = ref<Record<string, string>>({});
+const loading = ref(false);
 
 const { validate, getIncludeFields } = useSchema(tableName);
 
 async function fetchUser() {
-  globalFormLoading.value = true;
+  loading.value = true;
 
   const { data, error } = await useApiLazy(`/${tableName}`, {
     query: {
@@ -23,7 +25,7 @@ async function fetchUser() {
     },
   });
 
-  globalFormLoading.value = false;
+  loading.value = false;
 
   const userData = data.value?.data?.[0];
 
@@ -86,36 +88,39 @@ async function deleteUser() {
   });
   if (!ok) return;
 
-  globalFormLoading.value = true;
-
-  const { error } = await useApiLazy(`/${tableName}/${user.value.id}`, {
-    method: "delete",
-  });
-
-  globalFormLoading.value = false;
-
-  if (error.value) {
-    toast.add({
-      title: "Lỗi khi xoá",
-      description: error.value.message,
-      color: "error",
+  const deleteLoader = createButtonLoader('delete-user');
+  await deleteLoader.withLoading(async () => {
+    const { error } = await useApiLazy(`/${tableName}/${user.value.id}`, {
+      method: "delete",
     });
-    return;
-  }
 
-  toast.add({
-    title: "Đã xoá người dùng",
-    color: "success",
+    if (error.value) {
+      toast.add({
+        title: "Lỗi khi xoá",
+        description: error.value.message,
+        color: "error",
+      });
+      return;
+    }
+
+    toast.add({
+      title: "Đã xoá người dùng",
+      color: "success",
+    });
+    await navigateTo("/settings/users");
   });
-  await navigateTo("/settings/users");
 }
 
 onMounted(fetchUser);
 </script>
 
 <template>
-  <UForm :state="user" ref="globalForm" @submit="saveUser">
-    <UCard :loading="globalFormLoading" v-if="user">
+  <div v-if="loading" class="flex justify-center py-8">
+    <div class="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+  </div>
+  
+  <UForm :state="user" ref="globalForm" @submit="saveUser" v-else-if="user">
+    <UCard>
       <template #header>
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-4">
@@ -141,7 +146,7 @@ onMounted(fetchUser);
               color="error"
               variant="solid"
               :disabled="user.isSystem || user.isRootAdmin"
-              :loading="globalFormLoading"
+              :loading="createButtonLoader('delete-user').isLoading.value"
               @click="deleteUser"
             />
           </div>
@@ -157,4 +162,8 @@ onMounted(fetchUser);
       />
     </UCard>
   </UForm>
+  
+  <div v-else class="flex justify-center py-8">
+    <p class="text-muted-foreground">User not found</p>
+  </div>
 </template>

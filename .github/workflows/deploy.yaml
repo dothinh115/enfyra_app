@@ -1,0 +1,24 @@
+name: Deploy to VPS
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: |
+            cd /apps/enfyra-cms
+            git reset --hard HEAD
+            git clean -fd
+            git pull origin main
+            docker build -t enfyra-cms:latest .
+            docker save enfyra-cms:latest | microk8s ctr image import -
+            microk8s kubectl rollout restart deployment/enfyra-cms
+            microk8s kubectl rollout status deployment/enfyra-cms
