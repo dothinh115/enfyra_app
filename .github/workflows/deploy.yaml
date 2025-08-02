@@ -48,5 +48,9 @@ jobs:
             pulumi version
             pulumi login file://$(pwd)/.pulumi
             pulumi stack select enfyra-cms
+            
+            # Clear any existing locks
+            pulumi cancel || true
+            
             pulumi config set image enfyra-cms:$IMAGE_TAG
             pulumi up --yes
