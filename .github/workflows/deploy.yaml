@@ -19,6 +19,6 @@ jobs:
             git clean -fd
             git pull origin main
             docker build -t enfyra-cms:latest .
-            docker save enfyra-cms:latest | microk8s ctr image import -
-            microk8s kubectl rollout restart deployment/enfyra-cms
-            microk8s kubectl rollout status deployment/enfyra-cms
+            pulumi stack select enfyra-cms
+            pulumi preview
+            pulumi up --yes
