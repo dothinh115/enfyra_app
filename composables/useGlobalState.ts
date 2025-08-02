@@ -87,7 +87,7 @@ export const useGlobalState = () => {
     const schema: Record<string, any> = {};
     const seenRelationKeys = new Set<string>();
 
-    // 1. Chuẩn hóa bảng
+    // 1. Normalize tables
     for (const t of input) {
       schema[t.name] = {
         ...t,
@@ -97,7 +97,7 @@ export const useGlobalState = () => {
       delete schema[t.name].relations;
     }
 
-    // 2. Columns
+    // 2. Process columns
     for (const t of input) {
       for (const col of t.columns || []) {
         schema[t.name].definition.push({
@@ -140,7 +140,7 @@ export const useGlobalState = () => {
       }
     }
 
-    // 3. Relations + inverse
+    // 3. Process relations and inverses
     for (const t of input) {
       for (const rel of t.relations || []) {
         const sourceTable = t.name;
@@ -156,7 +156,7 @@ export const useGlobalState = () => {
           seenRelationKeys.add(directKey);
         }
 
-        // Nếu có inverse → sinh chiều ngược lại với target giữ nguyên định dạng object
+        // If has inverse → generate reverse relation with target keeping object format
         if (rel.inversePropertyName) {
           const targetTableName = input.find(
             (t) => t.id === rel.targetTable.id

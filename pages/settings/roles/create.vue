@@ -38,8 +38,8 @@ async function handleCreate() {
   if (!isValid) {
     createErrors.value = errors;
     toast.add({
-      title: "Thiếu thông tin",
-      description: "Vui lòng điền đầy đủ các trường bắt buộc.",
+      title: "Missing information",
+      description: "Please fill in all required fields.",
       color: "error",
     });
     return;
@@ -52,7 +52,7 @@ async function handleCreate() {
 
   if (error.value) {
     toast.add({
-      title: "Lỗi khi tạo vai trò",
+      title: "Error when creating role",
       description: error.value.message,
       color: "error",
     });
@@ -60,7 +60,7 @@ async function handleCreate() {
   }
 
   toast.add({
-    title: "Tạo vai trò thành công",
+    title: "Role created successfully",
     color: "success",
   });
 

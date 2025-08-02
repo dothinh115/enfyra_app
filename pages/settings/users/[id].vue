@@ -31,8 +31,8 @@ async function fetchUser() {
 
   if (!userData) {
     toast.add({
-      title: "Không tìm thấy người dùng",
-      description: error.value?.message || "ID không hợp lệ",
+      title: "User not found",
+      description: error.value?.message || "Invalid ID",
       color: "error",
     });
     router.push("/users");
@@ -41,20 +41,20 @@ async function fetchUser() {
 
   user.value = {
     ...userData,
-    password: null, // để không hiển thị mật khẩu
+    password: null, // to not display password
   };
 }
 
 async function saveUser() {
   const payload = { ...user.value };
-  if (!payload.password) delete payload.password; // để không ghi đè bằng null
+  if (!payload.password) delete payload.password; // to not overwrite with null
   const { isValid, errors: validationErrors } = validate(payload);
 
   if (!isValid) {
     errors.value = validationErrors;
     toast.add({
-      title: "Lỗi",
-      description: "Vui lòng điền đầy đủ các trường bắt buộc.",
+      title: "Error",
+      description: "Please fill in all required fields.",
       color: "error",
     });
     return;
@@ -71,20 +71,20 @@ async function saveUser() {
 
   if (error.value) {
     toast.add({
-      title: "Lỗi khi lưu",
+      title: "Error when saving",
       description: error.value.message,
       color: "error",
     });
     return;
   }
 
-  toast.add({ title: "Đã lưu thông tin", color: "primary" });
+  toast.add({ title: "Information saved", color: "primary" });
   errors.value = {};
 }
 
 async function deleteUser() {
   const ok = await useConfirm().confirm({
-    content: `Bạn chắc chắn muốn xoá người dùng "${user.value.name}"?`,
+    content: `Are you sure you want to delete user "${user.value.name}"?`,
   });
   if (!ok) return;
 
@@ -96,7 +96,7 @@ async function deleteUser() {
 
     if (error.value) {
       toast.add({
-        title: "Lỗi khi xoá",
+        title: "Error when deleting",
         description: error.value.message,
         color: "error",
       });
@@ -104,7 +104,7 @@ async function deleteUser() {
     }
 
     toast.add({
-      title: "Đã xoá người dùng",
+      title: "User deleted",
       color: "success",
     });
     await navigateTo("/settings/users");
@@ -142,7 +142,7 @@ onMounted(fetchUser);
           <div>
             <UButton
               icon="lucide:trash"
-              label="Xoá người dùng"
+              label="Delete user"
               color="error"
               variant="solid"
               :disabled="user.isSystem || user.isRootAdmin"

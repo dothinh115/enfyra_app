@@ -34,8 +34,8 @@ async function handleCreate() {
 
   if (!isValid) {
     toast.add({
-      title: "Dữ liệu không hợp lệ",
-      description: "Vui lòng kiểm tra các trường bị lỗi.",
+      title: "Invalid data",
+      description: "Please check the fields with errors.",
       color: "error",
     });
     return;
@@ -52,7 +52,7 @@ async function handleCreate() {
 
   if (error.value) {
     toast.add({
-      title: "Tạo thất bại",
+      title: "Creation failed",
       description: error.value.message,
       color: "error",
     });
@@ -60,7 +60,7 @@ async function handleCreate() {
   }
 
   toast.add({
-    title: "Tạo người dùng thành công",
+    title: "User created successfully",
     color: "success",
   });
 

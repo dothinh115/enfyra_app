@@ -24,7 +24,7 @@ export const ctxAutocomplete = autocompletion({
 
       const text = token.text;
 
-      // Nếu chỉ mới gõ $ hoặc $cx (chưa đủ $ctx), gợi ý $ctx
+      // If only typed $ or $cx (not enough $ctx), suggest $ctx
       if (/^\$\w*$/.test(text) && !text.startsWith("$ctx")) {
         return {
           from: token.from,
@@ -32,9 +32,9 @@ export const ctxAutocomplete = autocompletion({
         };
       }
 
-      // Nếu bắt đầu là $ctx thì mới gợi ý bên trong
+      // If starts with $ctx then suggest inside
       if (text.startsWith("$ctx")) {
-        // Loại bỏ prefix $ctx
+        // Remove prefix $ctx
         const path = text.slice(4).split(".").filter(Boolean);
 
         let current: any = ctxSchema;
@@ -66,7 +66,7 @@ export const ctxAutocomplete = autocompletion({
           }));
         }
 
-        // Chèn từ vị trí sau dấu chấm cuối cùng
+        // Insert from position after last dot
         let from = token.from;
         const lastDotIndex = text.lastIndexOf(".");
         if (lastDotIndex >= 0) {

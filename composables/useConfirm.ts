@@ -1,9 +1,9 @@
 const isVisible = ref(false);
 const options = ref({
-  title: "Xác nhận",
+  title: "Confirm",
   content: "",
-  confirmText: "Xác nhận",
-  cancelText: "Huỷ",
+  confirmText: "Confirm",
+  cancelText: "Cancel",
 });
 
 let resolver: (value: boolean) => void;

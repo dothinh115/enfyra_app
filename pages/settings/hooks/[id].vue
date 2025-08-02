@@ -86,8 +86,8 @@ async function fetchHookDetail() {
 
   if (error.value) {
     toast.add({
-      title: "Lỗi",
-      description: "Không thể tải dữ liệu hook",
+      title: "Error",
+      description: "Cannot load hook data",
       color: "error",
     });
     return;
@@ -97,8 +97,8 @@ async function fetchHookDetail() {
 
   if (!record) {
     toast.add({
-      title: "Không tìm thấy hook",
-      description: "Hook không tồn tại.",
+      title: "Hook not found",
+      description: "Hook does not exist.",
       color: "error",
     });
     router.replace("/settings/hooks");
@@ -116,8 +116,8 @@ async function updateHook() {
   if (!isValid) {
     errors.value = validationErrors;
     toast.add({
-      title: "Có lỗi",
-      description: "Vui lòng kiểm tra lại các trường bị lỗi.",
+      title: "Validation error",
+      description: "Please check the fields with errors.",
       color: "error",
     });
     return;
@@ -134,21 +134,21 @@ async function updateHook() {
 
   if (error.value) {
     toast.add({
-      title: "Lỗi",
+      title: "Error",
       description: error.value.message,
       color: "error",
     });
   } else {
     toast.add({
-      title: "Đã lưu",
-      description: "Hook đã được cập nhật",
+      title: "Saved",
+      description: "Hook has been updated",
       color: "primary",
     });
   }
 }
 
 async function deleteHook() {
-  const ok = await confirm({ title: "Bạn có chắc chắn muốn xoá hook này?" });
+  const ok = await confirm({ title: "Are you sure you want to delete this hook?" });
   if (!ok || detail.value?.isSystem) return;
 
   const deleteLoader = createButtonLoader('delete-hook');
@@ -159,15 +159,15 @@ async function deleteHook() {
 
     if (data.value) {
       toast.add({
-        title: "Đã xoá",
-        description: "Hook đã bị xoá",
+        title: "Deleted",
+        description: "Hook has been deleted",
         color: "primary",
       });
       router.push("/settings/hooks");
     } else if (error.value) {
       toast.add({
-        title: "Lỗi",
-        description: "Không thể xoá",
+        title: "Error",
+        description: "Cannot delete",
         color: "error",
       });
     }

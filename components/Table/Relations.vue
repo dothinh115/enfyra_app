@@ -66,18 +66,18 @@ function validateRelation(rel: any): Record<string, string> {
   const error: Record<string, string> = {};
 
   if (!rel.propertyName?.trim()) {
-    error.propertyName = "Tên quan hệ là bắt buộc";
+    error.propertyName = "Relation name is required";
   } else if (!tableNameOrFieldRegexCheck.test(rel.propertyName)) {
     error.propertyName =
-      "Chỉ cho phép chữ cái, số, _ và không bắt đầu bằng số hoặc _!";
+      "Only letters, numbers, _ allowed and cannot start with number or _!";
   }
 
   if (!rel.type) {
-    error.type = "Phải chọn loại quan hệ";
+    error.type = "Must select relation type";
   }
 
   if (!rel.targetTable) {
-    error.targetTable = "Phải chọn bảng đích";
+    error.targetTable = "Must select target table";
   }
 
   return error;
@@ -112,7 +112,7 @@ function saveRelation() {
   <div class="space-y-2 mt-6">
     <div class="flex items-center gap-2 text-lg font-semibold text-muted">
       <Icon name="lucide:git-branch" class="w-5 h-5" />
-      Quan hệ
+      Relations
     </div>
 
     <div
@@ -126,7 +126,7 @@ function saveRelation() {
       >
         <Icon name="lucide:link" class="w-4 h-4 text-muted-foreground" />
         <span class="text-sm font-medium">
-          {{ rel.propertyName || "Chưa đặt tên" }}
+          {{ rel.propertyName || "Unnamed" }}
         </span>
 
         <UBadge size="xs" color="info" v-if="rel.type">{{ rel.type }}</UBadge>
@@ -155,19 +155,19 @@ function saveRelation() {
     <div class="flex justify-end pt-2">
       <UButton
         icon="lucide:plus"
-        label="Thêm quan hệ"
+        label="Add Relation"
         @click="openNewRelationModal()"
       />
     </div>
   </div>
 
-  <!-- Modal sửa quan hệ -->
+  <!-- Edit Relation Modal -->
   <Teleport to="body">
     <UModal v-model:open="isEditing" v-if="currentRelation">
       <template #header>
         <div class="flex justify-between items-center w-full">
           <div class="text-base font-semibold">
-            {{ isNew ? "Thêm quan hệ" : "Sửa quan hệ" }}
+            {{ isNew ? "Add Relation" : "Edit Relation" }}
           </div>
           <UButton
             icon="lucide:x"
@@ -175,7 +175,7 @@ function saveRelation() {
             variant="soft"
             @click="isEditing = false"
           >
-            Huỷ
+            Cancel
           </UButton>
         </div>
       </template>
@@ -211,7 +211,7 @@ function saveRelation() {
         <div class="flex w-full px-4 pb-4 space-x-2 justify-end">
           <UButton
             icon="lucide:check"
-            label="Lưu"
+            label="Save"
             @click="saveRelation()"
             color="primary"
           />

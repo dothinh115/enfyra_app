@@ -31,14 +31,14 @@ export default defineEventHandler(async (event: H3Event) => {
         refreshToken,
       },
     });
-    // ✅ Xóa cookies phía Nuxt
+    // ✅ Delete cookies on Nuxt side
     deleteCookie(event, ACCESS_TOKEN_KEY);
     deleteCookie(event, REFRESH_TOKEN_KEY);
     deleteCookie(event, EXP_TIME_KEY);
     return result;
   } catch (err) {
     console.warn("⚠️ Logout failed at backend API", err);
-    // không throw — vẫn xoá local cookies
+    // don't throw — still delete local cookies
     return err;
   }
 });

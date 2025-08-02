@@ -23,8 +23,8 @@ async function fetchHooks(page = 1, limit: number) {
   
   if (error.value) {
     toast.add({
-      title: "Lỗi",
-      description: "Không thể tải danh sách hooks",
+      title: "Error",
+      description: "Cannot load hooks list",
       color: "error",
     });
     loading.value = false;

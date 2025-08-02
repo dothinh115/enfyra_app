@@ -18,7 +18,7 @@ async function loadSetting() {
 
   if (error.value) {
     toast.add({
-      title: "Lỗi khi tải cấu hình",
+      title: "Error loading configuration",
       description: error.value.message,
       color: "error",
     });
@@ -39,8 +39,8 @@ async function saveSetting() {
   if (!isValid) {
     errors.value = validationErrors;
     toast.add({
-      title: "Thiếu thông tin",
-      description: "Vui lòng điền đầy đủ các trường bắt buộc.",
+      title: "Missing information",
+      description: "Please fill in all required fields.",
       color: "error",
     });
     return;
@@ -58,7 +58,7 @@ async function saveSetting() {
 
   if (error.value) {
     toast.add({
-      title: "Lỗi khi lưu cấu hình",
+      title: "Error saving configuration",
       description: error.value.message,
       color: "error",
     });
@@ -71,7 +71,7 @@ async function saveSetting() {
     return;
   }
 
-  toast.add({ title: "Đã lưu cấu hình", color: "primary" });
+  toast.add({ title: "Configuration saved", color: "primary" });
   errors.value = {};
   globalFormLoading.value = false;
 }
@@ -91,7 +91,7 @@ onMounted(loadSetting);
   <UForm v-else @submit="saveSetting" ref="globalForm" :state="setting">
     <UCard :loading="globalFormLoading">
       <template #header>
-        <div class="font-semibold text-base">Cấu hình hệ thống</div>
+        <div class="font-semibold text-base">System Configuration</div>
       </template>
 
       <DynamicFormEditor

@@ -116,7 +116,7 @@ function wrapAsComponent(renderer: () => any) {
       >
         <template #default>
           <UButton icon="i-lucide-list" size="md" color="primary"
-            >Chọn cột</UButton
+            >Select Columns</UButton
           >
         </template>
       </UDropdownMenu>
@@ -149,7 +149,7 @@ function wrapAsComponent(renderer: () => any) {
                 name="i-lucide-database"
                 class="inline-block w-5 h-5 mr-1"
               />
-              Không có dữ liệu
+              No data available
             </td>
           </tr>
 

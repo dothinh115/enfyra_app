@@ -31,8 +31,8 @@ async function handleCreate() {
   if (!isValid) {
     createErrors.value = errors;
     toast.add({
-      title: "Thiếu thông tin",
-      description: "Vui lòng điền đầy đủ các trường bắt buộc.",
+      title: "Missing information",
+      description: "Please fill in all required fields.",
       color: "error",
     });
     return;
@@ -45,7 +45,7 @@ async function handleCreate() {
 
   if (error.value) {
     toast.add({
-      title: "Lỗi",
+      title: "Error",
       description: error.value.message,
       color: "error",
     });
@@ -53,7 +53,7 @@ async function handleCreate() {
   }
 
   toast.add({
-    title: "Tạo handler thành công",
+    title: "Handler created successfully",
     color: "success",
   });
 

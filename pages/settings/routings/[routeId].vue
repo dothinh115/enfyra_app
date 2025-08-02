@@ -119,8 +119,8 @@ async function updateRoute() {
   if (!isValid) {
     errors.value = validationErrors;
     toast.add({
-      title: "Có lỗi",
-      description: "Vui lòng kiểm tra lại các trường bị lỗi.",
+      title: "Error",
+      description: "Please check the fields with errors.",
       color: "error",
     });
     return;

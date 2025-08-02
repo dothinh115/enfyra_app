@@ -19,7 +19,7 @@ export function useSchema(tableName: string) {
     return fieldMap.value.get(key);
   }
 
-  // Những field đủ điều kiện render trong form
+  // Fields eligible to be rendered in form
   const editableFields = computed(() =>
     definition.value.filter((field: any) => {
       const key = field.name || field.propertyName;
@@ -44,13 +44,13 @@ export function useSchema(tableName: string) {
       const key = field.name || field.propertyName;
       if (!key || excluded.includes(key)) continue;
 
-      // Ưu tiên defaultValue nếu có
+      // Prioritize defaultValue if available
       if (field.defaultValue !== undefined) {
         result[key] = field.defaultValue;
         continue;
       }
 
-      // Nếu là relation
+      // If it's a relation
       if (field.fieldType === "relation" || field.relationType) {
         switch (field.relationType) {
           case "one-to-many":
@@ -66,14 +66,14 @@ export function useSchema(tableName: string) {
         continue;
       }
 
-      // Nếu nullable
+      // If nullable
       const nullable = field.isNullable ?? true;
       if (nullable) {
         result[key] = null;
         continue;
       }
 
-      // Field thường (không nullable, không default)
+      // Regular field (not nullable, no default)
       switch (field.type) {
         case "boolean":
           result[key] = false;
@@ -116,7 +116,7 @@ export function useSchema(tableName: string) {
         (typeof value === "string" && value.trim() === "");
 
       if (!nullable && empty) {
-        errors[key] = "Trường này là bắt buộc";
+        errors[key] = "This field is required";
         isValid = false;
       }
     }

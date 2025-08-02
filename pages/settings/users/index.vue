@@ -44,7 +44,7 @@
             }}</UBadge>
           </div>
           <div class="flex items-center justify-between mt-1">
-            <div>Tham gia:</div>
+            <div>Joined:</div>
             <div>{{ new Date(user.createdAt).toLocaleDateString() }}</div>
           </div>
         </div>
@@ -57,7 +57,7 @@
             block
             :to="`/settings/users/${user.id}`"
           >
-            Xem chi tiết
+            View Details
           </UButton>
         </template>
       </UCard>

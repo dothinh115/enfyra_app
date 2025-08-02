@@ -79,7 +79,7 @@ async function createNewRecord() {
             icon="lucide:plus"
             @click="createNewRecord"
             :loading="creating"
-            >Tạo mới</UButton
+            >Create New</UButton
           >
         </div>
       </template>

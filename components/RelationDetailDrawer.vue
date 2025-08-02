@@ -27,7 +27,7 @@ const open = computed({
       }"
     >
       <template #header>
-        <h2>Chi tiết bản ghi</h2>
+        <h2>Record Details</h2>
         <UButton
           icon="lucide:x"
           variant="ghost"

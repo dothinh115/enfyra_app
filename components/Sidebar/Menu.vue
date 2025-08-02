@@ -27,7 +27,7 @@ const route = useRoute();
       <template #trailing>
         <Icon name="lucide:arrow-right" class="ml-auto" />
       </template>
-      Tạo bảng mới
+      Create New Table
     </UButton>
     <UButton
       v-for="item in tables.filter((table) =>

@@ -5,7 +5,7 @@ import { ACCESS_TOKEN_KEY } from "../../utils/constants";
 export default defineEventHandler(async (event: H3Event) => {
   const config = useRuntimeConfig();
 
-  // ✅ Kiểm tra access_token trong cookie
+  // ✅ Check access_token in cookie
   const accessToken = getCookie(event, ACCESS_TOKEN_KEY);
   if (!accessToken) return null;
 

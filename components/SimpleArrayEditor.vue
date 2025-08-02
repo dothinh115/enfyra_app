@@ -45,7 +45,7 @@ function removeItem(item: string) {
     <div class="flex gap-2">
       <UInput
         v-model="input"
-        placeholder="Thêm giá trị"
+        placeholder="Add value"
         class="flex-1"
         @keyup.enter="addItem"
       />

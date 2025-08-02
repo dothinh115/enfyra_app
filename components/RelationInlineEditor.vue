@@ -61,7 +61,7 @@ function shortenId(id: string | number): string {
       <button
         @click.stop="removeId(item.id)"
         class="ml-1 text-xs hover:text-red-500 cursor-pointer"
-        title="Xoá"
+        title="Delete"
         v-if="!props.disabled"
       >
         ✕

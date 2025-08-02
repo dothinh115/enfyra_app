@@ -42,7 +42,7 @@ watch(
     const notIndexable = ["text", "varchar", "simple-json"];
     newTypes?.forEach((type: any, i: number) => {
       if (type !== oldTypes[i]) {
-        // 👉 Cột thứ i vừa đổi type
+        // 👉 Column i just changed type
         if (notIndexable.includes(type)) {
           table.value.columns[i].isIndex = false;
         }
@@ -55,7 +55,7 @@ watch(
 async function save() {
   globalFormLoading.value = true;
   const ok = await confirm({
-    content: "Bạn chắc chắn muốn sửa cấu trúc bảng?",
+    content: "Are you sure you want to modify table structure?",
   });
   if (!ok) {
     globalFormLoading.value = false;
@@ -79,13 +79,13 @@ async function patchTable() {
   if (data.value) {
     await fetchSchema();
     toast.add({
-      title: "Thành công",
+      title: "Success",
       color: "success",
-      description: "Cấu trúc bảng đã được cập nhật!",
+      description: "Table structure updated!",
     });
   } else if (error.value) {
     toast.add({
-      title: "Lỗi",
+      title: "Error",
       color: "error",
       description: error.value?.message,
     });
@@ -99,7 +99,7 @@ async function handleDelete() {
   const deleteLoader = createButtonLoader('delete-table');
   
   const ok = await confirm({
-    content: `Bạn chắc chắn muốn xoá bảng ${table.value.name}?`,
+    content: `Are you sure you want to delete table ${table.value.name}?`,
   });
   if (!ok) {
     return;
@@ -124,15 +124,15 @@ async function deleteTable() {
   if (data.value) {
     await fetchSchema();
     toast.add({
-      title: "Thành công",
+      title: "Success",
       color: "success",
-      description: "Bảng đã được xóa!",
+      description: "Table deleted!",
     });
     globalLoading.value = false;
     return navigateTo(`/collections`);
   } else if (error.value) {
     toast.add({
-      title: "Lỗi",
+      title: "Error",
       color: "error",
       description: error.value?.message,
     });
@@ -178,7 +178,7 @@ async function deleteTable() {
                 @click="handleDelete"
                 :disabled="table.isSystem"
                 :loading="createButtonLoader('delete-table').isLoading.value"
-                >Xoá bảng</UButton
+                >Delete Table</UButton
               >
             </div>
           </div>

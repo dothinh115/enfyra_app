@@ -54,8 +54,8 @@ async function handleUpdate() {
   if (!isValid) {
     updateErrors.value = errors;
     toast.add({
-      title: "Thiếu thông tin",
-      description: "Vui lòng điền đầy đủ các trường bắt buộc.",
+      title: "Missing information",
+      description: "Please fill in all required fields.",
       color: "error",
     });
     return;
@@ -76,7 +76,7 @@ async function handleUpdate() {
     toast.add({
       title: "Error",
       color: "error",
-      description: error.value.message || "Đã xảy ra lỗi",
+      description: error.value.message || "An error occurred",
     });
     return;
   }

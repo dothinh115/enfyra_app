@@ -248,7 +248,7 @@ onMounted(async () => {
         v-else
         :data="data?.data || []"
         :columns="columns"
-        :empty-state="{ icon: 'i-lucide-database', label: 'Không có dữ liệu' }"
+        :empty-state="{ icon: 'i-lucide-database', label: 'No data available' }"
       />
       <template #footer v-if="!loading">
         <div class="flex justify-center">

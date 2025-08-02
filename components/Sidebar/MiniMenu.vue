@@ -3,7 +3,7 @@ const route = useRoute();
 const { confirm } = useConfirm();
 const { logout } = useAuth();
 async function handleLogout() {
-  const ok = await confirm({ content: "Bạn chắc chắn muốn thoát?" });
+  const ok = await confirm({ content: "Are you sure you want to logout?" });
   if (ok) await logout();
 }
 
@@ -36,7 +36,7 @@ const isActive = (path: string) =>
 
 <template>
   <div class="flex flex-col justify-between h-full items-center w-full">
-    <!-- Tầng trên: Menu chính -->
+    <!-- Top level: Main menu -->
     <div class="flex flex-col items-center w-full">
       <UTooltip
         v-for="item in items"
@@ -60,7 +60,7 @@ const isActive = (path: string) =>
       </UTooltip>
     </div>
 
-    <!-- Tầng dưới: Logout -->
+    <!-- Bottom level: Logout -->
     <div class="w-full">
       <UTooltip text="Logout" placement="right">
         <UButton

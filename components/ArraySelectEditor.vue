@@ -29,7 +29,7 @@ watch(
       <USelectMenu
         v-model="selectedArr"
         :items="props.options"
-        placeholder="Chọn giá trị"
+        placeholder="Select values"
         class="flex-1"
         :disabled="disabled"
         multiple

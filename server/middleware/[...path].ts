@@ -13,7 +13,7 @@ export default defineEventHandler(async (event: H3Event) => {
     else if (Array.isArray(value)) headers[key] = value.join(",");
   });
 
-  // ✅ Refresh token nếu cần
+  // ✅ Refresh token if needed
   const newAccessToken = await refreshToken(event);
 
   if (newAccessToken) {

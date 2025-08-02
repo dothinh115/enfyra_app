@@ -84,7 +84,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <!-- TinyMCE sẽ “chiếm” textarea này -->
+  <!-- TinyMCE will "take over" this textarea -->
   <textarea :id="textareaId"></textarea>
 </template>
 

@@ -246,7 +246,7 @@ function renderValue(key: string): string {
 
   if (val === null || val === undefined) return "—";
 
-  // Nếu là relation (1-1 hoặc 1-n)
+  // If it's a relation (1-1 or 1-n)
   if (isRelation) {
     if (Array.isArray(val)) {
       const ids = val.map((item) =>

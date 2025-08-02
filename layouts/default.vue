@@ -24,7 +24,7 @@
         <div v-if="route.path.startsWith('/collections')">
           <UButton
             :label="
-              route.path === '/collections' ? 'Tạo bảng mới' : 'Lưu thay đổi'
+              route.path === '/collections' ? 'Create New Table' : 'Save Changes'
             "
             :icon="
               route.path === '/collections/create'
@@ -206,7 +206,7 @@
         class="h-12 px-6 border-b border-gray-700 flex items-center justify-between bg-background shrink-0"
       >
         <slot name="subheader">
-          <!-- Fallback nội dung nếu không có slot -->
+          <!-- Fallback content if no slot -->
           <div class="flex items-center gap-3">
             <UButton
               icon="lucide:arrow-left"
@@ -248,7 +248,7 @@ const {
   globalLoading,
   routeLoading,
 } = useGlobalState();
-// ✅ Tính toán segment breadcrumb từ route
+// Calculate breadcrumb segments from route
 const segments = computed(() => {
   const parts = route.path.split("/").filter(Boolean);
 
@@ -260,7 +260,7 @@ const segments = computed(() => {
   });
 });
 
-// ✅ Disable nút quay lại nếu chỉ còn 1 segment (gốc)
+// Disable back button if only 1 segment (root)
 const disableBack = computed(() => segments.value.length <= 1);
 
 await fetchSchema();

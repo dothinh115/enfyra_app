@@ -19,12 +19,12 @@ watch(
   () => table.name,
   (newVal) => {
     const name = newVal.trim();
-    if (name === "") nameError.value = "Không được để trống!";
+    if (name === "") nameError.value = "Cannot be empty!";
     else if (!tableNameOrFieldRegexCheck.test(name))
       nameError.value =
-        "Chỉ cho phép chữ cái, số, _ và không bắt đầu bằng số hoặc _!";
+        "Only letters, numbers, _ allowed. Cannot start with number or _!";
     else if (name === "table")
-      nameError.value = "Tên table không được là `table`";
+      nameError.value = "Table name cannot be `table`";
     else nameError.value = "";
   }
 );
@@ -42,15 +42,15 @@ watch(
 
 function validateColumn(col: any) {
   if (!col.name?.trim()) {
-    errors.value["name"] = "Tên cột là bắt buộc";
+    errors.value["name"] = "Column name is required";
   } else if (!tableNameOrFieldRegexCheck.test(col.name.trim())) {
-    errors.value["name"] = "Tên không hợp lệ";
+    errors.value["name"] = "Invalid name";
   } else {
     delete errors.value["name"];
   }
 
   if (!col.type?.trim()) {
-    errors.value["type"] = "Phải chọn kiểu dữ liệu";
+    errors.value["type"] = "Must select data type";
   } else {
     delete errors.value["type"];
   }
@@ -58,20 +58,20 @@ function validateColumn(col: any) {
 
 function validateRelation(rel: any) {
   if (!rel.propertyName?.trim()) {
-    errors.value.propertyName = "Tên quan hệ là bắt buộc";
+    errors.value.propertyName = "Relation name is required";
     return false;
   } else if (!tableNameOrFieldRegexCheck.test(rel.propertyName.trim())) {
-    errors.value.propertyName = "Tên không hợp lệ";
+    errors.value.propertyName = "Invalid name";
     return false;
   }
 
   if (!rel.type?.trim()) {
-    errors.value.type = "Phải chọn loại quan hệ";
+    errors.value.type = "Must select relation type";
     return false;
   }
 
   if (!rel.targetTable) {
-    errors.value.targetTable = "Phải chọn bảng đích";
+    errors.value.targetTable = "Must select target table";
     return false;
   }
 
@@ -87,23 +87,23 @@ function validateAll() {
   // Validate table name
   const name = table.name.trim();
   if (name === "") {
-    errors.value["name"] = "Không được để trống!";
+    errors.value["name"] = "Cannot be empty!";
   } else if (!tableNameOrFieldRegexCheck.test(name)) {
-    errors.value["name"] = "Tên không hợp lệ";
+    errors.value["name"] = "Invalid name";
   } else if (name === "table") {
-    errors.value["name"] = "Tên bảng không được là `table`";
+    errors.value["name"] = "Table name cannot be `table`";
   }
 
-  // Gọi validate cho từng column và relation
+  // Call validate for each column and relation
   for (const col of table.columns) {
-    validateColumn(col); // tự gán vào error.value
+    validateColumn(col); // auto-assign to error.value
   }
 
   for (const rel of table.relations) {
     validateRelation(rel);
   }
 
-  // Nếu error vẫn trống → hợp lệ
+  // If error still empty → valid
   return Object.keys(errors.value).length === 0;
 }
 
@@ -161,7 +161,7 @@ async function save() {
           <UFormField :error="nameError" required>
             <UInput
               v-model="table.name"
-              placeholder="Nhập tên bảng"
+              placeholder="Enter table name"
               class="w-full"
               size="xl"
               :error="nameError ? true : false"

@@ -12,7 +12,7 @@
               Enfyra CMS
             </h1>
           </div>
-          <p class="text-sm text-gray-400">Đăng nhập để tiếp tục</p>
+          <p class="text-sm text-gray-400">Login to continue</p>
         </div>
       </template>
 
@@ -52,7 +52,7 @@
 
           <!-- Checkbox -->
           <div class="flex justify-end">
-            <USwitch v-model="form.remember" label="Ghi nhớ đăng nhập" />
+            <USwitch v-model="form.remember" label="Remember me" />
           </div>
 
           <!-- Submit -->
@@ -62,7 +62,7 @@
             class="w-full justify-center"
             loading-auto
           >
-            Đăng nhập
+            Login
           </UButton>
         </div>
       </UForm>
@@ -89,8 +89,8 @@ async function handleLogin() {
   if (ok) window.location.reload();
   else {
     toast.add({
-      title: "Đăng nhập thất bại!",
-      description: "Email hoặc mật khẩu không đúng",
+      title: "Login failed!",
+      description: "Invalid email or password",
       icon: "lucide:octagon-x",
       color: "error",
     });
@@ -100,9 +100,9 @@ watch(
   () => form.email,
   (newVal) => {
     if (!newVal) {
-      error.email = "Kông được để trống!";
+      error.email = "Cannot be empty!";
     } else if (!emailPattern.test(newVal)) {
-      error.email = "Phải đúng định dạng!";
+      error.email = "Must be valid format!";
     } else {
       error.email = "";
     }
@@ -113,7 +113,7 @@ watch(
   () => form.password,
   (newVal) => {
     if (!newVal) {
-      error.password = "Không được để trống!";
+      error.password = "Cannot be empty!";
     } else {
       error.password = "";
     }

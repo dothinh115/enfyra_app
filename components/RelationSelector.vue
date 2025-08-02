@@ -41,7 +41,7 @@ function handleDeleteClick(item: any) {
   if (confirmTimeout) clearTimeout(confirmTimeout);
   confirmTimeout = setTimeout(() => {
     confirmingDeleteId.value = null;
-  }, 3000); // 3 giây để xác nhận
+  }, 3000); // 3 seconds to confirm
 }
 
 async function deleteRecord(id: any) {
@@ -54,7 +54,7 @@ async function deleteRecord(id: any) {
     selected.value = selected.value.filter((item) => item.id !== id);
     await fetchData();
   } catch (e) {
-    console.error("Lỗi khi xóa bản ghi:", e);
+    console.error("Error when deleting record:", e);
   }
 }
 
@@ -144,19 +144,19 @@ function getDisplayLabel(
 ): string {
   if (!item || typeof item !== "object") return "";
 
-  // Lấy danh sách relation keys
+  // Get list of relation keys
   const relationKeys = new Set(
     (tableMeta?.definition || [])
       .filter((def) => def.fieldType === "relation")
       .map((def) => def.propertyName)
   );
 
-  // Lọc ra các field không phải relation
+  // Filter out fields that are not relations
   const nonRelationKeys = Object.keys(item).filter(
     (key) => !relationKeys.has(key)
   );
 
-  // Ưu tiên các key phổ biến nhưng chỉ trong non-relation
+  // Prioritize common keys but only in non-relation
   const preferredKeys = [
     "name",
     "title",
@@ -175,7 +175,7 @@ function getDisplayLabel(
     }
   }
 
-  // Nếu không có key ưu tiên, duyệt toàn bộ non-relation fields còn lại (trừ id)
+  // If no priority key exists, iterate through all remaining non-relation fields (except id)
   for (const key of nonRelationKeys) {
     if (key === "id") continue;
     const val = item[key];
@@ -185,7 +185,7 @@ function getDisplayLabel(
     }
   }
 
-  // Nếu không có gì hết
+  // If nothing exists
   return item.id ? `ID: ${item.id}` : "";
 }
 </script>

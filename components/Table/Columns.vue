@@ -18,7 +18,7 @@ function createEmptyColumn(): any {
     (t) => t.name === "column_definition"
   );
   if (!columnDefTable) {
-    console.error("Không tìm thấy bảng column_definition!");
+    console.error("column_definition table not found!");
     return {};
   }
 
@@ -27,7 +27,7 @@ function createEmptyColumn(): any {
   for (const def of columnDefTable.columns.sort(
     (a: any, b: any) => a.id - b.id
   )) {
-    // Tính default cho từng type
+    // Calculate default for each type
     let value;
     if (def.defaultValue !== null && def.defaultValue !== undefined) {
       value = def.defaultValue;
@@ -90,10 +90,10 @@ function addNewColumn() {
 function validate(property?: string) {
   if (property === "name") {
     if (!currentColumn.value?.name?.trim()) {
-      errors.value.name = "Tên cột là bắt buộc";
+      errors.value.name = "Column name is required";
     } else if (!tableNameOrFieldRegexCheck.test(currentColumn.value?.name)) {
       errors.value.name =
-        "Chỉ cho phép chữ cái, số, _ và không bắt đầu bằng số hoặc _!";
+        "Only letters, numbers, _ allowed and cannot start with number or _!";
     } else {
       delete errors.value.name;
     }
@@ -101,7 +101,7 @@ function validate(property?: string) {
   }
 
   if (!currentColumn.value?.type) {
-    errors.value.type = "Phải chọn kiểu dữ liệu";
+    errors.value.type = "Must select data type";
   } else delete errors.value.type;
 
   if (
@@ -109,7 +109,7 @@ function validate(property?: string) {
     !currentColumn.value?.isGenerated &&
     !currentColumn.value?.defaultValue
   ) {
-    errors.value.defaultValue = "Không được để trống!";
+    errors.value.defaultValue = "Cannot be empty!";
   } else delete errors.value.defaultValue;
 }
 
@@ -129,21 +129,21 @@ onMounted(() => {
   <div class="space-y-2">
     <div class="flex items-center gap-2 text-lg font-semibold text-muted">
       <Icon name="lucide:columns" class="w-5 h-5" />
-      Cột
+      Columns
     </div>
     <div
       v-for="(column, index) in columns"
       :key="column.id ?? index"
       class="flex items-center justify-between rounded-lg border border-muted hover:bg-muted/50 transition"
     >
-      <!-- Phần click để chỉnh sửa -->
+      <!-- Click section to edit -->
       <div
         class="flex items-center gap-2 flex-1 cursor-pointer px-4 py-3"
         @click="editColumn(column, index)"
       >
         <Icon name="lucide:type" class="w-4 h-4 text-muted-foreground" />
         <span class="text-sm font-medium">
-          {{ column.name || "Chưa đặt tên" }}
+          {{ column.name || "Unnamed" }}
         </span>
 
         <UBadge size="xs" color="info" v-if="column.type">
@@ -155,7 +155,7 @@ onMounted(() => {
         <UBadge size="xs" color="info" v-if="column.isIndex">index</UBadge>
       </div>
 
-      <!-- Nút xoá -->
+      <!-- Delete button -->
       <UButton
         icon="lucide:trash"
         color="error"
@@ -167,25 +167,25 @@ onMounted(() => {
       />
     </div>
 
-    <!-- Thêm cột -->
+    <!-- Add column -->
     <div class="flex justify-end pt-2">
-      <UButton icon="lucide:plus" label="Thêm cột" @click="addNewColumn()" />
+      <UButton icon="lucide:plus" label="Add Column" @click="addNewColumn()" />
     </div>
   </div>
 
-  <!-- Modal sửa cột -->
+  <!-- Edit Column Modal -->
   <Teleport to="body">
     <UModal
       v-model:open="isEditing"
       v-if="currentColumn"
       close-icon="i-lucide-arrow-right"
     >
-      <!-- Header modal -->
+      <!-- Modal Header -->
       <template #header>
         <div class="flex justify-between items-center w-full">
           <div class="text-base font-semibold">
-            {{ editingIndex !== null ? "Sửa cột: " : "" }}
-            {{ currentColumn?.name || "Cột mới" }}
+            {{ editingIndex !== null ? "Edit Column: " : "" }}
+            {{ currentColumn?.name || "New Column" }}
           </div>
           <UButton
             icon="lucide:x"
@@ -196,12 +196,12 @@ onMounted(() => {
               currentColumn = null;
             "
           >
-            Huỷ
+            Cancel
           </UButton>
         </div>
       </template>
 
-      <!-- Body modal -->
+      <!-- Modal Body -->
       <template #body>
         <DynamicFormEditor
           v-model="currentColumn"
@@ -233,12 +233,12 @@ onMounted(() => {
         />
       </template>
 
-      <!-- Footer modal -->
+      <!-- Modal Footer -->
       <template #footer>
         <div class="flex w-full space-x-2 justify-end">
           <UButton
             icon="lucide:check"
-            label="Lưu"
+            label="Save"
             @click="saveColumn()"
             color="primary"
           />

@@ -21,11 +21,11 @@ function removeGroup(list: string[][], groupIndex: number) {
 
 <template>
   <div class="space-y-8">
-    <!-- Ràng buộc Unique -->
+    <!-- Unique Constraints -->
     <div class="space-y-4">
       <div class="flex items-center gap-2 text-lg font-semibold text-muted">
         <Icon name="lucide:key" class="w-5 h-5" />
-        Ràng buộc Unique
+        Unique Constraints
         <UButton
           icon="lucide:plus"
           size="sm"
@@ -65,11 +65,11 @@ function removeGroup(list: string[][], groupIndex: number) {
       </div>
     </div>
 
-    <!-- Chỉ mục (Index) -->
+    <!-- Index -->
     <div class="space-y-4">
       <div class="flex items-center gap-2 text-lg font-semibold text-muted">
         <Icon name="lucide:list" class="w-5 h-5" />
-        Chỉ mục (Index)
+        Index
         <UButton
           icon="lucide:plus"
           size="sm"

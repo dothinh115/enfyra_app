@@ -23,7 +23,7 @@ const table = useModel(props, "modelValue");
           <div class="flex items-center justify-between">
             <div class="text-xl font-semibold text-primary">
               {{
-                !props.new ? `Chỉnh sửa bảng: ${table.name}` : `Tạo bảng mới`
+                !props.new ? `Edit Table: ${table.name}` : `Create New Table`
               }}
             </div>
           </div>
@@ -32,7 +32,7 @@ const table = useModel(props, "modelValue");
           </div>
           <UTextarea
             v-model="table.description"
-            placeholder="Mô tả bảng này"
+            placeholder="Describe this table"
             autoresize
             variant="subtle"
             class="text-sm w-full"

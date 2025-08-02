@@ -14,7 +14,7 @@ export async function refreshToken(event: H3Event): Promise<string | null> {
   const refreshToken = getCookie(event, REFRESH_TOKEN_KEY);
   const now = Date.now();
 
-  // Nếu không có refreshToken thì chịu
+  // If there's no refreshToken then give up
   if (!refreshToken) {
     console.warn("⚠️ No refreshToken, cannot refresh");
     return null;
@@ -23,12 +23,12 @@ export async function refreshToken(event: H3Event): Promise<string | null> {
   const expTime = expTimeStr ? parseInt(expTimeStr) : 0;
   const tokenStillValid = accessToken && now < expTime - 10_000;
 
-  // Nếu token còn hạn thì dùng luôn
+  // If token is still valid then use it
   if (tokenStillValid) {
     return accessToken!;
   }
 
-  // Nếu token hết hạn hoặc không có, đi refresh
+  // If token is expired or doesn't exist, go refresh
   try {
     const response: any = await $fetch<{
       accessToken: string;
@@ -67,7 +67,7 @@ export async function refreshToken(event: H3Event): Promise<string | null> {
   } catch (err: any) {
     console.warn("⚠️ Refresh token failed:", err);
 
-    // Nếu lỗi có code 401/403 thì xoá token
+    // If error has code 401/403 then delete token
     const shouldDelete =
       err?.response?.status === 401 || err?.response?.status === 403;
 

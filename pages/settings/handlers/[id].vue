@@ -53,7 +53,7 @@ async function fetchHandler() {
   });
 
   if (error.value) {
-    toast.add({ title: "Không thể tải handler", color: "error" });
+    toast.add({ title: "Cannot load handler", color: "error" });
     loading.value = false;
     return;
   }
@@ -68,8 +68,8 @@ async function save() {
   if (!isValid) {
     errors.value = validationErrors;
     toast.add({
-      title: "Thiếu thông tin",
-      description: "Vui lòng điền đầy đủ các trường bắt buộc.",
+      title: "Missing information",
+      description: "Please fill in all required fields.",
       color: "error",
     });
     return;
@@ -84,12 +84,12 @@ async function save() {
 
   if (error.value) {
     toast.add({
-      title: "Lỗi khi lưu",
+      title: "Error saving",
       description: error.value.message,
       color: "error",
     });
   } else {
-    toast.add({ title: "Đã lưu handler", color: "success" });
+    toast.add({ title: "Handler saved", color: "success" });
     errors.value = {};
   }
 

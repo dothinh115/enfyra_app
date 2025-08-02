@@ -24,8 +24,8 @@ async function fetchRouteHandlers(page = 1, limit = 10) {
   
   if (error.value) {
     toast.add({
-      title: "Lỗi",
-      description: "Không thể tải danh sách route handlers",
+      title: "Error",
+      description: "Cannot load route handlers list",
       color: "error",
     });
     loading.value = false;
@@ -49,14 +49,14 @@ async function deleteHandler(id: number) {
   
   if (error.value) {
     toast.add({
-      title: "Lỗi",
-      description: "Không thể xoá handler",
+      title: "Error",
+      description: "Cannot delete handler",
       color: "error",
     });
     return;
   }
   
-  toast.add({ title: "Đã xoá", color: "success" });
+  toast.add({ title: "Deleted", color: "success" });
   await fetchRouteHandlers(page.value, pageLimit);
 }
 
@@ -105,7 +105,7 @@ watch(
               </div>
             </div>
 
-            <!-- Nút delete -->
+            <!-- Delete button -->
             <div class="shrink-0">
               <UButton
                 icon="lucide:trash-2"

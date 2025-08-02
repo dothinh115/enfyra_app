@@ -31,8 +31,8 @@ async function handleCreate() {
   if (!isValid) {
     createErrors.value = errors;
     toast.add({
-      title: "Có lỗi",
-      description: "Vui lòng kiểm tra lại các trường bị lỗi.",
+      title: "Validation error",
+      description: "Please check the fields with errors.",
       color: "error",
     });
     return;
@@ -45,7 +45,7 @@ async function handleCreate() {
 
   if (error.value) {
     toast.add({
-      title: "Lỗi",
+      title: "Error",
       description: error.value.message,
       color: "error",
     });
@@ -53,7 +53,7 @@ async function handleCreate() {
   }
 
   toast.add({
-    title: "Tạo hook thành công",
+    title: "Hook created successfully",
     color: "success",
   });
 

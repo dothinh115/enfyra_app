@@ -5,7 +5,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     await fetchUser();
   }
 
-  // Nếu chưa có user → gọi fetchUser
+  // If no user yet → call fetchUser
   if (to.path !== "/login") {
     if (!me.value) {
       return navigateTo("/login");

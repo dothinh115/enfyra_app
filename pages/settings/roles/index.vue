@@ -24,8 +24,8 @@ async function fetchRoles(page = 1, limit = 10) {
 
   if (error.value) {
     toast.add({
-      title: "Lỗi",
-      description: "Không thể tải danh sách vai trò",
+      title: "Error",
+      description: "Cannot load roles list",
       color: "error",
     });
     loading.value = false;
@@ -50,14 +50,14 @@ async function deleteRole(id: string) {
   
   if (error.value) {
     toast.add({
-      title: "Lỗi",
-      description: "Không thể xoá vai trò",
+      title: "Error",
+      description: "Cannot delete role",
       color: "error",
     });
     return;
   }
   
-  toast.add({ title: "Đã xoá vai trò", color: "success" });
+  toast.add({ title: "Role deleted", color: "success" });
   await fetchRoles(page.value, pageLimit);
 }
 
@@ -95,7 +95,7 @@ watch(
           <div class="flex flex-col h-full justify-between">
             <div class="space-y-1">
               <div class="text-base font-semibold text-primary">
-                {{ role.name || "Chưa đặt tên" }}
+                {{ role.name || "Unnamed" }}
               </div>
               <div
                 class="text-sm text-muted-foreground"
@@ -120,7 +120,7 @@ watch(
     </div>
 
     <div v-else class="text-sm text-gray-400 text-center">
-      Không có vai trò nào.
+      No roles found.
     </div>
 
     <div class="flex justify-center mt-6">

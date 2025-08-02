@@ -17,9 +17,9 @@ async function handleCreate() {
   if (!isValid) {
     createErrors.value = errors;
     toast.add({
-      title: "Thiếu thông tin",
+      title: "Missing information",
       color: "error",
-      description: "Vui lòng điền đầy đủ các trường bắt buộc.",
+      description: "Please fill in all required fields.",
     });
     return;
   }
@@ -49,7 +49,7 @@ async function handleCreate() {
     toast.add({
       title: "Error",
       color: "error",
-      description: error.value.message || "Đã xảy ra lỗi",
+      description: error.value.message || "An error occurred",
     });
   }
 }

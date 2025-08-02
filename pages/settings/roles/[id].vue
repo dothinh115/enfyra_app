@@ -6,10 +6,10 @@
     
     <template v-else>
       <div class="flex justify-between items-center">
-        <h1 class="text-xl font-semibold">Chi tiết vai trò</h1>
+        <h1 class="text-xl font-semibold">Role Details</h1>
         <UButton
           icon="i-heroicons-trash"
-          label="Xoá"
+          label="Delete"
           color="error"
           variant="soft"
           :loading="createButtonLoader('delete-role').isLoading.value"
@@ -67,7 +67,7 @@ async function fetchRole() {
 
   if (error.value) {
     toast.add({
-      title: "Không thể tải vai trò",
+      title: "Cannot load role",
       color: "error",
     });
     loading.value = false;
@@ -84,8 +84,8 @@ async function save() {
   if (!isValid) {
     errors.value = validationErrors;
     toast.add({
-      title: "Thiếu thông tin",
-      description: "Vui lòng kiểm tra các trường bắt buộc.",
+      title: "Missing information",
+      description: "Please check required fields.",
       color: "error",
     });
     return;
@@ -100,12 +100,12 @@ async function save() {
 
   if (error.value) {
     toast.add({
-      title: "Lỗi khi lưu",
+      title: "Error when saving",
       description: error.value.message,
       color: "error",
     });
   } else {
-    toast.add({ title: "Đã lưu vai trò", color: "success" });
+    toast.add({ title: "Role saved", color: "success" });
     errors.value = {};
   }
 
@@ -114,8 +114,8 @@ async function save() {
 
 async function deleteRole() {
   const ok = await confirm({
-    title: "Xoá vai trò?",
-    content: "Hành động này không thể hoàn tác.",
+    title: "Delete role?",
+    content: "This action cannot be undone.",
   });
   if (!ok) return;
 
@@ -127,14 +127,14 @@ async function deleteRole() {
 
     if (error.value) {
       toast.add({
-        title: "Không thể xoá vai trò",
+        title: "Cannot delete role",
         description: error.value.message,
         color: "error",
       });
       return;
     }
 
-    toast.add({ title: "Đã xoá vai trò", color: "success" });
+    toast.add({ title: "Role deleted", color: "success" });
     await navigateTo("/settings/roles");
   });
 }
