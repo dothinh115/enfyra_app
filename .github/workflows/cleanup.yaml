@@ -1,0 +1,80 @@
+name: Cleanup Server Storage
+
+on:
+  workflow_dispatch:  # Manual trigger
+  schedule:
+    - cron: '0 2 * * 0'  # Every Sunday at 2 AM
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cleanup Server Storage
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: |
+            echo "=== Starting Server Storage Cleanup ==="
+            
+            # Set project variables
+            export PROJECT_NAME="enfyra-cms"
+            export BACKEND_PROJECT_NAME="enfyra-backend"
+            
+            # Docker cleanup
+            echo "=== Docker Cleanup ==="
+            docker image prune -af || true
+            docker container prune -f || true
+            docker volume prune -f || true
+            docker network prune -f || true
+            docker builder prune -af || true
+            docker system prune -af --volumes || true
+            
+            # MicroK8s cleanup
+            echo "=== MicroK8s Cleanup ==="
+            
+            # Clean old images for both projects
+            echo "Cleaning old $PROJECT_NAME images..."
+            microk8s ctr images list -q | grep "$PROJECT_NAME:" | grep -v latest | tail -n +3 | xargs -r microk8s ctr images remove || true
+            
+            echo "Cleaning old $BACKEND_PROJECT_NAME images..."
+            microk8s ctr images list -q | grep "$BACKEND_PROJECT_NAME:" | grep -v latest | tail -n +3 | xargs -r microk8s ctr images remove || true
+            
+            # Containerd garbage collection
+            echo "Running containerd prune..."
+            microk8s ctr content prune || true
+            
+            # Clean registry garbage (if using registry)
+            if microk8s status --addon registry &>/dev/null; then
+              echo "Cleaning registry..."
+              registry_pod=$(kubectl --namespace="container-registry" get pods --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' 2>/dev/null | head -1)
+              if [ ! -z "$registry_pod" ]; then
+                kubectl exec --namespace="container-registry" $registry_pod -- /bin/registry garbage-collect /etc/docker/registry/config.yml || true
+              fi
+            fi
+            
+            # Remove evicted pods
+            echo "Removing evicted pods..."
+            kubectl get pods --all-namespaces | grep Evicted | awk '{print $2 " --namespace=" $1}' | xargs -r kubectl delete pod || true
+            
+            # Clean old replica sets
+            echo "Cleaning old replica sets..."
+            kubectl get replicaset --all-namespaces | grep '0         0         0' | awk '{print $2 " --namespace=" $1}' | head -10 | xargs -r kubectl delete replicaset || true
+            
+            # Clean temp files
+            echo "Cleaning temp files..."
+            rm -rf /tmp/enfyra-*.tar /tmp/$PROJECT_NAME-*.tar || true
+            
+            # Clean container logs
+            echo "Truncating container logs..."
+            find /var/lib/docker/containers/ -name "*.log" -exec truncate -s 0 {} \; 2>/dev/null || true
+            
+            # Final disk usage report
+            echo "=== Final Disk Usage ==="
+            df -h /
+            echo "=== Docker Usage ==="
+            docker system df || true
+            echo "=== MicroK8s Images ==="
+            microk8s ctr images list | grep -E "(enfyra|SIZE)" | head -10
+            echo "=== Cleanup Completed ==="
