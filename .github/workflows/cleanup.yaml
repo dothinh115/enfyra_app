@@ -115,9 +115,9 @@ jobs:
             echo "--maximum-dead-containers=10" >> $KUBELET_ARGS
             echo "--maximum-dead-containers-per-container=1" >> $KUBELET_ARGS
             
-            # Restart kubelet to apply settings (minimal disruption)
-            echo "Restarting kubelet with aggressive GC..."
-            snap restart microk8s.daemon-kubelet
+            # Restart kubelite to apply settings (minimal disruption)
+            echo "Restarting kubelite with aggressive GC..."
+            snap restart microk8s.daemon-kubelite
             sleep 10
             
             # Trigger immediate garbage collection
