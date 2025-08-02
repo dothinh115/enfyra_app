@@ -4,52 +4,8 @@ on:
     branches: [main]
 
 jobs:
-  # Cleanup BEFORE deploy to prevent disk buildup
-  pre-cleanup:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Pre-deployment Cleanup
-        uses: appleboy/ssh-action@v0.1.5
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          password: ${{ secrets.VPS_PASSWORD }}
-          script: |
-            echo "=== Pre-deployment cleanup (safe) ==="
-            
-            # Get current running image to preserve
-            CURRENT_IMAGE=$(kubectl get deployment enfyra-cms-deployment -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || echo "none")
-            echo "Current running image: $CURRENT_IMAGE"
-            
-            # Remove old Docker images (keep current + latest)
-            docker images enfyra-cms --format "{{.Repository}}:{{.Tag}}" | grep -v latest | while read img; do
-              if [ "$img" != "$CURRENT_IMAGE" ]; then
-                echo "Removing old Docker image: $img"
-                docker rmi -f "$img" || true
-              fi
-            done
-            
-            # Clean old registry images (but preserve current)
-            microk8s ctr images list -q | grep "localhost:32000/enfyra-cms:" | while read img; do
-              if [ "$img" != "$CURRENT_IMAGE" ]; then
-                echo "Removing old registry image: $img"  
-                microk8s ctr images remove "$img" || true
-              fi
-            done
-            
-            # Safe cleanup cycles (only unused content)
-            for i in {1..3}; do
-              echo "Safe cleanup cycle $i"
-              microk8s ctr content prune references || true
-              docker image prune -f || true
-            done
-            
-            echo "Pre-cleanup completed"
-            df -h /
-
   deploy:
     runs-on: ubuntu-latest
-    needs: pre-cleanup
     steps:
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v0.1.5
@@ -144,4 +100,15 @@ jobs:
             pulumi up --yes
             
             echo "=== Deployment completed successfully ==="
+
+  # Aggressive cleanup AFTER deploy to remove old images
+  cleanup:
+    needs: deploy
+    uses: ./.github/workflows/cleanup.yaml
+    with:
+      project_name: 'enfyra-cms'
+    secrets:
+      VPS_HOST: ${{ secrets.VPS_HOST }}
+      VPS_USER: ${{ secrets.VPS_USER }}
+      VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}
 
