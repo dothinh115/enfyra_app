@@ -166,3 +166,8 @@ jobs:
             rm -f /tmp/$PROJECT_NAME-*.tar 2>/dev/null || true
             rm -f /tmp/enfyra-*.tar 2>/dev/null || true
             echo "Temp files cleaned"
+
+  # Call cleanup workflow after successful deployment
+  cleanup:
+    needs: deploy
+    uses: ./.github/workflows/cleanup.yaml

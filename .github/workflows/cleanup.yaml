@@ -2,8 +2,7 @@ name: Cleanup Server Storage
 
 on:
   workflow_dispatch:  # Manual trigger
-  schedule:
-    - cron: '0 2 * * 0'  # Every Sunday at 2 AM
+  workflow_call:      # Called by other workflows
 
 jobs:
   cleanup:
