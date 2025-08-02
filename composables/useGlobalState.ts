@@ -9,14 +9,8 @@ export const useGlobalState = () => {
     "global:form:loading",
     () => false
   );
-  const globalLoading = useState<boolean>(
-    "global:loading",
-    () => false
-  );
-  const routeLoading = useState<boolean>(
-    "global:route:loading",
-    () => false
-  );
+  const globalLoading = useState<boolean>("global:loading", () => false);
+  const routeLoading = useState<boolean>("global:route:loading", () => false);
   const buttonLoadingStates = useState<Record<string, boolean>>(
     "global:button:loading",
     () => ({})
@@ -66,40 +60,6 @@ export const useGlobalState = () => {
     }
   }
 
-  async function fetchColumn() {
-    const fieldArr = ["*"];
-    const fields = fieldArr.join(",");
-    try {
-      const { data } = await useApi("/column_definition", {
-        query: { fields, limit: 0 },
-      });
-      columns.value = data.value.data;
-    } catch (error) {
-      toast.add({
-        title: "Error",
-        description: "Cannot fetch columns...",
-        color: "error",
-      });
-    }
-  }
-
-  async function fetchRelation() {
-    const fieldArr = ["*"];
-    const fields = fieldArr.join(",");
-    try {
-      const { data } = await useApi("/relation_definition", {
-        query: { fields, limit: 0 },
-      });
-      relations.value = data.value.data;
-    } catch (error) {
-      toast.add({
-        title: "Error",
-        description: "Cannot fetch relations...",
-        color: "error",
-      });
-    }
-  }
-
   async function fetchSetting() {
     const fieldArr = ["*", "methods.*"];
     const fields = fieldArr.join(",");
@@ -119,13 +79,7 @@ export const useGlobalState = () => {
 
   async function fetchSchema() {
     globalLoading.value = true;
-    await Promise.all([
-      fetchTable(),
-      fetchRelation(),
-      fetchRoute(),
-      fetchColumn(),
-      fetchSetting(),
-    ]);
+    await Promise.all([fetchTable(), fetchRoute(), fetchSetting()]);
     schemas.value = convertToEnfyraSchema(tables.value);
     globalLoading.value = false;
   }
@@ -245,7 +199,7 @@ export const useGlobalState = () => {
   function setButtonLoading(buttonId: string, loading: boolean) {
     buttonLoadingStates.value = {
       ...buttonLoadingStates.value,
-      [buttonId]: loading
+      [buttonId]: loading,
     };
   }
 
@@ -260,9 +214,7 @@ export const useGlobalState = () => {
   return {
     tables,
     routes,
-    columns,
     settings,
-    relations,
     schemas,
     globalForm,
     globalFormLoading,
