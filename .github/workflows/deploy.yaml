@@ -61,10 +61,7 @@ jobs:
               docker tag $PROJECT_NAME:$IMAGE_TAG $REGISTRY_IMAGE
               
               echo "Pushing to MicroK8s registry..."
-              docker push $REGISTRY_IMAGE
-              
-              # Verify push success
-              if docker manifest inspect $REGISTRY_IMAGE >/dev/null 2>&1; then
+              if docker push $REGISTRY_IMAGE; then
                 echo "✅ Image successfully pushed to registry"
                 export PULUMI_IMAGE="$REGISTRY_IMAGE"
               else
