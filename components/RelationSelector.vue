@@ -101,7 +101,9 @@ function toggle(id: any) {
       ? selected.value.filter((s) => s.id !== id)
       : [...selected.value, { id }];
   } else {
-    selected.value = [{ id }];
+    // For single select: if already selected, deselect; otherwise select
+    const isCurrentlySelected = selected.value.some((s) => s.id === id);
+    selected.value = isCurrentlySelected ? [] : [{ id }];
   }
 }
 
