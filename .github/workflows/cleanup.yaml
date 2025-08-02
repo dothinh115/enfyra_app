@@ -3,6 +3,13 @@ name: Cleanup Server Storage
 on:
   workflow_dispatch:  # Manual trigger
   workflow_call:      # Called by other workflows
+    secrets:
+      VPS_HOST:
+        required: true
+      VPS_USER:
+        required: true
+      VPS_PASSWORD:
+        required: true
 
 jobs:
   cleanup:

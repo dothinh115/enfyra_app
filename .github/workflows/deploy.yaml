@@ -46,32 +46,14 @@ jobs:
             export K8S_MODE=$(yq ".kubernetes.provider" ~/configs/$PROJECT_NAME.yaml 2>/dev/null || echo "microk8s")
             echo "K8S_MODE detected: $K8S_MODE"
             
-            # Configure image for MicroK8s
+            # Configure image for MicroK8s - Skip import, use Docker directly
             if [ "$K8S_MODE" = "microk8s" ]; then
               echo "=== Configuring image for MicroK8s ==="
               
-              # Check if we can use microk8s docker directly
-              if microk8s status --addon registry 2>/dev/null | grep -q "enabled"; then
-                echo "Using MicroK8s registry..."
-                # Tag for local registry
-                docker tag $PROJECT_NAME:$IMAGE_TAG localhost:32000/$PROJECT_NAME:$IMAGE_TAG
-                docker push localhost:32000/$PROJECT_NAME:$IMAGE_TAG
-                # Update Pulumi to use registry image
-                export PULUMI_IMAGE="localhost:32000/$PROJECT_NAME:$IMAGE_TAG"
-                echo "Using registry image: $PULUMI_IMAGE"
-              else
-                echo "Using local Docker daemon approach..."
-                # Use containerd namespace directly - much faster
-                docker tag $PROJECT_NAME:$IMAGE_TAG $PROJECT_NAME:$IMAGE_TAG
-                # Import only if not exists
-                if ! microk8s ctr images list | grep -q "$PROJECT_NAME:$IMAGE_TAG"; then
-                  echo "Quick import via pipe..."
-                  docker save $PROJECT_NAME:$IMAGE_TAG | microk8s ctr image import -
-                else
-                  echo "Image already exists in MicroK8s"
-                fi
-                export PULUMI_IMAGE="$PROJECT_NAME:$IMAGE_TAG"
-              fi
+              # Use Docker daemon directly - no import needed!
+              echo "Using Docker daemon directly (no import required)..."
+              export PULUMI_IMAGE="$PROJECT_NAME:$IMAGE_TAG"
+              echo "Image configured: $PULUMI_IMAGE"
               
               echo "=== Image configuration completed ==="
             fi
@@ -193,3 +175,8 @@ jobs:
   cleanup:
     needs: deploy
     uses: ./.github/workflows/cleanup.yaml
+    secrets:
+      VPS_HOST: ${{ secrets.VPS_HOST }}
+      VPS_USER: ${{ secrets.VPS_USER }}
+      VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}
+
