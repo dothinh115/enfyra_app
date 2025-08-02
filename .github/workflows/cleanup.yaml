@@ -81,9 +81,21 @@ jobs:
             echo "Pruning containerd references..."
             microk8s ctr content prune references || true
 
-            # Snapshot cleanup (if snapshots are not in use)
-            echo "Cleaning snapshots..."
-            microk8s ctr snapshots ls | tail -n +2 | awk '{print $1}' | head -20 | xargs -r microk8s ctr snapshots remove || true
+            # Aggressive image removal to allow snapshot cleanup
+            echo "Removing ALL old project images from containerd..."
+            microk8s ctr images list -q | grep -E "enfyra.*:" | grep -v latest | head -10 | xargs -r microk8s ctr images remove || true
+            
+            # Remove registry images
+            echo "Removing registry images..."
+            microk8s ctr images list -q | grep "localhost:32000" | head -20 | xargs -r microk8s ctr images remove || true
+            
+            # Force multiple prune cycles for deep cleanup
+            echo "Deep containerd cleanup..."
+            for i in {1..3}; do
+              echo "Cleanup cycle $i..."
+              microk8s ctr content prune references || true
+              sleep 2
+            done
 
             # Clean registry garbage (if using registry)
             if microk8s status --addon registry &>/dev/null; then
