@@ -14,8 +14,6 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           password: ${{ secrets.VPS_PASSWORD }}
           script: |
-            export PATH=$PATH:$HOME/.pulumi/bin
-
             # Update source code in /apps/enfyra-cms
             cd /apps/enfyra-cms
             git reset --hard HEAD
@@ -23,10 +21,25 @@ jobs:
             git pull origin main
             docker build -t enfyra-cms:latest .
 
-            # Run Pulumi in correct directory
+            # Setup Kubernetes config based on provider type
+            # Read from config file to determine k8s mode
             cd /deployments/enfyra-cms
-            pulumi version
+            K8S_MODE=$(yq '.kubernetes.provider' ~/configs/enfyra-cms.yaml 2>/dev/null || echo "microk8s")
+
+            if [ "$K8S_MODE" = "microk8s" ]; then
+              echo "Using MicroK8s configuration"
+              export KUBECONFIG=/var/snap/microk8s/current/credentials/client.config
+            else
+              echo "Using kubeadm configuration"
+              export KUBECONFIG=/etc/kubernetes/admin.conf
+            fi
+
+            # Setup Pulumi environment
+            export PATH=$PATH:$HOME/.pulumi/bin
             export PULUMI_CONFIG_PASSPHRASE=''
+
+            # Run Pulumi deployment
+            pulumi version
             pulumi login file://$(pwd)/.pulumi
             pulumi stack select enfyra-cms
             pulumi up --yes
