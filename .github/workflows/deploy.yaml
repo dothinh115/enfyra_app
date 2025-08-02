@@ -34,6 +34,11 @@ jobs:
             # Import image to MicroK8s  
             if [ "$K8S_MODE" = "microk8s" ]; then
               echo "=== Importing image $PROJECT_NAME:$IMAGE_TAG to MicroK8s ==="
+              
+              # Clean up old tar files first
+              echo "Cleaning up old tar files in /tmp..."
+              rm -f /tmp/$PROJECT_NAME-*.tar 2>/dev/null || true
+              
               echo "Saving Docker image to tar file..."
               docker save $PROJECT_NAME:$IMAGE_TAG -o /tmp/$PROJECT_NAME-$IMAGE_TAG.tar
               echo "Tar file created: $(ls -lh /tmp/$PROJECT_NAME-$IMAGE_TAG.tar)"
@@ -92,13 +97,9 @@ jobs:
             if [ "$K8S_MODE" = "microk8s" ]; then
               echo "Cleaning up old MicroK8s images..."
               
-              # Remove old enfyra-cms images (keep latest 2)
-              echo "Cleaning enfyra-cms images..."
-              microk8s ctr images list -q | grep "enfyra-cms:" | grep -v latest | tail -n +3 | xargs -r microk8s ctr images remove || true
-              
-              # Remove old enfyra-backend images (keep latest 2)  
-              echo "Cleaning enfyra-backend images..."
-              microk8s ctr images list -q | grep "enfyra-backend:" | grep -v latest | tail -n +3 | xargs -r microk8s ctr images remove || true
+              # Remove old project images (keep latest 2)
+              echo "Cleaning $PROJECT_NAME images..."
+              microk8s ctr images list -q | grep "$PROJECT_NAME:" | grep -v latest | tail -n +3 | xargs -r microk8s ctr images remove || true
               
               # Remove any dangling/unnamed images
               echo "Removing dangling containerd images..."
@@ -132,7 +133,7 @@ jobs:
             
             # Remove unused build cache
             echo "Removing build cache..."
-            docker builder prune -f || true
+            timeout 60 docker builder prune -f || echo "Build cache cleanup completed or timed out"
             
             # Remove stopped containers
             echo "Removing stopped containers..."
@@ -152,16 +153,22 @@ jobs:
             
             # Final system prune (everything unused)
             echo "Final system cleanup..."
-            docker system prune -af --volumes || true
+            timeout 120 docker system prune -af --volumes || echo "System prune completed or timed out"
             
             # Show final disk usage
             echo "=== Final disk usage ==="
-            df -h / || true
+            timeout 30 df -h / || echo "Disk usage check timed out"
             echo "=== Docker directory usage ==="
-            du -sh /var/lib/docker/* 2>/dev/null | sort -rh | head -10 || true
+            timeout 30 du -sh /var/lib/docker/* 2>/dev/null | sort -rh | head -10 || echo "Docker directory check completed or timed out"
             echo "=== Docker system df ==="
-            docker system df || true
+            timeout 30 docker system df || echo "Docker system df completed or timed out"
             echo "=== Total Docker images ==="
-            docker images --format "table {{.Repository}}:{{.Tag}}\t{{.Size}}" | head -20 || true
+            timeout 30 docker images --format "table {{.Repository}}:{{.Tag}}\t{{.Size}}" | head -20 || echo "Docker images list completed or timed out"
             
-            echo "=== Cleanup completed ==="
+            echo "=== Cleanup completed - deployment will continue ==="
+            
+            # Final cleanup of temp files
+            echo "Cleaning up temporary files..."
+            rm -f /tmp/$PROJECT_NAME-*.tar 2>/dev/null || true
+            rm -f /tmp/enfyra-*.tar 2>/dev/null || true
+            echo "Temp files cleaned"
