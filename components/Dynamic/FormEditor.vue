@@ -127,7 +127,6 @@ function getComponentConfigByKey(key: string) {
       fieldProps,
     };
   }
-
   if (finalType === "select") {
     return {
       component: USelect,
