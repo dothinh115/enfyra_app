@@ -37,7 +37,7 @@ const isActive = (path: string) =>
 <template>
   <div class="flex flex-col h-full w-full">
     <!-- Navigation Section -->
-    <div class="flex flex-col items-center w-full py-2">
+    <div class="flex flex-col items-center w-full py-2 gap-2">
       <UTooltip
         v-for="item in items"
         :key="item.icon"
@@ -49,26 +49,25 @@ const isActive = (path: string) =>
           variant="ghost"
           :icon="item.icon"
           :to="item.route"
-          color="primary"
-          class="w-full aspect-square flex justify-center items-center transition duration-200 ease-in-out rounded-none"
+          class="transition duration-200 ease-in-out w-12 h-12 flex justify-center items-center rounded-lg text-gray-300"
           :class="
             isActive(item.route)
               ? 'bg-primary text-gray-800 hover:bg-primary'
-              : 'hover:bg-gray-700'
+              : ''
           "
         />
       </UTooltip>
     </div>
 
     <!-- Bottom Section: Logout -->
-    <div class="mt-auto w-full bg-gray-900 border-t border-gray-700">
+    <div class="mt-auto w-full">
       <div class="py-2 w-full flex justify-center">
         <UTooltip text="Logout" placement="right">
           <UButton
             variant="ghost"
             icon="lucide:log-out"
             @click="handleLogout"
-            class="transition duration-200 ease-in-out rotate-180 w-12 h-12 flex justify-center bg-red-900 hover:bg-red-700 rounded-lg text-gray-100"
+            class="transition duration-200 ease-in-out rotate-180 w-12 h-12 flex justify-center items-center rounded-lg text-gray-300 bg-red-800"
           />
         </UTooltip>
       </div>
