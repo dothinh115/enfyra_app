@@ -215,6 +215,10 @@ export const useGlobalState = () => {
     sidebarVisible.value = !sidebarVisible.value;
   }
 
+  function setSidebarVisible(visible: boolean) {
+    sidebarVisible.value = visible;
+  }
+
   return {
     tables,
     routes,
@@ -231,5 +235,6 @@ export const useGlobalState = () => {
     getButtonLoading,
     setRouteLoading,
     toggleSidebar,
+    setSidebarVisible,
   };
 };

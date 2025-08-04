@@ -1,6 +1,13 @@
 <script setup lang="ts">
-const { routes, tables, globalLoading } = useGlobalState();
+const { routes, tables, globalLoading, setSidebarVisible } = useGlobalState();
 const route = useRoute();
+const { isMobile, isTablet } = useScreen();
+
+function handleMenuClick() {
+  if (isMobile.value || isTablet.value) {
+    setSidebarVisible(false);
+  }
+}
 </script>
 
 <template>
@@ -23,6 +30,7 @@ const route = useRoute();
       :to="`/collections`"
       class="hover:bg-primary/20"
       active-class="bg-primary/20 text-white shadow hover:!bg-primary/20"
+      @click="handleMenuClick"
     >
       <template #trailing>
         <Icon name="lucide:arrow-right" class="ml-auto" />
@@ -41,6 +49,7 @@ const route = useRoute();
       :to="`/collections/${item.name}`"
       class="hover:bg-primary/20"
       active-class="bg-primary/20 text-white shadow hover:!bg-primary/20"
+      @click="handleMenuClick"
     >
       <template #trailing>
         <Icon name="lucide:arrow-right" class="ml-auto" />
@@ -59,6 +68,7 @@ const route = useRoute();
       :to="`/settings/general`"
       class="hover:bg-primary/20"
       active-class="bg-primary/20 text-white shadow hover:!bg-primary/20"
+      @click="handleMenuClick"
     >
       <template #trailing>
         <Icon name="lucide:arrow-right" class="ml-auto" />
@@ -77,6 +87,7 @@ const route = useRoute();
         route.path.startsWith('/settings/routings') &&
         'bg-primary/20 text-white shadow hover:!bg-primary/20'
       "
+      @click="handleMenuClick"
     >
       <template #trailing>
         <Icon name="lucide:arrow-right" class="ml-auto" />
@@ -95,6 +106,7 @@ const route = useRoute();
         route.path.startsWith('/settings/handlers') &&
         'bg-primary/20 text-white shadow hover:!bg-primary/20'
       "
+      @click="handleMenuClick"
     >
       <template #trailing>
         <Icon name="lucide:arrow-right" class="ml-auto" />
@@ -113,6 +125,7 @@ const route = useRoute();
         route.path.startsWith('/settings/hooks') &&
         'bg-primary/20 text-white shadow hover:!bg-primary/20'
       "
+      @click="handleMenuClick"
     >
       <template #trailing>
         <Icon name="lucide:arrow-right" class="ml-auto" />
@@ -131,6 +144,7 @@ const route = useRoute();
         route.path.startsWith('/settings/users') &&
         'bg-primary/20 text-white shadow hover:!bg-primary/20'
       "
+      @click="handleMenuClick"
     >
       <template #trailing>
         <Icon name="lucide:arrow-right" class="ml-auto" />
@@ -149,6 +163,7 @@ const route = useRoute();
         route.path.startsWith('/settings/roles') &&
         'bg-primary/20 text-white shadow hover:!bg-primary/20'
       "
+      @click="handleMenuClick"
     >
       <template #trailing>
         <Icon name="lucide:arrow-right" class="ml-auto" />
@@ -177,6 +192,7 @@ const route = useRoute();
         route.path.startsWith(`/data/${item.name}`) &&
         'bg-primary/20 text-white shadow hover:!bg-primary/20'
       "
+      @click="handleMenuClick"
     >
       <template #trailing>
         <Icon name="lucide:arrow-right" class="ml-auto" />
