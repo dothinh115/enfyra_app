@@ -45,7 +45,7 @@ const route = useRoute();
       <template #trailing>
         <Icon name="lucide:arrow-right" class="ml-auto" />
       </template>
-      {{ item.name }}
+      <span class="truncate">{{ item.name }}</span>
     </UButton>
   </nav>
   <nav
@@ -181,7 +181,7 @@ const route = useRoute();
       <template #trailing>
         <Icon name="lucide:arrow-right" class="ml-auto" />
       </template>
-      {{ item.name }}
+      <span class="truncate">{{ item.name }}</span>
     </UButton>
   </nav>
 </template>

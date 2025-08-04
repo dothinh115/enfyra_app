@@ -14,6 +14,7 @@ export const useGlobalState = () => {
     () => ({})
   );
   const schemas = useState<any>("global:schemas", () => []);
+  const sidebarVisible = useState<boolean>("global:sidebar:visible", () => true);
 
   const toast = useToast();
 
@@ -210,6 +211,10 @@ export const useGlobalState = () => {
     routeLoading.value = loading;
   }
 
+  function toggleSidebar() {
+    sidebarVisible.value = !sidebarVisible.value;
+  }
+
   return {
     tables,
     routes,
@@ -220,9 +225,11 @@ export const useGlobalState = () => {
     globalLoading,
     routeLoading,
     buttonLoadingStates,
+    sidebarVisible,
     fetchSchema,
     setButtonLoading,
     getButtonLoading,
     setRouteLoading,
+    toggleSidebar,
   };
 };

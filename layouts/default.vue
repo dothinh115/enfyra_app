@@ -1,13 +1,31 @@
 <template>
   <div class="flex h-screen text-sm bg-background text-foreground">
     <!-- Mini Sidebar -->
-    <aside class="w-16 bg-background flex flex-col items-center">
-      <LogoMini />
-      <SidebarMiniMenu />
+    <aside class="w-16 bg-gray-900 flex flex-col items-center">
+      <!-- Top Section: Toggle Button -->
+      <div class="py-4 bg-gray-800 w-full flex justify-center border-b border-gray-700">
+        <UTooltip :text="sidebarVisible ? 'Hide Menu' : 'Show Menu'" placement="right">
+          <UButton
+            variant="ghost"
+            :icon="sidebarVisible ? 'lucide:panel-left-close' : 'lucide:panel-left-open'"
+            @click="toggleSidebar"
+            class="transition duration-200 ease-in-out w-12 h-12 flex justify-center items-center rounded-lg text-gray-300 hover:bg-gray-600 hover:text-white"
+            :class="sidebarVisible ? 'bg-gray-700' : 'bg-gray-600'"
+          />
+        </UTooltip>
+      </div>
+      
+      <!-- Middle Section: Navigation -->
+      <div class="flex-1 w-full bg-gray-800">
+        <SidebarMiniMenu />
+      </div>
     </aside>
 
     <!-- Sidebar -->
-    <aside class="w-60 bg-muted p-4 flex flex-col">
+    <aside 
+      v-if="sidebarVisible" 
+      class="w-60 bg-muted p-4 flex flex-col transition-all duration-300"
+    >
       <LogoFull class="mb-9" />
       <SidebarMenu />
     </aside>
@@ -247,6 +265,8 @@ const {
   globalFormLoading,
   globalLoading,
   routeLoading,
+  sidebarVisible,
+  toggleSidebar,
 } = useGlobalState();
 // Calculate breadcrumb segments from route
 const segments = computed(() => {
