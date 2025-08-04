@@ -88,16 +88,6 @@ function getComponentConfigByKey(key: string) {
       : manualConfig || {};
 
   const finalType = config.type || column?.type;
-  console.log(
-    "FormEditor - key:",
-    key,
-    "finalType:",
-    finalType,
-    "config.type:",
-    config.type,
-    "column?.type:",
-    column?.type
-  );
   const isSystemField = key === "createdAt" || key === "updatedAt";
   const disabled = config.disabled ?? isSystemField;
 
