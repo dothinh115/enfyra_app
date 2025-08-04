@@ -17,35 +17,18 @@ const currentRelation = ref<any>(null);
 const relationErrors = ref<Record<number, Record<string, string>>>({});
 
 function createEmptyRelation(): any {
-  const base = relationData.value.find((r) => r.propertyName !== "id") ?? {};
-  const omit = ["id", "createdAt", "updatedAt", "table"];
-  const relation: any = {};
-
-  for (const key in base) {
-    if (!omit.includes(key)) {
-      const value = base[key];
-      relation[key] =
-        typeof value === "boolean"
-          ? false
-          : value === null || value === undefined
-          ? ""
-          : Array.isArray(value)
-          ? []
-          : typeof value === "object"
-          ? { ...value }
-          : "";
-    }
-  }
-
-  relation.propertyName = "";
-  relation.type = "many-to-one";
-  relation.targetTable = null;
-  relation.isIndex = false;
-  relation.isNullable = false;
-  relation.description = "";
-  relation.isSystem = false;
-  delete relation.sourceTable;
-  return relation;
+  return {
+    propertyName: "",
+    type: "many-to-one",
+    targetTable: null,
+    isIndex: false,
+    isNullable: false,
+    description: "",
+    isSystem: false,
+    inversePropertyName: "",
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE"
+  };
 }
 
 function openNewRelationModal() {
@@ -156,7 +139,10 @@ function saveRelation() {
       <UButton
         icon="lucide:plus"
         label="Add Relation"
-        @click="openNewRelationModal()"
+        @click.stop="openNewRelationModal()"
+        class="relative z-10"
+        color="primary"
+        variant="solid"
       />
     </div>
   </div>
