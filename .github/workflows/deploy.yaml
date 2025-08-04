@@ -67,7 +67,7 @@ jobs:
 
             # Clean start PM2 application
             echo "Starting PM2 application clean..."
-            $PM2_PATH start ecosystem.config.js
+            $PM2_PATH start ecosystem.config.cjs
 
             # Wait for app to initialize
             echo "Waiting for app initialization..."
