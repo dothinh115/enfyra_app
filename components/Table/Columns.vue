@@ -113,6 +113,50 @@ function validate(property?: string) {
   } else delete errors.value.defaultValue;
 }
 
+function getDefaultValueType(columnType: string) {
+  console.log('getDefaultValueType called with:', columnType);
+  if (!columnType) return { type: 'text' };
+  
+  if (columnType === 'boolean') {
+    console.log('Returning boolean type');
+    return { type: 'boolean' };
+  }
+  
+  if (columnType === 'int' || columnType === 'integer') {
+    console.log('Returning number type');
+    return { type: 'number' };
+  }
+  
+  if (columnType === 'text' || columnType === 'varchar') {
+    console.log('Returning textarea type');
+    return { type: 'textarea' };
+  }
+  
+  console.log('Returning default text type');
+  return { type: 'text' };
+}
+
+const typeMap = computed(() => {
+  const currentType = currentColumn.value?.type;
+  console.log('typeMap computed - currentType:', currentType);
+  
+  return {
+    type: {
+      type: 'select',
+      options:
+        currentColumn.value?.name === 'id'
+          ? columnTypes.filter((colType) =>
+              ['uuid', 'int'].includes(colType.value)
+            )
+          : columnTypes,
+    },
+    name: {
+      disabled: currentColumn.value?.name === 'id',
+    },
+    defaultValue: getDefaultValueType(currentType),
+  };
+});
+
 onMounted(() => {
   const primaryColumn = createEmptyColumn();
   primaryColumn.name = "id";
@@ -216,20 +260,7 @@ onMounted(() => {
             'updatedAt',
             'isPrimary',
           ]"
-          :type-map="{
-            type: {
-              type: 'select',
-              options:
-                currentColumn.name === 'id'
-                  ? columnTypes.filter((colType) =>
-                      ['uuid', 'int'].includes(colType.value)
-                    )
-                  : columnTypes,
-            },
-            name: {
-              disabled: currentColumn.name === 'id',
-            },
-          }"
+          :type-map="typeMap"
         />
       </template>
 

@@ -3,7 +3,7 @@ export function useScreen() {
   const height = ref(0);
 
   const updateDimensions = () => {
-    if (process.client) {
+    if (typeof window !== 'undefined') {
       width.value = window.innerWidth;
       height.value = window.innerHeight;
     }
@@ -27,7 +27,7 @@ export function useScreen() {
   });
 
   onUnmounted(() => {
-    if (process.client) {
+    if (typeof window !== 'undefined') {
       window.removeEventListener('resize', updateDimensions);
     }
   });
