@@ -173,7 +173,7 @@ function getComponentConfigByKey(key: string) {
 
   if (finalType === "code") {
     return {
-      component: resolveComponent("CodeEditor"),
+      component: resolveComponent("FormCodeEditor"),
       componentProps: {
         ...componentPropsBase,
         modelValue: props.formData[key] ?? "",
@@ -215,7 +215,7 @@ function getComponentConfigByKey(key: string) {
 
   if (finalType === "richtext") {
     return {
-      component: resolveComponent("RichTextEditor"),
+      component: resolveComponent("FormRichTextEditor"),
       componentProps: {
         modelValue: props.formData[key] ?? "",
         editable: !disabled,
