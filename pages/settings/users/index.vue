@@ -2,21 +2,15 @@
   <div class="space-y-4">
     <div class="text-xl font-semibold">Users</div>
 
-    <div
+    <CommonLoadingState
       v-if="loading"
-      class="flex flex-col items-center justify-center py-16 gap-4"
-    >
-      <div class="relative">
-        <div class="w-12 h-12 border-4 border-primary/20 rounded-full"></div>
-        <div
-          class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"
-        ></div>
-      </div>
-      <p class="text-sm text-muted-foreground">Loading users...</p>
-    </div>
+      title="Loading users..."
+      description="Fetching user accounts"
+      size="lg"
+    />
 
     <div
-      v-else
+      v-else-if="users.length > 0"
       class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
     >
       <UCard v-for="user in users" :key="user.id" class="relative group">
@@ -67,6 +61,14 @@
         </template>
       </UCard>
     </div>
+
+    <CommonEmptyState
+      v-else
+      title="No users found"
+      description="No user accounts have been created yet"
+      icon="lucide:users"
+      size="lg"
+    />
 
     <div class="flex justify-center mt-4" v-if="!loading">
       <UPagination

@@ -3,11 +3,9 @@ import { computed, resolveComponent } from "vue";
 import { UInput, UTextarea, USwitch, USelect } from "#components";
 
 const props = defineProps<{
-  modelValue: Record<string, any>;
-  errors: Record<string, string>;
-  tableName: string;
-  excluded?: string[];
-  includes?: string[];
+  keyName: string;
+  formData: Record<string, any>;
+  columnMap: Map<string, any>;
   typeMap?: Record<
     string,
     | string
@@ -23,62 +21,24 @@ const props = defineProps<{
         [key: string]: any;
       }
   >;
-  readonly?: boolean;
+  errors: Record<string, string>;
 }>();
 
-const emit = defineEmits(["update:modelValue", "update:errors"]);
+const emit = defineEmits<{
+  "update:formData": [key: string, value: any];
+  "update:errors": [errors: Record<string, string>];
+}>();
 
-const { tables, schemas } = useGlobalState();
+function updateFormData(key: string, value: any) {
+  emit("update:formData", key, value);
+}
 
-const formData = computed({
-  get: () => props.modelValue,
-  set: (val) => emit("update:modelValue", val),
-});
-
-const columnMap = computed(() => {
-  const map = new Map<string, any>();
-  const definition = schemas.value[props.tableName]?.definition || [];
-  for (const field of definition) {
-    const key = field.name || field.propertyName;
-    if (key) map.set(key, field);
-  }
-  return map;
-});
-
-const visibleKeys = computed(() => {
-  const table = tables.value.find((t) => t.name === props.tableName);
-  const allKeys = Object.keys(formData.value || {});
-  let filtered: string[];
-
-  if (props.includes?.length) {
-    filtered = allKeys.filter((key) => props.includes!.includes(key));
-  } else if (props.excluded?.length) {
-    filtered = allKeys.filter((key) => !props.excluded!.includes(key));
-  } else {
-    filtered = allKeys;
-  }
-
-  if (!table) return filtered;
-
-  const definition = schemas.value[props.tableName].definition || [];
-  const sorted = definition
-    .slice()
-    .sort((a: any, b: any) => {
-      const isSpecial = (f: any) =>
-        f.name === "createdAt" || f.name === "updatedAt";
-      if (isSpecial(a) && !isSpecial(b)) return 1;
-      if (!isSpecial(a) && isSpecial(b)) return -1;
-      if (a.fieldType !== b.fieldType) return a.fieldType === "column" ? -1 : 1;
-      return a.id - b.id;
-    })
-    .map((col: any) => col.name || col.propertyName)
-    .filter((name: string) => filtered.includes(name));
-
-  return sorted;
-});
+function updateErrors(errors: Record<string, string>) {
+  emit("update:errors", errors);
+}
 
 function getComponentConfigByKey(key: string) {
-  const column = columnMap.value.get(key);
+  const column = props.columnMap.get(key);
   const isRelation = column?.fieldType === "relation";
 
   const manualConfig = props.typeMap?.[key];
@@ -108,9 +68,9 @@ function getComponentConfigByKey(key: string) {
       componentProps: {
         ...componentPropsBase,
         relationMeta: column,
-        modelValue: formData.value[key],
+        modelValue: props.formData[key],
         "onUpdate:modelValue": (val: any) => {
-          formData.value[key] = val;
+          updateFormData(key, val);
         },
       },
       fieldProps,
@@ -122,17 +82,25 @@ function getComponentConfigByKey(key: string) {
       component: USwitch,
       componentProps: {
         ...componentPropsBase,
-        // label: column?.description || key,
+        modelValue: props.formData[key] ?? false,
+        "onUpdate:modelValue": (val: boolean) => {
+          updateFormData(key, val);
+        },
       },
       fieldProps,
     };
   }
+
   if (finalType === "select") {
     return {
       component: USelect,
       componentProps: {
         ...componentPropsBase,
         items: config.options ?? [],
+        modelValue: props.formData[key] ?? null,
+        "onUpdate:modelValue": (val: any) => {
+          updateFormData(key, val);
+        },
       },
       fieldProps,
     };
@@ -143,9 +111,9 @@ function getComponentConfigByKey(key: string) {
       component: resolveComponent("SimpleArrayEditor"),
       componentProps: {
         ...componentPropsBase,
-        modelValue: formData.value[key] ?? [],
+        modelValue: props.formData[key] ?? [],
         "onUpdate:modelValue": (val: string[]) => {
-          formData.value[key] = val;
+          updateFormData(key, val);
         },
       },
       fieldProps,
@@ -161,6 +129,10 @@ function getComponentConfigByKey(key: string) {
         variant: "subtle",
         autoresize: true,
         class: "w-full font-mono text-xs",
+        modelValue: props.formData[key],
+        "onUpdate:modelValue": (val: string) => {
+          updateFormData(key, val);
+        },
       },
       fieldProps: {
         ...fieldProps,
@@ -175,6 +147,10 @@ function getComponentConfigByKey(key: string) {
       componentProps: {
         ...componentPropsBase,
         rows: 3,
+        modelValue: props.formData[key] ?? "",
+        "onUpdate:modelValue": (val: string) => {
+          updateFormData(key, val);
+        },
       },
       fieldProps,
     };
@@ -186,6 +162,10 @@ function getComponentConfigByKey(key: string) {
       componentProps: {
         ...componentPropsBase,
         type: "number",
+        modelValue: props.formData[key] ?? 0,
+        "onUpdate:modelValue": (val: string | number) => {
+          updateFormData(key, val);
+        },
       },
       fieldProps,
     };
@@ -196,10 +176,10 @@ function getComponentConfigByKey(key: string) {
       component: resolveComponent("CodeEditor"),
       componentProps: {
         ...componentPropsBase,
-        modelValue: formData.value[key] ?? "",
+        modelValue: props.formData[key] ?? "",
         language: config.language ?? "javascript",
         "onUpdate:modelValue": (val: string) => {
-          formData.value[key] = val;
+          updateFormData(key, val);
         },
         onDiagnostics: (diags: any[]) => {
           const updated = { ...props.errors };
@@ -208,7 +188,7 @@ function getComponentConfigByKey(key: string) {
           } else {
             delete updated[key];
           }
-          emit("update:errors", updated);
+          updateErrors(updated);
         },
       },
       fieldProps: {
@@ -224,9 +204,9 @@ function getComponentConfigByKey(key: string) {
       componentProps: {
         ...componentPropsBase,
         options: config.options ?? [],
-        modelValue: formData.value[key] ?? [],
+        modelValue: props.formData[key] ?? [],
         "onUpdate:modelValue": (val: string[]) => {
-          formData.value[key] = val;
+          updateFormData(key, val);
         },
       },
       fieldProps,
@@ -237,10 +217,10 @@ function getComponentConfigByKey(key: string) {
     return {
       component: resolveComponent("RichTextEditor"),
       componentProps: {
-        "v-model": formData.value[key] ?? "",
+        modelValue: props.formData[key] ?? "",
         editable: !disabled,
         "onUpdate:modelValue": (val: string) => {
-          formData.value[key] = val;
+          updateFormData(key, val);
         },
       },
       fieldProps: {
@@ -255,75 +235,21 @@ function getComponentConfigByKey(key: string) {
     componentProps: {
       ...componentPropsBase,
       type: finalType === "int" ? "number" : "text",
+      modelValue: props.formData[key] ?? "",
+      "onUpdate:modelValue": (val: string) => {
+        updateFormData(key, val);
+      },
     },
     fieldProps,
   };
 }
 
-function renderValue(key: string): string {
-  const val = formData.value[key];
-  const column = columnMap.value.get(key);
-  const isRelation = column?.fieldType === "relation";
-
-  if (val === null || val === undefined) return "—";
-
-  // If it's a relation (1-1 or 1-n)
-  if (isRelation) {
-    if (Array.isArray(val)) {
-      const ids = val.map((item) =>
-        item && typeof item === "object" && "id" in item ? item.id : "?"
-      );
-      return ids.length ? ids.join(", ") : "—";
-    }
-
-    if (typeof val === "object") {
-      return "id" in val ? String(val.id) : JSON.stringify(val, null, 2);
-    }
-  }
-
-  // Boolean
-  if (typeof val === "boolean") return val ? "true" : "false";
-
-  // Array (not relation)
-  if (Array.isArray(val)) return val.length ? val.join(", ") : "—";
-
-  // Object (non-relation)
-  if (typeof val === "object") {
-    try {
-      return JSON.stringify(val, null, 2);
-    } catch {
-      return "[object]";
-    }
-  }
-
-  // Default: primitive
-  return String(val);
-}
+const componentConfig = computed(() => getComponentConfigByKey(props.keyName));
 </script>
 
 <template>
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-    <template v-for="key in visibleKeys" :key="key">
-      <UFormField
-        v-bind="getComponentConfigByKey(key).fieldProps"
-        :label="key"
-        class="rounded-lg border border-muted p-4"
-        :error="props.errors?.[key]"
-      >
-        <template #description v-if="columnMap.get(key)?.description">
-          <div v-html="columnMap.get(key)?.description" />
-        </template>
-
-        <component
-          v-if="!props.readonly"
-          :is="getComponentConfigByKey(key).component"
-          v-bind="getComponentConfigByKey(key).componentProps"
-          v-model="formData[key]"
-        />
-        <div v-else class="text-sm whitespace-pre-wrap font-mono">
-          {{ renderValue(key) }}
-        </div>
-      </UFormField>
-    </template>
-  </div>
+  <component
+    :is="componentConfig.component"
+    v-bind="componentConfig.componentProps"
+  />
 </template>

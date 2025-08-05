@@ -46,7 +46,7 @@
         </div>
       </template>
 
-      <DynamicFormEditor
+      <FormEditor
         v-model="form"
         v-model:errors="errors"
         :table-name="tableName"

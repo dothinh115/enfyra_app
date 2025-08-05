@@ -60,18 +60,12 @@ async function toggleEnabled(hook: any) {
 
 <template>
   <div class="space-y-6">
-    <div
+    <CommonLoadingState
       v-if="loading"
-      class="flex flex-col items-center justify-center py-16 gap-4"
-    >
-      <div class="relative">
-        <div class="w-12 h-12 border-4 border-primary/20 rounded-full"></div>
-        <div
-          class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"
-        ></div>
-      </div>
-      <p class="text-sm text-muted-foreground">Loading hooks...</p>
-    </div>
+      title="Loading hooks..."
+      description="Fetching webhook configurations"
+      size="lg"
+    />
     <div class="space-y-3 flex flex-col" v-else-if="hooks.length">
       <ULink
         :to="`/settings/hooks/${hook.id}`"
@@ -130,9 +124,13 @@ async function toggleEnabled(hook: any) {
         </UCard>
       </ULink>
     </div>
-    <div v-else-if="!loading" class="text-center py-8 text-muted-foreground">
-      No hooks found.
-    </div>
+    <CommonEmptyState
+      v-else-if="!loading"
+      title="No hooks found"
+      description="No webhook configurations have been created yet"
+      icon="lucide:webhook"
+      size="lg"
+    />
 
     <div class="flex justify-center mt-6">
       <UPagination

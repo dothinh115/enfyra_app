@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FilterGroup } from "~/utils/filter/FilterTypes";
-import FilterBuilder from "~/components/Filter/FilterBuilder.vue";
+import FilterBuilder from "~/components/filter/Builder.vue";
 
 const props = defineProps<{
   modelValue: boolean;

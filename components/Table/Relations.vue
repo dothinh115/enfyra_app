@@ -167,7 +167,7 @@ function saveRelation() {
       </template>
 
       <template #body>
-        <DynamicFormEditor
+        <FormEditor
           v-model="currentRelation"
           v-model:errors="relationErrors[editingIndex ?? relations.length]"
           tableName="relation_definition"

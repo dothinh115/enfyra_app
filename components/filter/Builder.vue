@@ -1,22 +1,22 @@
 <script setup lang="ts">
-import type { FilterProps } from '~/utils/filter/FilterTypes';
+import type { FilterProps } from "~/utils/filter/FilterTypes";
 // FilterGroup will be auto-imported by Nuxt
 
 const props = defineProps<FilterProps>();
 
 const emit = defineEmits<{
-  'update:modelValue': [value: typeof props.modelValue];
+  "update:modelValue": [value: typeof props.modelValue];
 }>();
 
 function updateFilter(group: typeof props.modelValue) {
-  emit('update:modelValue', group); 
+  emit("update:modelValue", group);
 }
 </script>
 
 <template>
-  <FilterGroup 
+  <FilterGroup
     :group="modelValue"
-    :schemas="schemas" 
+    :schemas="schemas"
     :table-name="tableName"
     :root-table-name="rootTableName"
     :readonly="readonly"

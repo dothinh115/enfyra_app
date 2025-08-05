@@ -88,7 +88,7 @@ async function deleteUser() {
   });
   if (!ok) return;
 
-  const deleteLoader = createButtonLoader('delete-user');
+  const deleteLoader = createButtonLoader("delete-user");
   await deleteLoader.withLoading(async () => {
     const { error } = await useApiLazy(`/${tableName}/${user.value.id}`, {
       method: "delete",
@@ -115,10 +115,13 @@ onMounted(fetchUser);
 </script>
 
 <template>
-  <div v-if="loading" class="flex justify-center py-8">
-    <div class="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-  </div>
-  
+  <CommonLoadingState
+    v-if="loading"
+    title="Loading user..."
+    description="Fetching user details"
+    size="md"
+  />
+
   <UForm :state="user" ref="globalForm" @submit="saveUser" v-else-if="user">
     <UCard>
       <template #header>
@@ -153,7 +156,7 @@ onMounted(fetchUser);
         </div>
       </template>
 
-      <DynamicFormEditor
+      <FormEditor
         v-model="user"
         v-model:errors="errors"
         table-name="user_definition"
@@ -162,8 +165,12 @@ onMounted(fetchUser);
       />
     </UCard>
   </UForm>
-  
-  <div v-else class="flex justify-center py-8">
-    <p class="text-muted-foreground">User not found</p>
-  </div>
+
+  <CommonEmptyState
+    v-else
+    title="User not found"
+    description="The requested user could not be loaded"
+    icon="lucide:user-x"
+    size="lg"
+  />
 </template>

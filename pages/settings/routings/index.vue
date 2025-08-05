@@ -15,7 +15,7 @@ async function fetchRoute(page = 1, limit: number) {
   const { data, error } = await useApiLazy("/route_definition", {
     query: { fields, sort, meta: "*", page, limit },
   });
-  
+
   if (error.value) {
     toast.add({
       title: "Error",
@@ -25,7 +25,7 @@ async function fetchRoute(page = 1, limit: number) {
     loading.value = false;
     return;
   }
-  
+
   routes.value = data.value.data;
   total.value = data.value.meta.totalCount;
   loading.value = false;
@@ -57,13 +57,12 @@ async function toggleEnabled(route: any) {
 
 <template>
   <div class="space-y-6">
-    <div v-if="loading" class="flex flex-col items-center justify-center py-16 gap-4">
-      <div class="relative">
-        <div class="w-12 h-12 border-4 border-primary/20 rounded-full"></div>
-        <div class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
-      </div>
-      <p class="text-sm text-muted-foreground">Loading routes...</p>
-    </div>
+    <CommonLoadingState
+      v-if="loading"
+      title="Loading routes..."
+      description="Fetching routing configuration"
+      size="lg"
+    />
     <div class="space-y-3 flex flex-col" v-else-if="routes.length">
       <ULink
         :to="`/settings/routings/${route.id}`"
@@ -124,7 +123,13 @@ async function toggleEnabled(route: any) {
         </UCard>
       </ULink>
     </div>
-    <div v-else-if="!loading" class="text-center py-8 text-muted-foreground">No routes found.</div>
+    <CommonEmptyState
+      v-else-if="!loading"
+      title="No routes found"
+      description="No routing configurations have been created yet"
+      icon="lucide:route"
+      size="lg"
+    />
 
     <div class="flex justify-center mt-6">
       <UPagination

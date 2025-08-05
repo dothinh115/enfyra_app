@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // UInput, USelect, UButton auto-imported by Nuxt
-import type { FilterCondition, FilterGroup } from '~/utils/filter/FilterTypes';
+import type { FilterCondition, FilterGroup } from "~/utils/filter/FilterTypes";
 // getOperatorsByType, mapDbTypeToFilterType, needsValue, needsTwoValues auto-imported from utils
 // getCombinedOptionsForContext, getFieldOptions auto-imported from utils
 
@@ -14,50 +14,57 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  'update:condition': [condition: FilterCondition];
-  'convert-to-group': [group: FilterGroup, index: number];
-  'remove': [index: number];
+  "update:condition": [condition: FilterCondition];
+  "convert-to-group": [group: FilterGroup, index: number];
+  remove: [index: number];
 }>();
 
 function updateCondition() {
-  emit('update:condition', { ...props.condition });
+  emit("update:condition", { ...props.condition });
 }
 
 function onFieldSelectChange(selectedValue: string) {
   const options = getCombinedOptionsForContext(props.tableName, props.schemas);
-  const selectedOption = options.find(opt => opt.value === selectedValue);
-  
+  const selectedOption = options.find((opt) => opt.value === selectedValue);
+
   if (!selectedOption) return;
 
   if (selectedOption.fieldCategory === "column") {
     // Set field path - include relation prefix if in relation context
-    const fieldPath = props.parentGroup.relationContext ? 
-      `${props.parentGroup.relationContext}.${selectedValue}` : selectedValue;
-    
+    const fieldPath = props.parentGroup.relationContext
+      ? `${props.parentGroup.relationContext}.${selectedValue}`
+      : selectedValue;
+
     props.condition.field = fieldPath;
-    props.condition.type = mapDbTypeToFilterType(selectedOption.fieldType || 'string');
-    props.condition.operator = getOperatorsByType(props.condition.type)[0]?.value || "_eq";
+    props.condition.type = mapDbTypeToFilterType(
+      selectedOption.fieldType || "string"
+    );
+    props.condition.operator =
+      getOperatorsByType(props.condition.type)[0]?.value || "_eq";
     props.condition.value = null;
     updateCondition();
   } else if (selectedOption.fieldCategory === "relation") {
     // Emit event to convert to group
-    const newRelationContext = props.parentGroup.relationContext ? 
-      `${props.parentGroup.relationContext}.${selectedValue}` : selectedValue;
-    
+    const newRelationContext = props.parentGroup.relationContext
+      ? `${props.parentGroup.relationContext}.${selectedValue}`
+      : selectedValue;
+
     const newGroup: FilterGroup = {
       id: Math.random().toString(36).substring(2, 9),
       operator: "and",
       relationContext: newRelationContext,
-      conditions: [{
-        id: Math.random().toString(36).substring(2, 9),
-        field: "",
-        operator: "_eq",
-        value: null,
-        type: "string",
-      }],
+      conditions: [
+        {
+          id: Math.random().toString(36).substring(2, 9),
+          field: "",
+          operator: "_eq",
+          value: null,
+          type: "string",
+        },
+      ],
     };
 
-    emit('convert-to-group', newGroup, props.conditionIndex);
+    emit("convert-to-group", newGroup, props.conditionIndex);
   }
 }
 </script>
@@ -67,14 +74,24 @@ function onFieldSelectChange(selectedValue: string) {
     <!-- Field Select -->
     <div v-if="!readonly" class="flex items-center gap-2">
       <USelect
-        :model-value="condition.field.includes('.') ? condition.field.split('.').pop() : condition.field"
+        :model-value="
+          condition.field.includes('.')
+            ? condition.field.split('.').pop()
+            : condition.field
+        "
         :items="getCombinedOptionsForContext(tableName, schemas)"
         @update:model-value="(val) => onFieldSelectChange(val as string)"
-        :placeholder="parentGroup.relationContext ? 'Select field from ' + parentGroup.relationContext : 'Select field or relation'"
+        :placeholder="
+          parentGroup.relationContext
+            ? 'Select field from ' + parentGroup.relationContext
+            : 'Select field or relation'
+        "
         class="min-w-40"
       />
     </div>
-    <span v-else class="text-sm font-medium min-w-32">{{ condition.field }}</span>
+    <span v-else class="text-sm font-medium min-w-32">{{
+      condition.field
+    }}</span>
 
     <!-- Operator Select -->
     <USelect
@@ -85,7 +102,11 @@ function onFieldSelectChange(selectedValue: string) {
       class="min-w-32"
     />
     <span v-else class="text-sm min-w-32">
-      {{ getOperatorsByType(condition.type || "string").find(op => op.value === condition.operator)?.label }}
+      {{
+        getOperatorsByType(condition.type || "string").find(
+          (op) => op.value === condition.operator
+        )?.label
+      }}
     </span>
 
     <!-- Value Input(s) -->
@@ -131,16 +152,38 @@ function onFieldSelectChange(selectedValue: string) {
       >
         <UInput
           :model-value="condition.value?.[0] || ''"
-          @update:model-value="(val) => { condition.value = [val, condition.value?.[1] || '']; updateCondition(); }"
-          :type="condition.type === 'number' ? 'number' : condition.type === 'date' ? 'date' : 'text'"
+          @update:model-value="
+            (val) => {
+              condition.value = [val, condition.value?.[1] || ''];
+              updateCondition();
+            }
+          "
+          :type="
+            condition.type === 'number'
+              ? 'number'
+              : condition.type === 'date'
+              ? 'date'
+              : 'text'
+          "
           size="sm"
           class="w-24"
         />
         <span class="text-xs text-gray-500">and</span>
         <UInput
           :model-value="condition.value?.[1] || ''"
-          @update:model-value="(val) => { condition.value = [condition.value?.[0] || '', val]; updateCondition(); }"
-          :type="condition.type === 'number' ? 'number' : condition.type === 'date' ? 'date' : 'text'"
+          @update:model-value="
+            (val) => {
+              condition.value = [condition.value?.[0] || '', val];
+              updateCondition();
+            }
+          "
+          :type="
+            condition.type === 'number'
+              ? 'number'
+              : condition.type === 'date'
+              ? 'date'
+              : 'text'
+          "
           size="sm"
           class="w-24"
         />
@@ -151,7 +194,13 @@ function onFieldSelectChange(selectedValue: string) {
         v-else-if="!readonly"
         v-model="condition.value"
         @update:model-value="updateCondition"
-        :type="condition.type === 'number' ? 'number' : condition.type === 'date' ? 'date' : 'text'"
+        :type="
+          condition.type === 'number'
+            ? 'number'
+            : condition.type === 'date'
+            ? 'date'
+            : 'text'
+        "
         size="sm"
         class="min-w-32"
       />

@@ -1,7 +1,7 @@
 <template>
   <div class="mx-auto space-y-6">
     <UForm :state="createForm" ref="globalForm" @submit="handleCreate">
-      <DynamicFormEditor
+      <FormEditor
         v-model="createForm"
         :table-name="tableName"
         v-model:errors="createErrors"

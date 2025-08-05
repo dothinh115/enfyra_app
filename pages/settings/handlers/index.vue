@@ -82,18 +82,12 @@ watch(
 
 <template>
   <div class="space-y-6">
-    <div
+    <CommonLoadingState
       v-if="loading"
-      class="flex flex-col items-center justify-center py-16 gap-4"
-    >
-      <div class="relative">
-        <div class="w-12 h-12 border-4 border-primary/20 rounded-full"></div>
-        <div
-          class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"
-        ></div>
-      </div>
-      <p class="text-sm text-muted-foreground">Loading handlers...</p>
-    </div>
+      title="Loading handlers..."
+      description="Fetching route handlers"
+      size="lg"
+    />
     <div class="space-y-3" v-else-if="routeHandlers.length">
       <ULink
         v-for="handler in routeHandlers"
@@ -133,7 +127,13 @@ watch(
         </UCard>
       </ULink>
     </div>
-    <div v-else-if="!loading">No records found.</div>
+    <CommonEmptyState
+      v-else-if="!loading"
+      title="No handlers found"
+      description="No route handlers have been created yet"
+      icon="lucide:code"
+      size="lg"
+    />
     <div class="flex justify-center mt-6">
       <UPagination
         v-model:page="page"

@@ -1,9 +1,12 @@
 <template>
   <div class="mx-auto space-y-6">
-    <div v-if="loading" class="flex justify-center py-8">
-      <div class="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-    </div>
-    
+    <CommonLoadingState
+      v-if="loading"
+      title="Loading role..."
+      description="Fetching role details"
+      size="md"
+    />
+
     <template v-else>
       <div class="flex justify-between items-center">
         <h1 class="text-xl font-semibold">Role Details</h1>
@@ -18,7 +21,7 @@
       </div>
 
       <UForm :state="form" ref="globalForm" @submit="save">
-        <DynamicFormEditor
+        <FormEditor
           v-model="form"
           :table-name="tableName"
           v-model:errors="errors"
@@ -119,7 +122,7 @@ async function deleteRole() {
   });
   if (!ok) return;
 
-  const deleteLoader = createButtonLoader('delete-role');
+  const deleteLoader = createButtonLoader("delete-role");
   await deleteLoader.withLoading(async () => {
     const { error } = await useApiLazy(`/${tableName}/${id}`, {
       method: "delete",

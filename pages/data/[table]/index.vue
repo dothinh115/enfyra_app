@@ -243,18 +243,12 @@ onMounted(async () => {
 
       <!-- Data Table -->
 
-      <div
+      <CommonLoadingState
         v-if="loading"
-        class="flex flex-col items-center justify-center py-16 gap-4"
-      >
-        <div class="relative">
-          <div class="w-12 h-12 border-4 border-primary/20 rounded-full"></div>
-          <div
-            class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"
-          ></div>
-        </div>
-        <p class="text-sm text-muted-foreground">Loading data...</p>
-      </div>
+        title="Loading data..."
+        description="Fetching records from the database"
+        size="lg"
+      />
       <DataTable
         v-else
         :data="data?.data || []"

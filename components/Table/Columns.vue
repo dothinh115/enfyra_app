@@ -241,7 +241,7 @@ onMounted(() => {
 
       <!-- Modal Body -->
       <template #body>
-        <DynamicFormEditor
+        <FormEditor
           v-model="currentColumn"
           tableName="column_definition"
           v-model:errors="errors"

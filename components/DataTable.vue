@@ -141,15 +141,13 @@ function wrapAsComponent(renderer: () => any) {
 
         <tbody>
           <tr v-if="props.data.length === 0">
-            <td
-              :colspan="renderedColumns.length"
-              class="text-center py-6 text-muted-foreground"
-            >
-              <Icon
-                name="i-lucide-database"
-                class="inline-block w-5 h-5 mr-1"
+            <td :colspan="renderedColumns.length" class="text-center py-6">
+              <CommonEmptyState
+                title="No data available"
+                description="There are no records to display"
+                icon="lucide:database"
+                size="sm"
               />
-              No data available
             </td>
           </tr>
 

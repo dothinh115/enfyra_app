@@ -47,7 +47,7 @@ async function deleteRole(id: string) {
   const { error } = await useApiLazy(`/role_definition/${id}`, {
     method: "delete",
   });
-  
+
   if (error.value) {
     toast.add({
       title: "Error",
@@ -56,7 +56,7 @@ async function deleteRole(id: string) {
     });
     return;
   }
-  
+
   toast.add({ title: "Role deleted", color: "success" });
   await fetchRoles(page.value, pageLimit);
 }
@@ -73,14 +73,13 @@ watch(
 
 <template>
   <div class="space-y-6">
-    <div v-if="loading" class="flex flex-col items-center justify-center py-16 gap-4">
-      <div class="relative">
-        <div class="w-12 h-12 border-4 border-primary/20 rounded-full"></div>
-        <div class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
-      </div>
-      <p class="text-sm text-muted-foreground">Loading roles...</p>
-    </div>
-    
+    <CommonLoadingState
+      v-if="loading"
+      title="Loading roles..."
+      description="Fetching role definitions"
+      size="lg"
+    />
+
     <div v-else-if="roles.length">
       <div
         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
@@ -119,9 +118,13 @@ watch(
       </div>
     </div>
 
-    <div v-else class="text-sm text-gray-400 text-center">
-      No roles found.
-    </div>
+    <CommonEmptyState
+      v-else
+      title="No roles found"
+      description="No role definitions have been created yet"
+      icon="lucide:shield"
+      size="lg"
+    />
 
     <div class="flex justify-center mt-6">
       <UPagination

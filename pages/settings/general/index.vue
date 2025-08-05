@@ -80,13 +80,12 @@ onMounted(loadSetting);
 </script>
 
 <template>
-  <div v-if="loading" class="flex flex-col items-center justify-center py-16 gap-4">
-    <div class="relative">
-      <div class="w-12 h-12 border-4 border-primary/20 rounded-full"></div>
-      <div class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
-    </div>
-    <p class="text-sm text-muted-foreground">Loading settings...</p>
-  </div>
+  <CommonLoadingState
+    v-if="loading"
+    title="Loading settings..."
+    description="Fetching system configuration"
+    size="lg"
+  />
 
   <UForm v-else @submit="saveSetting" ref="globalForm" :state="setting">
     <UCard :loading="globalFormLoading">
@@ -94,7 +93,7 @@ onMounted(loadSetting);
         <div class="font-semibold text-base">System Configuration</div>
       </template>
 
-      <DynamicFormEditor
+      <FormEditor
         v-model="setting"
         table-name="setting_definition"
         v-model:errors="errors"

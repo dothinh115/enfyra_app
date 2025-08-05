@@ -72,7 +72,7 @@ async function createNewRecord() {
         </div>
       </template>
       <template #body>
-        <DynamicFormEditor
+        <FormEditor
           v-model="createForm"
           :table-name="targetTable?.name"
           :errors="createErrors"

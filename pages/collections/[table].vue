@@ -96,15 +96,15 @@ async function patchTable() {
 }
 
 async function handleDelete() {
-  const deleteLoader = createButtonLoader('delete-table');
-  
+  const deleteLoader = createButtonLoader("delete-table");
+
   const ok = await confirm({
     content: `Are you sure you want to delete table ${table.value.name}?`,
   });
   if (!ok) {
     return;
   }
-  
+
   await deleteLoader.withLoading(async () => {
     await deleteTable();
   });
@@ -144,16 +144,20 @@ async function deleteTable() {
 <template>
   <div class="relative">
     <!-- Loading state -->
-    <div v-if="loading" class="flex flex-col items-center justify-center py-20 gap-4">
-      <div class="relative">
-        <div class="w-12 h-12 border-4 border-primary/20 rounded-full"></div>
-        <div class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
-      </div>
-      <p class="text-sm text-muted-foreground">Loading table structure...</p>
-    </div>
+    <CommonLoadingState
+      v-if="loading"
+      title="Loading table structure..."
+      description="Fetching table definition and schema"
+      size="lg"
+    />
 
     <!-- Form content -->
-    <UForm @submit.prevent="save" :state="table" ref="globalForm" v-else-if="table">
+    <UForm
+      @submit.prevent="save"
+      :state="table"
+      ref="globalForm"
+      v-else-if="table"
+    >
       <div class="mx-auto">
         <TableForm v-model="table" @save="save">
           <div class="space-y-6">
@@ -187,9 +191,12 @@ async function deleteTable() {
     </UForm>
 
     <!-- Empty state -->
-    <div v-else class="flex flex-col items-center justify-center py-20 gap-4">
-      <UIcon name="i-lucide-database-x" class="w-12 h-12 text-muted-foreground" />
-      <p class="text-sm text-muted-foreground">Table not found</p>
-    </div>
+    <CommonEmptyState
+      v-else
+      title="Table not found"
+      description="The requested table could not be loaded"
+      icon="lucide:database-x"
+      size="lg"
+    />
   </div>
 </template>

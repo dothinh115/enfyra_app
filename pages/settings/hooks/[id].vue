@@ -1,8 +1,11 @@
 <template>
-  <div v-if="loading" class="flex justify-center py-8">
-    <div class="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-  </div>
-  
+  <CommonLoadingState
+    v-if="loading"
+    title="Loading hook..."
+    description="Fetching hook details"
+    size="md"
+  />
+
   <UForm
     v-else-if="detail"
     :state="form"
@@ -37,7 +40,7 @@
         </div>
       </template>
 
-      <DynamicFormEditor
+      <FormEditor
         v-model="form"
         v-model:errors="errors"
         :table-name="'hook_definition'"
@@ -148,10 +151,12 @@ async function updateHook() {
 }
 
 async function deleteHook() {
-  const ok = await confirm({ title: "Are you sure you want to delete this hook?" });
+  const ok = await confirm({
+    title: "Are you sure you want to delete this hook?",
+  });
   if (!ok || detail.value?.isSystem) return;
 
-  const deleteLoader = createButtonLoader('delete-hook');
+  const deleteLoader = createButtonLoader("delete-hook");
   await deleteLoader.withLoading(async () => {
     const { data, error } = await useApiLazy(`/hook_definition/${id}`, {
       method: "delete",

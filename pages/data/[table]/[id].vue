@@ -104,7 +104,7 @@ async function handleUpdate() {
       </template>
 
       <template #default>
-        <DynamicFormEditor
+        <FormEditor
           :table-name="(route.params.table as string)"
           v-model="currentRecord"
           :excluded="['id']"

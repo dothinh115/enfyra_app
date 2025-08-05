@@ -38,7 +38,7 @@ const open = computed({
 
       <template #body>
         <div class="p-2 max-h-[80vh] overflow-y-auto">
-          <DynamicFormEditor
+          <FormEditor
             :table-name="props.tableName"
             :model-value="props.record"
             :errors="{}"
