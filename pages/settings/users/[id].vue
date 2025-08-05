@@ -119,7 +119,7 @@ onMounted(fetchUser);
     v-if="loading"
     title="Loading user..."
     description="Fetching user details"
-    size="md"
+    size="sm"
   />
 
   <UForm :state="user" ref="globalForm" @submit="saveUser" v-else-if="user">
@@ -171,6 +171,6 @@ onMounted(fetchUser);
     title="User not found"
     description="The requested user could not be loaded"
     icon="lucide:user-x"
-    size="lg"
+    size="sm"
   />
 </template>

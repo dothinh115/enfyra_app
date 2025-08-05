@@ -26,7 +26,7 @@
                 v-model="form.email"
                 placeholder="you@example.com"
                 icon="lucide:mail"
-                size="lg"
+                size="sm"
                 class="w-full"
                 id="email"
                 :color="error.email ? 'error' : 'primary'"
@@ -44,7 +44,7 @@
                 type="password"
                 placeholder="••••••••"
                 icon="lucide:lock"
-                size="lg"
+                size="sm"
                 class="w-full"
                 id="password"
             /></UFormField>
@@ -58,7 +58,7 @@
           <!-- Submit -->
           <UButton
             type="submit"
-            size="lg"
+            size="sm"
             class="w-full justify-center"
             loading-auto
           >

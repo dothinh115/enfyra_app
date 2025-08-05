@@ -64,7 +64,7 @@ async function toggleEnabled(hook: any) {
       v-if="loading"
       title="Loading hooks..."
       description="Fetching webhook configurations"
-      size="lg"
+      size="sm"
     />
     <div class="space-y-3 flex flex-col" v-else-if="hooks.length">
       <ULink
@@ -129,7 +129,7 @@ async function toggleEnabled(hook: any) {
       title="No hooks found"
       description="No webhook configurations have been created yet"
       icon="lucide:webhook"
-      size="lg"
+      size="sm"
     />
 
     <div class="flex justify-center mt-6">

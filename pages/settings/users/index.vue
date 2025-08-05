@@ -6,7 +6,7 @@
       v-if="loading"
       title="Loading users..."
       description="Fetching user accounts"
-      size="lg"
+      size="sm"
     />
 
     <div
@@ -20,9 +20,9 @@
               v-if="user.avatar"
               :src="user.avatar"
               :alt="user.name"
-              size="md"
+              size="sm"
             />
-            <UAvatar v-else :alt="user.name" size="md">
+            <UAvatar v-else :alt="user.name" size="sm">
               {{ user.email?.charAt(0)?.toUpperCase() || "?" }}
             </UAvatar>
 
@@ -67,7 +67,7 @@
       title="No users found"
       description="No user accounts have been created yet"
       icon="lucide:users"
-      size="lg"
+      size="sm"
     />
 
     <div class="flex justify-center mt-4" v-if="!loading">

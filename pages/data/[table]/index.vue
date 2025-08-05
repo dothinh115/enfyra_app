@@ -247,7 +247,7 @@ onMounted(async () => {
         v-if="loading"
         title="Loading data..."
         description="Fetching records from the database"
-        size="lg"
+        size="sm"
       />
       <DataTable
         v-else

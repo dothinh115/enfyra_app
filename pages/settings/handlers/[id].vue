@@ -5,7 +5,7 @@
       v-if="loading"
       title="Loading handler..."
       description="Fetching handler details"
-      size="lg"
+      size="sm"
     />
 
     <!-- Form content -->

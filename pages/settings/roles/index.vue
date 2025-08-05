@@ -77,7 +77,7 @@ watch(
       v-if="loading"
       title="Loading roles..."
       description="Fetching role definitions"
-      size="lg"
+      size="sm"
     />
 
     <div v-else-if="roles.length">
@@ -123,7 +123,7 @@ watch(
       title="No roles found"
       description="No role definitions have been created yet"
       icon="lucide:shield"
-      size="lg"
+      size="sm"
     />
 
     <div class="flex justify-center mt-6">

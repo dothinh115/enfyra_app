@@ -84,7 +84,7 @@ onMounted(loadSetting);
     v-if="loading"
     title="Loading settings..."
     description="Fetching system configuration"
-    size="lg"
+    size="sm"
   />
 
   <UForm v-else @submit="saveSetting" ref="globalForm" :state="setting">

@@ -148,7 +148,7 @@ async function deleteTable() {
       v-if="loading"
       title="Loading table structure..."
       description="Fetching table definition and schema"
-      size="lg"
+      size="sm"
     />
 
     <!-- Form content -->
@@ -175,7 +175,7 @@ async function deleteTable() {
             <div>
               <UButton
                 icon="lucide:delete"
-                size="lg"
+                size="sm"
                 color="error"
                 variant="solid"
                 class="hover:cursor-pointer"
@@ -196,7 +196,7 @@ async function deleteTable() {
       title="Table not found"
       description="The requested table could not be loaded"
       icon="lucide:database-x"
-      size="lg"
+      size="sm"
     />
   </div>
 </template>

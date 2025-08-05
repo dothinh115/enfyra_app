@@ -86,7 +86,7 @@ watch(
       v-if="loading"
       title="Loading handlers..."
       description="Fetching route handlers"
-      size="lg"
+      size="sm"
     />
     <div class="space-y-3" v-else-if="routeHandlers.length">
       <ULink
@@ -132,7 +132,7 @@ watch(
       title="No handlers found"
       description="No route handlers have been created yet"
       icon="lucide:code"
-      size="lg"
+      size="sm"
     />
     <div class="flex justify-center mt-6">
       <UPagination

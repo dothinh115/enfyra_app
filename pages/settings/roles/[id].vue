@@ -4,7 +4,7 @@
       v-if="loading"
       title="Loading role..."
       description="Fetching role details"
-      size="md"
+      size="sm"
     />
 
     <template v-else>

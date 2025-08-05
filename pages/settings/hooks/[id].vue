@@ -3,7 +3,7 @@
     v-if="loading"
     title="Loading hook..."
     description="Fetching hook details"
-    size="md"
+    size="sm"
   />
 
   <UForm

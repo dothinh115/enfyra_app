@@ -61,7 +61,7 @@ async function toggleEnabled(route: any) {
       v-if="loading"
       title="Loading routes..."
       description="Fetching routing configuration"
-      size="lg"
+      size="sm"
     />
     <div class="space-y-3 flex flex-col" v-else-if="routes.length">
       <ULink
@@ -128,7 +128,7 @@ async function toggleEnabled(route: any) {
       title="No routes found"
       description="No routing configurations have been created yet"
       icon="lucide:route"
-      size="lg"
+      size="sm"
     />
 
     <div class="flex justify-center mt-6">
