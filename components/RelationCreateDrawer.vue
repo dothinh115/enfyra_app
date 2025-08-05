@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useApiLazyWithError } from "~/composables/useApiWithError";
+
 const props = defineProps<{
   modelValue: boolean;
   relationMeta: any;
@@ -39,9 +41,10 @@ async function createNewRecord() {
 
   creating.value = true;
   try {
-    const { data } = await useApiLazy(`/${targetTable.name}`, {
+    const { data } = await useApiLazyWithError(`/${targetTable.name}`, {
       method: "post",
       body: createForm.value,
+      errorContext: "Create Relation Record",
     });
     emit("update:selected", [...props.selected, { id: data.value.data[0].id }]);
     emit("created");

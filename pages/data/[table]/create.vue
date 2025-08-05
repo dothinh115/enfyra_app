@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useApiLazyWithError } from "~/composables/useApiWithError";
+
 const route = useRoute();
 const { globalForm, globalFormLoading } = useGlobalState();
 const toast = useToast();
@@ -30,9 +32,10 @@ async function handleCreate() {
 
   globalFormLoading.value = true;
 
-  const { data, error } = await useApiLazy(`/${route.params.table}`, {
+  const { data, error } = await useApiLazyWithError(`/${route.params.table}`, {
     method: "post",
     body: newRecord.value,
+    errorContext: "Create Record",
   });
 
   if (data.value?.data) {
@@ -44,14 +47,8 @@ async function handleCreate() {
     globalFormLoading.value = false;
 
     await navigateTo(`/data/${route.params.table}/${data.value.data[0].id}`);
-  } else if (error.value) {
-    globalFormLoading.value = false;
-    toast.add({
-      title: "Error",
-      color: "error",
-      description: error.value.message || "An error occurred",
-    });
   }
+  globalFormLoading.value = false;
 }
 </script>
 

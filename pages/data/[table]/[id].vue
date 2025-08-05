@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useApiLazyWithError } from "~/composables/useApiWithError";
+
 const route = useRoute();
 const { globalForm, globalFormLoading } = useGlobalState();
 const toast = useToast();
@@ -11,8 +13,8 @@ const loading = ref(false);
 
 async function fetchRecord() {
   loading.value = true;
-  
-  const { data, error } = await useApiLazy(`/${route.params.table}`, {
+
+  const { data, error } = await useApiLazyWithError(`/${route.params.table}`, {
     query: {
       fields: "*",
       filter: {
@@ -21,20 +23,11 @@ async function fetchRecord() {
         },
       },
     },
+    errorContext: "Fetch Record",
   });
 
-  if (error.value) {
-    toast.add({
-      title: "Error",
-      description: "Could not load record",
-      color: "error",
-    });
-    loading.value = false;
-    return;
-  }
-
-  currentRecord.value = data.value?.data?.[0] || {};
   loading.value = false;
+  currentRecord.value = data.value?.data?.[0] || {};
 }
 
 onMounted(fetchRecord);
@@ -63,23 +56,14 @@ async function handleUpdate() {
 
   globalFormLoading.value = true;
 
-  const { data, error } = await useApiLazy(
+  const { data, error } = await useApiLazyWithError(
     `/${route.params.table}/${route.params.id}`,
     {
       method: "patch",
       body: currentRecord.value,
+      errorContext: "Update Record",
     }
   );
-
-  if (error.value) {
-    globalFormLoading.value = false;
-    toast.add({
-      title: "Error",
-      color: "error",
-      description: error.value.message || "An error occurred",
-    });
-    return;
-  }
 
   toast.add({
     title: "Success",
@@ -95,10 +79,15 @@ async function handleUpdate() {
 
 <template>
   <!-- Loading state -->
-  <div v-if="loading" class="flex flex-col items-center justify-center py-20 gap-4">
+  <div
+    v-if="loading"
+    class="flex flex-col items-center justify-center py-20 gap-4"
+  >
     <div class="relative">
       <div class="w-12 h-12 border-4 border-primary/20 rounded-full"></div>
-      <div class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
+      <div
+        class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"
+      ></div>
     </div>
     <p class="text-sm text-muted-foreground">Loading record...</p>
   </div>

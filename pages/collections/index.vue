@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useApiLazyWithError } from "~/composables/useApiWithError";
+
 const router = useRouter();
 const { tables, globalForm, globalFormLoading, fetchSchema } = useGlobalState();
 const { confirm } = useConfirm();
@@ -23,8 +25,7 @@ watch(
     else if (!tableNameOrFieldRegexCheck.test(name))
       nameError.value =
         "Only letters, numbers, _ allowed. Cannot start with number or _!";
-    else if (name === "table")
-      nameError.value = "Table name cannot be `table`";
+    else if (name === "table") nameError.value = "Table name cannot be `table`";
     else nameError.value = "";
   }
 );
@@ -128,9 +129,10 @@ async function save() {
   globalLoading.value = true;
 
   const payload = getCleanTablePayload();
-  const { data, error } = await useApiLazy("/table_definition", {
+  const { data, error } = await useApiLazyWithError("/table_definition", {
     method: "post",
     body: payload,
+    errorContext: "Create Table",
   });
 
   if (data.value) {

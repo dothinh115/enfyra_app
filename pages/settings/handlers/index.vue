@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useApiLazyWithError } from "~/composables/useApiWithError";
+
 const toast = useToast();
 const page = ref(1);
 const pageLimit = 10;
@@ -12,16 +14,20 @@ const loading = ref(false);
 
 async function fetchRouteHandlers(page = 1, limit = 10) {
   loading.value = true;
-  const { data, error } = await useApiLazy("/route_handler_definition", {
-    query: {
-      fields: getIncludeFields(),
-      sort: "-createdAt",
-      meta: "*",
-      page,
-      limit,
-    },
-  });
-  
+  const { data, error } = await useApiLazyWithError(
+    "/route_handler_definition",
+    {
+      query: {
+        fields: getIncludeFields(),
+        sort: "-createdAt",
+        meta: "*",
+        page,
+        limit,
+      },
+      errorContext: "Fetch Route Handlers",
+    }
+  );
+
   if (error.value) {
     toast.add({
       title: "Error",
@@ -31,7 +37,7 @@ async function fetchRouteHandlers(page = 1, limit = 10) {
     loading.value = false;
     return;
   }
-  
+
   routeHandlers.value = data.value.data;
   total.value = data.value.meta.totalCount;
   loading.value = false;
@@ -43,10 +49,14 @@ async function deleteHandler(id: number) {
   });
   if (!ok) return;
 
-  const { error } = await useApiLazy(`/route_handler_definition/${id}`, {
-    method: "delete",
-  });
-  
+  const { error } = await useApiLazyWithError(
+    `/route_handler_definition/${id}`,
+    {
+      method: "delete",
+      errorContext: "Delete Handler",
+    }
+  );
+
   if (error.value) {
     toast.add({
       title: "Error",
@@ -55,7 +65,7 @@ async function deleteHandler(id: number) {
     });
     return;
   }
-  
+
   toast.add({ title: "Deleted", color: "success" });
   await fetchRouteHandlers(page.value, pageLimit);
 }
@@ -72,10 +82,15 @@ watch(
 
 <template>
   <div class="space-y-6">
-    <div v-if="loading" class="flex flex-col items-center justify-center py-16 gap-4">
+    <div
+      v-if="loading"
+      class="flex flex-col items-center justify-center py-16 gap-4"
+    >
       <div class="relative">
         <div class="w-12 h-12 border-4 border-primary/20 rounded-full"></div>
-        <div class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
+        <div
+          class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"
+        ></div>
       </div>
       <p class="text-sm text-muted-foreground">Loading handlers...</p>
     </div>

@@ -2,10 +2,15 @@
   <div class="space-y-4">
     <div class="text-xl font-semibold">Users</div>
 
-    <div v-if="loading" class="flex flex-col items-center justify-center py-16 gap-4">
+    <div
+      v-if="loading"
+      class="flex flex-col items-center justify-center py-16 gap-4"
+    >
       <div class="relative">
         <div class="w-12 h-12 border-4 border-primary/20 rounded-full"></div>
-        <div class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
+        <div
+          class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"
+        ></div>
       </div>
       <p class="text-sm text-muted-foreground">Loading users...</p>
     </div>
@@ -75,6 +80,8 @@
   </div>
 </template>
 <script setup lang="ts">
+import { useApiLazyWithError } from "~/composables/useApiWithError";
+
 const users = ref<any[]>([]);
 const page = ref(1);
 const total = ref(0);
@@ -85,7 +92,7 @@ const { getIncludeFields } = useSchema(tableName);
 
 async function fetchUsers() {
   loading.value = true;
-  const { data } = await useApiLazy("/user_definition", {
+  const { data } = await useApiLazyWithError("/user_definition", {
     query: {
       fields: getIncludeFields(),
       page: page.value,
@@ -93,6 +100,7 @@ async function fetchUsers() {
       sort: "-createdAt",
       meta: "totalCount",
     },
+    errorContext: "Fetch Users",
   });
   users.value = data.value?.data || [];
   total.value = data.value?.meta?.totalCount || 0;

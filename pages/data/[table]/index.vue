@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ColumnConfig } from "~/components/DataTable.vue";
+import { useApiLazyWithError } from "~/composables/useApiWithError";
 
 const route = useRoute();
 const tableName = route.params.table as string;
@@ -36,12 +37,12 @@ watch(
 
 async function fetchData() {
   loading.value = true;
-  
+
   const filterQuery = hasActiveFilters(currentFilter.value)
     ? buildQuery(currentFilter.value)
     : {};
 
-  const { data: item } = await useApiLazy(`/${tableName}`, {
+  const { data: item } = await useApiLazyWithError(`/${tableName}`, {
     query: {
       limit: pageLimit,
       page: page.value,
@@ -49,6 +50,7 @@ async function fetchData() {
       meta: "*",
       ...(Object.keys(filterQuery).length > 0 && { filter: filterQuery }),
     },
+    errorContext: "Fetch Data",
   });
   total.value = item.value?.meta.totalCount;
   data.value = item.value;
@@ -163,9 +165,13 @@ async function handleDelete(id: number | string) {
   if (ok) {
     const deleteLoader = createButtonLoader(`delete-${id}`);
     await deleteLoader.withLoading(async () => {
-      const { data, error } = await useApiLazy(`/${route.params.table}/${id}`, {
-        method: "delete",
-      });
+      const { data, error } = await useApiLazyWithError(
+        `/${route.params.table}/${id}`,
+        {
+          method: "delete",
+          errorContext: "Delete Record",
+        }
+      );
       if (data.value.message === "Success") {
         await fetchData();
         toast.add({
@@ -211,9 +217,9 @@ onMounted(async () => {
             class="text-xl font-semibold capitalize flex items-center space-x-2"
           >
             <span>{{ table?.name || "Records" }}</span>
-            <UButton 
-              icon="i-lucide-refresh-ccw" 
-              @click="fetchData()" 
+            <UButton
+              icon="i-lucide-refresh-ccw"
+              @click="fetchData()"
               :loading="loading"
             />
           </div>
@@ -237,10 +243,15 @@ onMounted(async () => {
 
       <!-- Data Table -->
 
-      <div v-if="loading" class="flex flex-col items-center justify-center py-16 gap-4">
+      <div
+        v-if="loading"
+        class="flex flex-col items-center justify-center py-16 gap-4"
+      >
         <div class="relative">
           <div class="w-12 h-12 border-4 border-primary/20 rounded-full"></div>
-          <div class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
+          <div
+            class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"
+          ></div>
         </div>
         <p class="text-sm text-muted-foreground">Loading data...</p>
       </div>

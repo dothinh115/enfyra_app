@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useApiLazyWithError } from "~/composables/useApiWithError";
+
 const toast = useToast();
 const page = ref(1);
 const pageLimit = 7;
@@ -11,7 +13,7 @@ const loading = ref(false);
 
 async function fetchHooks(page = 1, limit: number) {
   loading.value = true;
-  const { data, error } = await useApiLazy("/hook_definition", {
+  const { data, error } = await useApiLazyWithError("/hook_definition", {
     query: {
       fields: getIncludeFields(),
       sort: "-createdAt",
@@ -19,8 +21,9 @@ async function fetchHooks(page = 1, limit: number) {
       page,
       limit,
     },
+    errorContext: "Fetch Hooks",
   });
-  
+
   if (error.value) {
     toast.add({
       title: "Error",
@@ -30,7 +33,7 @@ async function fetchHooks(page = 1, limit: number) {
     loading.value = false;
     return;
   }
-  
+
   hooks.value = data.value.data;
   total.value = data.value.meta.totalCount;
   loading.value = false;
@@ -47,19 +50,25 @@ watch(
 
 async function toggleEnabled(hook: any) {
   hook.isEnabled = !hook.isEnabled;
-  await useApiLazy(`/hook_definition/${hook.id}`, {
+  await useApiLazyWithError(`/hook_definition/${hook.id}`, {
     method: "patch",
     body: { isEnabled: hook.isEnabled },
+    errorContext: "Toggle Hook",
   });
 }
 </script>
 
 <template>
   <div class="space-y-6">
-    <div v-if="loading" class="flex flex-col items-center justify-center py-16 gap-4">
+    <div
+      v-if="loading"
+      class="flex flex-col items-center justify-center py-16 gap-4"
+    >
       <div class="relative">
         <div class="w-12 h-12 border-4 border-primary/20 rounded-full"></div>
-        <div class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
+        <div
+          class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"
+        ></div>
       </div>
       <p class="text-sm text-muted-foreground">Loading hooks...</p>
     </div>
@@ -121,7 +130,9 @@ async function toggleEnabled(hook: any) {
         </UCard>
       </ULink>
     </div>
-    <div v-else-if="!loading" class="text-center py-8 text-muted-foreground">No hooks found.</div>
+    <div v-else-if="!loading" class="text-center py-8 text-muted-foreground">
+      No hooks found.
+    </div>
 
     <div class="flex justify-center mt-6">
       <UPagination

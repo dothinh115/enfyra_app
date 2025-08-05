@@ -8,10 +8,7 @@ interface UseApiOptions<T> {
   default?: () => T | Ref<T>;
 }
 
-export async function useApi<T = any>(
-  path: string,
-  opts: UseApiOptions<T> = {}
-) {
+export function useApi<T = any>(path: string, opts: UseApiOptions<T> = {}) {
   const headers = useRequestHeaders(["cookie", "authorization"]);
   const runtimeConfig = useRuntimeConfig();
   const { apiPrefix } = runtimeConfig.public;

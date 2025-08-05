@@ -1,3 +1,5 @@
+import { useApiWithError } from "./useApiWithError";
+
 export const useGlobalState = () => {
   const tables = useState<any[]>("global:tables", () => []);
   const routes = useState<any[]>("global:routes", () => []);
@@ -22,8 +24,9 @@ export const useGlobalState = () => {
     const fields = ["*", "columns.*", "relations.*"].join(",");
     const sort = ["id"].join(",");
     try {
-      const { data } = await useApi("/table_definition", {
+      const { data } = await useApiWithError("/table_definition", {
         query: { fields, limit: 0, sort },
+        errorContext: "Fetch Tables",
       });
       tables.value = data.value.data;
     } catch (error) {
@@ -46,8 +49,9 @@ export const useGlobalState = () => {
     const sort = ["id"].join(",");
 
     try {
-      const { data } = await useApi("/route_definition", {
+      const { data } = await useApiWithError("/route_definition", {
         query: { fields, limit: 0, sort },
+        errorContext: "Fetch Routes",
       });
       routes.value = data.value.data;
     } catch (error) {
@@ -63,8 +67,9 @@ export const useGlobalState = () => {
     const fieldArr = ["*", "methods.*"];
     const fields = fieldArr.join(",");
     try {
-      const { data } = await useApi("/setting_definition", {
+      const { data } = await useApiWithError("/setting_definition", {
         query: { fields, limit: 0 },
+        errorContext: "Fetch Settings",
       });
       settings.value = data.value.data[0];
     } catch (error) {
