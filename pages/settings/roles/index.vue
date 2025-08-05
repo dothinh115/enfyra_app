@@ -78,6 +78,8 @@ watch(
       title="Loading roles..."
       description="Fetching role definitions"
       size="sm"
+      type="table"
+      context="page"
     />
 
     <div v-else-if="roles.length">

@@ -5,6 +5,8 @@
       title="Loading role..."
       description="Fetching role details"
       size="sm"
+      type="form"
+      context="page"
     />
 
     <template v-else>

@@ -147,7 +147,7 @@ watch(page, fetchData);
     />
 
     <!-- Loading State -->
-    <CommonLoadingState v-if="loading" title="Loading relations..." size="sm" />
+    <CommonLoadingState v-if="loading" type="card" context="inline" size="sm" />
 
     <!-- Empty State -->
     <CommonEmptyState

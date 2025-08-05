@@ -27,6 +27,7 @@
     "@nuxtjs/tailwindcss": "^7.0.0-beta.0",
     "@tailwindcss/aspect-ratio": "^0.4.2",
     "@tailwindcss/typography": "^0.5.16",
+    "@tanstack/vue-table": "^8.21.3",
     "@typescript-eslint/parser": "^8.37.0",
     "css": "^3.0.0",
     "eslint": "^9.31.0",

@@ -1,12 +1,12 @@
 <template>
   <div class="space-y-4">
-    <div class="text-xl font-semibold">Users</div>
-
     <CommonLoadingState
       v-if="loading"
       title="Loading users..."
       description="Fetching user accounts"
       size="sm"
+      type="card"
+      context="page"
     />
 
     <div

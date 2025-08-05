@@ -135,21 +135,32 @@ function hasActiveFilters(group: FilterGroup): boolean {
 
           <div class="flex items-center gap-3">
             <UButton
-              variant="ghost"
+              variant="soft"
               @click="handleClear"
               :disabled="!hasActiveConditions"
+              icon="i-lucide-x"
+              color="neutral"
             >
               Clear All
             </UButton>
 
-            <UButton @click="handleClose" variant="outline"> Cancel </UButton>
+            <UButton 
+              @click="handleClose" 
+              variant="outline"
+              icon="i-lucide-x-circle"
+              color="error"
+            > 
+              Cancel 
+            </UButton>
 
             <UButton
               @click="handleApply"
               :disabled="!hasActiveConditions"
-              class="min-w-[80px]"
+              class="min-w-[100px]"
+              icon="i-lucide-check"
+              color="primary"
             >
-              Apply
+              Apply Filters
             </UButton>
           </div>
         </div>

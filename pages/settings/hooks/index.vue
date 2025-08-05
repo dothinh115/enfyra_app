@@ -65,6 +65,8 @@ async function toggleEnabled(hook: any) {
       title="Loading hooks..."
       description="Fetching webhook configurations"
       size="sm"
+      type="table"
+      context="page"
     />
     <div class="space-y-3 flex flex-col" v-else-if="hooks.length">
       <ULink

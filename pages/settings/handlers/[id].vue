@@ -6,6 +6,8 @@
       title="Loading handler..."
       description="Fetching handler details"
       size="sm"
+      type="form"
+      context="page"
     />
 
     <!-- Form content -->

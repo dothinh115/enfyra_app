@@ -62,6 +62,8 @@ async function toggleEnabled(route: any) {
       title="Loading routes..."
       description="Fetching routing configuration"
       size="sm"
+      type="table"
+      context="page"
     />
     <div class="space-y-3 flex flex-col" v-else-if="routes.length">
       <ULink

@@ -1,72 +1,97 @@
 <script setup lang="ts">
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   title?: string;
   description?: string;
   size?: "sm" | "md" | "lg";
-}>();
+  type?: 'dots' | 'spinner' | 'skeleton' | 'table' | 'form' | 'card';
+  context?: 'page' | 'modal' | 'inline' | 'button';
+}>(), {
+  size: 'md',
+  type: 'dots',
+  context: 'page'
+});
 
-const defaultTitle = "Loading...";
-const defaultDescription = "Please wait while we fetch your data";
-const defaultSize = "md";
+const defaultTitle = "Loading";
 
-const spinnerSize = computed(() => {
-  switch (props.size || defaultSize) {
-    case "sm":
-      return "w-16 h-16";
-    case "lg":
-      return "w-24 h-24";
-    default:
-      return "w-20 h-20";
+const loadingType = computed(() => {
+  if (props.type !== 'dots') return props.type;
+  
+  switch (props.context) {
+    case 'button': return 'spinner';
+    case 'modal': return 'skeleton';
+    case 'inline': return 'dots';
+    default: return 'dots';
   }
 });
 
-const textSize = computed(() => {
-  switch (props.size || defaultSize) {
-    case "sm":
-      return "text-sm";
-    case "lg":
-      return "text-lg";
-    default:
-      return "text-base";
-  }
-});
+const showTitle = computed(() => 
+  props.context !== 'button' && props.context !== 'inline' && loadingType.value !== 'table' && loadingType.value !== 'form' && loadingType.value !== 'card'
+);
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center py-8 gap-4">
-    <!-- Modern Spinner -->
-    <div class="relative">
-      <!-- Outer ring with glow -->
-      <div
-        :class="`${spinnerSize} border-4 border-primary/10 rounded-full shadow-lg`"
-      ></div>
-      <!-- Spinning ring -->
-      <div
-        :class="`absolute inset-0 ${spinnerSize} border-4 border-transparent border-t-primary rounded-full animate-spin`"
-        style="animation-duration: 1s"
-      ></div>
-      <!-- Inner pulse -->
-      <div
-        :class="`absolute ${
-          spinnerSize === 'w-16 h-16'
-            ? 'inset-4'
-            : spinnerSize === 'w-24 h-24'
-            ? 'inset-6'
-            : 'inset-5'
-        } bg-primary/20 rounded-full animate-pulse`"
-      ></div>
-    </div>
+  <div :class="[
+    'transition-all duration-300 ease-in-out',
+    loadingType === 'table' || loadingType === 'form' || loadingType === 'card' ? 'w-full' : 'flex flex-col items-center justify-center',
+    context === 'inline' ? 'py-2 gap-2' : (loadingType === 'table' || loadingType === 'form' || loadingType === 'card') ? 'py-4' : 'py-8 gap-4',
+    context === 'button' ? 'py-1 gap-1' : ''
+  ]">
+    <LoadingDots 
+      v-if="loadingType === 'dots'" 
+      type="bounce" 
+      :size="size" 
+      color="blue-500" 
+    />
+    
+    <LoadingSpinner 
+      v-else-if="loadingType === 'spinner'" 
+      type="crescent" 
+      :size="size" 
+      color="#007AFF" 
+    />
+    
+    <LoadingSkeleton 
+      v-else-if="loadingType === 'table'" 
+      type="table" 
+      :animated="true" 
+    />
+    
+    <LoadingSkeleton 
+      v-else-if="loadingType === 'form'" 
+      type="form" 
+      :animated="true" 
+    />
+    
+    <LoadingSkeleton 
+      v-else-if="loadingType === 'card'" 
+      type="card" 
+      :animated="true" 
+    />
+    
+    <LoadingSkeleton 
+      v-else 
+      type="text" 
+      :lines="3" 
+      :animated="true" 
+    />
 
-    <div class="text-center">
-      <p :class="`${textSize} font-medium text-foreground`">
+    <div v-if="showTitle" class="text-center">
+      <p :class="[
+        'font-medium text-gray-700 dark:text-gray-300',
+        size === 'sm' ? 'text-sm' : size === 'lg' ? 'text-lg' : 'text-base'
+      ]">
         {{ props.title || defaultTitle }}
       </p>
       <p
         v-if="props.description"
-        :class="`${textSize} text-sm text-muted-foreground mt-1`"
+        :class="[
+          'text-gray-500 dark:text-gray-400 mt-1',
+          size === 'sm' ? 'text-xs' : 'text-sm'
+        ]"
       >
         {{ props.description }}
       </p>
     </div>
   </div>
 </template>
+

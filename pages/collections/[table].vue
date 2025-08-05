@@ -144,7 +144,7 @@ async function deleteTable() {
 <template>
   <div class="relative">
     <!-- Loading state -->
-    <CommonLoadingState
+    <CommonLoadingState type="form" context="page"
       v-if="loading"
       title="Loading table structure..."
       description="Fetching table definition and schema"

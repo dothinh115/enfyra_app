@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ColumnConfig } from "~/components/DataTable.vue";
+import type { ColumnDef } from "@tanstack/vue-table";
 import { useApiLazyWithError } from "~/composables/useApiWithError";
 
 const route = useRoute();
@@ -8,8 +8,7 @@ const { tables, schemas } = useGlobalState();
 const total = ref(1);
 const page = ref(1);
 const pageLimit = 10;
-const fieldSelectArr = ref<string[]>([]);
-const data = ref();
+const data = ref([]);
 const loading = ref(false);
 const table = computed(() => tables.value.find((t) => t.name === tableName));
 const { confirm } = useConfirm();
@@ -21,19 +20,89 @@ const { createButtonLoader } = useButtonLoading();
 const showFilterDrawer = ref(false);
 const currentFilter = ref(createEmptyFilter());
 
-// Initialize fieldSelectArr from schema
-watch(
-  schemas,
-  (newSchemas) => {
-    const schema = newSchemas[tableName];
-    if (schema?.definition) {
-      fieldSelectArr.value = schema.definition
-        .filter((field: any) => field.fieldType === "column")
-        .map((field: any) => field.name);
-    }
-  },
-  { immediate: true }
-);
+// Build columns from schema
+const columns = computed<ColumnDef<any>[]>(() => {
+  const schema = schemas.value[tableName];
+  if (!schema?.definition) return [];
+
+  const cols: ColumnDef<any>[] = schema.definition
+    .filter((field: any) => field.fieldType === "column")
+    .map((field: any) => ({
+      id: field.name,
+      accessorKey: field.name,
+      header: field.label || field.name,
+      cell: ({ getValue }: any) => {
+        const value = getValue();
+        if (value === null || value === undefined) return "-";
+
+        // Handle different field types
+        if (field.type === "boolean") {
+          return h(
+            "span",
+            {
+              class: `inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                value
+                  ? "bg-green-100 text-green-800"
+                  : "bg-gray-100 text-gray-800"
+              }`,
+            },
+            value ? "Yes" : "No"
+          );
+        }
+
+        if (field.type === "datetime") {
+          return new Date(value).toLocaleString();
+        }
+
+        if (field.type === "date") {
+          return new Date(value).toLocaleDateString();
+        }
+
+        // Truncate long text
+        const str = String(value);
+        return str.length > 50 ? str.slice(0, 50) + "..." : str;
+      },
+    }));
+
+  // Add actions column
+  cols.push({
+    id: "__actions",
+    header: "Actions",
+    enableHiding: false,
+    size: 80,
+    cell: ({ row }) => {
+      return h("div", { class: "flex justify-center" }, [
+        h(
+          "button",
+          {
+            class:
+              "inline-flex items-center px-2 py-1.5 text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded hover:bg-red-100 transition-colors",
+            onClick: (e) => {
+              e.stopPropagation();
+              handleDelete(row.original.id);
+            },
+            title: "Delete",
+          },
+          [
+            h(
+              "svg",
+              { class: "w-3 h-3", fill: "currentColor", viewBox: "0 0 20 20" },
+              [
+                h("path", {
+                  fillRule: "evenodd",
+                  d: "M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z",
+                  clipRule: "evenodd",
+                }),
+              ]
+            ),
+          ]
+        ),
+      ]);
+    },
+  });
+
+  return cols;
+});
 
 async function fetchData() {
   loading.value = true;
@@ -41,6 +110,9 @@ async function fetchData() {
   const filterQuery = hasActiveFilters(currentFilter.value)
     ? buildQuery(currentFilter.value)
     : {};
+
+  console.log('Filter query:', filterQuery);
+  console.log('Current filter:', currentFilter.value);
 
   const { data: item } = await useApiLazyWithError(`/${tableName}`, {
     query: {
@@ -50,162 +122,65 @@ async function fetchData() {
       meta: "*",
       ...(Object.keys(filterQuery).length > 0 && { filter: filterQuery }),
     },
-    errorContext: "Fetch Data",
   });
-  total.value = item.value?.meta.totalCount;
-  data.value = item.value;
+
+  if (item.value?.data) {
+    data.value = item.value.data;
+    total.value = item.value.meta?.total_count || 0;
+  }
+
   loading.value = false;
 }
 
-function applyFilter() {
-  page.value = 1; // Reset to first page when filter changes
+// Apply filters - called by FilterDrawer
+function applyFilters() {
+  page.value = 1;
   fetchData();
 }
 
-function clearFilter() {
+function clearFilters() {
   currentFilter.value = createEmptyFilter();
-  applyFilter();
+  applyFilters();
 }
 
-function openFilterDrawer() {
-  console.log("Opening filter drawer..."); // Debug
-  showFilterDrawer.value = true;
-  console.log("showFilterDrawer:", showFilterDrawer.value); // Debug
+async function handleDelete(id: string) {
+  const result = await confirm({
+    title: "Delete Record",
+    content: "Are you sure you want to delete this record?",
+    confirmText: "Delete",
+    cancelText: "Cancel",
+  });
+
+  if (!result) return;
+
+  const deleteLoader = createButtonLoader(`delete-${id}`);
+
+  await deleteLoader.withLoading(async () => {
+    try {
+      await $fetch(`/api/directus/${tableName}/${id}`, {
+        method: "DELETE",
+      });
+      toast.add({
+        title: "Success",
+        description: "Record deleted successfully",
+        color: "success",
+      });
+      await fetchData();
+    } catch (error) {
+      toast.add({
+        title: "Error",
+        description: "Failed to delete record",
+        color: "error",
+      });
+    }
+  });
 }
 
-// filterSummary removed - now handled in FilterDrawer
-
-const columns = computed<ColumnConfig[]>(() => {
-  const schema = schemas.value[tableName];
-  if (!schema?.definition) return [];
-
-  const columnFields = schema.definition
-    .filter(
-      (field: any) =>
-        field.fieldType === "column" &&
-        fieldSelectArr.value.includes(field.name)
-    )
-    .sort((a: any, b: any) => a.id - b.id);
-
-  return buildColumnConfigs(columnFields);
+onMounted(() => {
+  fetchData();
 });
 
-const actionCol: ColumnConfig = {
-  accessorKey: "__actions",
-  header: "",
-  size: 40,
-  tableName,
-  cell: ({ row }) =>
-    h("div", { class: "flex justify-end" }, [
-      // @ts-ignore
-      h(
-        resolveComponent("UDropdownMenu"),
-        {
-          items: [
-            [
-              {
-                label: "Edit",
-                icon: "lucide:pencil",
-                onClick: () => navigateTo(`${route.path}/${row.id}`),
-              },
-              {
-                label: "Delete",
-                icon: "lucide:trash-2",
-                color: "error",
-                loading: createButtonLoader(`delete-${row.id}`).isLoading.value,
-                onClick: () => handleDelete(row.id),
-              },
-            ],
-          ],
-          popper: { placement: "bottom-end" },
-        },
-        {
-          default: () =>
-            h(resolveComponent("UButton"), {
-              icon: "lucide:more-vertical",
-              size: "xl",
-              variant: "outline",
-              color: "gray",
-            }),
-        }
-      ),
-    ]),
-};
-
-function buildColumnConfigs(colsMeta: any[]): ColumnConfig[] {
-  const result: ColumnConfig[] = colsMeta.map((col) => {
-    const { name, type } = col;
-
-    let maxWidth: number | undefined;
-    let maxChar: number | undefined;
-
-    if (type === "boolean") maxWidth = 80;
-    if (type === "datetime") maxWidth = 160;
-    if (type === "text" || type === "richtext") maxChar = 40;
-    if (name === "id") maxChar = 5;
-    if (name === "__actions") maxChar = 2;
-
-    return {
-      accessorKey: name,
-      header: name,
-      maxWidth,
-      maxChar,
-      tableName,
-    };
-  });
-  result.push(actionCol);
-  return result;
-}
-
-async function handleDelete(id: number | string) {
-  const ok = await confirm({
-    content: "Are you sure??",
-    title: "",
-  });
-  if (ok) {
-    const deleteLoader = createButtonLoader(`delete-${id}`);
-    await deleteLoader.withLoading(async () => {
-      const { data, error } = await useApiLazyWithError(
-        `/${route.params.table}/${id}`,
-        {
-          method: "delete",
-          errorContext: "Delete Record",
-        }
-      );
-      if (data.value.message === "Success") {
-        await fetchData();
-        toast.add({
-          title: "Success",
-          description: "Record deleted",
-          color: "success",
-        });
-      }
-
-      if (error.value) {
-        toast.add({
-          title: "Error",
-          description: error.value?.message,
-          color: "error",
-        });
-      }
-    });
-  }
-}
-
-watch(
-  () => route.query.page,
-  async (newVal) => {
-    if (!newVal) page.value = 1;
-    else page.value = Number(newVal);
-    await fetchData();
-  }
-);
-
-// Remove auto-apply watch - now using manual Apply button
-
-onMounted(async () => {
-  await fetchData();
-});
+// Remove auto-watch - FilterDrawer handles apply/clear events
 </script>
 
 <template>
@@ -228,14 +203,13 @@ onMounted(async () => {
               icon="i-lucide-filter"
               :variant="hasActiveFilters(currentFilter) ? 'solid' : 'outline'"
               :color="hasActiveFilters(currentFilter) ? 'primary' : 'neutral'"
-              @click="openFilterDrawer"
+              @click="showFilterDrawer = true"
               size="sm"
             >
-              {{
-                hasActiveFilters(currentFilter)
-                  ? `Filtered (${currentFilter.conditions.length})`
-                  : "Filter"
-              }}
+              <template v-if="hasActiveFilters(currentFilter)">
+                Filters ({{ currentFilter.conditions.length }})
+              </template>
+              <template v-else> Filter </template>
             </UButton>
           </div>
         </div>
@@ -243,47 +217,52 @@ onMounted(async () => {
 
       <!-- Data Table -->
 
-      <CommonLoadingState
-        v-if="loading"
-        title="Loading data..."
-        description="Fetching records from the database"
-        size="sm"
-      />
       <DataTable
-        v-else
-        :data="data?.data || []"
+        :data="data"
         :columns="columns"
-        :empty-state="{ icon: 'i-lucide-database', label: 'No data available' }"
+        :loading="loading"
+        :page-size="pageLimit"
+        @row-click="(row) => navigateTo(`/data/${tableName}/${row.id}`)"
+      >
+        <template #header-actions>
+          <div
+            v-if="hasActiveFilters(currentFilter)"
+            class="flex items-center gap-2"
+          >
+            <UBadge color="primary" variant="soft">
+              {{ currentFilter.conditions.length }} active
+              filters
+            </UBadge>
+            <UButton
+              icon="i-lucide-x"
+              size="xs"
+              variant="ghost"
+              @click="clearFilters"
+            >
+              Clear
+            </UButton>
+          </div>
+        </template>
+      </DataTable>
+
+      <!-- Pagination - only show when more than 1 page -->
+      <UPagination
+        v-if="!loading && Math.ceil(total / pageLimit) > 1"
+        v-model="page"
+        :page-count="pageLimit"
+        :total="total"
+        @update:model-value="fetchData"
       />
-      <template #footer v-if="!loading">
-        <div class="flex justify-center">
-          <UPagination
-            v-model:page="page"
-            :items-per-page="pageLimit"
-            :total="total"
-            show-edges
-            :sibling-count="1"
-            :to="
-              (p) => ({
-                path: route.path,
-                query: { ...route.query, page: p },
-              })
-            "
-            color="secondary"
-            active-color="secondary"
-          />
-        </div>
-      </template>
     </UCard>
 
-    <!-- Filter Drawer -->
+    <!-- Filter Drawer - use existing component -->
     <FilterDrawer
       v-model="showFilterDrawer"
       v-model:filter-value="currentFilter"
       :schemas="schemas"
       :table-name="tableName"
-      @apply="applyFilter"
-      @clear="clearFilter"
+      @apply="applyFilters"
+      @clear="clearFilters"
     />
   </div>
 </template>

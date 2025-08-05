@@ -120,6 +120,8 @@ onMounted(fetchUser);
     title="Loading user..."
     description="Fetching user details"
     size="sm"
+    type="form"
+    context="page"
   />
 
   <UForm :state="user" ref="globalForm" @submit="saveUser" v-else-if="user">

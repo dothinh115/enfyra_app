@@ -87,6 +87,8 @@ watch(
       title="Loading handlers..."
       description="Fetching route handlers"
       size="sm"
+      type="table"
+      context="page"
     />
     <div class="space-y-3" v-else-if="routeHandlers.length">
       <ULink

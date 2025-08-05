@@ -4,6 +4,8 @@
     title="Loading hook..."
     description="Fetching hook details"
     size="sm"
+    type="form"
+    context="page"
   />
 
   <UForm
