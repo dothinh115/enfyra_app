@@ -129,11 +129,7 @@ const selectedRows = computed(() => {
   return table.getSelectedRowModel().rows.map(row => row.original);
 });
 
-const hasSelection = computed(() => {
-  return Object.keys(rowSelection.value).length > 0;
-});
-
-// Bulk actions
+// Bulk actions  
 async function handleBulkDelete() {
   if (props.onBulkDelete && selectedRows.value.length > 0) {
     await props.onBulkDelete(selectedRows.value);
