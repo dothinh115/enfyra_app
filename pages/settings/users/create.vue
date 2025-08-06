@@ -24,6 +24,15 @@ const errors = ref<Record<string, string>>({});
 const { globalForm, globalFormLoading } = useGlobalState();
 const { generateEmptyForm, validate } = useSchema(tableName);
 
+// API composable for creating user
+const {
+  data: createData,
+  execute: createUser
+} = useApiLazy(() => `/${tableName}`, {
+  method: "post",
+  errorContext: "Create User"
+});
+
 onMounted(() => {
   form.value = generateEmptyForm();
 });
@@ -43,27 +52,17 @@ async function handleCreate() {
 
   globalFormLoading.value = true;
 
-  const { data, error } = await useApiLazy(`/${tableName}`, {
-    method: "post",
-    body: form.value,
-  });
-
-  globalFormLoading.value = false;
-
-  if (error.value) {
+  try {
+    await createUser({ body: form.value });
+    
     toast.add({
-      title: "Creation failed",
-      description: error.value.message,
-      color: "error",
+      title: "User created successfully",
+      color: "success",
     });
-    return;
+
+    await router.push(`/settings/users/${createData.value?.data[0]?.id}`);
+  } finally {
+    globalFormLoading.value = false;
   }
-
-  toast.add({
-    title: "User created successfully",
-    color: "success",
-  });
-
-  await router.push(`/settings/users/${data.value.data[0].id}`);
 }
 </script>

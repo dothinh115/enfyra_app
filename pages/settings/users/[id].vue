@@ -7,43 +7,53 @@ const { createButtonLoader } = useButtonLoading();
 
 const tableName = "user_definition";
 
-const user = ref<Record<string, any>>({});
 const errors = ref<Record<string, string>>({});
-const loading = ref(false);
-
 const { validate, getIncludeFields } = useSchema(tableName);
 
-async function fetchUser() {
-  loading.value = true;
-
-  const { data, error } = await useApiLazy(`/${tableName}`, {
-    query: {
-      fields: getIncludeFields(),
-      filter: {
-        id: { _eq: route.params.id },
-      },
+// API composable for fetching user
+const {
+  data: apiData,
+  pending: loading,
+  execute: fetchUser
+} = useApiLazy(() => `/${tableName}`, {
+  query: computed(() => ({
+    fields: getIncludeFields(),
+    filter: {
+      id: { _eq: route.params.id },
     },
-  });
+  })),
+  errorContext: "Fetch User"
+});
 
-  loading.value = false;
-
-  const userData = data.value?.data?.[0];
-
-  if (!userData) {
-    toast.add({
-      title: "User not found",
-      description: error.value?.message || "Invalid ID",
-      color: "error",
-    });
-    router.push("/users");
-    return;
-  }
-
-  user.value = {
+// Computed user data
+const user = computed(() => {
+  const userData = apiData.value?.data?.[0];
+  if (!userData) return {};
+  return {
     ...userData,
     password: null, // to not display password
   };
-}
+});
+
+// Check if user exists
+watch(apiData, (newData) => {
+  if (newData && (!newData.data || newData.data.length === 0)) {
+    toast.add({
+      title: "User not found",
+      description: "Invalid ID",
+      color: "error",
+    });
+    router.push("/settings/users");
+  }
+}, { immediate: true });
+
+// API composable for updating user
+const {
+  execute: updateUser
+} = useApiLazy(() => `/${tableName}/${user.value.id}`, {
+  method: "patch",
+  errorContext: "Update User"
+});
 
 async function saveUser() {
   const payload = { ...user.value };
@@ -62,25 +72,22 @@ async function saveUser() {
 
   globalFormLoading.value = true;
 
-  const { error } = await useApiLazy(`/${tableName}/${user.value.id}`, {
-    method: "patch",
-    body: payload,
-  });
-
-  globalFormLoading.value = false;
-
-  if (error.value) {
-    toast.add({
-      title: "Error when saving",
-      description: error.value.message,
-      color: "error",
-    });
-    return;
+  try {
+    await updateUser({ body: payload });
+    toast.add({ title: "Information saved", color: "primary" });
+    errors.value = {};
+  } finally {
+    globalFormLoading.value = false;
   }
-
-  toast.add({ title: "Information saved", color: "primary" });
-  errors.value = {};
 }
+
+// API composable for deleting user
+const {
+  execute: removeUser
+} = useApiLazy(() => `/${tableName}/${user.value.id}`, {
+  method: "delete",
+  errorContext: "Delete User"
+});
 
 async function deleteUser() {
   const ok = await useConfirm().confirm({
@@ -90,19 +97,7 @@ async function deleteUser() {
 
   const deleteLoader = createButtonLoader("delete-user");
   await deleteLoader.withLoading(async () => {
-    const { error } = await useApiLazy(`/${tableName}/${user.value.id}`, {
-      method: "delete",
-    });
-
-    if (error.value) {
-      toast.add({
-        title: "Error when deleting",
-        description: error.value.message,
-        color: "error",
-      });
-      return;
-    }
-
+    await removeUser();
     toast.add({
       title: "User deleted",
       color: "success",
@@ -111,7 +106,7 @@ async function deleteUser() {
   });
 }
 
-onMounted(fetchUser);
+onMounted(() => fetchUser());
 </script>
 
 <template>

@@ -52,36 +52,41 @@ const id = route.params.id as string;
 const tableName = "role_definition";
 const { getIncludeFields } = useSchema(tableName);
 
-const form = ref<Record<string, any>>({});
 const errors = ref<Record<string, string>>({});
-const loading = ref(false);
-
 const { globalForm, globalFormLoading } = useGlobalState();
 const { validate } = useSchema(tableName);
 const { createButtonLoader } = useButtonLoading();
 
-async function fetchRole() {
-  loading.value = true;
+// API composable for fetching role
+const {
+  data: apiData,
+  pending: loading,
+  execute: fetchRole
+} = useApiLazy(() => `/${tableName}`, {
+  query: computed(() => ({
+    fields: getIncludeFields(),
+    filter: { id: { _eq: id } },
+  })),
+  errorContext: "Fetch Role"
+});
 
-  const { data, error } = await useApiLazy(`/${tableName}`, {
-    query: {
-      fields: getIncludeFields(),
-      filter: { id: { _eq: id } },
-    },
-  });
+// Form data as ref
+const form = ref<Record<string, any>>({});
 
-  if (error.value) {
-    toast.add({
-      title: "Cannot load role",
-      color: "error",
-    });
-    loading.value = false;
-    return;
+// Watch API data and update form
+watch(apiData, (newData) => {
+  if (newData?.data?.[0]) {
+    form.value = { ...newData.data[0] };
   }
+}, { immediate: true });
 
-  form.value = data.value?.data?.[0] || {};
-  loading.value = false;
-}
+// API composable for updating role
+const {
+  execute: updateRole
+} = useApiLazy(() => `/${tableName}/${id}`, {
+  method: "patch",
+  errorContext: "Update Role"
+});
 
 async function save() {
   const { isValid, errors: validationErrors } = validate(form.value);
@@ -98,24 +103,22 @@ async function save() {
 
   globalFormLoading.value = true;
 
-  const { error } = await useApiLazy(`/${tableName}/${id}`, {
-    method: "patch",
-    body: form.value,
-  });
-
-  if (error.value) {
-    toast.add({
-      title: "Error when saving",
-      description: error.value.message,
-      color: "error",
-    });
-  } else {
+  try {
+    await updateRole({ body: form.value });
     toast.add({ title: "Role saved", color: "success" });
     errors.value = {};
+  } finally {
+    globalFormLoading.value = false;
   }
-
-  globalFormLoading.value = false;
 }
+
+// API composable for deleting role
+const {
+  execute: removeRole
+} = useApiLazy(() => `/${tableName}/${id}`, {
+  method: "delete",
+  errorContext: "Delete Role"
+});
 
 async function deleteRole() {
   const ok = await confirm({
@@ -126,23 +129,11 @@ async function deleteRole() {
 
   const deleteLoader = createButtonLoader("delete-role");
   await deleteLoader.withLoading(async () => {
-    const { error } = await useApiLazy(`/${tableName}/${id}`, {
-      method: "delete",
-    });
-
-    if (error.value) {
-      toast.add({
-        title: "Cannot delete role",
-        description: error.value.message,
-        color: "error",
-      });
-      return;
-    }
-
+    await removeRole();
     toast.add({ title: "Role deleted", color: "success" });
     await navigateTo("/settings/roles");
   });
 }
 
-onMounted(fetchRole);
+onMounted(() => fetchRole());
 </script>

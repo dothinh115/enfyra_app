@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useApiLazyWithError } from "~/composables/useApiWithError";
 
 const props = defineProps<{
   modelValue: boolean;
@@ -19,9 +18,18 @@ const targetTable = tables.value.find(
 );
 const { generateEmptyForm, validate } = useSchema(targetTable?.name);
 
+// API composable for creating record
+const {
+  data: createData,
+  pending: creating,
+  execute: createRecord
+} = useApiLazy(() => `/${targetTable?.name}`, {
+  method: "post",
+  errorContext: "Create Relation Record"
+});
+
 const createForm = ref(generateEmptyForm());
 const createErrors = ref({});
-const creating = ref(false);
 
 watch(show, (val) => {
   if (val) {
@@ -39,19 +47,10 @@ async function createNewRecord() {
     return;
   }
 
-  creating.value = true;
-  try {
-    const { data } = await useApiLazyWithError(`/${targetTable.name}`, {
-      method: "post",
-      body: createForm.value,
-      errorContext: "Create Relation Record",
-    });
-    emit("update:selected", [...props.selected, { id: data.value.data[0].id }]);
-    emit("created");
-    show.value = false;
-  } finally {
-    creating.value = false;
-  }
+  await createRecord({ body: createForm.value });
+  emit("update:selected", [...props.selected, { id: createData.value?.data[0]?.id }]);
+  emit("created");
+  show.value = false;
 }
 </script>
 

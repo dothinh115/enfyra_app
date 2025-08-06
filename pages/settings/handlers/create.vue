@@ -21,6 +21,11 @@ const createErrors = ref<Record<string, string>>({});
 const { generateEmptyForm, validate } = useSchema(tableName);
 const { globalForm } = useGlobalState();
 
+// Setup useApiLazy composable at top level
+const { data: createData, error: createError, execute: executeCreateHandler } = useApiLazy(() => `/${tableName}`, {
+  method: "post",
+});
+
 onMounted(() => {
   createForm.value = generateEmptyForm();
 });
@@ -38,25 +43,26 @@ async function handleCreate() {
     return;
   }
 
-  const { data, error } = await useApiLazy(`/${tableName}`, {
-    method: "post",
-    body: createForm.value,
-  });
+  try {
+    await executeCreateHandler({ body: createForm.value });
+    
+    if (createError.value) {
+      toast.add({
+        title: "Error",
+        description: createError.value.message,
+        color: "error",
+      });
+      return;
+    }
 
-  if (error.value) {
     toast.add({
-      title: "Error",
-      description: error.value.message,
-      color: "error",
+      title: "Handler created successfully",
+      color: "success",
     });
-    return;
+
+    await navigateTo(`/settings/handlers/${createData.value.data[0].id}`);
+  } catch (error) {
+    // Error already handled by useApiLazy
   }
-
-  toast.add({
-    title: "Handler created successfully",
-    color: "success",
-  });
-
-  await navigateTo(`/settings/handlers/${data.value.data[0].id}`);
 }
 </script>

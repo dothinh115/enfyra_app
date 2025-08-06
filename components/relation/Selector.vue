@@ -10,11 +10,8 @@ const props = defineProps<{
 const emit = defineEmits(["apply"]);
 
 const selected = ref<any[]>([...props.selectedIds]);
-const data = ref<any[]>([]);
 const page = ref(1);
 const limit = 10;
-const total = ref(0);
-const loading = ref(false);
 const showCreateDrawer = ref(false);
 const showFilterDrawer = ref(false);
 const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
@@ -47,10 +44,14 @@ function handleDeleteClick(item: any) {
 async function deleteRecord(id: any) {
   if (!targetTable?.name || props.disabled) return;
 
+  // Create a specific instance for this record deletion
+  const { execute: removeSpecificRecord } = useApiLazy(() => `/${targetTable.name}/${id}`, {
+    method: "delete",
+    errorContext: "Delete Relation Record"
+  });
+
   try {
-    await useApiLazy(`/${targetTable.name}/${id}`, {
-      method: "delete",
-    });
+    await removeSpecificRecord();
     selected.value = selected.value.filter((item) => item.id !== id);
     await fetchData();
   } catch (e) {
@@ -65,14 +66,18 @@ watch(
   }
 );
 
-async function fetchData() {
-  loading.value = true;
-  try {
+// API composable for fetching relation data
+const {
+  data: apiData,
+  pending: loading,
+  execute: fetchData
+} = useApiLazy(() => `/${targetTable?.name}`, {
+  query: computed(() => {
     const filterQuery = hasActiveFilters(currentFilter.value)
       ? buildQuery(currentFilter.value)
       : {};
-
-    const queryParams: any = {
+    
+    return {
       fields: "*",
       page: page.value,
       limit,
@@ -80,18 +85,13 @@ async function fetchData() {
       sort: "-createdAt",
       ...(Object.keys(filterQuery).length > 0 && { filter: filterQuery }),
     };
+  }),
+  errorContext: "Fetch Relation Data"
+});
 
-    const { data: item } = await useApiLazy(`/${targetTable?.name}`, {
-      query: queryParams,
-    });
-    data.value = item.value?.data;
-    total.value = item.value?.meta?.totalCount || 0;
-  } catch (error) {
-    console.error("Error fetching relation data:", error);
-  } finally {
-    loading.value = false;
-  }
-}
+// Computed values from API data
+const data = computed(() => apiData.value?.data || []);
+const total = computed(() => apiData.value?.meta?.totalCount || 0);
 
 function toggle(id: any) {
   if (props.disabled) return;
@@ -117,22 +117,22 @@ function viewDetails(item: any) {
   detailModal.value = true;
 }
 
-function applyFilter() {
+async function applyFilter() {
   page.value = 1; // Reset to first page when filter changes
-  fetchData();
+  await fetchData();
 }
 
-function clearFilter() {
+async function clearFilter() {
   currentFilter.value = createEmptyFilter();
-  applyFilter();
+  await applyFilter();
 }
 
 function openFilterDrawer() {
   showFilterDrawer.value = true;
 }
 
-onMounted(fetchData);
-watch(page, fetchData);
+onMounted(() => fetchData());
+watch(page, () => fetchData());
 </script>
 
 <template>
@@ -203,7 +203,7 @@ watch(page, fetchData);
   <RelationCreateDrawer
     v-model="showCreateDrawer"
     :relation-meta="props.relationMeta"
-    @created="fetchData"
+    @created="() => fetchData()"
     v-model:selected="selected"
   />
 

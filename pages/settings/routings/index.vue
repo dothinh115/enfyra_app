@@ -2,56 +2,61 @@
 const toast = useToast();
 const page = ref(1);
 const pageLimit = 7;
-const total = ref(0);
 const route = useRoute();
 const tableName = "route_definition";
 const { getIncludeFields } = useSchema(tableName);
-const loading = ref(false);
-async function fetchRoute(page = 1, limit: number) {
-  loading.value = true;
-  const fields = [getIncludeFields()].join(",");
-  const sort = ["-createdAt"].join(",");
-
-  const { data, error } = await useApiLazy("/route_definition", {
-    query: { fields, sort, meta: "*", page, limit },
-  });
-
-  if (error.value) {
-    toast.add({
-      title: "Error",
-      description: "Cannot fetch routes...",
-      color: "error",
-    });
-    loading.value = false;
-    return;
-  }
-
-  routes.value = data.value.data;
-  total.value = data.value.meta.totalCount;
-  loading.value = false;
-}
 const routes = ref<any[]>([]);
+
+// API composable for fetching routes
+const {
+  data: apiData,
+  pending: loading,
+  execute: fetchRoutes
+} = useApiLazy(() => "/route_definition", {
+  query: computed(() => ({
+    fields: getIncludeFields(),
+    sort: "-createdAt",
+    meta: "*",
+    page: page.value,
+    limit: pageLimit,
+  })),
+  errorContext: "Fetch Routes"
+});
+
+// Computed values from API data
+const routesData = computed(() => apiData.value?.data || []);
+const total = computed(() => apiData.value?.meta?.totalCount || 0);
+
+// Update routes when data changes
+watch(routesData, (newRoutes) => {
+  routes.value = newRoutes;
+}, { immediate: true });
 
 watch(
   () => route.query.page,
   async (newVal) => {
-    if (!newVal) page.value = 1;
-    else page.value = Number(newVal);
-    await fetchRoute(page.value, pageLimit);
+    page.value = newVal ? Number(newVal) : 1;
+    await fetchRoutes();
   },
-  {
-    immediate: true,
-  }
+  { immediate: true }
 );
 
-async function toggleEnabled(route: any) {
-  route.isEnabled = !route.isEnabled;
-  const { data } = await useApiLazy(`/route_definition/${route.id}`, {
+async function toggleEnabled(routeItem: any) {
+  const originalEnabled = routeItem.isEnabled;
+  routeItem.isEnabled = !routeItem.isEnabled;
+  
+  // Create a specific instance for this route update
+  const { execute: updateSpecificRoute } = useApiLazy(() => `/route_definition/${routeItem.id}`, {
     method: "patch",
-    body: {
-      isEnabled: route.isEnabled,
-    },
+    errorContext: "Toggle Route"
   });
+  
+  try {
+    await updateSpecificRoute({ body: { isEnabled: routeItem.isEnabled } });
+  } catch (error) {
+    // Revert the toggle on error
+    routeItem.isEnabled = originalEnabled;
+  }
 }
 </script>
 

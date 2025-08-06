@@ -1,47 +1,38 @@
 <script setup lang="ts">
-import { useApiLazyWithError } from "~/composables/useApiWithError";
 
 const toast = useToast();
 const page = ref(1);
 const pageLimit = 10;
-const total = ref(0);
-const routeHandlers = ref<any[]>([]);
 const route = useRoute();
 const tableName = "route_handler_definition";
 const { confirm } = useConfirm();
 const { getIncludeFields } = useSchema(tableName);
-const loading = ref(false);
 
-async function fetchRouteHandlers(page = 1, limit = 10) {
-  loading.value = true;
-  const { data, error } = await useApiLazyWithError(
-    "/route_handler_definition",
-    {
-      query: {
-        fields: getIncludeFields(),
-        sort: "-createdAt",
-        meta: "*",
-        page,
-        limit,
-      },
-      errorContext: "Fetch Route Handlers",
-    }
-  );
+// API composable for fetching handlers
+const {
+  data: apiData,
+  pending: loading,
+  execute: fetchRouteHandlers
+} = useApiLazy(() => "/route_handler_definition", {
+  query: computed(() => ({
+    fields: getIncludeFields(),
+    sort: "-createdAt",
+    meta: "*",
+    page: page.value,
+    limit: pageLimit,
+  })),
+  errorContext: "Fetch Route Handlers"
+});
 
-  if (error.value) {
-    toast.add({
-      title: "Error",
-      description: "Cannot load route handlers list",
-      color: "error",
-    });
-    loading.value = false;
-    return;
-  }
+// API composable for deleting handlers (reusable)
+const { execute: removeHandler } = useApiLazy(() => `/route_handler_definition/0`, {
+  method: "delete",
+  errorContext: "Delete Handler"
+});
 
-  routeHandlers.value = data.value.data;
-  total.value = data.value.meta.totalCount;
-  loading.value = false;
-}
+// Computed values from API data
+const routeHandlers = computed(() => apiData.value?.data || []);
+const total = computed(() => apiData.value?.meta?.totalCount || 0);
 
 async function deleteHandler(id: number) {
   const ok = await confirm({
@@ -49,32 +40,27 @@ async function deleteHandler(id: number) {
   });
   if (!ok) return;
 
-  const { error } = await useApiLazyWithError(
-    `/route_handler_definition/${id}`,
-    {
-      method: "delete",
-      errorContext: "Delete Handler",
-    }
-  );
+  // Create a specific instance for this deletion
+  const { execute: deleteSpecificHandler } = useApiLazy(() => `/route_handler_definition/${id}`, {
+    method: "delete",
+    errorContext: "Delete Handler"
+  });
 
-  if (error.value) {
-    toast.add({
-      title: "Error",
-      description: "Cannot delete handler",
-      color: "error",
-    });
-    return;
+  try {
+    await deleteSpecificHandler();
+    
+    toast.add({ title: "Deleted", color: "success" });
+    await fetchRouteHandlers();
+  } catch (error) {
+    // Error already handled by useApiLazy
   }
-
-  toast.add({ title: "Deleted", color: "success" });
-  await fetchRouteHandlers(page.value, pageLimit);
 }
 
 watch(
   () => route.query.page,
   async (newVal) => {
     page.value = newVal ? Number(newVal) : 1;
-    await fetchRouteHandlers(page.value, pageLimit);
+    await fetchRouteHandlers();
   },
   { immediate: true }
 );

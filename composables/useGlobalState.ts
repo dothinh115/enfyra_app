@@ -1,4 +1,3 @@
-import { useApiWithError } from "./useApiWithError";
 
 export const useGlobalState = () => {
   const tables = useState<any[]>("global:tables", () => []);
@@ -20,15 +19,23 @@ export const useGlobalState = () => {
 
   const toast = useToast();
 
+  // API composable for fetching tables
+  const {
+    data: tablesData,
+    execute: executeFetchTables
+  } = useApiLazy(() => "/table_definition", {
+    query: {
+      fields: ["*", "columns.*", "relations.*"].join(","),
+      limit: 0,
+      sort: ["id"].join(",")
+    },
+    errorContext: "Fetch Tables"
+  });
+
   async function fetchTable() {
-    const fields = ["*", "columns.*", "relations.*"].join(",");
-    const sort = ["id"].join(",");
     try {
-      const { data } = await useApiWithError("/table_definition", {
-        query: { fields, limit: 0, sort },
-        errorContext: "Fetch Tables",
-      });
-      tables.value = data.value.data;
+      await executeFetchTables();
+      tables.value = tablesData.value?.data || [];
     } catch (error) {
       toast.add({
         title: "Error",
@@ -38,22 +45,29 @@ export const useGlobalState = () => {
     }
   }
 
-  async function fetchRoute() {
-    const fields = [
-      "*",
-      "mainTable.*",
-      "routePermissions.*",
-      "handlers.*",
-      "hooks.*",
-    ].join(",");
-    const sort = ["id"].join(",");
+  // API composable for fetching routes
+  const {
+    data: routesData,
+    execute: executeFetchRoutes
+  } = useApiLazy(() => "/route_definition", {
+    query: {
+      fields: [
+        "*",
+        "mainTable.*",
+        "routePermissions.*",
+        "handlers.*",
+        "hooks.*",
+      ].join(","),
+      limit: 0,
+      sort: ["id"].join(",")
+    },
+    errorContext: "Fetch Routes"
+  });
 
+  async function fetchRoute() {
     try {
-      const { data } = await useApiWithError("/route_definition", {
-        query: { fields, limit: 0, sort },
-        errorContext: "Fetch Routes",
-      });
-      routes.value = data.value.data;
+      await executeFetchRoutes();
+      routes.value = routesData.value?.data || [];
     } catch (error) {
       toast.add({
         title: "Error",
@@ -63,15 +77,22 @@ export const useGlobalState = () => {
     }
   }
 
+  // API composable for fetching settings
+  const {
+    data: settingsData,
+    execute: executeFetchSettings
+  } = useApiLazy(() => "/setting_definition", {
+    query: {
+      fields: ["*", "methods.*"].join(","),
+      limit: 0
+    },
+    errorContext: "Fetch Settings"
+  });
+
   async function fetchSetting() {
-    const fieldArr = ["*", "methods.*"];
-    const fields = fieldArr.join(",");
     try {
-      const { data } = await useApiWithError("/setting_definition", {
-        query: { fields, limit: 0 },
-        errorContext: "Fetch Settings",
-      });
-      settings.value = data.value.data[0];
+      await executeFetchSettings();
+      settings.value = settingsData.value?.data[0] || {};
     } catch (error) {
       toast.add({
         title: "Error",

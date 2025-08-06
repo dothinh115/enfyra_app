@@ -1,60 +1,63 @@
 <script setup lang="ts">
-import { useApiLazyWithError } from "~/composables/useApiWithError";
 
 const toast = useToast();
 const page = ref(1);
 const pageLimit = 7;
-const total = ref(0);
 const route = useRoute();
 const tableName = "hook_definition";
-const hooks = ref<any[]>([]);
 const { getIncludeFields } = useSchema(tableName);
-const loading = ref(false);
 
-async function fetchHooks(page = 1, limit: number) {
-  loading.value = true;
-  const { data, error } = await useApiLazyWithError("/hook_definition", {
-    query: {
-      fields: getIncludeFields(),
-      sort: "-createdAt",
-      meta: "*",
-      page,
-      limit,
-    },
-    errorContext: "Fetch Hooks",
-  });
+// API composable for fetching hooks
+const {
+  data: apiData,
+  pending: loading,
+  execute: fetchHooks
+} = useApiLazy(() => "/hook_definition", {
+  query: computed(() => ({
+    fields: getIncludeFields(),
+    sort: "-createdAt",
+    meta: "*",
+    page: page.value,
+    limit: pageLimit,
+  })),
+  errorContext: "Fetch Hooks"
+});
 
-  if (error.value) {
-    toast.add({
-      title: "Error",
-      description: "Cannot load hooks list",
-      color: "error",
-    });
-    loading.value = false;
-    return;
-  }
+// API composable for updating hooks (reusable)
+const { execute: updateHook } = useApiLazy(() => `/hook_definition/0`, {
+  method: "patch",
+  errorContext: "Toggle Hook"
+});
 
-  hooks.value = data.value.data;
-  total.value = data.value.meta.totalCount;
-  loading.value = false;
-}
+// Computed values from API data
+const hooks = computed(() => apiData.value?.data || []);
+const total = computed(() => apiData.value?.meta?.totalCount || 0);
 
 watch(
   () => route.query.page,
   async (newVal) => {
     page.value = newVal ? Number(newVal) : 1;
-    await fetchHooks(page.value, pageLimit);
+    await fetchHooks();
   },
   { immediate: true }
 );
 
 async function toggleEnabled(hook: any) {
+  const originalEnabled = hook.isEnabled;
   hook.isEnabled = !hook.isEnabled;
-  await useApiLazyWithError(`/hook_definition/${hook.id}`, {
+  
+  // Create a specific instance for this hook update
+  const { execute: updateSpecificHook } = useApiLazy(() => `/hook_definition/${hook.id}`, {
     method: "patch",
-    body: { isEnabled: hook.isEnabled },
-    errorContext: "Toggle Hook",
+    errorContext: "Toggle Hook"
   });
+
+  try {
+    await updateSpecificHook({ body: { isEnabled: hook.isEnabled } });
+  } catch (error) {
+    // Revert the toggle on error
+    hook.isEnabled = originalEnabled;
+  }
 }
 </script>
 

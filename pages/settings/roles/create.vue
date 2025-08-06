@@ -28,6 +28,15 @@ const createErrors = ref<Record<string, string>>({});
 const { generateEmptyForm, validate } = useSchema(tableName);
 const { globalForm } = useGlobalState();
 
+// API composable for creating role
+const {
+  data: createData,
+  execute: createRole
+} = useApiLazy(() => `/${tableName}`, {
+  method: "post",
+  errorContext: "Create Role"
+});
+
 onMounted(() => {
   createForm.value = generateEmptyForm();
 });
@@ -45,25 +54,13 @@ async function handleCreate() {
     return;
   }
 
-  const { data, error } = await useApiLazy(`/${tableName}`, {
-    method: "post",
-    body: createForm.value,
-  });
-
-  if (error.value) {
-    toast.add({
-      title: "Error when creating role",
-      description: error.value.message,
-      color: "error",
-    });
-    return;
-  }
-
+  await createRole({ body: createForm.value });
+  
   toast.add({
     title: "Role created successfully",
     color: "success",
   });
 
-  await navigateTo(`/settings/roles/${data.value.data[0].id}`);
+  await navigateTo(`/settings/roles/${createData.value?.data[0]?.id}`);
 }
 </script>

@@ -76,39 +76,38 @@
         :page-count="limit"
         :total="total"
         size="sm"
-        v-if="page > 1"
+        v-if="total > limit"
       />
     </div>
   </div>
 </template>
 <script setup lang="ts">
-import { useApiLazyWithError } from "~/composables/useApiWithError";
 
-const users = ref<any[]>([]);
 const page = ref(1);
-const total = ref(0);
 const limit = 12;
-const loading = ref(false);
 const tableName = "user_definition";
 const { getIncludeFields } = useSchema(tableName);
 
-async function fetchUsers() {
-  loading.value = true;
-  const { data } = await useApiLazyWithError("/user_definition", {
-    query: {
-      fields: getIncludeFields(),
-      page: page.value,
-      limit,
-      sort: "-createdAt",
-      meta: "totalCount",
-    },
-    errorContext: "Fetch Users",
-  });
-  users.value = data.value?.data || [];
-  total.value = data.value?.meta?.totalCount || 0;
-  loading.value = false;
-}
+// API composable
+const {
+  data: apiData,
+  pending: loading,
+  execute: fetchUsers
+} = useApiLazy(() => "/user_definition", {
+  query: computed(() => ({
+    fields: getIncludeFields(),
+    page: page.value,
+    limit,
+    sort: "-createdAt",
+    meta: "totalCount",
+  })),
+  errorContext: "Fetch Users"
+});
 
-watch(page, fetchUsers);
-onMounted(fetchUsers);
+// Computed values from API data
+const users = computed(() => apiData.value?.data || []);
+const total = computed(() => apiData.value?.meta?.totalCount || 0);
+
+watch(page, () => fetchUsers());
+onMounted(() => fetchUsers());
 </script>

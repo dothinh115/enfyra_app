@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ColumnDef } from "@tanstack/vue-table";
-import { useApiLazyWithError } from "~/composables/useApiWithError";
 
 const route = useRoute();
 const tableName = route.params.table as string;
@@ -9,7 +8,6 @@ const total = ref(1);
 const page = ref(1);
 const pageLimit = 10;
 const data = ref([]);
-const loading = ref(false);
 const table = computed(() => tables.value.find((t) => t.name === tableName));
 const { confirm } = useConfirm();
 const toast = useToast();
@@ -19,6 +17,28 @@ const { createButtonLoader } = useButtonLoading();
 // Filter state
 const showFilterDrawer = ref(false);
 const currentFilter = ref(createEmptyFilter());
+
+// API composable
+const { 
+  data: apiData, 
+  pending: loading, 
+  execute: fetchData 
+} = useApiLazy(() => `/${tableName}`, {
+  query: computed(() => {
+    const filterQuery = hasActiveFilters(currentFilter.value)
+      ? buildQuery(currentFilter.value)
+      : {};
+    
+    return {
+      limit: pageLimit,
+      page: page.value,
+      fields: "*",
+      meta: "*",
+      ...(Object.keys(filterQuery).length > 0 && { filter: filterQuery }),
+    };
+  }),
+  errorContext: `Loading ${tableName} data`
+});
 
 // Build columns from schema
 const columns = computed<ColumnDef<any>[]>(() => {
@@ -104,38 +124,18 @@ const columns = computed<ColumnDef<any>[]>(() => {
   return cols;
 });
 
-async function fetchData() {
-  loading.value = true;
-
-  const filterQuery = hasActiveFilters(currentFilter.value)
-    ? buildQuery(currentFilter.value)
-    : {};
-
-  console.log('Filter query:', filterQuery);
-  console.log('Current filter:', currentFilter.value);
-
-  const { data: item } = await useApiLazyWithError(`/${tableName}`, {
-    query: {
-      limit: pageLimit,
-      page: page.value,
-      fields: "*",
-      meta: "*",
-      ...(Object.keys(filterQuery).length > 0 && { filter: filterQuery }),
-    },
-  });
-
-  if (item.value?.data) {
-    data.value = item.value.data;
-    total.value = item.value.meta?.total_count || 0;
+// Watch for API data changes
+watch(apiData, (newData) => {
+  if (newData?.data) {
+    data.value = newData.data;
+    total.value = newData.meta?.total_count || 0;
   }
-
-  loading.value = false;
-}
+}, { immediate: true });
 
 // Apply filters - called by FilterDrawer
-function applyFilters() {
+async function applyFilters() {
   page.value = 1;
-  fetchData();
+  await fetchData();
 }
 
 function clearFilters() {
@@ -176,8 +176,8 @@ async function handleDelete(id: string) {
   });
 }
 
-onMounted(() => {
-  fetchData();
+onMounted(async () => {
+  await fetchData();
 });
 
 // Remove auto-watch - FilterDrawer handles apply/clear events

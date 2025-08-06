@@ -43,15 +43,15 @@ const textSize = computed(() => {
   <div class="flex flex-col items-center justify-center py-8 gap-3">
     <Icon
       :name="props.icon || defaultIcon"
-      :class="`${iconSize.value} text-muted-foreground`"
+      :class="`${iconSize} text-muted-foreground`"
     />
     <div class="text-center">
-      <p :class="`${textSize.value} font-medium text-foreground`">
+      <p :class="`${textSize} font-medium text-foreground`">
         {{ props.title || defaultTitle }}
       </p>
       <p
         v-if="props.description"
-        :class="`${textSize.value} text-sm text-muted-foreground mt-1`"
+        :class="`${textSize} text-sm text-muted-foreground mt-1`"
       >
         {{ props.description }}
       </p>

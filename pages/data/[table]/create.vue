@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useApiLazyWithError } from "~/composables/useApiWithError";
 
 const route = useRoute();
 const { globalForm, globalFormLoading } = useGlobalState();
@@ -8,6 +7,15 @@ const { confirm } = useConfirm();
 const newRecord = ref<Record<string, any>>({});
 const { generateEmptyForm, validate } = useSchema(route.params.table as string);
 const createErrors = ref<Record<string, string>>({});
+
+// API composable for creating record
+const {
+  data: createData,
+  execute: createRecord
+} = useApiLazy(() => `/${route.params.table}`, {
+  method: "post",
+  errorContext: "Create Record"
+});
 
 onMounted(() => {
   newRecord.value = generateEmptyForm();
@@ -32,23 +40,19 @@ async function handleCreate() {
 
   globalFormLoading.value = true;
 
-  const { data, error } = await useApiLazyWithError(`/${route.params.table}`, {
-    method: "post",
-    body: newRecord.value,
-    errorContext: "Create Record",
-  });
-
-  if (data.value?.data) {
+  try {
+    await createRecord({ body: newRecord.value });
+    
     toast.add({
       title: "Success",
       color: "success",
       description: "New record created!",
     });
-    globalFormLoading.value = false;
 
-    await navigateTo(`/data/${route.params.table}/${data.value.data[0].id}`);
+    await navigateTo(`/data/${route.params.table}/${createData.value?.data[0]?.id}`);
+  } finally {
+    globalFormLoading.value = false;
   }
-  globalFormLoading.value = false;
 }
 </script>
 

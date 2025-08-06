@@ -86,31 +86,46 @@ const loading = ref(false);
 
 const { validate, getIncludeFields } = useSchema(tableName);
 
+// Setup useApiLazy composables at top level
+const { data: routeData, error: fetchError, execute: executeFetchRoute } = useApiLazy(() => "/route_definition", {
+  query: {
+    fields: getIncludeFields(),
+    filter: { id: { _eq: Number(route.params.routeId) } },
+  },
+});
+
+const { error: updateError, execute: executeUpdateRoute } = useApiLazy(() => `/route_definition/${detail.value?.id}`, {
+  method: "patch",
+});
+
+const { data: deleteData, error: deleteError, execute: executeDeleteRoute } = useApiLazy(() => `/route_definition/${route.params.routeId}`, {
+  method: "delete",
+});
+
 async function fetchRouteDetail(routeId: number) {
   loading.value = true;
   
-  const { data, error } = await useApiLazy("/route_definition", {
-    query: {
-      fields: getIncludeFields(),
-      filter: { id: { _eq: routeId } },
-    },
-  });
+  try {
+    await executeFetchRoute();
+    
+    if (fetchError.value || !routeData.value?.data?.[0]) {
+      toast.add({
+        title: "Not found",
+        description: "This route does not exist.",
+        color: "error",
+      });
+      router.replace("/settings/routings");
+      loading.value = false;
+      return;
+    }
 
-  if (error.value || !data.value?.data?.[0]) {
-    toast.add({
-      title: "Not found",
-      description: "This route does not exist.",
-      color: "error",
-    });
-    router.replace("/settings/routings");
+    detail.value = routeData.value.data[0];
+    form.value = { ...detail.value };
+    errors.value = {};
     loading.value = false;
-    return;
+  } catch (error) {
+    loading.value = false;
   }
-
-  detail.value = data.value.data[0];
-  form.value = { ...detail.value };
-  errors.value = {};
-  loading.value = false;
 }
 
 async function updateRoute() {
@@ -128,27 +143,29 @@ async function updateRoute() {
 
   globalFormLoading.value = true;
 
-  const { error } = await useApiLazy(`/route_definition/${detail.value?.id}`, {
-    method: "patch",
-    body: form.value,
-  });
+  try {
+    await executeUpdateRoute({ body: form.value });
+    
+    if (updateError.value) {
+      toast.add({
+        title: "Error",
+        description: updateError.value.message,
+        color: "error",
+      });
+      globalFormLoading.value = false;
+      return;
+    }
 
-  globalFormLoading.value = false;
-
-  if (error.value) {
     toast.add({
-      title: "Error",
-      description: error.value.message,
-      color: "error",
+      title: "Saved",
+      description: "Route updated",
+      color: "primary",
     });
-    return;
+  } catch (error) {
+    // Error already handled by useApiLazy
   }
 
-  toast.add({
-    title: "Saved",
-    description: "Route updated",
-    color: "primary",
-  });
+  globalFormLoading.value = false;
 }
 
 async function deleteRoute() {
@@ -157,23 +174,24 @@ async function deleteRoute() {
 
   const deleteLoader = createButtonLoader('delete-route');
   await deleteLoader.withLoading(async () => {
-    const { data, error } = await useApiLazy(
-      `/route_definition/${route.params.routeId}`,
-      { method: "delete" }
-    );
+    try {
+      await executeDeleteRoute();
+      
+      if (deleteError.value) {
+        toast.add({ title: "Error", description: "Delete failed", color: "error" });
+        return;
+      }
 
-    if (error.value) {
-      toast.add({ title: "Error", description: "Delete failed", color: "error" });
-      return;
+      toast.add({
+        title: "Deleted",
+        description: "Route has been removed.",
+        color: "primary",
+      });
+
+      router.push("/settings/routings");
+    } catch (error) {
+      // Error already handled by useApiLazy
     }
-
-    toast.add({
-      title: "Deleted",
-      description: "Route has been removed.",
-      color: "primary",
-    });
-
-    router.push("/settings/routings");
   });
 }
 

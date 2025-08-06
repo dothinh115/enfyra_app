@@ -2,40 +2,30 @@
 const toast = useToast();
 const page = ref(1);
 const pageLimit = 10;
-const total = ref(0);
-const roles = ref<any[]>([]);
-const loading = ref(false);
 const route = useRoute();
 const tableName = "role_definition";
 const { confirm } = useConfirm();
 const { getIncludeFields } = useSchema(tableName);
 
-async function fetchRoles(page = 1, limit = 10) {
-  loading.value = true;
-  const { data, error } = await useApiLazy("/role_definition", {
-    query: {
-      fields: getIncludeFields(),
-      sort: "-createdAt",
-      meta: "*",
-      page,
-      limit,
-    },
-  });
+// API composable for fetching roles
+const {
+  data: apiData,
+  pending: loading,
+  execute: fetchRoles
+} = useApiLazy(() => "/role_definition", {
+  query: computed(() => ({
+    fields: getIncludeFields(),
+    sort: "-createdAt",
+    meta: "*",
+    page: page.value,
+    limit: pageLimit,
+  })),
+  errorContext: "Fetch Roles"
+});
 
-  if (error.value) {
-    toast.add({
-      title: "Error",
-      description: "Cannot load roles list",
-      color: "error",
-    });
-    loading.value = false;
-    return;
-  }
-
-  roles.value = data.value.data;
-  total.value = data.value.meta.totalCount;
-  loading.value = false;
-}
+// Computed values from API data
+const roles = computed(() => apiData.value?.data || []);
+const total = computed(() => apiData.value?.meta?.totalCount || 0);
 
 async function deleteRole(id: string) {
   const ok = await confirm({
@@ -44,28 +34,27 @@ async function deleteRole(id: string) {
   });
   if (!ok) return;
 
-  const { error } = await useApiLazy(`/role_definition/${id}`, {
+  // Create a specific instance for this role deletion
+  const { execute: removeSpecificRole } = useApiLazy(() => `/role_definition/${id}`, {
     method: "delete",
+    errorContext: "Delete Role"
   });
 
-  if (error.value) {
-    toast.add({
-      title: "Error",
-      description: "Cannot delete role",
-      color: "error",
-    });
-    return;
+  try {
+    await removeSpecificRole();
+    
+    toast.add({ title: "Role deleted", color: "success" });
+    await fetchRoles();
+  } catch (error) {
+    // Error already handled by useApiLazy
   }
-
-  toast.add({ title: "Role deleted", color: "success" });
-  await fetchRoles(page.value, pageLimit);
 }
 
 watch(
   () => route.query.page,
   async (newVal) => {
     page.value = newVal ? Number(newVal) : 1;
-    await fetchRoles(page.value, pageLimit);
+    await fetchRoles();
   },
   { immediate: true }
 );

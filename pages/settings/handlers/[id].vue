@@ -46,21 +46,32 @@ const saving = ref(false);
 const { globalForm } = useGlobalState();
 const { validate, getIncludeFields } = useSchema(tableName);
 
+// Setup useApiLazy composables at top level
+const { data: handlerData, error: fetchError, execute: executeGetHandler } = useApiLazy(() => `/${tableName}`, {
+  query: { fields: getIncludeFields(), filter: { id: { _eq: id } } },
+});
+
+const { error: saveError, execute: executeSaveHandler } = useApiLazy(() => `/${tableName}/${id}`, {
+  method: "patch",
+});
+
 async function fetchHandler() {
   loading.value = true;
 
-  const { data, error } = await useApiLazy(`/${tableName}`, {
-    query: { fields: getIncludeFields(), filter: { id: { _eq: id } } },
-  });
+  try {
+    await executeGetHandler();
+    
+    if (fetchError.value) {
+      toast.add({ title: "Cannot load handler", color: "error" });
+      loading.value = false;
+      return;
+    }
 
-  if (error.value) {
-    toast.add({ title: "Cannot load handler", color: "error" });
+    form.value = handlerData.value?.data?.[0] || {};
     loading.value = false;
-    return;
+  } catch (error) {
+    loading.value = false;
   }
-
-  form.value = data.value?.data?.[0] || {};
-  loading.value = false;
 }
 
 async function save() {
@@ -78,20 +89,21 @@ async function save() {
 
   saving.value = true;
 
-  const { error } = await useApiLazy(`/${tableName}/${id}`, {
-    method: "patch",
-    body: form.value,
-  });
-
-  if (error.value) {
-    toast.add({
-      title: "Error saving",
-      description: error.value.message,
-      color: "error",
-    });
-  } else {
-    toast.add({ title: "Handler saved", color: "success" });
-    errors.value = {};
+  try {
+    await executeSaveHandler({ body: form.value });
+    
+    if (saveError.value) {
+      toast.add({
+        title: "Error saving",
+        description: saveError.value.message,
+        color: "error",
+      });
+    } else {
+      toast.add({ title: "Handler saved", color: "success" });
+      errors.value = {};
+    }
+  } catch (error) {
+    // Error already handled by useApiLazy
   }
 
   saving.value = false;

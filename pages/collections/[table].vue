@@ -15,20 +15,50 @@ const { getIncludeFields } = useSchema(tableName);
 const table = ref<any>();
 const loading = ref(false);
 
-async function fetchData() {
-  loading.value = true;
-  const { data } = await useApiLazy("/table_definition", {
-    query: {
+// API composables at setup level
+const { data: tableData, execute: fetchTableData } = useApiLazy(
+  () => "/table_definition",
+  {
+    query: computed(() => ({
       fields: getIncludeFields(),
       filter: {
         name: {
           _eq: route.params.table,
         },
       },
-    },
-  });
-  if (data.value.data) {
-    table.value = data.value.data[0];
+    })),
+    errorContext: "Fetch Table Data",
+  }
+);
+
+// Composable for patch table
+const { execute: executePatchTable } = useApiLazy(
+  () => `/table_definition/${table.value?.id || "undefined"}`,
+  {
+    method: "patch",
+    body: computed(() => table.value),
+    errorContext: "Update Table",
+  }
+);
+
+// Composable for delete table
+const { execute: executeDeleteTable } = useApiLazy(
+  () => `/table_definition/${table.value?.id || "undefined"}`,
+  {
+    method: "delete",
+    errorContext: "Delete Table",
+  }
+);
+
+async function fetchData() {
+  loading.value = true;
+  try {
+    await fetchTableData();
+    if ((tableData.value as any)?.data) {
+      table.value = (tableData.value as any).data[0];
+    }
+  } catch (error) {
+    console.error("Failed to fetch table data:", error);
   }
   loading.value = false;
 }
@@ -65,31 +95,16 @@ async function save() {
 }
 
 async function patchTable() {
-  const { globalLoading } = useGlobalState();
+  const { globalLoading, globalFormLoading } = useGlobalState();
   globalLoading.value = true;
 
-  const { data, error } = await useApiLazy(
-    `/table_definition/${table.value.id}`,
-    {
-      method: "patch",
-      body: table.value,
-    }
-  );
-
-  if (data.value) {
-    await fetchSchema();
-    toast.add({
-      title: "Success",
-      color: "success",
-      description: "Table structure updated!",
-    });
-  } else if (error.value) {
-    toast.add({
-      title: "Error",
-      color: "error",
-      description: error.value?.message,
-    });
-  }
+  await executePatchTable();
+  await fetchSchema();
+  toast.add({
+    title: "Success",
+    color: "success",
+    description: "Table structure updated!",
+  });
 
   globalLoading.value = false;
   globalFormLoading.value = false;
@@ -114,37 +129,24 @@ async function deleteTable() {
   const { globalLoading } = useGlobalState();
   globalLoading.value = true;
 
-  const { data, error } = await useApiLazy(
-    `/table_definition/${table.value.id}`,
-    {
-      method: "delete",
-    }
-  );
-
-  if (data.value) {
-    await fetchSchema();
-    toast.add({
-      title: "Success",
-      color: "success",
-      description: "Table deleted!",
-    });
-    globalLoading.value = false;
-    return navigateTo(`/collections`);
-  } else if (error.value) {
-    toast.add({
-      title: "Error",
-      color: "error",
-      description: error.value?.message,
-    });
-    globalLoading.value = false;
-  }
+  await executeDeleteTable();
+  await fetchSchema();
+  toast.add({
+    title: "Success",
+    color: "success",
+    description: "Table deleted!",
+  });
+  globalLoading.value = false;
+  return navigateTo(`/collections`);
 }
 </script>
 
 <template>
   <div class="relative">
     <!-- Loading state -->
-    <CommonLoadingState type="form" context="page"
+    <CommonLoadingState
+      type="form"
+      context="page"
       v-if="loading"
       title="Loading table structure..."
       description="Fetching table definition and schema"

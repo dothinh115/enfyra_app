@@ -1,15 +1,35 @@
-import { useApiWithError } from "./useApiWithError";
 
 export function useAuth() {
   const me = useState<any | null>("global:me", () => null);
 
+  // API composable for fetching user profile
+  const {
+    data: userData,
+    execute: executeFetchUser
+  } = useApiLazy(() => "/me", {
+    errorContext: "Fetch User Profile"
+  });
+
+  // API composable for login
+  const {
+    execute: executeLogin
+  } = useApiLazy(() => "/login", {
+    method: "post",
+    errorContext: "Login"
+  });
+
+  // API composable for logout
+  const {
+    execute: executeLogout
+  } = useApiLazy(() => "/logout", {
+    method: "post",
+    errorContext: "Logout"
+  });
+
   const fetchUser = async () => {
     try {
-      const { data } = await useApiWithError("/me", {
-        method: "get",
-        errorContext: "Fetch User",
-      });
-      me.value = data.value.data[0];
+      await executeFetchUser();
+      me.value = (userData.value as any)?.data?.[0] || null;
     } catch (err: any) {
       me.value = null;
     }
@@ -21,26 +41,20 @@ export function useAuth() {
     remember?: boolean;
   }) => {
     try {
-      const { data } = await useApiWithError("/login", {
-        method: "post",
-        body: payload,
-        errorContext: "Login",
-      });
-
+      console.log('🔥 Login payload:', payload);
+      const response = await executeLogin({ body: payload });
+      console.log('🔥 Login response:', response);
       await fetchUser();
-      return data.value;
+      return response;
     } catch (err: any) {
-      console.log(err.message);
+      console.error('🔥 Login error:', err);
       return null;
     }
   };
 
   const logout = async () => {
     try {
-      await useApiWithError("/logout", {
-        method: "post",
-        errorContext: "Logout",
-      });
+      await executeLogout();
       me.value = null;
       window.location.reload();
     } catch (err) {

@@ -79,40 +79,58 @@ const loading = ref(false);
 
 const { validate, getIncludeFields } = useSchema(tableName);
 
+// Setup useApiLazy composables at top level
+const { data: hookData, error: fetchError, execute: executeFetchHook } = useApiLazy(() => "/hook_definition", {
+  query: {
+    fields: getIncludeFields(),
+    filter: { id: { _eq: id } },
+  },
+});
+
+const { error: updateError, execute: executeUpdateHook } = useApiLazy(() => `/hook_definition/${id}`, {
+  method: "patch",
+});
+
+const { data: deleteData, error: deleteError, execute: executeDeleteHook } = useApiLazy(() => `/hook_definition/${id}`, {
+  method: "delete",
+});
+
 async function fetchHookDetail() {
   loading.value = true;
-  const { data, error } = await useApiLazy("/hook_definition", {
-    query: {
-      fields: getIncludeFields(),
-      filter: { id: { _eq: id } },
-    },
-  });
-  loading.value = false;
+  
+  try {
+    await executeFetchHook();
+    
+    if (fetchError.value) {
+      toast.add({
+        title: "Error",
+        description: "Cannot load hook data",
+        color: "error",
+      });
+      loading.value = false;
+      return;
+    }
 
-  if (error.value) {
-    toast.add({
-      title: "Error",
-      description: "Cannot load hook data",
-      color: "error",
-    });
-    return;
+    const record = hookData.value?.data?.[0];
+
+    if (!record) {
+      toast.add({
+        title: "Hook not found",
+        description: "Hook does not exist.",
+        color: "error",
+      });
+      router.replace("/settings/hooks");
+      loading.value = false;
+      return;
+    }
+
+    detail.value = record;
+    form.value = { ...record };
+    errors.value = {};
+    loading.value = false;
+  } catch (error) {
+    loading.value = false;
   }
-
-  const record = data.value?.data?.[0];
-
-  if (!record) {
-    toast.add({
-      title: "Hook not found",
-      description: "Hook does not exist.",
-      color: "error",
-    });
-    router.replace("/settings/hooks");
-    return;
-  }
-
-  detail.value = record;
-  form.value = { ...record };
-  errors.value = {};
 }
 
 async function updateHook() {
@@ -130,26 +148,27 @@ async function updateHook() {
 
   globalFormLoading.value = true;
 
-  const { data, error } = await useApiLazy(`/hook_definition/${id}`, {
-    method: "patch",
-    body: form.value,
-  });
+  try {
+    await executeUpdateHook({ body: form.value });
+    
+    if (updateError.value) {
+      toast.add({
+        title: "Error",
+        description: updateError.value.message,
+        color: "error",
+      });
+    } else {
+      toast.add({
+        title: "Saved",
+        description: "Hook has been updated",
+        color: "primary",
+      });
+    }
+  } catch (error) {
+    // Error already handled by useApiLazy
+  }
 
   globalFormLoading.value = false;
-
-  if (error.value) {
-    toast.add({
-      title: "Error",
-      description: error.value.message,
-      color: "error",
-    });
-  } else {
-    toast.add({
-      title: "Saved",
-      description: "Hook has been updated",
-      color: "primary",
-    });
-  }
 }
 
 async function deleteHook() {
@@ -160,23 +179,25 @@ async function deleteHook() {
 
   const deleteLoader = createButtonLoader("delete-hook");
   await deleteLoader.withLoading(async () => {
-    const { data, error } = await useApiLazy(`/hook_definition/${id}`, {
-      method: "delete",
-    });
-
-    if (data.value) {
-      toast.add({
-        title: "Deleted",
-        description: "Hook has been deleted",
-        color: "primary",
-      });
-      router.push("/settings/hooks");
-    } else if (error.value) {
-      toast.add({
-        title: "Error",
-        description: "Cannot delete",
-        color: "error",
-      });
+    try {
+      await executeDeleteHook();
+      
+      if (deleteData.value) {
+        toast.add({
+          title: "Deleted",
+          description: "Hook has been deleted",
+          color: "primary",
+        });
+        router.push("/settings/hooks");
+      } else if (deleteError.value) {
+        toast.add({
+          title: "Error",
+          description: "Cannot delete",
+          color: "error",
+        });
+      }
+    } catch (error) {
+      // Error already handled by useApiLazy
     }
   });
 }

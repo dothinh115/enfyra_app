@@ -36,39 +36,39 @@ const showTitle = computed(() =>
     context === 'inline' ? 'py-2 gap-2' : (loadingType === 'table' || loadingType === 'form' || loadingType === 'card') ? 'py-4' : 'py-8 gap-4',
     context === 'button' ? 'py-1 gap-1' : ''
   ]">
-    <LoadingDots 
+    <CommonLoadingDots 
       v-if="loadingType === 'dots'" 
       type="bounce" 
       :size="size" 
       color="blue-500" 
     />
     
-    <LoadingSpinner 
+    <CommonLoadingSpinner 
       v-else-if="loadingType === 'spinner'" 
       type="crescent" 
       :size="size" 
       color="#007AFF" 
     />
     
-    <LoadingSkeleton 
+    <CommonLoadingSkeleton 
       v-else-if="loadingType === 'table'" 
       type="table" 
       :animated="true" 
     />
     
-    <LoadingSkeleton 
+    <CommonLoadingSkeleton 
       v-else-if="loadingType === 'form'" 
       type="form" 
       :animated="true" 
     />
     
-    <LoadingSkeleton 
+    <CommonLoadingSkeleton 
       v-else-if="loadingType === 'card'" 
       type="card" 
       :animated="true" 
     />
     
-    <LoadingSkeleton 
+    <CommonLoadingSkeleton 
       v-else 
       type="text" 
       :lines="3" 

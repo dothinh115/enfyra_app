@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useApiLazyWithError } from "~/composables/useApiWithError";
 
 const router = useRouter();
 const { tables, globalForm, globalFormLoading, fetchSchema } = useGlobalState();
@@ -115,6 +114,15 @@ function getCleanTablePayload() {
   return clone;
 }
 
+// API composable for creating table
+const {
+  data: createData,
+  execute: createTable
+} = useApiLazy(() => "/table_definition", {
+  method: "post",
+  errorContext: "Create Table"
+});
+
 async function save() {
   if (!validateAll()) return;
   globalFormLoading.value = true;
@@ -128,30 +136,21 @@ async function save() {
   const { globalLoading } = useGlobalState();
   globalLoading.value = true;
 
-  const payload = getCleanTablePayload();
-  const { data, error } = await useApiLazyWithError("/table_definition", {
-    method: "post",
-    body: payload,
-    errorContext: "Create Table",
-  });
-
-  if (data.value) {
+  try {
+    const payload = getCleanTablePayload();
+    await createTable({ body: payload });
+    
     await fetchSchema();
     toast.add({
       title: "Success",
       color: "success",
       description: "New table created!",
     });
-    router.push(`/collections/${data.value.data[0].name}`);
-  } else {
-    toast.add({
-      title: "Error",
-      color: "error",
-      description: error.value?.message,
-    });
+    router.push(`/collections/${createData.value?.data[0]?.name}`);
+  } finally {
+    globalLoading.value = false;
+    globalFormLoading.value = false;
   }
-  globalLoading.value = false;
-  globalFormLoading.value = false;
 }
 </script>
 

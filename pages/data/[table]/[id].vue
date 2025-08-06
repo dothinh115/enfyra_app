@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useApiLazyWithError } from "~/composables/useApiWithError";
 
 const route = useRoute();
 const { globalForm, globalFormLoading } = useGlobalState();
@@ -8,29 +7,34 @@ const { validate } = useSchema(route.params.table as string);
 const updateErrors = ref<Record<string, string>>({});
 
 const { confirm } = useConfirm();
-const currentRecord = ref<Record<string, any>>({});
-const loading = ref(false);
-
-async function fetchRecord() {
-  loading.value = true;
-
-  const { data, error } = await useApiLazyWithError(`/${route.params.table}`, {
-    query: {
-      fields: "*",
-      filter: {
-        id: {
-          _eq: route.params.id,
-        },
+// API composable for fetching record
+const {
+  data: apiData,
+  pending: loading,
+  execute: fetchRecord
+} = useApiLazy(() => `/${route.params.table}`, {
+  query: computed(() => ({
+    fields: "*",
+    filter: {
+      id: {
+        _eq: route.params.id,
       },
     },
-    errorContext: "Fetch Record",
-  });
+  })),
+  errorContext: "Fetch Record"
+});
 
-  loading.value = false;
-  currentRecord.value = data.value?.data?.[0] || {};
-}
+// Form data as ref
+const currentRecord = ref<Record<string, any>>({});
 
-onMounted(fetchRecord);
+// Watch API data and update form
+watch(apiData, (newData) => {
+  if (newData?.data?.[0]) {
+    currentRecord.value = { ...newData.data[0] };
+  }
+}, { immediate: true });
+
+onMounted(() => fetchRecord());
 
 async function letsCreate() {
   const ok = await confirm({
@@ -40,6 +44,15 @@ async function letsCreate() {
     await handleUpdate();
   }
 }
+
+// API composable for updating record
+const {
+  data: updateData,
+  execute: updateRecord
+} = useApiLazy(() => `/${route.params.table}/${route.params.id}`, {
+  method: "patch",
+  errorContext: "Update Record"
+});
 
 async function handleUpdate() {
   const { isValid, errors } = validate(currentRecord.value);
@@ -56,24 +69,20 @@ async function handleUpdate() {
 
   globalFormLoading.value = true;
 
-  const { data, error } = await useApiLazyWithError(
-    `/${route.params.table}/${route.params.id}`,
-    {
-      method: "patch",
-      body: currentRecord.value,
-      errorContext: "Update Record",
-    }
-  );
+  try {
+    await updateRecord({ body: currentRecord.value });
+    
+    toast.add({
+      title: "Success",
+      color: "success",
+      description: "Record updated!",
+    });
+    updateErrors.value = {};
 
-  toast.add({
-    title: "Success",
-    color: "success",
-    description: "Record updated!",
-  });
-  updateErrors.value = {};
-  globalFormLoading.value = false;
-
-  await navigateTo(`/data/${route.params.table}/${data.value.data[0].id}`);
+    await navigateTo(`/data/${route.params.table}/${updateData.value?.data[0]?.id}`);
+  } finally {
+    globalFormLoading.value = false;
+  }
 }
 </script>
 

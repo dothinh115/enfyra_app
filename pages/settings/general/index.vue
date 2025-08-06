@@ -1,38 +1,40 @@
 <script setup lang="ts">
 const toast = useToast();
-const setting = ref<Record<string, any>>({});
 const errors = ref<Record<string, string>>({});
-const loading = ref(false);
 const { globalForm, globalFormLoading } = useGlobalState();
 const { generateEmptyForm, validate } = useSchema("setting_definition");
 
-async function loadSetting() {
-  loading.value = true;
+// API composable for loading settings
+const {
+  data: apiData,
+  pending: loading,
+  execute: loadSetting
+} = useApiLazy(() => `/setting_definition`, {
+  query: {
+    fields: "*",
+    limit: 1,
+  },
+  errorContext: "Load Settings"
+});
 
-  const { data, error } = await useApiLazy(`/setting_definition`, {
-    query: {
-      fields: "*",
-      limit: 1,
-    },
-  });
+// Form data as ref
+const setting = ref<Record<string, any>>({});
 
-  if (error.value) {
-    toast.add({
-      title: "Error loading configuration",
-      description: error.value.message,
-      color: "error",
-    });
-    loading.value = false;
-    return;
-  }
-
-  const firstRecord = data.value?.data?.[0];
+// Watch API data and update form
+watch(apiData, (newData) => {
+  const firstRecord = newData?.data?.[0];
   setting.value = firstRecord || generateEmptyForm();
+}, { immediate: true });
 
-  loading.value = false;
-}
+// API composable for saving settings
+const {
+  execute: saveSetting
+} = useApiLazy(() => `/setting_definition/${setting.value.id}`, {
+  method: "patch",
+  errorContext: "Save Settings"
+});
 
-async function saveSetting() {
+async function handleSaveSetting() {
   if (!setting.value) return;
 
   const { isValid, errors: validationErrors } = validate(setting.value);
@@ -48,35 +50,16 @@ async function saveSetting() {
 
   globalFormLoading.value = true;
 
-  const { error } = await useApiLazy(
-    `/setting_definition/${setting.value.id}`,
-    {
-      method: "patch",
-      body: setting.value,
-    }
-  );
-
-  if (error.value) {
-    toast.add({
-      title: "Error saving configuration",
-      description: error.value.message,
-      color: "error",
-    });
-
-    if (error.value.data?.errors) {
-      errors.value = error.value.data.errors;
-    }
-
+  try {
+    await saveSetting({ body: setting.value });
+    toast.add({ title: "Configuration saved", color: "primary" });
+    errors.value = {};
+  } finally {
     globalFormLoading.value = false;
-    return;
   }
-
-  toast.add({ title: "Configuration saved", color: "primary" });
-  errors.value = {};
-  globalFormLoading.value = false;
 }
 
-onMounted(loadSetting);
+onMounted(() => loadSetting());
 </script>
 
 <template>
@@ -89,7 +72,7 @@ onMounted(loadSetting);
     context="page"
   />
 
-  <UForm v-else @submit="saveSetting" ref="globalForm" :state="setting">
+  <UForm v-else @submit="handleSaveSetting" ref="globalForm" :state="setting">
     <UCard :loading="globalFormLoading">
       <template #header>
         <div class="font-semibold text-base">System Configuration</div>

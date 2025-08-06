@@ -8,7 +8,7 @@ const props = defineProps<{
 }>();
 
 const relations = useModel(props, "modelValue");
-const { relations: relationData } = useGlobalState();
+const { tables } = useGlobalState();
 
 const isEditing = ref(false);
 const isNew = ref(false);
