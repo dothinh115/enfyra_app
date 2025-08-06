@@ -10,13 +10,9 @@
         >
           <UButton
             variant="ghost"
-            :icon="
-              sidebarVisible
-                ? 'lucide:panel-left-close'
-                : 'lucide:panel-left-open'
-            "
+            :icon="sidebarVisible ? 'lucide:chevron-left' : 'lucide:chevron-right'"
             @click="toggleSidebar"
-            class="transition duration-200 ease-in-out w-12 h-12 flex justify-center items-center rounded-lg hover:bg-gray-700 text-gray-300"
+            class="w-12 h-12 flex justify-center items-center rounded-lg hover:bg-gray-700 text-gray-300"
             :class="sidebarVisible ? 'bg-gray-700' : 'bg-gray-600'"
           />
         </UTooltip>
