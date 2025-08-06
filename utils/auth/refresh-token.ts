@@ -67,9 +67,20 @@ export async function refreshToken(event: H3Event): Promise<string | null> {
   } catch (err: any) {
     console.warn("⚠️ Refresh token failed:", err);
 
+    const statusCode = err?.response?.status || err?.statusCode;
+    const errorData = err?.response?._data || err?.data;
+    
+    // Log structured error info
+    if (errorData?.error) {
+      console.warn("⚠️ Backend error details:", {
+        code: errorData.error.code,
+        message: errorData.error.message,
+        correlationId: errorData.error.correlationId,
+      });
+    }
+
     // If error has code 401/403 then delete token
-    const shouldDelete =
-      err?.response?.status === 401 || err?.response?.status === 403;
+    const shouldDelete = statusCode === 401 || statusCode === 403;
 
     if (shouldDelete) {
       deleteCookie(event, ACCESS_TOKEN_KEY);

@@ -10,27 +10,98 @@ interface UseApiOptions<T> {
   watch?: boolean;
 }
 
+interface BackendError {
+  success: false;
+  message: string;
+  statusCode: number;
+  error: {
+    code: string;
+    message: string;
+    details?: any;
+    timestamp: string;
+    path: string;
+    method: string;
+    correlationId?: string;
+  };
+}
+
 function handleApiError(error: any, context?: string) {
   console.error(`API Error${context ? ` in ${context}` : ""}:`, error);
 
   let message = "Request failed";
+  let errorCode = "UNKNOWN_ERROR";
+  let correlationId: string | undefined;
 
+  // Handle backend error response format
   if (error?.response?.data) {
-    const responseData = error.response.data;
-    message = responseData.message || responseData.error || "Request failed";
+    const responseData = error.response.data as BackendError;
+    if (responseData.error) {
+      message = responseData.error.message || responseData.message || "Request failed";
+      errorCode = responseData.error.code;
+      correlationId = responseData.error.correlationId;
+    } else {
+      message = responseData.message || "Request failed";
+    }
   } else if (error?.data) {
-    message = error.data.message || error.data.error || "Request failed";
+    const errorData = error.data as BackendError;
+    if (errorData.error) {
+      message = errorData.error.message || errorData.message || "Request failed";
+      errorCode = errorData.error.code;
+      correlationId = errorData.error.correlationId;
+    } else {
+      message = errorData.message || "Request failed";
+    }
   } else if (error?.message) {
     message = error.message;
   }
 
+  // Log structured error for debugging
+  if (correlationId) {
+    console.error(`🔍 Error details:`, {
+      code: errorCode,
+      message,
+      correlationId,
+      context
+    });
+  }
+
   const toast = useToast();
   toast.add({
-    title: "Error",
+    title: getErrorTitle(errorCode),
     description: message,
-    icon: "lucide:alert-circle",
+    icon: getErrorIcon(errorCode),
     color: "error",
   });
+}
+
+function getErrorTitle(errorCode: string): string {
+  const titleMap: Record<string, string> = {
+    'AUTHENTICATION_ERROR': 'Authentication Error',
+    'AUTHORIZATION_ERROR': 'Access Denied',
+    'VALIDATION_ERROR': 'Validation Error',
+    'RESOURCE_NOT_FOUND': 'Not Found',
+    'DUPLICATE_RESOURCE': 'Duplicate Entry',
+    'DATABASE_ERROR': 'Database Error',
+    'SCRIPT_EXECUTION_ERROR': 'Script Error',
+    'RATE_LIMIT_EXCEEDED': 'Rate Limit Exceeded',
+  };
+  
+  return titleMap[errorCode] || 'Error';
+}
+
+function getErrorIcon(errorCode: string): string {
+  const iconMap: Record<string, string> = {
+    'AUTHENTICATION_ERROR': 'lucide:lock',
+    'AUTHORIZATION_ERROR': 'lucide:shield-x',
+    'VALIDATION_ERROR': 'lucide:alert-triangle',
+    'RESOURCE_NOT_FOUND': 'lucide:search-x',
+    'DUPLICATE_RESOURCE': 'lucide:copy-x',
+    'DATABASE_ERROR': 'lucide:database-x',
+    'SCRIPT_EXECUTION_ERROR': 'lucide:code',
+    'RATE_LIMIT_EXCEEDED': 'lucide:clock-x',
+  };
+  
+  return iconMap[errorCode] || 'lucide:alert-circle';
 }
 
 export function useApi<T = any>(

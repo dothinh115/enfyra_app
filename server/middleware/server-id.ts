@@ -1,3 +1,5 @@
+import { defineEventHandler, setHeader } from "h3";
+
 const serverId = process.pid;
 const startTime = Date.now();
 

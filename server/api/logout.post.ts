@@ -36,9 +36,18 @@ export default defineEventHandler(async (event: H3Event) => {
     deleteCookie(event, REFRESH_TOKEN_KEY);
     deleteCookie(event, EXP_TIME_KEY);
     return result;
-  } catch (err) {
-    console.warn("⚠️ Logout failed at backend API", err);
+  } catch (err: any) {
+    const statusCode = err?.response?.status || err?.statusCode;
+    const errorData = err?.response?._data || err?.data;
+    
+    console.warn("⚠️ Logout failed at backend API", {
+      statusCode,
+      error: errorData?.error?.code,
+      message: errorData?.error?.message || err?.message,
+      correlationId: errorData?.error?.correlationId
+    });
+    
     // don't throw — still delete local cookies
-    return err;
+    return { success: false, message: "Logout completed locally" };
   }
 });

@@ -12,6 +12,7 @@ import {
   REFRESH_TOKEN_KEY,
   EXP_TIME_KEY,
 } from "../../utils/constants";
+import { AuthResponse } from "../../utils/server/types";
 
 export default defineEventHandler(async (event: H3Event) => {
   const config = useRuntimeConfig();
@@ -19,11 +20,7 @@ export default defineEventHandler(async (event: H3Event) => {
   try {
     const body = await readBody(event);
 
-    const response: any = await $fetch<{
-      accessToken: string;
-      refreshToken: string;
-      expTime: number;
-    }>(`${apiUrl}/auth/login`, {
+    const response = await $fetch<AuthResponse>(`${apiUrl}/auth/login`, {
       method: "POST",
       body,
       headers: {
@@ -46,11 +43,29 @@ export default defineEventHandler(async (event: H3Event) => {
     return { accessToken };
   } catch (err: any) {
     console.error("❌ Login failed", err);
+    
+    // Extract error details from backend error response
+    const statusCode = err?.response?.status || err?.statusCode || 401;
+    const errorData = err?.response?._data || err?.data;
+    
+    let errorMessage = "Authentication failed";
+    let errorCode = "AUTHENTICATION_ERROR";
+    
+    if (errorData?.error) {
+      errorMessage = errorData.error.message || errorData.message || errorMessage;
+      errorCode = errorData.error.code || errorCode;
+    }
+    
     return sendError(
       event,
       createError({
-        statusCode: 401,
-        statusMessage: "Unauthorized",
+        statusCode,
+        statusMessage: errorMessage,
+        data: {
+          code: errorCode,
+          details: errorData?.error?.details,
+          correlationId: errorData?.error?.correlationId,
+        }
       })
     );
   }
