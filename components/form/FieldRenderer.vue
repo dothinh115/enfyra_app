@@ -2,7 +2,7 @@
 import { computed, resolveComponent } from "vue";
 import { UInput, UTextarea, USwitch, USelect } from "#components";
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   keyName: string;
   formData: Record<string, any>;
   columnMap: Map<string, any>;
@@ -22,7 +22,9 @@ const props = defineProps<{
       }
   >;
   errors: Record<string, string>;
-}>();
+}>(), {
+  errors: () => ({})
+});
 
 const emit = defineEmits<{
   "update:formData": [key: string, value: any];
@@ -68,7 +70,7 @@ function getComponentConfigByKey(key: string) {
       componentProps: {
         ...componentPropsBase,
         relationMeta: column,
-        modelValue: props.formData[key],
+        modelValue: props.formData[key] ?? null,
         "onUpdate:modelValue": (val: any) => {
           updateFormData(key, val);
         },

@@ -55,7 +55,12 @@ async function fetchData() {
   try {
     await fetchTableData();
     if ((tableData.value as any)?.data) {
-      table.value = (tableData.value as any).data[0];
+      const tableDataRaw = (tableData.value as any).data[0];
+      table.value = {
+        ...tableDataRaw,
+        columns: [...(tableDataRaw.columns || [])],
+        relations: [...(tableDataRaw.relations || [])]
+      };
     }
   } catch (error) {
     console.error("Failed to fetch table data:", error);

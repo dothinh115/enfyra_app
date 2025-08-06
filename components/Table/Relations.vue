@@ -8,7 +8,6 @@ const props = defineProps<{
 }>();
 
 const relations = useModel(props, "modelValue");
-const { tables } = useGlobalState();
 
 const isEditing = ref(false);
 const isNew = ref(false);
@@ -16,20 +15,18 @@ const editingIndex = ref<number | null>(null);
 const currentRelation = ref<any>(null);
 const relationErrors = ref<Record<number, Record<string, string>>>({});
 
+const { generateEmptyForm, validate } = useSchema("relation_definition");
+
 function createEmptyRelation(): any {
-  return {
-    propertyName: "",
-    type: "many-to-one",
-    targetTable: null,
-    isIndex: false,
-    isNullable: false,
-    description: "",
-    isSystem: false,
-    inversePropertyName: "",
-    onDelete: "CASCADE",
-    onUpdate: "CASCADE"
-  };
+  return generateEmptyForm();
 }
+
+const currentRelationErrors = computed({
+  get: () => relationErrors.value[editingIndex.value ?? relations.value.length] || {},
+  set: (val) => {
+    relationErrors.value[editingIndex.value ?? relations.value.length] = val;
+  }
+});
 
 function openNewRelationModal() {
   isEditing.value = true;
@@ -45,33 +42,13 @@ function editRelation(rel: any, index: number) {
   currentRelation.value = { ...toRaw(rel) };
 }
 
-function validateRelation(rel: any): Record<string, string> {
-  const error: Record<string, string> = {};
-
-  if (!rel.propertyName?.trim()) {
-    error.propertyName = "Relation name is required";
-  } else if (!tableNameOrFieldRegexCheck.test(rel.propertyName)) {
-    error.propertyName =
-      "Only letters, numbers, _ allowed and cannot start with number or _!";
-  }
-
-  if (!rel.type) {
-    error.type = "Must select relation type";
-  }
-
-  if (!rel.targetTable) {
-    error.targetTable = "Must select target table";
-  }
-
-  return error;
-}
 
 function saveRelation() {
   const rel = currentRelation.value;
   const index = editingIndex.value ?? relations.value.length;
-  const errors = validateRelation(rel);
+  const { isValid, errors } = validate(rel);
 
-  if (Object.keys(errors).length > 0) {
+  if (!isValid) {
     relationErrors.value[index] = errors;
     return;
   }
@@ -169,7 +146,7 @@ function saveRelation() {
       <template #body>
         <FormEditor
           v-model="currentRelation"
-          v-model:errors="relationErrors[editingIndex ?? relations.length]"
+          v-model:errors="currentRelationErrors"
           tableName="relation_definition"
           :excluded="[
             'id',

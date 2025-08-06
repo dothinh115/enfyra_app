@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   modelValue: Record<string, any>;
   errors: Record<string, string>;
   tableName: string;
@@ -23,7 +23,10 @@ const props = defineProps<{
       }
   >;
   readonly?: boolean;
-}>();
+}>(), {
+  errors: () => ({}),
+  modelValue: () => ({})
+});
 
 const emit = defineEmits(["update:modelValue", "update:errors"]);
 

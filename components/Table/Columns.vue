@@ -8,46 +8,14 @@ const props = defineProps<{
 const isEditing = ref(false);
 const editingIndex = ref<number | null>(null);
 const currentColumn = ref<any>(null);
-const { tables } = useGlobalState();
 const columns = useModel(props, "modelValue");
 const isNew = ref(false);
 const errors = ref<Record<string, string>>({});
 
+const { generateEmptyForm } = useSchema("column_definition");
+
 function createEmptyColumn(): any {
-  const columnDefTable = tables.value.find(
-    (t) => t.name === "column_definition"
-  );
-  if (!columnDefTable) {
-    console.error("column_definition table not found!");
-    return {};
-  }
-
-  const column: any = {};
-
-  for (const def of columnDefTable.columns.sort(
-    (a: any, b: any) => a.id - b.id
-  )) {
-    // Calculate default for each type
-    let value;
-    if (def.defaultValue !== null && def.defaultValue !== undefined) {
-      value = def.defaultValue;
-    } else if (def.type === "boolean") {
-      value = false;
-    } else if (def.type === "simple-json") {
-      value = null;
-    } else if (def.type === "text" || def.type === "varchar") {
-      value = null;
-    } else if (def.type === "enum") {
-      value = def.enumValues?.[0] ?? "";
-    } else if (def.type === "int") {
-      value = 0;
-    } else {
-      value = null;
-    }
-
-    column[def.name] = value;
-  }
-  return column;
+  return generateEmptyForm();
 }
 
 function editColumn(col: any, index: number) {

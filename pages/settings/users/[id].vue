@@ -14,7 +14,7 @@ const { validate, getIncludeFields } = useSchema(tableName);
 const {
   data: apiData,
   pending: loading,
-  execute: fetchUser
+  execute: fetchUser,
 } = useApiLazy(() => `/${tableName}`, {
   query: computed(() => ({
     fields: getIncludeFields(),
@@ -22,41 +22,45 @@ const {
       id: { _eq: route.params.id },
     },
   })),
-  errorContext: "Fetch User"
+  errorContext: "Fetch User",
 });
 
-// Computed user data
-const user = computed(() => {
-  const userData = apiData.value?.data?.[0];
-  if (!userData) return {};
-  return {
-    ...userData,
-    password: null, // to not display password
-  };
-});
+// User detail for display
+const detail = ref<Record<string, any> | null>(null);
+// Form data as ref
+const form = ref<Record<string, any>>({});
 
-// Check if user exists
-watch(apiData, (newData) => {
-  if (newData && (!newData.data || newData.data.length === 0)) {
-    toast.add({
-      title: "User not found",
-      description: "Invalid ID",
-      color: "error",
-    });
-    router.push("/settings/users");
-  }
-}, { immediate: true });
+// Watch API data and update refs
+watch(
+  apiData,
+  (newData) => {
+    if (newData?.data?.[0]) {
+      const userData = newData.data[0];
+      detail.value = userData;
+      form.value = {
+        ...userData,
+        password: null, // to not display password
+      };
+    } else {
+      detail.value = null;
+      form.value = {};
+    }
+  },
+  { immediate: true }
+);
+
 
 // API composable for updating user
-const {
-  execute: updateUser
-} = useApiLazy(() => `/${tableName}/${user.value.id}`, {
-  method: "patch",
-  errorContext: "Update User"
-});
+const { execute: updateUser } = useApiLazy(
+  () => `/${tableName}/${form.value.id}`,
+  {
+    method: "patch",
+    errorContext: "Update User",
+  }
+);
 
 async function saveUser() {
-  const payload = { ...user.value };
+  const payload = { ...form.value };
   if (!payload.password) delete payload.password; // to not overwrite with null
   const { isValid, errors: validationErrors } = validate(payload);
 
@@ -82,16 +86,17 @@ async function saveUser() {
 }
 
 // API composable for deleting user
-const {
-  execute: removeUser
-} = useApiLazy(() => `/${tableName}/${user.value.id}`, {
-  method: "delete",
-  errorContext: "Delete User"
-});
+const { execute: removeUser } = useApiLazy(
+  () => `/${tableName}/${detail.value?.id}`,
+  {
+    method: "delete",
+    errorContext: "Delete User",
+  }
+);
 
 async function deleteUser() {
   const ok = await useConfirm().confirm({
-    content: `Are you sure you want to delete user "${user.value.name}"?`,
+    content: `Are you sure you want to delete user "${detail.value?.name}"?`,
   });
   if (!ok) return;
 
@@ -106,7 +111,28 @@ async function deleteUser() {
   });
 }
 
-onMounted(() => fetchUser());
+async function fetchUserDetail(userId: string) {
+  try {
+    await fetchUser();
+    
+    if (!apiData.value?.data?.[0]) {
+      toast.add({
+        title: "User not found",
+        description: "Invalid ID",
+        color: "error",
+      });
+      router.push("/settings/users");
+    }
+  } catch (error) {
+    // Error handled by useApiLazy
+  }
+}
+
+onMounted(() => fetchUserDetail(route.params.id as string));
+watch(
+  () => route.params.id,
+  (newId) => fetchUserDetail(newId as string)
+);
 </script>
 
 <template>
@@ -119,23 +145,23 @@ onMounted(() => fetchUser());
     context="page"
   />
 
-  <UForm :state="user" ref="globalForm" @submit="saveUser" v-else-if="user">
+  <UForm :state="form" ref="globalForm" @submit="saveUser" v-else-if="detail">
     <UCard>
       <template #header>
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-4">
             <UAvatar
-              v-if="user.avatar"
-              :src="user.avatar"
-              :alt="user.name"
+              v-if="detail.avatar"
+              :src="detail.avatar"
+              :alt="detail.name"
               size="xl"
             />
-            <UAvatar v-else :alt="user.name" size="xl">
-              {{ user.email?.charAt(0)?.toUpperCase() || "?" }}
+            <UAvatar v-else :alt="detail.name" size="xl">
+              {{ detail.email?.charAt(0)?.toUpperCase() || "?" }}
             </UAvatar>
             <div>
-              <div class="text-xl font-semibold">{{ user.name }}</div>
-              <div class="text-sm text-muted-foreground">{{ user.email }}</div>
+              <div class="text-xl font-semibold">{{ detail.name }}</div>
+              <div class="text-sm text-muted-foreground">{{ detail.email }}</div>
             </div>
           </div>
 
@@ -145,7 +171,7 @@ onMounted(() => fetchUser());
               label="Delete user"
               color="error"
               variant="solid"
-              :disabled="user.isSystem || user.isRootAdmin"
+              :disabled="detail.isSystem || detail.isRootAdmin"
               :loading="createButtonLoader('delete-user').isLoading.value"
               @click="deleteUser"
             />
@@ -154,7 +180,7 @@ onMounted(() => fetchUser());
       </template>
 
       <FormEditor
-        v-model="user"
+        v-model="form"
         v-model:errors="errors"
         table-name="user_definition"
         :excluded="['id', 'isRootAdmin', 'isSystem']"
