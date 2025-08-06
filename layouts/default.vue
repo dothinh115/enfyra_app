@@ -9,7 +9,7 @@
     </a>
     
     <!-- Mini Sidebar -->
-    <aside class="w-16 bg-gray-800 flex flex-col items-center flex-shrink-0" role="navigation" aria-label="Primary navigation">
+    <aside class="w-16 bg-gray-800 flex flex-col items-center flex-shrink-0" aria-label="Primary navigation">
       <!-- Toggle Button -->
       <div class="py-4 w-full flex justify-center">
         <UTooltip
@@ -43,7 +43,6 @@
           ? 'fixed inset-y-0 left-16 w-60 z-50 shadow-xl'
           : 'w-60'
       "
-      role="complementary"
       aria-label="Secondary navigation"
     >
       <CommonFull class="mb-9" />
@@ -60,13 +59,12 @@
     ></div>
 
     <!-- Main Content -->
-    <main class="flex-1 flex flex-col min-h-0" id="main-content" role="main">
+    <main class="flex-1 flex flex-col min-h-0" id="main-content">
       <!-- Header -->
       <header
         class="h-16 border-b border-gray-600 flex items-center justify-between bg-background shrink-0"
         :class="isMobile ? 'px-3' : 'px-6'"
-        role="banner"
-      >
+        >
         <div class="flex items-center gap-3 min-w-0 flex-1">
           <CommonBreadCrumbs />
         </div>
@@ -121,6 +119,7 @@
             :size="isMobile ? 'lg' : 'xl'"
             class="rounded-full"
             :to="`/settings/routings/create`"
+            aria-label="Create new routing"
           />
         </div>
         <!-- All other action button sections made responsive -->
@@ -149,6 +148,7 @@
             :size="isMobile ? 'lg' : 'xl'"
             class="rounded-full"
             :to="`/settings/hooks/create`"
+            aria-label="Create new hook"
           />
         </div>
         <div
@@ -176,6 +176,7 @@
             :size="isMobile ? 'lg' : 'xl'"
             class="rounded-full"
             :to="`/settings/handlers/create`"
+            aria-label="Create new handler"
           />
         </div>
         <div
@@ -203,6 +204,7 @@
             :size="isMobile ? 'lg' : 'xl'"
             class="rounded-full"
             :to="`/settings/users/create`"
+            aria-label="Create new user"
           />
         </div>
         <div
@@ -230,6 +232,7 @@
             :size="isMobile ? 'lg' : 'xl'"
             class="rounded-full"
             :to="`/settings/roles/create`"
+            aria-label="Create new role"
           />
         </div>
         <div
@@ -254,6 +257,7 @@
             class="rounded-full"
             :to="`/data/${route.params.table}/create`"
             v-if="route.path === `/data/${route.params.table}`"
+            :aria-label="`Create new ${route.params.table} entry`"
           />
           <UButton
             :label="isMobile ? undefined : 'Save'"
@@ -288,6 +292,7 @@
               :label="isMobile ? undefined : 'Back'"
               :disabled="disableBack"
               :size="isMobile ? 'sm' : 'md'"
+              :aria-label="isMobile ? 'Go back' : undefined"
             />
           </div>
         </slot>

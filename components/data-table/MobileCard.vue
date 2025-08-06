@@ -20,11 +20,10 @@ const props = defineProps<Props>();
       selectable && selected && 'border-primary-300 bg-primary-50 dark:border-primary-700 dark:bg-primary-950',
     ]"
     @click="!selectable && onClick?.()"
-    role="listitem"
-    :aria-selected="selectable ? selected : undefined"
     tabindex="0"
     @keydown.enter="!selectable && onClick?.()"
     @keydown.space.prevent="selectable && onToggleSelect?.()"
+    :aria-selected="selectable ? selected : undefined"
   >
     <div class="flex items-start justify-between">
       <div class="space-y-2 flex-1">

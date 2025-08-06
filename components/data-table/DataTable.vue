@@ -183,7 +183,7 @@ onMounted(() => {
       v-else-if="!isMobile" 
       class="overflow-auto rounded-lg border border-gray-200 dark:border-gray-800 transition-all duration-300 ease-in-out"
     >
-      <table class="w-full" role="table" aria-label="Data table">
+      <table class="w-full" aria-label="Data table">
         <thead class="bg-gray-50 dark:bg-gray-800/50">
           <tr>
             <th
@@ -270,7 +270,7 @@ onMounted(() => {
     </div>
 
     <!-- Mobile Card View -->
-    <div v-else class="space-y-3 transition-all duration-300 ease-in-out" role="list" aria-label="Mobile data view">
+    <div v-else class="space-y-3 transition-all duration-300 ease-in-out" aria-label="Mobile data view">
       <DataTableMobileCard
         v-for="row in table.getRowModel().rows"
         :key="row.id"
