@@ -311,7 +311,6 @@ onMounted(async () => {
     <FilterDrawer
       v-model="showFilterDrawer"
       v-model:filter-value="currentFilter"
-      :schemas="schemas"
       :table-name="tableName"
       @apply="applyFilters"
       @clear="clearFilters"

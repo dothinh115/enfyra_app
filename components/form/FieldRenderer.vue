@@ -66,7 +66,7 @@ function getComponentConfigByKey(key: string) {
 
   if (isRelation) {
     return {
-      component: resolveComponent("RelationInlineEditor"),
+      component: resolveComponent("Relations"),
       componentProps: {
         ...componentPropsBase,
         relationMeta: column,
@@ -175,7 +175,7 @@ function getComponentConfigByKey(key: string) {
 
   if (finalType === "code") {
     return {
-      component: resolveComponent("FormCodeEditor"),
+      component: resolveComponent("FormCodeEditorLazy"),
       componentProps: {
         ...componentPropsBase,
         modelValue: props.formData[key] ?? "",
@@ -217,7 +217,7 @@ function getComponentConfigByKey(key: string) {
 
   if (finalType === "richtext") {
     return {
-      component: resolveComponent("FormRichTextEditor"),
+      component: resolveComponent("FormRichTextEditorLazy"),
       componentProps: {
         modelValue: props.formData[key] ?? "",
         editable: !disabled,

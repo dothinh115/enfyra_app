@@ -220,7 +220,6 @@ watch(page, () => fetchData());
   <FilterDrawer
     v-model="showFilterDrawer"
     v-model:filter-value="currentFilter"
-    :schemas="schemas"
     :table-name="targetTable?.name || ''"
     @apply="applyFilter"
     @clear="clearFilter"

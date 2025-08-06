@@ -5,9 +5,11 @@ import FilterBuilder from "~/components/filter/Builder.vue";
 const props = defineProps<{
   modelValue: boolean;
   filterValue: FilterGroup;
-  schemas: Record<string, any>;
   tableName: string;
 }>();
+
+// Get schemas from global state instead of props
+const { schemas } = useGlobalState();
 
 const emit = defineEmits<{
   "update:modelValue": [value: boolean];

@@ -228,7 +228,6 @@ const { data: apiData } = useApiLazy(() => `/${tableName}`, {
   <FilterDrawer
     v-model="showFilterDrawer"
     v-model:filter-value="currentFilter"
-    :schemas="schemas"
     :table-name="tableName"
     @apply="applyFilters"
     @clear="clearFilters"
@@ -236,6 +235,12 @@ const { data: apiData } = useApiLazy(() => `/${tableName}`, {
 </template>
 
 <script setup>
+const { createEmptyFilter } = useFilterQuery();
+
+const showFilterDrawer = ref(false);
+const currentFilter = ref(createEmptyFilter());
+const tableName = "user_definition"; // or from route params
+
 function applyFilters() {
   // Filter will automatically apply through reactive query
   showFilterDrawer.value = false;
@@ -244,6 +249,8 @@ function applyFilters() {
 function clearFilters() {
   currentFilter.value = createEmptyFilter();
 }
+
+// Note: FilterDrawer gets schemas from useGlobalState() internally
 </script>
 ```
 
