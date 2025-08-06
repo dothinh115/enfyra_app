@@ -82,38 +82,38 @@ function validate(property?: string) {
 }
 
 function getDefaultValueType(columnType: string) {
-  if (!columnType) return { type: 'text' };
-  
-  if (columnType === 'boolean') {
-    return { type: 'boolean' };
+  if (!columnType) return { type: "text" };
+
+  if (columnType === "boolean") {
+    return { type: "boolean" };
   }
-  
-  if (columnType === 'int' || columnType === 'integer') {
-    return { type: 'number' };
+
+  if (columnType === "int" || columnType === "integer") {
+    return { type: "number" };
   }
-  
-  if (columnType === 'text' || columnType === 'varchar') {
-    return { type: 'textarea' };
+
+  if (columnType === "text" || columnType === "varchar") {
+    return { type: "textarea" };
   }
-  
-  return { type: 'text' };
+
+  return { type: "text" };
 }
 
 const typeMap = computed(() => {
   const currentType = currentColumn.value?.type;
-  
+
   return {
     type: {
-      type: 'select',
+      type: "select",
       options:
-        currentColumn.value?.name === 'id'
+        currentColumn.value?.name === "id"
           ? columnTypes.filter((colType) =>
-              ['uuid', 'int'].includes(colType.value)
+              ["uuid", "int"].includes(colType.value)
             )
           : columnTypes,
     },
     name: {
-      disabled: currentColumn.value?.name === 'id',
+      disabled: currentColumn.value?.name === "id",
     },
     defaultValue: getDefaultValueType(currentType),
   };
@@ -221,6 +221,7 @@ onMounted(() => {
             'createdAt',
             'updatedAt',
             'isPrimary',
+            'table',
           ]"
           :type-map="typeMap"
         />

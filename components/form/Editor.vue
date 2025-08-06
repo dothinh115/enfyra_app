@@ -59,7 +59,23 @@ const visibleKeys = computed(() => {
     filtered = allKeys;
   }
 
-  return filtered;
+  // Sort by field id from schema definition, put relations at the end
+  return filtered.sort((a, b) => {
+    const fieldA = columnMap.value.get(a);
+    const fieldB = columnMap.value.get(b);
+    
+    const isRelationA = fieldA?.fieldType === "relation";
+    const isRelationB = fieldB?.fieldType === "relation";
+    
+    // Relations go to the end
+    if (isRelationA && !isRelationB) return 1;
+    if (!isRelationA && isRelationB) return -1;
+    
+    // For fields of same type, sort by id
+    const idA = fieldA?.id || 999999;
+    const idB = fieldB?.id || 999999;
+    return idA - idB;
+  });
 });
 
 function updateFormData(key: string, value: any) {
