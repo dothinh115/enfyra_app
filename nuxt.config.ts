@@ -14,23 +14,6 @@ export default defineNuxtConfig({
   },
   vite: {
     plugins: [tailwindcss()],
-    build: {
-      rollupOptions: {
-        output: {
-          manualChunks: (id) => {
-            if (id.includes('@tanstack/vue-table')) {
-              return 'vendor-table'
-            }
-            if (id.includes('@codemirror/')) {
-              return 'vendor-codemirror'
-            }
-            if (id.includes('node_modules')) {
-              return 'vendor'
-            }
-          }
-        }
-      }
-    }
   },
   runtimeConfig: {
     public: {
