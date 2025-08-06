@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 const route = useRoute();
 const { globalForm, globalFormLoading } = useGlobalState();
 const toast = useToast();
@@ -11,7 +10,7 @@ const { confirm } = useConfirm();
 const {
   data: apiData,
   pending: loading,
-  execute: fetchRecord
+  execute: fetchRecord,
 } = useApiLazy(() => `/${route.params.table}`, {
   query: computed(() => ({
     fields: "*",
@@ -21,18 +20,22 @@ const {
       },
     },
   })),
-  errorContext: "Fetch Record"
+  errorContext: "Fetch Record",
 });
 
 // Form data as ref
 const currentRecord = ref<Record<string, any>>({});
 
 // Watch API data and update form
-watch(apiData, (newData) => {
-  if (newData?.data?.[0]) {
-    currentRecord.value = { ...newData.data[0] };
-  }
-}, { immediate: true });
+watch(
+  apiData,
+  (newData) => {
+    if (newData?.data?.[0]) {
+      currentRecord.value = { ...newData.data[0] };
+    }
+  },
+  { immediate: true }
+);
 
 onMounted(() => fetchRecord());
 
@@ -46,13 +49,13 @@ async function letsCreate() {
 }
 
 // API composable for updating record
-const {
-  data: updateData,
-  execute: updateRecord
-} = useApiLazy(() => `/${route.params.table}/${route.params.id}`, {
-  method: "patch",
-  errorContext: "Update Record"
-});
+const { data: updateData, execute: updateRecord } = useApiLazy(
+  () => `/${route.params.table}/${route.params.id}`,
+  {
+    method: "patch",
+    errorContext: "Update Record",
+  }
+);
 
 async function handleUpdate() {
   const { isValid, errors } = validate(currentRecord.value);
@@ -71,7 +74,7 @@ async function handleUpdate() {
 
   try {
     await updateRecord({ body: currentRecord.value });
-    
+
     toast.add({
       title: "Success",
       color: "success",
@@ -79,7 +82,9 @@ async function handleUpdate() {
     });
     updateErrors.value = {};
 
-    await navigateTo(`/data/${route.params.table}/${updateData.value?.data[0]?.id}`);
+    await navigateTo(
+      `/data/${route.params.table}/${updateData.value?.data[0]?.id}`
+    );
   } finally {
     globalFormLoading.value = false;
   }
@@ -88,18 +93,7 @@ async function handleUpdate() {
 
 <template>
   <!-- Loading state -->
-  <div
-    v-if="loading"
-    class="flex flex-col items-center justify-center py-20 gap-4"
-  >
-    <div class="relative">
-      <div class="w-12 h-12 border-4 border-primary/20 rounded-full"></div>
-      <div
-        class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"
-      ></div>
-    </div>
-    <p class="text-sm text-muted-foreground">Loading record...</p>
-  </div>
+  <CommonLoadingState type="form" v-if="loading" />
 
   <!-- Form content -->
   <UForm v-else :state="currentRecord" @submit="letsCreate" ref="globalForm">
