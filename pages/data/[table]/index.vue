@@ -275,7 +275,7 @@ onMounted(async () => {
         :page-size="pageLimit"
         :selectable="true"
         :on-bulk-delete="handleBulkDelete"
-        @row-click="(row) => navigateTo(`/data/${tableName}/${row.id}`)"
+        @row-click="(row: any) => navigateTo(`/data/${tableName}/${row.id}`)"
       >
         <template #header-actions>
           <div

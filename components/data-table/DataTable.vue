@@ -161,33 +161,14 @@ onMounted(() => {
         <slot name="header-actions" />
         
         <!-- Bulk Actions -->
-        <div v-if="selectable && hasSelection" class="flex items-center gap-2">
-          <span class="text-sm text-gray-600 dark:text-gray-400">
-            {{ selectedRows.length }} selected
-          </span>
-          <UButton
-            v-if="onBulkDelete"
-            icon="i-lucide-trash-2"
-            size="sm"
-            color="error"
-            variant="solid"
-            @click.stop="handleBulkDelete"
-          >
-            Delete Selected
-          </UButton>
-        </div>
+        <DataTableBulkActions 
+          v-if="selectable"
+          :selected-count="selectedRows.length"
+          :on-delete="onBulkDelete ? handleBulkDelete : undefined"
+        />
       </div>
       
-      <UDropdownMenu
-        :items="columnDropdownItems"
-        popper="{ placement: 'bottom-end' }"
-      >
-        <template #default>
-          <UButton icon="i-lucide-columns" size="sm" variant="soft">
-            Columns
-          </UButton>
-        </template>
-      </UDropdownMenu>
+      <DataTableColumnSelector :items="columnDropdownItems" />
     </div>
 
     <!-- Loading State -->
@@ -280,53 +261,16 @@ onMounted(() => {
 
     <!-- Mobile Card View -->
     <div v-else class="space-y-3 transition-all duration-300 ease-in-out">
-      <div
+      <DataTableMobileCard
         v-for="row in table.getRowModel().rows"
         :key="row.id"
-        :class="[
-          'p-4 rounded-lg border border-gray-200 dark:border-gray-800',
-          'hover:border-gray-300 dark:hover:border-gray-700 transition-colors',
-          onRowClick && !selectable && 'cursor-pointer',
-          selectable && row.getIsSelected() && 'border-primary-300 bg-primary-50 dark:border-primary-700 dark:bg-primary-950',
-        ]"
-        @click="!selectable && onRowClick?.(row.original)"
-      >
-        <div class="flex items-start justify-between">
-          <div class="space-y-2 flex-1">
-            <div
-              v-for="cell in row.getVisibleCells().filter(c => c.column.id !== 'select').slice(0, 3)"
-              :key="cell.id"
-              class="flex items-center justify-between"
-            >
-              <span class="text-sm font-medium text-gray-500 dark:text-gray-400">
-                {{ cell.column.columnDef.header }}
-              </span>
-              <span class="text-sm text-gray-900 dark:text-gray-100">
-                <span v-if="typeof cell.column.columnDef.cell !== 'function'">
-                  {{ cell.getValue() }}
-                </span>
-                <component
-                  v-else
-                  :is="cell.column.columnDef.cell"
-                  v-bind="cell.getContext()"
-                />
-              </span>
-            </div>
-          </div>
-          
-          <!-- Mobile Selection Checkbox -->
-          <div v-if="selectable" class="ml-3">
-            <input
-              type="checkbox"
-              class="rounded w-5 h-5 cursor-pointer"
-              :checked="row.getIsSelected()"
-              :disabled="!row.getCanSelect()"
-              @click.stop
-              @change="row.getToggleSelectedHandler()?.($event)"
-            />
-          </div>
-        </div>
-      </div>
+        :row="row.original"
+        :cells="row.getVisibleCells()"
+        :selectable="selectable"
+        :selected="row.getIsSelected()"
+        :on-toggle-select="() => row.getToggleSelectedHandler()?.($event)"
+        :on-click="() => onRowClick?.(row.original)"
+      />
       <div v-if="!table.getRowModel().rows.length" class="py-8">
         <CommonEmptyState
           title="No data available"
