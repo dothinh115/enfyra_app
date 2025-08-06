@@ -18,17 +18,17 @@ const { createButtonLoader } = useButtonLoading();
 const showFilterDrawer = ref(false);
 const currentFilter = ref(createEmptyFilter());
 
-// API composable
-const { 
-  data: apiData, 
-  pending: loading, 
-  execute: fetchData 
+// API composables - all at setup level
+const {
+  data: apiData,
+  pending: loading,
+  execute: fetchData,
 } = useApiLazy(() => `/${tableName}`, {
   query: computed(() => {
     const filterQuery = hasActiveFilters(currentFilter.value)
       ? buildQuery(currentFilter.value)
       : {};
-    
+
     return {
       limit: pageLimit,
       page: page.value,
@@ -37,8 +37,18 @@ const {
       ...(Object.keys(filterQuery).length > 0 && { filter: filterQuery }),
     };
   }),
-  errorContext: `Loading ${tableName} data`
+  errorContext: `Loading ${tableName} data`,
 });
+
+// Delete single record composable
+const deleteId = ref<string>("");
+const { execute: executeSingleDelete } = useApiLazy(
+  () => `/${tableName}/${deleteId.value}`,
+  {
+    method: "delete",
+    errorContext: "Delete Record",
+  }
+);
 
 // Build columns from schema
 const columns = computed<ColumnDef<any>[]>(() => {
@@ -125,12 +135,16 @@ const columns = computed<ColumnDef<any>[]>(() => {
 });
 
 // Watch for API data changes
-watch(apiData, (newData) => {
-  if (newData?.data) {
-    data.value = newData.data;
-    total.value = newData.meta?.total_count || 0;
-  }
-}, { immediate: true });
+watch(
+  apiData,
+  (newData) => {
+    if (newData?.data) {
+      data.value = newData.data;
+      total.value = newData.meta?.total_count || 0;
+    }
+  },
+  { immediate: true }
+);
 
 // Apply filters - called by FilterDrawer
 async function applyFilters() {
@@ -156,23 +170,60 @@ async function handleDelete(id: string) {
   const deleteLoader = createButtonLoader(`delete-${id}`);
 
   await deleteLoader.withLoading(async () => {
-    try {
-      await $fetch(`/api/directus/${tableName}/${id}`, {
-        method: "DELETE",
-      });
+    // Set the id and execute pre-defined composable
+    deleteId.value = id;
+    await executeSingleDelete();
+
+    toast.add({
+      title: "Success",
+      description: "Record deleted successfully",
+      color: "success",
+    });
+    await fetchData();
+  });
+}
+
+async function handleBulkDelete(selectedRows: any[]) {
+  const result = await confirm({
+    title: "Delete Records",
+    content: `Are you sure you want to delete ${selectedRows.length} record(s)?`,
+    confirmText: "Delete All",
+    cancelText: "Cancel",
+  });
+
+  if (!result) return;
+
+  const deleteLoader = createButtonLoader("bulk-delete");
+
+  await deleteLoader.withLoading(async () => {
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const row of selectedRows) {
+      try {
+        deleteId.value = row.id;
+        await executeSingleDelete();
+        successCount++;
+      } catch (error) {
+        failCount++;
+      }
+    }
+
+    if (failCount === 0) {
       toast.add({
         title: "Success",
-        description: "Record deleted successfully",
+        description: `${successCount} record(s) deleted successfully`,
         color: "success",
       });
-      await fetchData();
-    } catch (error) {
+    } else {
       toast.add({
-        title: "Error",
-        description: "Failed to delete record",
-        color: "error",
+        title: "Partial Success",
+        description: `${successCount} deleted, ${failCount} failed`,
+        color: "warning",
       });
     }
+
+    await fetchData();
   });
 }
 
@@ -222,6 +273,8 @@ onMounted(async () => {
         :columns="columns"
         :loading="loading"
         :page-size="pageLimit"
+        :selectable="true"
+        :on-bulk-delete="handleBulkDelete"
         @row-click="(row) => navigateTo(`/data/${tableName}/${row.id}`)"
       >
         <template #header-actions>
@@ -230,8 +283,7 @@ onMounted(async () => {
             class="flex items-center gap-2"
           >
             <UBadge color="primary" variant="soft">
-              {{ currentFilter.conditions.length }} active
-              filters
+              {{ currentFilter.conditions.length }} active filters
             </UBadge>
             <UButton
               icon="i-lucide-x"
