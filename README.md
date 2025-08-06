@@ -16,6 +16,8 @@ A headless CMS built with Nuxt 3, featuring dynamic table management, API compos
 
 For detailed usage instructions, see:
 - [API Composables Guide](./docs/api-composables.md) - Complete guide with examples and patterns
+- [FilterQuery Composable](./docs/FilterQuery.md) - Building and managing data filters  
+- [FormField System](./docs/FormField.md) - Dynamic form generation, validation, and error handling
 
 ## Development
 
