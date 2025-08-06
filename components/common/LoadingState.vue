@@ -30,12 +30,17 @@ const showTitle = computed(() =>
 </script>
 
 <template>
-  <div :class="[
-    'transition-all duration-300 ease-in-out',
-    loadingType === 'table' || loadingType === 'form' || loadingType === 'card' ? 'w-full' : 'flex flex-col items-center justify-center',
-    context === 'inline' ? 'py-2 gap-2' : (loadingType === 'table' || loadingType === 'form' || loadingType === 'card') ? 'py-4' : 'py-8 gap-4',
-    context === 'button' ? 'py-1 gap-1' : ''
-  ]">
+  <div 
+    :class="[
+      'transition-all duration-300 ease-in-out',
+      loadingType === 'table' || loadingType === 'form' || loadingType === 'card' ? 'w-full' : 'flex flex-col items-center justify-center',
+      context === 'inline' ? 'py-2 gap-2' : (loadingType === 'table' || loadingType === 'form' || loadingType === 'card') ? 'py-4' : 'py-8 gap-4',
+      context === 'button' ? 'py-1 gap-1' : ''
+    ]"
+    role="status"
+    aria-live="polite"
+    :aria-label="title || defaultTitle"
+  >
     <CommonLoadingDots 
       v-if="loadingType === 'dots'" 
       type="bounce" 

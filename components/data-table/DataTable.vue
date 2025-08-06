@@ -46,6 +46,7 @@ const enhancedColumns = computed(() => {
       indeterminate: table.getIsSomeRowsSelected(),
       onChange: table.getToggleAllRowsSelectedHandler(),
       onClick: (e: Event) => e.stopPropagation(),
+      'aria-label': 'Select all rows',
     }),
     cell: ({ row }) => h('div', {
       class: 'flex items-center justify-center'
@@ -57,6 +58,7 @@ const enhancedColumns = computed(() => {
         disabled: !row.getCanSelect(),
         onChange: row.getToggleSelectedHandler(),
         onClick: (e: Event) => e.stopPropagation(),
+        'aria-label': `Select row ${row.index + 1}`,
       })
     ]),
     enableSorting: false,
@@ -181,7 +183,7 @@ onMounted(() => {
       v-else-if="!isMobile" 
       class="overflow-auto rounded-lg border border-gray-200 dark:border-gray-800 transition-all duration-300 ease-in-out"
     >
-      <table class="w-full">
+      <table class="w-full" role="table" aria-label="Data table">
         <thead class="bg-gray-50 dark:bg-gray-800/50">
           <tr>
             <th
@@ -192,6 +194,14 @@ onMounted(() => {
                 header.column.getCanSort() && 'cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-800',
               ]"
               @click="header.column.getToggleSortingHandler()?.($event)"
+              scope="col"
+              :aria-sort="
+                header.column.getIsSorted() === 'asc' 
+                  ? 'ascending' 
+                  : header.column.getIsSorted() === 'desc' 
+                  ? 'descending' 
+                  : 'none'
+              "
             >
               <div class="flex items-center gap-2">
                 <span v-if="typeof header.column.columnDef.header === 'string'">
@@ -260,7 +270,7 @@ onMounted(() => {
     </div>
 
     <!-- Mobile Card View -->
-    <div v-else class="space-y-3 transition-all duration-300 ease-in-out">
+    <div v-else class="space-y-3 transition-all duration-300 ease-in-out" role="list" aria-label="Mobile data view">
       <DataTableMobileCard
         v-for="row in table.getRowModel().rows"
         :key="row.id"

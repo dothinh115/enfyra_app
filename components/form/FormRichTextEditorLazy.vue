@@ -20,6 +20,8 @@
 </template>
 
 <script setup lang="ts">
+import { defineAsyncComponent } from 'vue';
+
 // Lazy import the actual RichTextEditor
 const RichTextEditor = defineAsyncComponent(() => 
   import('./RichTextEditor.vue')

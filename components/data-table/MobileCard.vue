@@ -20,6 +20,11 @@ const props = defineProps<Props>();
       selectable && selected && 'border-primary-300 bg-primary-50 dark:border-primary-700 dark:bg-primary-950',
     ]"
     @click="!selectable && onClick?.()"
+    role="listitem"
+    :aria-selected="selectable ? selected : undefined"
+    tabindex="0"
+    @keydown.enter="!selectable && onClick?.()"
+    @keydown.space.prevent="selectable && onToggleSelect?.()"
   >
     <div class="flex items-start justify-between">
       <div class="space-y-2 flex-1">
@@ -52,6 +57,7 @@ const props = defineProps<Props>();
           :checked="selected"
           @click.stop
           @change="onToggleSelect"
+          :aria-label="`Select item ${row.id || 'unknown'}`"
         />
       </div>
     </div>

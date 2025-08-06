@@ -17,7 +17,7 @@
       </template>
 
       <!-- Form -->
-      <UForm :state="form" @submit="handleLogin">
+      <UForm :state="form" @submit="handleLogin" aria-label="Login form">
         <div class="flex flex-col gap-y-5">
           <!-- Email -->
           <div>
@@ -32,6 +32,8 @@
                 :color="error.email ? 'error' : 'primary'"
                 :error="!!error.email"
                 :required="true"
+                autocomplete="email"
+                aria-describedby="email-error"
               />
             </UFormField>
           </div>
@@ -47,6 +49,8 @@
                 size="sm"
                 class="w-full"
                 id="password"
+                autocomplete="current-password"
+                aria-describedby="password-error"
             /></UFormField>
           </div>
 

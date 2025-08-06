@@ -66,7 +66,7 @@ function getComponentConfigByKey(key: string) {
 
   if (isRelation) {
     return {
-      component: resolveComponent("Relations"),
+      component: resolveComponent("RelationInlineEditor"),
       componentProps: {
         ...componentPropsBase,
         relationMeta: column,
