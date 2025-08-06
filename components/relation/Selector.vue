@@ -45,10 +45,13 @@ async function deleteRecord(id: any) {
   if (!targetTable?.name || props.disabled) return;
 
   // Create a specific instance for this record deletion
-  const { execute: removeSpecificRecord } = useApiLazy(() => `/${targetTable.name}/${id}`, {
-    method: "delete",
-    errorContext: "Delete Relation Record"
-  });
+  const { execute: removeSpecificRecord } = useApiLazy(
+    () => `/${targetTable.name}/${id}`,
+    {
+      method: "delete",
+      errorContext: "Delete Relation Record",
+    }
+  );
 
   try {
     await removeSpecificRecord();
@@ -70,13 +73,13 @@ watch(
 const {
   data: apiData,
   pending: loading,
-  execute: fetchData
+  execute: fetchData,
 } = useApiLazy(() => `/${targetTable?.name}`, {
   query: computed(() => {
     const filterQuery = hasActiveFilters(currentFilter.value)
       ? buildQuery(currentFilter.value)
       : {};
-    
+
     return {
       fields: "*",
       page: page.value,
@@ -86,7 +89,7 @@ const {
       ...(Object.keys(filterQuery).length > 0 && { filter: filterQuery }),
     };
   }),
-  errorContext: "Fetch Relation Data"
+  errorContext: "Fetch Relation Data",
 });
 
 // Computed values from API data
@@ -147,7 +150,7 @@ watch(page, () => fetchData());
     />
 
     <!-- Loading State -->
-    <CommonLoadingState v-if="loading" type="card" context="inline" size="sm" />
+    <CommonLoadingState v-if="loading" type="form" context="inline" size="md" />
 
     <!-- Empty State -->
     <CommonEmptyState

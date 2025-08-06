@@ -29,16 +29,16 @@ const animation = computed(() => {
 <template>
   <div class="flex items-center gap-2">
     <div 
-      :class="[dotSize, `bg-${color}`, 'rounded-full', animation]"
-      style="animation-delay: 0ms;"
+      :class="[dotSize, 'bg-blue-500', 'rounded-full', animation]"
+      :style="{ animationDelay: '0ms' }"
     ></div>
     <div 
-      :class="[dotSize, `bg-${color}`, 'rounded-full', animation]"
-      style="animation-delay: 150ms;"
+      :class="[dotSize, 'bg-blue-500', 'rounded-full', animation]"
+      :style="{ animationDelay: '150ms' }"
     ></div>
     <div 
-      :class="[dotSize, `bg-${color}`, 'rounded-full', animation]"
-      style="animation-delay: 300ms;"
+      :class="[dotSize, 'bg-blue-500', 'rounded-full', animation]"
+      :style="{ animationDelay: '300ms' }"
     ></div>
   </div>
 </template>
