@@ -3,7 +3,6 @@
 
 const route = useRoute();
 const { tables, fetchSchema, globalLoading } = useGlobalState();
-const { createButtonLoader } = useButtonLoading();
 const { confirm } = useConfirm();
 const toast = useToast();
 const tableName = "table_definition";
@@ -83,12 +82,7 @@ onMounted(fetchData);
 
 // Watch saving and deleting states to sync with globalLoading
 watch([saving, deleting], ([newSaving, newDeleting]) => {
-  // Set globalLoading when saving or deleting starts
-  // fetchSchema will handle its own globalLoading state when it runs
-  if (newSaving || newDeleting) {
-    globalLoading.value = true;
-  }
-  // Don't reset globalLoading here - let fetchSchema handle it
+  globalLoading.value = newSaving || newDeleting;
 });
 
 watch(

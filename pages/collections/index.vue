@@ -122,10 +122,9 @@ const {
   errorContext: "Create Table",
 });
 
+// Watch createLoading state to sync with globalLoading
 watch(createLoading, (newCreateLoading) => {
-  if (newCreateLoading) {
-    globalLoading.value = true;
-  }
+  globalLoading.value = newCreateLoading;
 });
 
 useHeaderActionRegistry({
