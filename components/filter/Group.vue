@@ -113,11 +113,11 @@ function isCondition(
           <!-- Show relation context if this is a relation group -->
           <div
             v-if="item.relationContext"
-            class="mb-3 p-2 bg-blue-50 rounded text-sm text-blue-700"
+            class="mb-3 p-2 bg-blue-50 dark:bg-blue-950 rounded text-sm text-blue-700 dark:text-blue-300"
           >
             <span class="font-medium">Filtering in relation:</span>
             {{ item.relationContext }}
-            <span class="text-gray-500"
+            <span class="text-gray-500 dark:text-gray-400"
               >({{
                 getTargetTableNameForGroup(
                   item,
