@@ -12,7 +12,7 @@ import {
   REFRESH_TOKEN_KEY,
   EXP_TIME_KEY,
 } from "../../utils/constants";
-import { AuthResponse } from "../../utils/server/types";
+import type { AuthResponse } from "../../utils/server/types";
 
 export default defineEventHandler(async (event: H3Event) => {
   const config = useRuntimeConfig();

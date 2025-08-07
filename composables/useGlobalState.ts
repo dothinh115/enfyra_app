@@ -2,11 +2,6 @@ export const useGlobalState = () => {
   const tables = useState<any[]>("global:tables", () => []);
   const routes = useState<any[]>("global:routes", () => []);
   const settings = useState<any>("global:settings", () => {});
-  const globalForm = useState<any>("global:form", () => null);
-  const globalFormLoading = useState<boolean>(
-    "global:form:loading",
-    () => false
-  );
   const globalLoading = useState<boolean>("global:loading", () => false);
   const buttonLoadingStates = useState<Record<string, boolean>>(
     "global:button:loading",
@@ -247,8 +242,6 @@ export const useGlobalState = () => {
     routes,
     settings,
     schemas,
-    globalForm,
-    globalFormLoading,
     globalLoading,
     buttonLoadingStates,
     sidebarVisible,

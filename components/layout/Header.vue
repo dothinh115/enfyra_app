@@ -15,6 +15,5 @@
 
 <script setup lang="ts">
 const route = useRoute();
-const { globalForm, globalFormLoading } = useGlobalState();
 const { isMobile } = useScreen();
 </script>

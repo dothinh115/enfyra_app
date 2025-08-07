@@ -11,7 +11,7 @@
   <UForm
     v-else-if="detail"
     :state="form"
-    ref="globalForm"
+    
     @submit="updateHook"
     class="space-y-6"
   >
@@ -68,7 +68,7 @@ const router = useRouter();
 const toast = useToast();
 const tableName = "hook_definition";
 const { confirm } = useConfirm();
-const { globalForm, globalFormLoading } = useGlobalState();
+
 const { createButtonLoader } = useButtonLoading();
 const id = route.params.id as string;
 
@@ -167,7 +167,6 @@ async function updateHook() {
     return;
   }
 
-  globalFormLoading.value = true;
 
   try {
     await executeUpdateHook({ body: form.value });
@@ -189,7 +188,6 @@ async function updateHook() {
     // Error already handled by useApiLazy
   }
 
-  globalFormLoading.value = false;
 }
 
 async function deleteHook() {

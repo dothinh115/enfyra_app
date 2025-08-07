@@ -1,6 +1,6 @@
 <template>
   <div class="mx-auto space-y-6">
-    <UForm state="createForm" ref="globalForm" @submit="handleCreate">
+    <UForm state="createForm"  @submit="handleCreate">
       <FormEditor
         v-model="createForm"
         :table-name="tableName"
@@ -19,7 +19,7 @@ const createForm = ref<Record<string, any>>({});
 const createErrors = ref<Record<string, string>>({});
 
 const { generateEmptyForm, validate } = useSchema(tableName);
-const { globalForm } = useGlobalState();
+
 
 // Register header actions
 useHeaderActionRegistry({

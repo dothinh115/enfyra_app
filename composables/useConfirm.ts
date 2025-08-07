@@ -8,7 +8,6 @@ const options = ref({
 
 let resolver: (value: boolean) => void;
 
-const { globalFormLoading } = useGlobalState();
 
 export function useConfirm() {
   const confirm = (opts: Partial<typeof options.value>): Promise<boolean> => {
@@ -30,7 +29,6 @@ export function useConfirm() {
 
   const onCancel = () => {
     isVisible.value = false;
-    globalFormLoading.value = false;
     resolver(false);
   };
 

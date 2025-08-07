@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const toast = useToast();
 const errors = ref<Record<string, string>>({});
-const { globalForm, globalFormLoading } = useGlobalState();
+
 const { generateEmptyForm, validate } = useSchema("setting_definition");
 
 // Register header actions
@@ -63,14 +63,12 @@ async function handleSaveSetting() {
     return;
   }
 
-  globalFormLoading.value = true;
 
   try {
     await saveSetting({ body: setting.value });
     toast.add({ title: "Configuration saved", color: "primary" });
     errors.value = {};
   } finally {
-    globalFormLoading.value = false;
   }
 }
 
@@ -87,8 +85,8 @@ onMounted(() => loadSetting());
     context="page"
   />
 
-  <UForm v-else @submit="handleSaveSetting" ref="globalForm" :state="setting">
-    <UCard :loading="globalFormLoading">
+  <UForm v-else @submit="handleSaveSetting"  :state="setting">
+    <UCard>
       <template #header>
         <div class="font-semibold text-base">System Configuration</div>
       </template>

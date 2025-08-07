@@ -22,7 +22,7 @@
         />
       </div>
 
-      <UForm :state="form" ref="globalForm" @submit="save">
+      <UForm :state="form"  @submit="save">
         <FormEditor
           v-model="form"
           :table-name="tableName"
@@ -64,7 +64,7 @@ useHeaderActionRegistry({
 
 // Setup useApiLazy composables at top level
 const errors = ref<Record<string, string>>({});
-const { globalForm, globalFormLoading } = useGlobalState();
+
 const { validate } = useSchema(tableName);
 const { createButtonLoader } = useButtonLoading();
 
@@ -114,14 +114,12 @@ async function save() {
     return;
   }
 
-  globalFormLoading.value = true;
 
   try {
     await updateRole({ body: form.value });
     toast.add({ title: "Role saved", color: "success" });
     errors.value = {};
   } finally {
-    globalFormLoading.value = false;
   }
 }
 

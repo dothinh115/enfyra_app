@@ -11,7 +11,7 @@
     />
 
     <!-- Form content -->
-    <UForm v-else :state="form" ref="globalForm" @submit="save">
+    <UForm v-else :state="form"  @submit="save">
       <FormEditor
         v-model="form"
         :table-name="tableName"
@@ -43,7 +43,7 @@ const errors = ref<Record<string, string>>({});
 const loading = ref(false);
 const saving = ref(false);
 
-const { globalForm } = useGlobalState();
+
 const { validate, getIncludeFields } = useSchema(tableName);
 
 // Register header actions

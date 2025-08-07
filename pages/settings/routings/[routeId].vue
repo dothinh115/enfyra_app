@@ -17,7 +17,7 @@
   <UForm
     v-else-if="detail"
     :state="form"
-    ref="globalForm"
+    
     @submit="updateRoute"
     class="space-y-6"
   >
@@ -86,7 +86,7 @@ const route = useRoute();
 const router = useRouter();
 const toast = useToast();
 const { confirm } = useConfirm();
-const { globalForm, globalFormLoading } = useGlobalState();
+
 const { createButtonLoader } = useButtonLoading();
 
 const tableName = "route_definition";
@@ -173,7 +173,6 @@ async function updateRoute() {
     return;
   }
 
-  globalFormLoading.value = true;
 
   try {
     await executeUpdateRoute({ body: form.value });
@@ -184,7 +183,6 @@ async function updateRoute() {
         description: updateError.value.message,
         color: "error",
       });
-      globalFormLoading.value = false;
       return;
     }
 
@@ -197,7 +195,6 @@ async function updateRoute() {
     // Error already handled by useApiLazy
   }
 
-  globalFormLoading.value = false;
 }
 
 async function deleteRoute() {

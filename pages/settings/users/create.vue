@@ -2,7 +2,7 @@
   <UForm
     class="mx-auto space-y-6"
     :state="form"
-    ref="globalForm"
+    
     @submit="handleCreate"
   >
     <FormEditor
@@ -21,7 +21,7 @@ const tableName = "user_definition";
 
 const form = ref<Record<string, any>>({});
 const errors = ref<Record<string, string>>({});
-const { globalForm, globalFormLoading } = useGlobalState();
+
 const { generateEmptyForm, validate } = useSchema(tableName);
 
 // Register header actions
@@ -60,7 +60,6 @@ async function handleCreate() {
     return;
   }
 
-  globalFormLoading.value = true;
 
   try {
     await createUser({ body: form.value });
@@ -72,7 +71,6 @@ async function handleCreate() {
 
     await router.push(`/settings/users/${createData.value?.data[0]?.id}`);
   } finally {
-    globalFormLoading.value = false;
   }
 }
 </script>

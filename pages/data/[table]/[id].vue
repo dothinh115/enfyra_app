@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const route = useRoute();
-const { globalForm, globalFormLoading } = useGlobalState();
+
 const toast = useToast();
 const { validate } = useSchema(route.params.table as string);
 const updateErrors = ref<Record<string, string>>({});
@@ -80,7 +80,6 @@ async function handleUpdate() {
     return;
   }
 
-  globalFormLoading.value = true;
 
   try {
     await updateRecord({ body: currentRecord.value });
@@ -96,7 +95,6 @@ async function handleUpdate() {
       `/data/${route.params.table}/${updateData.value?.data[0]?.id}`
     );
   } finally {
-    globalFormLoading.value = false;
   }
 }
 </script>
@@ -106,7 +104,7 @@ async function handleUpdate() {
   <CommonLoadingState type="form" v-if="loading" />
 
   <!-- Form content -->
-  <UForm v-else :state="currentRecord" @submit="letsCreate" ref="globalForm">
+  <UForm v-else :state="currentRecord" @submit="letsCreate" >
     <UCard variant="subtle">
       <template #header>
         <div class="flex items-center justify-between">

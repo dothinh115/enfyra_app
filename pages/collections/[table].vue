@@ -5,7 +5,7 @@ import { useConfirm } from "~/composables/useConfirm";
 import { useToast } from "#imports";
 
 const route = useRoute();
-const { tables, globalForm, globalFormLoading, fetchSchema } = useGlobalState();
+const { tables, fetchSchema } = useGlobalState();
 const { createButtonLoader } = useButtonLoading();
 const { confirm } = useConfirm();
 const toast = useToast();
@@ -88,19 +88,17 @@ watch(
 );
 
 async function save() {
-  globalFormLoading.value = true;
   const ok = await confirm({
     content: "Are you sure you want to modify table structure?",
   });
   if (!ok) {
-    globalFormLoading.value = false;
     return;
   }
   await patchTable();
 }
 
 async function patchTable() {
-  const { globalLoading, globalFormLoading } = useGlobalState();
+  const { globalLoading } = useGlobalState();
   globalLoading.value = true;
 
   await executePatchTable();
@@ -112,7 +110,6 @@ async function patchTable() {
   });
 
   globalLoading.value = false;
-  globalFormLoading.value = false;
 }
 
 async function handleDelete() {
@@ -162,7 +159,7 @@ async function deleteTable() {
     <UForm
       @submit.prevent="save"
       :state="table"
-      ref="globalForm"
+      
       v-else-if="table"
     >
       <div class="mx-auto">

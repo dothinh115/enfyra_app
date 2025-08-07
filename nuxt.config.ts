@@ -28,6 +28,20 @@ export default defineNuxtConfig({
   },
   vite: {
     plugins: [tailwindcss()],
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            // CodeMirror libraries
+            'codemirror': ['@codemirror/view', '@codemirror/state', '@codemirror/lang-javascript'],
+            // TinyMCE
+            'tinymce': ['tinymce'],
+            // Vue Table
+            'vue-table': ['@tanstack/vue-table']
+          }
+        }
+      }
+    }
   },
   runtimeConfig: {
     public: {

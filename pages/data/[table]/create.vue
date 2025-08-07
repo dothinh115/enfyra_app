@@ -1,6 +1,5 @@
 <script setup lang="ts">
 const route = useRoute();
-const { globalForm, globalFormLoading } = useGlobalState();
 const toast = useToast();
 const { confirm } = useConfirm();
 const newRecord = ref<Record<string, any>>({});
@@ -47,7 +46,6 @@ async function handleCreate() {
   });
   if (!ok) return;
 
-  globalFormLoading.value = true;
 
   try {
     await createRecord({ body: newRecord.value });
@@ -62,13 +60,12 @@ async function handleCreate() {
       `/data/${route.params.table}/${createData.value?.data[0]?.id}`
     );
   } finally {
-    globalFormLoading.value = false;
   }
 }
 </script>
 
 <template>
-  <UForm :state="newRecord" @submit="handleCreate" ref="globalForm">
+  <UForm :state="newRecord" @submit="handleCreate" >
     <UCard variant="subtle">
       <template #header>
         <div class="flex items-center justify-between">

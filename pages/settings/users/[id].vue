@@ -2,7 +2,7 @@
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
-const { globalForm, globalFormLoading } = useGlobalState();
+
 const { createButtonLoader } = useButtonLoading();
 
 const tableName = "user_definition";
@@ -83,14 +83,12 @@ async function saveUser() {
     return;
   }
 
-  globalFormLoading.value = true;
 
   try {
     await updateUser({ body: payload });
     toast.add({ title: "Information saved", color: "primary" });
     errors.value = {};
   } finally {
-    globalFormLoading.value = false;
   }
 }
 
@@ -156,7 +154,7 @@ watch(
     context="page"
   />
 
-  <UForm :state="form" ref="globalForm" @submit="saveUser" v-else-if="detail">
+  <UForm :state="form"  @submit="saveUser" v-else-if="detail">
     <UCard>
       <template #header>
         <div class="flex items-center justify-between">

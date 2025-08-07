@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const router = useRouter();
-const { tables, globalForm, globalFormLoading, fetchSchema } = useGlobalState();
+const { tables, globalLoading, fetchSchema } = useGlobalState();
 const { confirm } = useConfirm();
 const toast = useToast();
 const errors = ref<Record<string, string>>({});
@@ -136,15 +136,12 @@ const { data: createData, execute: createTable } = useApiLazy(
 
 async function save() {
   if (!validateAll()) return;
-  globalFormLoading.value = true;
 
   const ok = await confirm({ content: "Are u sure?" });
   if (!ok) {
-    globalFormLoading.value = false;
     return;
   }
 
-  const { globalLoading } = useGlobalState();
   globalLoading.value = true;
 
   try {
@@ -160,13 +157,12 @@ async function save() {
     router.push(`/collections/${createData.value?.data[0]?.name}`);
   } finally {
     globalLoading.value = false;
-    globalFormLoading.value = false;
   }
 }
 </script>
 
 <template>
-  <UForm @submit.prevent="save" :state="table" ref="globalForm">
+  <UForm @submit.prevent="save" :state="table" >
     <div class="mx-auto">
       <TableForm v-model="table" :new="true">
         <template #tableName>
