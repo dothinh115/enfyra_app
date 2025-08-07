@@ -13,6 +13,20 @@ const { confirm } = useConfirm();
 const toast = useToast();
 const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
 const { createButtonLoader } = useButtonLoading();
+const { registerMenuItem } = useMenuRegistry();
+
+// Register menu item for this page
+onMounted(() => {
+  if (table.value) {
+    registerMenuItem({
+      id: `data-${tableName}`,
+      label: table.value.name,
+      route: `/data/${tableName}`,
+      sidebarId: "data",
+      permission: { or: [{ route: `/${tableName}`, actions: ["read"] }] },
+    });
+  }
+});
 
 // Filter state
 const showFilterDrawer = ref(false);

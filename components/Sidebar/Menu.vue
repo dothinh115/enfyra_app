@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import type { PermissionCondition } from "~/composables/usePermissions";
+
 const { routes, tables, globalLoading, setSidebarVisible } = useGlobalState();
 const route = useRoute();
 const { isMobile, isTablet } = useScreen();
 const { checkPermissionCondition } = usePermissions();
+const { getMenuItemsBySidebar } = useMenuRegistry();
 
 function handleMenuClick() {
   if (isMobile.value || isTablet.value) {
@@ -23,6 +26,26 @@ const hasAnyTablePermission = computed(() => {
       or: [{ route: `/${table.name}`, actions: ["read"] }],
     })
   );
+});
+
+// Get current sidebar based on route
+const currentSidebar = computed(() => {
+  const path = route.path;
+  if (path.startsWith("/settings")) return "settings";
+  if (path.startsWith("/collections")) return "collections";
+  if (path.startsWith("/data")) return "data";
+  return null;
+});
+
+// Get visible menu items for current sidebar
+const visibleMenuItems = computed(() => {
+  if (!currentSidebar.value) return [];
+
+  const items = getMenuItemsBySidebar(currentSidebar.value);
+  return items.filter((item) => {
+    if (!item.permission) return true;
+    return checkPermissionCondition(item.permission);
+  });
 });
 </script>
 
@@ -88,40 +111,19 @@ const hasAnyTablePermission = computed(() => {
     class="flex flex-col space-y-3"
   >
     <PermissionGate
-      :condition="{
-        or: [{ route: '/setting_definition', actions: ['read', 'update'] }],
-      }"
+      v-for="item in visibleMenuItems"
+      :key="item.id"
+      :condition="item.permission as any"
     >
       <UButton
         size="lg"
         variant="ghost"
         color="neutral"
-        :to="`/settings/general`"
-        class="w-full hover:bg-primary/20"
-        active-class="bg-primary/20 text-white shadow hover:!bg-primary/20"
-        @click="handleMenuClick"
-      >
-        <template #trailing>
-          <Icon name="lucide:arrow-right" class="ml-auto" />
-        </template>
-        General
-      </UButton>
-    </PermissionGate>
-    <PermissionGate
-      :condition="{
-        or: [{ route: '/route_definition', actions: ['read', 'update'] }],
-      }"
-    >
-      <UButton
-        size="lg"
-        variant="ghost"
-        color="neutral"
-        :to="{
-          name: 'settings-routings',
-        }"
+        :icon="item.icon"
+        :to="item.route"
         class="w-full hover:bg-primary/20"
         :class="
-          route.path.startsWith('/settings/routings') &&
+          route.path.startsWith(item.route) &&
           'bg-primary/20 text-white shadow hover:!bg-primary/20'
         "
         @click="handleMenuClick"
@@ -129,107 +131,7 @@ const hasAnyTablePermission = computed(() => {
         <template #trailing>
           <Icon name="lucide:arrow-right" class="ml-auto" />
         </template>
-        Routings
-      </UButton>
-    </PermissionGate>
-    <PermissionGate
-      :condition="{
-        or: [{ route: '/route_handler_definition', actions: ['read'] }],
-      }"
-    >
-      <UButton
-        size="lg"
-        variant="ghost"
-        color="neutral"
-        :to="{
-          name: 'settings-handlers',
-        }"
-        class="w-full hover:bg-primary/20"
-        :class="
-          route.path.startsWith('/settings/handlers') &&
-          'bg-primary/20 text-white shadow hover:!bg-primary/20'
-        "
-        @click="handleMenuClick"
-      >
-        <template #trailing>
-          <Icon name="lucide:arrow-right" class="ml-auto" />
-        </template>
-        Handlers
-      </UButton>
-    </PermissionGate>
-    <PermissionGate
-      :condition="{
-        or: [{ route: '/hook_definition', actions: ['read'] }],
-      }"
-    >
-      <UButton
-        size="lg"
-        variant="ghost"
-        color="neutral"
-        :to="{
-          name: 'settings-hooks',
-        }"
-        class="w-full hover:bg-primary/20"
-        :class="
-          route.path.startsWith('/settings/hooks') &&
-          'bg-primary/20 text-white shadow hover:!bg-primary/20'
-        "
-        @click="handleMenuClick"
-      >
-        <template #trailing>
-          <Icon name="lucide:arrow-right" class="ml-auto" />
-        </template>
-        Hooks
-      </UButton>
-    </PermissionGate>
-    <PermissionGate
-      :condition="{
-        or: [{ route: '/user_definition', actions: ['read'] }],
-      }"
-    >
-      <UButton
-        size="lg"
-        variant="ghost"
-        color="neutral"
-        :to="{
-          name: 'settings-users',
-        }"
-        class="w-full hover:bg-primary/20"
-        :class="
-          route.path.startsWith('/settings/users') &&
-          'bg-primary/20 text-white shadow hover:!bg-primary/20'
-        "
-        @click="handleMenuClick"
-      >
-        <template #trailing>
-          <Icon name="lucide:arrow-right" class="ml-auto" />
-        </template>
-        Users
-      </UButton>
-    </PermissionGate>
-    <PermissionGate
-      :condition="{
-        or: [{ route: '/role_definition', actions: ['read'] }],
-      }"
-    >
-      <UButton
-        size="lg"
-        variant="ghost"
-        color="neutral"
-        :to="{
-          name: 'settings-roles',
-        }"
-        class="w-full hover:bg-primary/20"
-        :class="
-          route.path.startsWith('/settings/roles') &&
-          'bg-primary/20 text-white shadow hover:!bg-primary/20'
-        "
-        @click="handleMenuClick"
-      >
-        <template #trailing>
-          <Icon name="lucide:arrow-right" class="ml-auto" />
-        </template>
-        Roles
+        {{ item.label }}
       </UButton>
     </PermissionGate>
   </nav>

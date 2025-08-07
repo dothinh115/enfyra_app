@@ -2,55 +2,39 @@
 const route = useRoute();
 const { confirm } = useConfirm();
 const { logout } = useAuth();
-const { tables, routes } = useGlobalState();
+const { miniSidebars } = useMiniSidebarRegistry();
+const { checkPermissionCondition } = usePermissions();
 
 async function handleLogout() {
   const ok = await confirm({ content: "Are you sure you want to logout?" });
   if (ok) await logout();
 }
 
-const { checkPermissionCondition } = usePermissions();
+const items = computed(() => {
+  const defaultItems = [
+    {
+      label: "Dashboard",
+      icon: "lucide:layout-dashboard",
+      route: "/",
+      show: true, // Always show dashboard
+    },
+  ];
 
-const items = computed(() => [
-  {
-    label: "Dashboard",
-    icon: "lucide:layout-dashboard",
-    route: "/",
-    show: true, // Always show dashboard
-  },
-  {
-    label: "List",
-    icon: "lucide:list",
-    route: "/data",
-    show: true, // Always show List menu
-  },
-  {
-    label: "Collections",
-    icon: "lucide:database",
-    route: "/collections",
-    show: checkPermissionCondition({
-      or: [
-        { route: "/table_definition", actions: ["update", "delete"] },
-        { route: "/table_definition", actions: ["create"] },
-      ],
-    }),
-  },
-  {
-    label: "Structure",
-    icon: "lucide:settings",
-    route: "/settings",
-    show: checkPermissionCondition({
-      or: [
-        { route: "/setting_definition", actions: ["read", "update"] },
-        { route: "/route_definition", actions: ["read", "update"] },
-        { route: "/route_handler_definition", actions: ["read"] },
-        { route: "/hook_definition", actions: ["read"] },
-        { route: "/user_definition", actions: ["read"] },
-        { route: "/role_definition", actions: ["read"] },
-      ],
-    }),
-  },
-]);
+  // Add registered mini sidebars
+  const registeredItems = miniSidebars.value
+    .filter((sidebar) => {
+      if (!sidebar.permission) return true;
+      return checkPermissionCondition(sidebar.permission);
+    })
+    .map((sidebar) => ({
+      label: sidebar.label,
+      icon: sidebar.icon,
+      route: sidebar.route,
+      show: true,
+    }));
+
+  return [...defaultItems, ...registeredItems];
+});
 
 const isActive = (path: string) =>
   path === "/" ? route.path === path : route.path.startsWith(path);

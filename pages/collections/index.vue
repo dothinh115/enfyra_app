@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 const router = useRouter();
 const { tables, globalForm, globalFormLoading, fetchSchema } = useGlobalState();
 const { confirm } = useConfirm();
@@ -115,13 +114,13 @@ function getCleanTablePayload() {
 }
 
 // API composable for creating table
-const {
-  data: createData,
-  execute: createTable
-} = useApiLazy(() => "/table_definition", {
-  method: "post",
-  errorContext: "Create Table"
-});
+const { data: createData, execute: createTable } = useApiLazy(
+  () => "/table_definition",
+  {
+    method: "post",
+    errorContext: "Create Table",
+  }
+);
 
 async function save() {
   if (!validateAll()) return;
@@ -139,7 +138,7 @@ async function save() {
   try {
     const payload = getCleanTablePayload();
     await createTable({ body: payload });
-    
+
     await fetchSchema();
     toast.add({
       title: "Success",

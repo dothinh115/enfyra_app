@@ -1,3 +1,14 @@
+// Permission rule types
+export type PermissionRule = {
+  route: string;
+  actions: string[];
+};
+
+export type PermissionCondition = {
+  and?: (PermissionRule | PermissionCondition)[];
+  or?: (PermissionRule | PermissionCondition)[];
+};
+
 export function usePermissions() {
   const { me } = useAuth();
 
@@ -28,17 +39,6 @@ export function usePermissions() {
     return routePermission.methods.some(
       (methodObj: any) => methodObj.method === method
     );
-  };
-
-  // Permission rule types
-  type PermissionRule = {
-    route: string;
-    actions: string[];
-  };
-
-  type PermissionCondition = {
-    and?: (PermissionRule | PermissionCondition)[];
-    or?: (PermissionRule | PermissionCondition)[];
   };
 
   // Check if user has permission for a single rule
