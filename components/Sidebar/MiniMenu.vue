@@ -2,33 +2,55 @@
 const route = useRoute();
 const { confirm } = useConfirm();
 const { logout } = useAuth();
+const { tables, routes } = useGlobalState();
+
 async function handleLogout() {
   const ok = await confirm({ content: "Are you sure you want to logout?" });
   if (ok) await logout();
 }
 
-const items = [
+const { checkPermissionCondition } = usePermissions();
+
+const items = computed(() => [
   {
     label: "Dashboard",
     icon: "lucide:layout-dashboard",
     route: "/",
+    show: true, // Always show dashboard
   },
   {
     label: "List",
     icon: "lucide:list",
     route: "/data",
+    show: true, // Always show List menu
   },
   {
     label: "Collections",
     icon: "lucide:database",
     route: "/collections",
+    show: checkPermissionCondition({
+      or: [
+        { route: "/table_definition", actions: ["update", "delete"] },
+        { route: "/table_definition", actions: ["create"] },
+      ],
+    }),
   },
   {
     label: "Structure",
     icon: "lucide:settings",
     route: "/settings",
+    show: checkPermissionCondition({
+      or: [
+        { route: "/setting_definition", actions: ["read", "update"] },
+        { route: "/route_definition", actions: ["read", "update"] },
+        { route: "/route_handler_definition", actions: ["read"] },
+        { route: "/hook_definition", actions: ["read"] },
+        { route: "/user_definition", actions: ["read"] },
+        { route: "/role_definition", actions: ["read"] },
+      ],
+    }),
   },
-];
+]);
 
 const isActive = (path: string) =>
   path === "/" ? route.path === path : route.path.startsWith(path);
@@ -39,7 +61,7 @@ const isActive = (path: string) =>
     <!-- Navigation Section -->
     <div class="flex flex-col items-center w-full py-2 gap-2">
       <UTooltip
-        v-for="item in items"
+        v-for="item in items.filter((item) => item.show)"
         :key="item.icon"
         :text="item.label"
         placement="right"

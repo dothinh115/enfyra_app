@@ -11,7 +11,7 @@ const routes = ref<any[]>([]);
 const {
   data: apiData,
   pending: loading,
-  execute: fetchRoutes
+  execute: fetchRoutes,
 } = useApiLazy(() => "/route_definition", {
   query: computed(() => ({
     fields: getIncludeFields(),
@@ -20,7 +20,7 @@ const {
     page: page.value,
     limit: pageLimit,
   })),
-  errorContext: "Fetch Routes"
+  errorContext: "Fetch Routes",
 });
 
 // Computed values from API data
@@ -28,9 +28,13 @@ const routesData = computed(() => apiData.value?.data || []);
 const total = computed(() => apiData.value?.meta?.totalCount || 0);
 
 // Update routes when data changes
-watch(routesData, (newRoutes) => {
-  routes.value = newRoutes;
-}, { immediate: true });
+watch(
+  routesData,
+  (newRoutes) => {
+    routes.value = newRoutes;
+  },
+  { immediate: true }
+);
 
 watch(
   () => route.query.page,
@@ -42,20 +46,27 @@ watch(
 );
 
 async function toggleEnabled(routeItem: any) {
-  const originalEnabled = routeItem.isEnabled;
-  routeItem.isEnabled = !routeItem.isEnabled;
-  
+  const newEnabled = !routeItem.isEnabled;
+
   // Create a specific instance for this route update
-  const { execute: updateSpecificRoute } = useApiLazy(() => `/route_definition/${routeItem.id}`, {
-    method: "patch",
-    errorContext: "Toggle Route"
-  });
-  
+  const { execute: updateSpecificRoute } = useApiLazy(
+    () => `/route_definition/${routeItem.id}`,
+    {
+      method: "patch",
+      errorContext: "Toggle Route",
+    }
+  );
+
   try {
-    await updateSpecificRoute({ body: { isEnabled: routeItem.isEnabled } });
+    await updateSpecificRoute({ body: { isEnabled: newEnabled } });
+    // If successful, update the local state
+    const index = routes.value.findIndex((r) => r.id === routeItem.id);
+    if (index !== -1) {
+      routes.value[index] = { ...routes.value[index], isEnabled: newEnabled };
+    }
   } catch (error) {
-    // Revert the toggle on error
-    routeItem.isEnabled = originalEnabled;
+    // Error will be handled by useApiLazy (including 403 redirect)
+    // No need to revert since we didn't change the original object
   }
 }
 </script>

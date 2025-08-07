@@ -1,9 +1,14 @@
 <template>
   <!-- Loading state -->
-  <div v-if="loading" class="flex flex-col items-center justify-center py-20 gap-4">
+  <div
+    v-if="loading"
+    class="flex flex-col items-center justify-center py-20 gap-4"
+  >
     <div class="relative">
       <div class="w-12 h-12 border-4 border-primary/20 rounded-full"></div>
-      <div class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
+      <div
+        class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"
+      ></div>
     </div>
     <p class="text-sm text-muted-foreground">Loading route...</p>
   </div>
@@ -26,14 +31,20 @@
           Route: {{ detail.path }}
         </div>
       </div>
-      <UButton
-        v-if="detail?.isSystem === false"
-        icon="lucide:trash-2"
-        size="xl"
-        color="error"
-        :loading="createButtonLoader('delete-route').isLoading.value"
-        @click="deleteRoute"
-      />
+      <PermissionGate
+        :condition="{
+          or: [{ route: '/route_definition', actions: ['delete'] }],
+        }"
+      >
+        <UButton
+          v-if="detail?.isSystem === false"
+          icon="lucide:trash-2"
+          size="xl"
+          color="error"
+          :loading="createButtonLoader('delete-route').isLoading.value"
+          @click="deleteRoute"
+        />
+      </PermissionGate>
     </div>
 
     <UCard>
@@ -87,27 +98,38 @@ const loading = ref(false);
 const { validate, getIncludeFields } = useSchema(tableName);
 
 // Setup useApiLazy composables at top level
-const { data: routeData, error: fetchError, execute: executeFetchRoute } = useApiLazy(() => "/route_definition", {
+const {
+  data: routeData,
+  error: fetchError,
+  execute: executeFetchRoute,
+} = useApiLazy(() => "/route_definition", {
   query: {
     fields: getIncludeFields(),
     filter: { id: { _eq: Number(route.params.routeId) } },
   },
 });
 
-const { error: updateError, execute: executeUpdateRoute } = useApiLazy(() => `/route_definition/${detail.value?.id}`, {
-  method: "patch",
-});
+const { error: updateError, execute: executeUpdateRoute } = useApiLazy(
+  () => `/route_definition/${detail.value?.id}`,
+  {
+    method: "patch",
+  }
+);
 
-const { data: deleteData, error: deleteError, execute: executeDeleteRoute } = useApiLazy(() => `/route_definition/${route.params.routeId}`, {
+const {
+  data: deleteData,
+  error: deleteError,
+  execute: executeDeleteRoute,
+} = useApiLazy(() => `/route_definition/${route.params.routeId}`, {
   method: "delete",
 });
 
 async function fetchRouteDetail(routeId: number) {
   loading.value = true;
-  
+
   try {
     await executeFetchRoute();
-    
+
     if (fetchError.value || !routeData.value?.data?.[0]) {
       toast.add({
         title: "Not found",
@@ -145,7 +167,7 @@ async function updateRoute() {
 
   try {
     await executeUpdateRoute({ body: form.value });
-    
+
     if (updateError.value) {
       toast.add({
         title: "Error",
@@ -172,13 +194,17 @@ async function deleteRoute() {
   const ok = await confirm({ title: "Are you sure?" });
   if (!ok || detail.value?.isSystem) return;
 
-  const deleteLoader = createButtonLoader('delete-route');
+  const deleteLoader = createButtonLoader("delete-route");
   await deleteLoader.withLoading(async () => {
     try {
       await executeDeleteRoute();
-      
+
       if (deleteError.value) {
-        toast.add({ title: "Error", description: "Delete failed", color: "error" });
+        toast.add({
+          title: "Error",
+          description: "Delete failed",
+          color: "error",
+        });
         return;
       }
 

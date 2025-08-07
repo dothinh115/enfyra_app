@@ -1,29 +1,28 @@
-
 export function useAuth() {
   const me = useState<any | null>("global:me", () => null);
 
   // API composable for fetching user profile
-  const {
-    data: userData,
-    execute: executeFetchUser
-  } = useApiLazy(() => "/me", {
-    errorContext: "Fetch User Profile"
-  });
+  const { data: userData, execute: executeFetchUser } = useApiLazy(
+    () => "/me",
+    {
+      query: {
+        fields:
+          "*,role.*,role.routePermissions.*,role.routePermissions.methods.*,role.routePermissions.route.*",
+      },
+      errorContext: "Fetch User Profile",
+    }
+  );
 
   // API composable for login
-  const {
-    execute: executeLogin
-  } = useApiLazy(() => "/login", {
+  const { execute: executeLogin } = useApiLazy(() => "/login", {
     method: "post",
-    errorContext: "Login"
+    errorContext: "Login",
   });
 
   // API composable for logout
-  const {
-    execute: executeLogout
-  } = useApiLazy(() => "/logout", {
+  const { execute: executeLogout } = useApiLazy(() => "/logout", {
     method: "post",
-    errorContext: "Logout"
+    errorContext: "Logout",
   });
 
   const fetchUser = async () => {
@@ -41,13 +40,13 @@ export function useAuth() {
     remember?: boolean;
   }) => {
     try {
-      console.log('🔥 Login payload:', payload);
+      console.log("🔥 Login payload:", payload);
       const response = await executeLogin({ body: payload });
-      console.log('🔥 Login response:', response);
+      console.log("🔥 Login response:", response);
       await fetchUser();
       return response;
     } catch (err: any) {
-      console.error('🔥 Login error:', err);
+      console.error("🔥 Login error:", err);
       return null;
     }
   };

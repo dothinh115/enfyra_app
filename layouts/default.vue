@@ -7,9 +7,12 @@
     >
       Skip to main content
     </a>
-    
+
     <!-- Mini Sidebar -->
-    <aside class="w-16 bg-gray-800 flex flex-col items-center flex-shrink-0" aria-label="Primary navigation">
+    <aside
+      class="w-16 bg-gray-800 flex flex-col items-center flex-shrink-0"
+      aria-label="Primary navigation"
+    >
       <!-- Toggle Button -->
       <div class="py-4 w-full flex justify-center">
         <UTooltip
@@ -18,11 +21,15 @@
         >
           <UButton
             variant="ghost"
-            :icon="sidebarVisible ? 'lucide:chevron-left' : 'lucide:chevron-right'"
+            :icon="
+              sidebarVisible ? 'lucide:chevron-left' : 'lucide:chevron-right'
+            "
             @click="toggleSidebar"
             class="w-12 h-12 flex justify-center items-center rounded-lg hover:bg-gray-700 text-gray-300"
             :class="sidebarVisible ? 'bg-gray-700' : 'bg-gray-600'"
-            :aria-label="sidebarVisible ? 'Hide navigation menu' : 'Show navigation menu'"
+            :aria-label="
+              sidebarVisible ? 'Hide navigation menu' : 'Show navigation menu'
+            "
             :aria-expanded="sidebarVisible"
           />
         </UTooltip>
@@ -64,7 +71,7 @@
       <header
         class="h-16 border-b border-gray-600 flex items-center justify-between bg-background shrink-0"
         :class="isMobile ? 'px-3' : 'px-6'"
-        >
+      >
         <div class="flex items-center gap-3 min-w-0 flex-1">
           <CommonBreadCrumbs />
         </div>
@@ -89,7 +96,11 @@
             :loading="globalFormLoading"
             @click="globalForm?.submit()"
             :size="isMobile ? 'sm' : 'md'"
-            :aria-label="route.path === '/collections' ? 'Create new table' : 'Save changes'"
+            :aria-label="
+              route.path === '/collections'
+                ? 'Create new table'
+                : 'Save changes'
+            "
           />
         </div>
         <div
@@ -196,16 +207,22 @@
             @click="globalForm?.submit()"
             :size="isMobile ? 'sm' : 'md'"
           />
-          <UButton
+          <PermissionGate
             v-else
-            icon="lucide:plus"
-            color="primary"
-            variant="solid"
-            :size="isMobile ? 'lg' : 'xl'"
-            class="rounded-full"
-            :to="`/settings/users/create`"
-            aria-label="Create new user"
-          />
+            :condition="{
+              or: [{ route: '/user_definition', actions: ['create'] }],
+            }"
+          >
+            <UButton
+              icon="lucide:plus"
+              color="primary"
+              variant="solid"
+              :size="isMobile ? 'lg' : 'xl'"
+              class="rounded-full"
+              :to="`/settings/users/create`"
+              aria-label="Create new user"
+            />
+          </PermissionGate>
         </div>
         <div
           v-else-if="route.path.startsWith('/settings/roles')"
