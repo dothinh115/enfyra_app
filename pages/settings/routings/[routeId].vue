@@ -97,6 +97,16 @@ const loading = ref(false);
 
 const { validate, getIncludeFields } = useSchema(tableName);
 
+// Register header actions
+useHeaderActionRegistry({
+  id: "save-routing",
+  label: "Save",
+  icon: "lucide:save",
+  variant: "solid",
+  color: "primary",
+  submit: updateRoute,
+});
+
 // Setup useApiLazy composables at top level
 const {
   data: routeData,

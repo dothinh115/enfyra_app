@@ -46,21 +46,38 @@ const saving = ref(false);
 const { globalForm } = useGlobalState();
 const { validate, getIncludeFields } = useSchema(tableName);
 
+// Register header actions
+useHeaderActionRegistry({
+  id: "save-handler",
+  label: "Save",
+  icon: "lucide:save",
+  variant: "solid",
+  color: "primary",
+  submit: save,
+});
+
 // Setup useApiLazy composables at top level
-const { data: handlerData, error: fetchError, execute: executeGetHandler } = useApiLazy(() => `/${tableName}`, {
+const {
+  data: handlerData,
+  error: fetchError,
+  execute: executeGetHandler,
+} = useApiLazy(() => `/${tableName}`, {
   query: { fields: getIncludeFields(), filter: { id: { _eq: id } } },
 });
 
-const { error: saveError, execute: executeSaveHandler } = useApiLazy(() => `/${tableName}/${id}`, {
-  method: "patch",
-});
+const { error: saveError, execute: executeSaveHandler } = useApiLazy(
+  () => `/${tableName}/${id}`,
+  {
+    method: "patch",
+  }
+);
 
 async function fetchHandler() {
   loading.value = true;
 
   try {
     await executeGetHandler();
-    
+
     if (fetchError.value) {
       toast.add({ title: "Cannot load handler", color: "error" });
       loading.value = false;
@@ -91,7 +108,7 @@ async function save() {
 
   try {
     await executeSaveHandler({ body: form.value });
-    
+
     if (saveError.value) {
       toast.add({
         title: "Error saving",

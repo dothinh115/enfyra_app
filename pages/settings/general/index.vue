@@ -4,35 +4,50 @@ const errors = ref<Record<string, string>>({});
 const { globalForm, globalFormLoading } = useGlobalState();
 const { generateEmptyForm, validate } = useSchema("setting_definition");
 
+// Register header actions
+useHeaderActionRegistry({
+  id: "save-general",
+  label: "Save",
+  icon: "lucide:save",
+  variant: "solid",
+  color: "primary",
+  submit: handleSaveSetting,
+});
+
 // API composable for loading settings
 const {
   data: apiData,
   pending: loading,
-  execute: loadSetting
+  execute: loadSetting,
 } = useApiLazy(() => `/setting_definition`, {
   query: {
     fields: "*",
     limit: 1,
   },
-  errorContext: "Load Settings"
+  errorContext: "Load Settings",
 });
 
 // Form data as ref
 const setting = ref<Record<string, any>>({});
 
 // Watch API data and update form
-watch(apiData, (newData) => {
-  const firstRecord = newData?.data?.[0];
-  setting.value = firstRecord || generateEmptyForm();
-}, { immediate: true });
+watch(
+  apiData,
+  (newData) => {
+    const firstRecord = newData?.data?.[0];
+    setting.value = firstRecord || generateEmptyForm();
+  },
+  { immediate: true }
+);
 
 // API composable for saving settings
-const {
-  execute: saveSetting
-} = useApiLazy(() => `/setting_definition/${setting.value.id}`, {
-  method: "patch",
-  errorContext: "Save Settings"
-});
+const { execute: saveSetting } = useApiLazy(
+  () => `/setting_definition/${setting.value.id}`,
+  {
+    method: "patch",
+    errorContext: "Save Settings",
+  }
+);
 
 async function handleSaveSetting() {
   if (!setting.value) return;

@@ -52,6 +52,17 @@ const id = route.params.id as string;
 const tableName = "role_definition";
 const { getIncludeFields } = useSchema(tableName);
 
+// Register header actions
+useHeaderActionRegistry({
+  id: "save-role",
+  label: "Save",
+  icon: "lucide:save",
+  variant: "solid",
+  color: "primary",
+  submit: save,
+});
+
+// Setup useApiLazy composables at top level
 const errors = ref<Record<string, string>>({});
 const { globalForm, globalFormLoading } = useGlobalState();
 const { validate } = useSchema(tableName);
@@ -61,31 +72,33 @@ const { createButtonLoader } = useButtonLoading();
 const {
   data: apiData,
   pending: loading,
-  execute: fetchRole
+  execute: fetchRole,
 } = useApiLazy(() => `/${tableName}`, {
   query: computed(() => ({
     fields: getIncludeFields(),
     filter: { id: { _eq: id } },
   })),
-  errorContext: "Fetch Role"
+  errorContext: "Fetch Role",
 });
 
 // Form data as ref
 const form = ref<Record<string, any>>({});
 
 // Watch API data and update form
-watch(apiData, (newData) => {
-  if (newData?.data?.[0]) {
-    form.value = { ...newData.data[0] };
-  }
-}, { immediate: true });
+watch(
+  apiData,
+  (newData) => {
+    if (newData?.data?.[0]) {
+      form.value = { ...newData.data[0] };
+    }
+  },
+  { immediate: true }
+);
 
 // API composable for updating role
-const {
-  execute: updateRole
-} = useApiLazy(() => `/${tableName}/${id}`, {
+const { execute: updateRole } = useApiLazy(() => `/${tableName}/${id}`, {
   method: "patch",
-  errorContext: "Update Role"
+  errorContext: "Update Role",
 });
 
 async function save() {
@@ -113,11 +126,9 @@ async function save() {
 }
 
 // API composable for deleting role
-const {
-  execute: removeRole
-} = useApiLazy(() => `/${tableName}/${id}`, {
+const { execute: removeRole } = useApiLazy(() => `/${tableName}/${id}`, {
   method: "delete",
-  errorContext: "Delete Role"
+  errorContext: "Delete Role",
 });
 
 async function deleteRole() {

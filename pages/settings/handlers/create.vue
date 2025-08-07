@@ -21,8 +21,22 @@ const createErrors = ref<Record<string, string>>({});
 const { generateEmptyForm, validate } = useSchema(tableName);
 const { globalForm } = useGlobalState();
 
+// Register header actions
+useHeaderActionRegistry({
+  id: "save-handler",
+  label: "Save",
+  icon: "lucide:save",
+  variant: "solid",
+  color: "primary",
+  submit: handleCreate,
+});
+
 // Setup useApiLazy composable at top level
-const { data: createData, error: createError, execute: executeCreateHandler } = useApiLazy(() => `/${tableName}`, {
+const {
+  data: createData,
+  error: createError,
+  execute: executeCreateHandler,
+} = useApiLazy(() => `/${tableName}`, {
   method: "post",
 });
 
@@ -45,7 +59,7 @@ async function handleCreate() {
 
   try {
     await executeCreateHandler({ body: createForm.value });
-    
+
     if (createError.value) {
       toast.add({
         title: "Error",

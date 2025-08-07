@@ -1,4 +1,3 @@
-
 export const useGlobalState = () => {
   const tables = useState<any[]>("global:tables", () => []);
   const routes = useState<any[]>("global:routes", () => []);
@@ -9,28 +8,30 @@ export const useGlobalState = () => {
     () => false
   );
   const globalLoading = useState<boolean>("global:loading", () => false);
-  const routeLoading = useState<boolean>("global:route:loading", () => false);
   const buttonLoadingStates = useState<Record<string, boolean>>(
     "global:button:loading",
     () => ({})
   );
   const schemas = useState<any>("global:schemas", () => []);
-  const sidebarVisible = useState<boolean>("global:sidebar:visible", () => true);
+  const sidebarVisible = useState<boolean>(
+    "global:sidebar:visible",
+    () => true
+  );
 
   const toast = useToast();
 
   // API composable for fetching tables
-  const {
-    data: tablesData,
-    execute: executeFetchTables
-  } = useApiLazy(() => "/table_definition", {
-    query: {
-      fields: ["*", "columns.*", "relations.*"].join(","),
-      limit: 0,
-      sort: ["id"].join(",")
-    },
-    errorContext: "Fetch Tables"
-  });
+  const { data: tablesData, execute: executeFetchTables } = useApiLazy(
+    () => "/table_definition",
+    {
+      query: {
+        fields: ["*", "columns.*", "relations.*"].join(","),
+        limit: 0,
+        sort: ["id"].join(","),
+      },
+      errorContext: "Fetch Tables",
+    }
+  );
 
   async function fetchTable() {
     try {
@@ -46,23 +47,23 @@ export const useGlobalState = () => {
   }
 
   // API composable for fetching routes
-  const {
-    data: routesData,
-    execute: executeFetchRoutes
-  } = useApiLazy(() => "/route_definition", {
-    query: {
-      fields: [
-        "*",
-        "mainTable.*",
-        "routePermissions.*",
-        "handlers.*",
-        "hooks.*",
-      ].join(","),
-      limit: 0,
-      sort: ["id"].join(",")
-    },
-    errorContext: "Fetch Routes"
-  });
+  const { data: routesData, execute: executeFetchRoutes } = useApiLazy(
+    () => "/route_definition",
+    {
+      query: {
+        fields: [
+          "*",
+          "mainTable.*",
+          "routePermissions.*",
+          "handlers.*",
+          "hooks.*",
+        ].join(","),
+        limit: 0,
+        sort: ["id"].join(","),
+      },
+      errorContext: "Fetch Routes",
+    }
+  );
 
   async function fetchRoute() {
     try {
@@ -78,16 +79,16 @@ export const useGlobalState = () => {
   }
 
   // API composable for fetching settings
-  const {
-    data: settingsData,
-    execute: executeFetchSettings
-  } = useApiLazy(() => "/setting_definition", {
-    query: {
-      fields: ["*", "methods.*"].join(","),
-      limit: 0
-    },
-    errorContext: "Fetch Settings"
-  });
+  const { data: settingsData, execute: executeFetchSettings } = useApiLazy(
+    () => "/setting_definition",
+    {
+      query: {
+        fields: ["*", "methods.*"].join(","),
+        limit: 0,
+      },
+      errorContext: "Fetch Settings",
+    }
+  );
 
   async function fetchSetting() {
     try {
@@ -233,10 +234,6 @@ export const useGlobalState = () => {
     return buttonLoadingStates.value[buttonId] || false;
   }
 
-  function setRouteLoading(loading: boolean) {
-    routeLoading.value = loading;
-  }
-
   function toggleSidebar() {
     sidebarVisible.value = !sidebarVisible.value;
   }
@@ -253,13 +250,11 @@ export const useGlobalState = () => {
     globalForm,
     globalFormLoading,
     globalLoading,
-    routeLoading,
     buttonLoadingStates,
     sidebarVisible,
     fetchSchema,
     setButtonLoading,
     getButtonLoading,
-    setRouteLoading,
     toggleSidebar,
     setSidebarVisible,
   };

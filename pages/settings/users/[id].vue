@@ -10,6 +10,16 @@ const tableName = "user_definition";
 const errors = ref<Record<string, string>>({});
 const { validate, getIncludeFields } = useSchema(tableName);
 
+// Register header actions
+useHeaderActionRegistry({
+  id: "save-user",
+  label: "Save",
+  icon: "lucide:save",
+  variant: "solid",
+  color: "primary",
+  submit: saveUser,
+});
+
 // API composable for fetching user
 const {
   data: apiData,
@@ -48,7 +58,6 @@ watch(
   },
   { immediate: true }
 );
-
 
 // API composable for updating user
 const { execute: updateUser } = useApiLazy(
@@ -114,7 +123,7 @@ async function deleteUser() {
 async function fetchUserDetail(userId: string) {
   try {
     await fetchUser();
-    
+
     if (!apiData.value?.data?.[0]) {
       toast.add({
         title: "User not found",
@@ -128,7 +137,9 @@ async function fetchUserDetail(userId: string) {
   }
 }
 
-onMounted(() => fetchUserDetail(route.params.id as string));
+onMounted(() => {
+  fetchUserDetail(route.params.id as string);
+});
 watch(
   () => route.params.id,
   (newId) => fetchUserDetail(newId as string)
@@ -161,7 +172,9 @@ watch(
             </UAvatar>
             <div>
               <div class="text-xl font-semibold">{{ detail.name }}</div>
-              <div class="text-sm text-muted-foreground">{{ detail.email }}</div>
+              <div class="text-sm text-muted-foreground">
+                {{ detail.email }}
+              </div>
             </div>
           </div>
 

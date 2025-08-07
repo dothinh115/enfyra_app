@@ -24,14 +24,24 @@ const errors = ref<Record<string, string>>({});
 const { globalForm, globalFormLoading } = useGlobalState();
 const { generateEmptyForm, validate } = useSchema(tableName);
 
-// API composable for creating user
-const {
-  data: createData,
-  execute: createUser
-} = useApiLazy(() => `/${tableName}`, {
-  method: "post",
-  errorContext: "Create User"
+// Register header actions
+useHeaderActionRegistry({
+  id: "save-user",
+  label: "Save",
+  icon: "lucide:save",
+  variant: "solid",
+  color: "primary",
+  submit: handleCreate,
 });
+
+// API composable for creating user
+const { data: createData, execute: createUser } = useApiLazy(
+  () => `/${tableName}`,
+  {
+    method: "post",
+    errorContext: "Create User",
+  }
+);
 
 onMounted(() => {
   form.value = generateEmptyForm();
@@ -54,7 +64,7 @@ async function handleCreate() {
 
   try {
     await createUser({ body: form.value });
-    
+
     toast.add({
       title: "User created successfully",
       color: "success",

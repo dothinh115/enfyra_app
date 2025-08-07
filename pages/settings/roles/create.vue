@@ -28,14 +28,24 @@ const createErrors = ref<Record<string, string>>({});
 const { generateEmptyForm, validate } = useSchema(tableName);
 const { globalForm } = useGlobalState();
 
-// API composable for creating role
-const {
-  data: createData,
-  execute: createRole
-} = useApiLazy(() => `/${tableName}`, {
-  method: "post",
-  errorContext: "Create Role"
+// Register header actions
+useHeaderActionRegistry({
+  id: "save-role",
+  label: "Save",
+  icon: "lucide:save",
+  variant: "solid",
+  color: "primary",
+  submit: handleCreate,
 });
+
+// Setup useApiLazy composable at top level
+const { data: createData, execute: createRole } = useApiLazy(
+  () => `/${tableName}`,
+  {
+    method: "post",
+    errorContext: "Create Role",
+  }
+);
 
 onMounted(() => {
   createForm.value = generateEmptyForm();
@@ -55,7 +65,7 @@ async function handleCreate() {
   }
 
   await createRole({ body: createForm.value });
-  
+
   toast.add({
     title: "Role created successfully",
     color: "success",

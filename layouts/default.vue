@@ -68,231 +68,7 @@
     <!-- Main Content -->
     <main class="flex-1 flex flex-col min-h-0" id="main-content">
       <!-- Header -->
-      <header
-        class="h-16 border-b border-gray-600 flex items-center justify-between bg-background shrink-0"
-        :class="isMobile ? 'px-3' : 'px-6'"
-      >
-        <div class="flex items-center gap-3 min-w-0 flex-1">
-          <CommonBreadCrumbs />
-        </div>
-
-        <!-- Action Buttons -->
-        <div v-if="route.path.startsWith('/collections')" class="flex-shrink-0">
-          <UButton
-            :label="
-              isMobile
-                ? undefined
-                : route.path === '/collections'
-                ? 'Create New Table'
-                : 'Save Changes'
-            "
-            :icon="
-              route.path === '/collections/create'
-                ? 'lucide:newspaper'
-                : 'lucide:save'
-            "
-            color="primary"
-            variant="solid"
-            :loading="globalFormLoading"
-            @click="globalForm?.submit()"
-            :size="isMobile ? 'sm' : 'md'"
-            :aria-label="
-              route.path === '/collections'
-                ? 'Create new table'
-                : 'Save changes'
-            "
-          />
-        </div>
-        <div
-          v-else-if="route.path.startsWith('/settings/routings')"
-          class="flex-shrink-0"
-        >
-          <UButton
-            v-if="
-              route.path.startsWith('/settings/routings/create') ||
-              route.path.startsWith(
-                `/settings/routings/${route.params.routeId}`
-              )
-            "
-            :label="isMobile ? undefined : 'Save'"
-            icon="lucide:newspaper"
-            color="primary"
-            variant="solid"
-            :loading="globalFormLoading"
-            @click="globalForm?.submit()"
-            :size="isMobile ? 'sm' : 'md'"
-          />
-          <UButton
-            v-else
-            icon="lucide:plus"
-            color="primary"
-            variant="solid"
-            :size="isMobile ? 'lg' : 'xl'"
-            class="rounded-full"
-            :to="`/settings/routings/create`"
-            aria-label="Create new routing"
-          />
-        </div>
-        <!-- All other action button sections made responsive -->
-        <div
-          v-else-if="route.path.startsWith('/settings/hooks')"
-          class="flex-shrink-0"
-        >
-          <UButton
-            v-if="
-              route.path.startsWith('/settings/hooks/create') ||
-              route.path.startsWith(`/settings/hooks/${route.params.id}`)
-            "
-            :label="isMobile ? undefined : 'Save'"
-            icon="lucide:newspaper"
-            color="primary"
-            variant="solid"
-            :loading="globalFormLoading"
-            @click="globalForm?.submit()"
-            :size="isMobile ? 'sm' : 'md'"
-          />
-          <UButton
-            v-else
-            icon="lucide:plus"
-            color="primary"
-            variant="solid"
-            :size="isMobile ? 'lg' : 'xl'"
-            class="rounded-full"
-            :to="`/settings/hooks/create`"
-            aria-label="Create new hook"
-          />
-        </div>
-        <div
-          v-else-if="route.path.startsWith('/settings/handlers')"
-          class="flex-shrink-0"
-        >
-          <UButton
-            v-if="
-              route.path.startsWith('/settings/handlers/create') ||
-              route.path.startsWith(`/settings/handlers/${route.params.id}`)
-            "
-            :label="isMobile ? undefined : 'Save'"
-            icon="lucide:newspaper"
-            color="primary"
-            variant="solid"
-            :loading="globalFormLoading"
-            @click="globalForm?.submit()"
-            :size="isMobile ? 'sm' : 'md'"
-          />
-          <UButton
-            v-else
-            icon="lucide:plus"
-            color="primary"
-            variant="solid"
-            :size="isMobile ? 'lg' : 'xl'"
-            class="rounded-full"
-            :to="`/settings/handlers/create`"
-            aria-label="Create new handler"
-          />
-        </div>
-        <div
-          v-else-if="route.path.startsWith('/settings/users')"
-          class="flex-shrink-0"
-        >
-          <UButton
-            v-if="
-              route.path.startsWith('/settings/users/create') ||
-              route.path.startsWith(`/settings/users/${route.params.id}`)
-            "
-            :label="isMobile ? undefined : 'Save'"
-            icon="lucide:newspaper"
-            color="primary"
-            variant="solid"
-            :loading="globalFormLoading"
-            @click="globalForm?.submit()"
-            :size="isMobile ? 'sm' : 'md'"
-          />
-          <PermissionGate
-            v-else
-            :condition="{
-              or: [{ route: '/user_definition', actions: ['create'] }],
-            }"
-          >
-            <UButton
-              icon="lucide:plus"
-              color="primary"
-              variant="solid"
-              :size="isMobile ? 'lg' : 'xl'"
-              class="rounded-full"
-              :to="`/settings/users/create`"
-              aria-label="Create new user"
-            />
-          </PermissionGate>
-        </div>
-        <div
-          v-else-if="route.path.startsWith('/settings/roles')"
-          class="flex-shrink-0"
-        >
-          <UButton
-            v-if="
-              route.path.startsWith('/settings/roles/create') ||
-              route.path.startsWith(`/settings/roles/${route.params.id}`)
-            "
-            :label="isMobile ? undefined : 'Save'"
-            icon="lucide:newspaper"
-            color="primary"
-            variant="solid"
-            :loading="globalFormLoading"
-            @click="globalForm?.submit()"
-            :size="isMobile ? 'sm' : 'md'"
-          />
-          <UButton
-            v-else
-            icon="lucide:plus"
-            color="primary"
-            variant="solid"
-            :size="isMobile ? 'lg' : 'xl'"
-            class="rounded-full"
-            :to="`/settings/roles/create`"
-            aria-label="Create new role"
-          />
-        </div>
-        <div
-          v-else-if="route.path.startsWith('/settings/general')"
-          class="flex-shrink-0"
-        >
-          <UButton
-            icon="lucide:newspaper"
-            color="primary"
-            variant="solid"
-            :label="isMobile ? undefined : 'Save'"
-            @click="globalForm?.submit()"
-            :size="isMobile ? 'sm' : 'md'"
-          />
-        </div>
-        <div v-else-if="route.path.startsWith(`/data`)" class="flex-shrink-0">
-          <UButton
-            icon="lucide:plus"
-            color="primary"
-            variant="solid"
-            :size="isMobile ? 'lg' : 'xl'"
-            class="rounded-full"
-            :to="`/data/${route.params.table}/create`"
-            v-if="route.path === `/data/${route.params.table}`"
-            :aria-label="`Create new ${route.params.table} entry`"
-          />
-          <UButton
-            :label="isMobile ? undefined : 'Save'"
-            icon="lucide:newspaper"
-            color="primary"
-            variant="solid"
-            :loading="globalFormLoading"
-            @click="globalForm?.submit()"
-            :size="isMobile ? 'sm' : 'md'"
-            v-else-if="
-              route.path.startsWith(`/data/${route.params.table}/create`) ||
-              route.path.startsWith(
-                `/data/${route.params.table}/${route.params.id}`
-              )
-            "
-          />
-        </div>
-      </header>
+      <LayoutHeader />
 
       <div
         class="h-12 border-b border-gray-700 flex items-center justify-between bg-background shrink-0"
@@ -329,12 +105,6 @@
   <div id="others-overlay"></div>
 
   <CommonGlobalConfirm />
-  <CommonGlobalLoading
-    :show="globalLoading"
-    title="Processing Schema"
-    description="This may take a moment due to server latency"
-  />
-  <CommonRouteLoading :show="routeLoading" message="Navigating..." />
   <CommonMobileWarning />
 </template>
 
@@ -342,15 +112,13 @@
 const route = useRoute();
 const {
   fetchSchema,
-  globalForm,
-  globalFormLoading,
   globalLoading,
-  routeLoading,
   sidebarVisible,
   toggleSidebar,
   setSidebarVisible,
 } = useGlobalState();
 const { isMobile, isTablet } = useScreen();
+
 // Calculate breadcrumb segments from route
 const segments = computed(() => {
   const parts = route.path.split("/").filter(Boolean);

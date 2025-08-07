@@ -11,7 +11,7 @@ const { getIncludeFields } = useSchema(tableName);
 const {
   data: apiData,
   pending: loading,
-  execute: fetchRoles
+  execute: fetchRoles,
 } = useApiLazy(() => "/role_definition", {
   query: computed(() => ({
     fields: getIncludeFields(),
@@ -20,12 +20,24 @@ const {
     page: page.value,
     limit: pageLimit,
   })),
-  errorContext: "Fetch Roles"
+  errorContext: "Fetch Roles",
 });
 
 // Computed values from API data
 const roles = computed(() => apiData.value?.data || []);
 const total = computed(() => apiData.value?.meta?.totalCount || 0);
+
+// Register header actions
+useHeaderActionRegistry({
+  id: "create-role",
+  label: "Create Role",
+  icon: "lucide:plus",
+  variant: "solid",
+  color: "primary",
+  size: "lg",
+  to: "/settings/roles/create",
+  class: "rounded-full",
+});
 
 async function deleteRole(id: string) {
   const ok = await confirm({
@@ -35,14 +47,17 @@ async function deleteRole(id: string) {
   if (!ok) return;
 
   // Create a specific instance for this role deletion
-  const { execute: removeSpecificRole } = useApiLazy(() => `/role_definition/${id}`, {
-    method: "delete",
-    errorContext: "Delete Role"
-  });
+  const { execute: removeSpecificRole } = useApiLazy(
+    () => `/role_definition/${id}`,
+    {
+      method: "delete",
+      errorContext: "Delete Role",
+    }
+  );
 
   try {
     await removeSpecificRole();
-    
+
     toast.add({ title: "Role deleted", color: "success" });
     await fetchRoles();
   } catch (error) {

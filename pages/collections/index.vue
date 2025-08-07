@@ -113,6 +113,18 @@ function getCleanTablePayload() {
   return clone;
 }
 
+// Register header actions
+useHeaderActionRegistry({
+  id: "create-table",
+  label: "Create New Table",
+  icon: "lucide:plus",
+  variant: "solid",
+  color: "primary",
+  size: "lg",
+  submit: save,
+  class: "rounded-full",
+});
+
 // API composable for creating table
 const { data: createData, execute: createTable } = useApiLazy(
   () => "/table_definition",

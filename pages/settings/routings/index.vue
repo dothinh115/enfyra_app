@@ -27,6 +27,18 @@ const {
 const routesData = computed(() => apiData.value?.data || []);
 const total = computed(() => apiData.value?.meta?.totalCount || 0);
 
+// Register header actions
+useHeaderActionRegistry({
+  id: "create-routing",
+  label: "Create Routing",
+  icon: "lucide:plus",
+  variant: "solid",
+  color: "primary",
+  size: "lg",
+  to: "/settings/routings/create",
+  class: "rounded-full",
+});
+
 // Update routes when data changes
 watch(
   routesData,

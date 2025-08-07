@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 const toast = useToast();
 const page = ref(1);
 const pageLimit = 10;
@@ -12,7 +11,7 @@ const { getIncludeFields } = useSchema(tableName);
 const {
   data: apiData,
   pending: loading,
-  execute: fetchRouteHandlers
+  execute: fetchRouteHandlers,
 } = useApiLazy(() => "/route_handler_definition", {
   query: computed(() => ({
     fields: getIncludeFields(),
@@ -21,18 +20,33 @@ const {
     page: page.value,
     limit: pageLimit,
   })),
-  errorContext: "Fetch Route Handlers"
+  errorContext: "Fetch Route Handlers",
 });
 
 // API composable for deleting handlers (reusable)
-const { execute: removeHandler } = useApiLazy(() => `/route_handler_definition/0`, {
-  method: "delete",
-  errorContext: "Delete Handler"
-});
+const { execute: removeHandler } = useApiLazy(
+  () => `/route_handler_definition/0`,
+  {
+    method: "delete",
+    errorContext: "Delete Handler",
+  }
+);
 
 // Computed values from API data
 const routeHandlers = computed(() => apiData.value?.data || []);
 const total = computed(() => apiData.value?.meta?.totalCount || 0);
+
+// Register header actions
+useHeaderActionRegistry({
+  id: "create-handler",
+  label: "Create Handler",
+  icon: "lucide:plus",
+  variant: "solid",
+  color: "primary",
+  size: "lg",
+  to: "/settings/handlers/create",
+  class: "rounded-full",
+});
 
 async function deleteHandler(id: number) {
   const ok = await confirm({
@@ -41,14 +55,17 @@ async function deleteHandler(id: number) {
   if (!ok) return;
 
   // Create a specific instance for this deletion
-  const { execute: deleteSpecificHandler } = useApiLazy(() => `/route_handler_definition/${id}`, {
-    method: "delete",
-    errorContext: "Delete Handler"
-  });
+  const { execute: deleteSpecificHandler } = useApiLazy(
+    () => `/route_handler_definition/${id}`,
+    {
+      method: "delete",
+      errorContext: "Delete Handler",
+    }
+  );
 
   try {
     await deleteSpecificHandler();
-    
+
     toast.add({ title: "Deleted", color: "success" });
     await fetchRouteHandlers();
   } catch (error) {

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 const route = useRoute();
 const { globalForm, globalFormLoading } = useGlobalState();
 const toast = useToast();
@@ -8,14 +7,24 @@ const newRecord = ref<Record<string, any>>({});
 const { generateEmptyForm, validate } = useSchema(route.params.table as string);
 const createErrors = ref<Record<string, string>>({});
 
-// API composable for creating record
-const {
-  data: createData,
-  execute: createRecord
-} = useApiLazy(() => `/${route.params.table}`, {
-  method: "post",
-  errorContext: "Create Record"
+// Register header actions
+useHeaderActionRegistry({
+  id: "save-data-entry",
+  label: "Save",
+  icon: "lucide:save",
+  variant: "solid",
+  color: "primary",
+  submit: handleCreate,
 });
+
+// API composable for creating record
+const { data: createData, execute: createRecord } = useApiLazy(
+  () => `/${route.params.table}`,
+  {
+    method: "post",
+    errorContext: "Create Record",
+  }
+);
 
 onMounted(() => {
   newRecord.value = generateEmptyForm();
@@ -42,14 +51,16 @@ async function handleCreate() {
 
   try {
     await createRecord({ body: newRecord.value });
-    
+
     toast.add({
       title: "Success",
       color: "success",
       description: "New record created!",
     });
 
-    await navigateTo(`/data/${route.params.table}/${createData.value?.data[0]?.id}`);
+    await navigateTo(
+      `/data/${route.params.table}/${createData.value?.data[0]?.id}`
+    );
   } finally {
     globalFormLoading.value = false;
   }

@@ -5,6 +5,16 @@ const toast = useToast();
 const { validate } = useSchema(route.params.table as string);
 const updateErrors = ref<Record<string, string>>({});
 
+// Register header actions
+useHeaderActionRegistry({
+  id: "save-data-entry",
+  label: "Save",
+  icon: "lucide:save",
+  variant: "solid",
+  color: "primary",
+  submit: handleUpdate,
+});
+
 const { confirm } = useConfirm();
 // API composable for fetching record
 const {

@@ -82,7 +82,6 @@
   </div>
 </template>
 <script setup lang="ts">
-
 const page = ref(1);
 const limit = 12;
 const tableName = "user_definition";
@@ -92,7 +91,7 @@ const { getIncludeFields } = useSchema(tableName);
 const {
   data: apiData,
   pending: loading,
-  execute: fetchUsers
+  execute: fetchUsers,
 } = useApiLazy(() => "/user_definition", {
   query: computed(() => ({
     fields: getIncludeFields(),
@@ -101,13 +100,27 @@ const {
     sort: "-createdAt",
     meta: "totalCount",
   })),
-  errorContext: "Fetch Users"
+  errorContext: "Fetch Users",
 });
 
 // Computed values from API data
 const users = computed(() => apiData.value?.data || []);
 const total = computed(() => apiData.value?.meta?.totalCount || 0);
 
-watch(page, () => fetchUsers());
-onMounted(() => fetchUsers());
+// Register header actions
+useHeaderActionRegistry({
+  id: "create-user",
+  label: "Create User",
+  icon: "lucide:plus",
+  variant: "solid",
+  color: "primary",
+  size: "lg",
+  to: "/settings/users/create",
+  class: "rounded-full",
+  permission: {
+    or: [{ route: "/user_definition", actions: ["create"] }],
+  },
+});
+
+watch(page, () => fetchUsers(), { immediate: true });
 </script>

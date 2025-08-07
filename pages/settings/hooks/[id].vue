@@ -79,28 +79,49 @@ const loading = ref(false);
 
 const { validate, getIncludeFields } = useSchema(tableName);
 
+// Register header actions
+useHeaderActionRegistry({
+  id: "save-hook",
+  label: "Save",
+  icon: "lucide:save",
+  variant: "solid",
+  color: "primary",
+  submit: updateHook,
+});
+
 // Setup useApiLazy composables at top level
-const { data: hookData, error: fetchError, execute: executeFetchHook } = useApiLazy(() => "/hook_definition", {
+const {
+  data: hookData,
+  error: fetchError,
+  execute: executeFetchHook,
+} = useApiLazy(() => "/hook_definition", {
   query: {
     fields: getIncludeFields(),
     filter: { id: { _eq: id } },
   },
 });
 
-const { error: updateError, execute: executeUpdateHook } = useApiLazy(() => `/hook_definition/${id}`, {
-  method: "patch",
-});
+const { error: updateError, execute: executeUpdateHook } = useApiLazy(
+  () => `/hook_definition/${id}`,
+  {
+    method: "patch",
+  }
+);
 
-const { data: deleteData, error: deleteError, execute: executeDeleteHook } = useApiLazy(() => `/hook_definition/${id}`, {
+const {
+  data: deleteData,
+  error: deleteError,
+  execute: executeDeleteHook,
+} = useApiLazy(() => `/hook_definition/${id}`, {
   method: "delete",
 });
 
 async function fetchHookDetail() {
   loading.value = true;
-  
+
   try {
     await executeFetchHook();
-    
+
     if (fetchError.value) {
       toast.add({
         title: "Error",
@@ -150,7 +171,7 @@ async function updateHook() {
 
   try {
     await executeUpdateHook({ body: form.value });
-    
+
     if (updateError.value) {
       toast.add({
         title: "Error",
@@ -181,7 +202,7 @@ async function deleteHook() {
   await deleteLoader.withLoading(async () => {
     try {
       await executeDeleteHook();
-      
+
       if (deleteData.value) {
         toast.add({
           title: "Deleted",

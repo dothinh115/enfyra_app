@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 const toast = useToast();
 const page = ref(1);
 const pageLimit = 7;
@@ -11,7 +10,7 @@ const { getIncludeFields } = useSchema(tableName);
 const {
   data: apiData,
   pending: loading,
-  execute: fetchHooks
+  execute: fetchHooks,
 } = useApiLazy(() => "/hook_definition", {
   query: computed(() => ({
     fields: getIncludeFields(),
@@ -20,18 +19,30 @@ const {
     page: page.value,
     limit: pageLimit,
   })),
-  errorContext: "Fetch Hooks"
+  errorContext: "Fetch Hooks",
 });
 
 // API composable for updating hooks (reusable)
 const { execute: updateHook } = useApiLazy(() => `/hook_definition/0`, {
   method: "patch",
-  errorContext: "Toggle Hook"
+  errorContext: "Toggle Hook",
 });
 
 // Computed values from API data
 const hooks = computed(() => apiData.value?.data || []);
 const total = computed(() => apiData.value?.meta?.totalCount || 0);
+
+// Register header actions
+useHeaderActionRegistry({
+  id: "create-hook",
+  label: "Create Hook",
+  icon: "lucide:plus",
+  variant: "solid",
+  color: "primary",
+  size: "lg",
+  to: "/settings/hooks/create",
+  class: "rounded-full",
+});
 
 watch(
   () => route.query.page,
@@ -45,12 +56,15 @@ watch(
 async function toggleEnabled(hook: any) {
   const originalEnabled = hook.isEnabled;
   hook.isEnabled = !hook.isEnabled;
-  
+
   // Create a specific instance for this hook update
-  const { execute: updateSpecificHook } = useApiLazy(() => `/hook_definition/${hook.id}`, {
-    method: "patch",
-    errorContext: "Toggle Hook"
-  });
+  const { execute: updateSpecificHook } = useApiLazy(
+    () => `/hook_definition/${hook.id}`,
+    {
+      method: "patch",
+      errorContext: "Toggle Hook",
+    }
+  );
 
   try {
     await updateSpecificHook({ body: { isEnabled: hook.isEnabled } });

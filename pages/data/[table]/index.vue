@@ -28,6 +28,18 @@ onMounted(() => {
   }
 });
 
+// Register header actions
+useHeaderActionRegistry({
+  id: "create-data-entry",
+  label: "Create Entry",
+  icon: "lucide:plus",
+  variant: "solid",
+  color: "primary",
+  size: "lg",
+  to: `/data/${route.params.table}/create`,
+  class: "rounded-full",
+});
+
 // Filter state
 const showFilterDrawer = ref(false);
 const currentFilter = ref(createEmptyFilter());
