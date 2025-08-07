@@ -10,7 +10,7 @@
           :variant="action.variant || 'solid'"
           :color="action.color || 'primary'"
           :size="isMobile ? 'sm' : action.size || 'md'"
-          :loading="action.loading"
+          :loading="unref(action.loading)"
           :disabled="action.disabled"
           :to="action.to"
           :aria-label="action.label || action.id"
