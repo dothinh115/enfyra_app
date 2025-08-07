@@ -1,6 +1,6 @@
 <template>
   <div class="mx-auto space-y-6">
-    <UForm :state="createForm"  @submit="handleCreate">
+    <UForm :state="createForm" @submit="handleCreate">
       <FormEditor
         v-model="createForm"
         :table-name="tableName"
@@ -27,6 +27,15 @@ const createErrors = ref<Record<string, string>>({});
 
 const { generateEmptyForm, validate } = useSchema(tableName);
 
+// Setup useApiLazy composable at top level
+const {
+  data: createData,
+  pending: createLoading,
+  execute: createRole,
+} = useApiLazy(() => `/${tableName}`, {
+  method: "post",
+  errorContext: "Create Role",
+});
 
 // Register header actions
 useHeaderActionRegistry({
@@ -35,17 +44,17 @@ useHeaderActionRegistry({
   icon: "lucide:save",
   variant: "solid",
   color: "primary",
+  loading: computed(() => createLoading.value),
   submit: handleCreate,
+  permission: {
+    and: [
+      {
+        route: "/role_definition",
+        actions: ["create"],
+      },
+    ],
+  },
 });
-
-// Setup useApiLazy composable at top level
-const { data: createData, execute: createRole } = useApiLazy(
-  () => `/${tableName}`,
-  {
-    method: "post",
-    errorContext: "Create Role",
-  }
-);
 
 onMounted(() => {
   createForm.value = generateEmptyForm();

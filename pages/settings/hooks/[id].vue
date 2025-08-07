@@ -11,7 +11,6 @@
   <UForm
     v-else-if="detail"
     :state="form"
-    
     @submit="updateHook"
     class="space-y-6"
   >
@@ -22,14 +21,25 @@
           Hook: {{ detail.name || "(no name)" }}
         </div>
       </div>
-      <UButton
-        v-if="!detail.isSystem"
-        icon="lucide:trash-2"
-        size="xl"
-        color="error"
-        :loading="createButtonLoader('delete-hook').isLoading.value"
-        @click="deleteHook"
-      />
+      <PermissionGate
+        :condition="{
+          and: [
+            {
+              route: '/hook_definition',
+              actions: ['delete'],
+            },
+          ],
+        }"
+      >
+        <UButton
+          v-if="!detail.isSystem"
+          icon="lucide:trash-2"
+          size="xl"
+          color="error"
+          :loading="createButtonLoader('delete-hook').isLoading.value"
+          @click="deleteHook"
+        />
+      </PermissionGate>
     </div>
 
     <UCard>
@@ -87,6 +97,14 @@ useHeaderActionRegistry({
   variant: "solid",
   color: "primary",
   submit: updateHook,
+  permission: {
+    and: [
+      {
+        route: "/hook_definition",
+        actions: ["update"],
+      },
+    ],
+  },
 });
 
 // Setup useApiLazy composables at top level
@@ -167,7 +185,6 @@ async function updateHook() {
     return;
   }
 
-
   try {
     await executeUpdateHook({ body: form.value });
 
@@ -187,7 +204,6 @@ async function updateHook() {
   } catch (error) {
     // Error already handled by useApiLazy
   }
-
 }
 
 async function deleteHook() {

@@ -37,6 +37,14 @@ useHeaderActionRegistry({
   size: "lg",
   to: "/settings/routings/create",
   class: "rounded-full",
+  permission: {
+    and: [
+      {
+        route: "/route_definition",
+        actions: ["create"],
+      },
+    ],
+  },
 });
 
 // Update routes when data changes

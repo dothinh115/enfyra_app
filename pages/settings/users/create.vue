@@ -1,10 +1,5 @@
 <template>
-  <UForm
-    class="mx-auto space-y-6"
-    :state="form"
-    
-    @submit="handleCreate"
-  >
+  <UForm class="mx-auto space-y-6" :state="form" @submit="handleCreate">
     <FormEditor
       v-model="form"
       v-model:errors="errors"
@@ -24,6 +19,16 @@ const errors = ref<Record<string, string>>({});
 
 const { generateEmptyForm, validate } = useSchema(tableName);
 
+// API composable for creating user
+const {
+  data: createData,
+  pending: createLoading,
+  execute: createUser,
+} = useApiLazy(() => `/${tableName}`, {
+  method: "post",
+  errorContext: "Create User",
+});
+
 // Register header actions
 useHeaderActionRegistry({
   id: "save-user",
@@ -31,17 +36,17 @@ useHeaderActionRegistry({
   icon: "lucide:save",
   variant: "solid",
   color: "primary",
+  loading: computed(() => createLoading.value),
   submit: handleCreate,
+  permission: {
+    and: [
+      {
+        route: "/user_definition",
+        actions: ["create"],
+      },
+    ],
+  },
 });
-
-// API composable for creating user
-const { data: createData, execute: createUser } = useApiLazy(
-  () => `/${tableName}`,
-  {
-    method: "post",
-    errorContext: "Create User",
-  }
-);
 
 onMounted(() => {
   form.value = generateEmptyForm();
@@ -59,7 +64,6 @@ async function handleCreate() {
     });
     return;
   }
-
 
   try {
     await createUser({ body: form.value });

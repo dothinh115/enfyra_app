@@ -13,6 +13,7 @@ const { confirm } = useConfirm();
 const toast = useToast();
 const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
 const { createButtonLoader } = useButtonLoading();
+const { checkPermissionCondition } = usePermissions();
 const { registerMenuItem } = useMenuRegistry();
 
 // Register menu item for this page
@@ -38,6 +39,14 @@ useHeaderActionRegistry({
   size: "lg",
   to: `/data/${route.params.table}/create`,
   class: "rounded-full",
+  permission: {
+    and: [
+      {
+        route: `/${route.params.table}`,
+        actions: ["create"],
+      },
+    ],
+  },
 });
 
 // Filter state
@@ -127,17 +136,31 @@ const columns = computed<ColumnDef<any>[]>(() => {
     enableHiding: false,
     size: 80,
     cell: ({ row }) => {
+      const { checkPermissionCondition } = usePermissions();
+      const hasDeletePermission = checkPermissionCondition({
+        and: [
+          {
+            route: `/${route.params.table}`,
+            actions: ["delete"],
+          },
+        ],
+      });
+
       return h("div", { class: "flex justify-center" }, [
         h(
           "button",
           {
-            class:
-              "inline-flex items-center px-2 py-1.5 text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded hover:bg-red-100 transition-colors",
-            onClick: (e) => {
-              e.stopPropagation();
-              handleDelete(row.original.id);
-            },
-            title: "Delete",
+            class: hasDeletePermission
+              ? "inline-flex items-center px-2 py-1.5 text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded hover:bg-red-100 transition-colors"
+              : "inline-flex items-center px-2 py-1.5 text-xs font-medium text-gray-400 bg-gray-50 border border-gray-200 rounded cursor-not-allowed opacity-50",
+            onClick: hasDeletePermission
+              ? (e) => {
+                  e.stopPropagation();
+                  handleDelete(row.original.id);
+                }
+              : undefined,
+            disabled: !hasDeletePermission,
+            title: hasDeletePermission ? "Delete" : "No permission to delete",
           },
           [
             h(
@@ -300,7 +323,18 @@ onMounted(async () => {
         :loading="loading"
         :page-size="pageLimit"
         :selectable="true"
-        :on-bulk-delete="handleBulkDelete"
+        :on-bulk-delete="
+          checkPermissionCondition({
+            and: [
+              {
+                route: `/${route.params.table}`,
+                actions: ['delete'],
+              },
+            ],
+          })
+            ? handleBulkDelete
+            : undefined
+        "
         @row-click="(row: any) => navigateTo(`/data/${tableName}/${row.id}`)"
       >
         <template #header-actions>

@@ -17,7 +17,16 @@ useHeaderActionRegistry({
   icon: "lucide:save",
   variant: "solid",
   color: "primary",
+  loading: computed(() => updateLoading.value),
   submit: saveUser,
+  permission: {
+    and: [
+      {
+        route: "/user_definition",
+        actions: ["update"],
+      },
+    ],
+  },
 });
 
 // API composable for fetching user
@@ -60,7 +69,7 @@ watch(
 );
 
 // API composable for updating user
-const { execute: updateUser } = useApiLazy(
+const { pending: updateLoading, execute: updateUser } = useApiLazy(
   () => `/${tableName}/${form.value.id}`,
   {
     method: "patch",
@@ -82,7 +91,6 @@ async function saveUser() {
     });
     return;
   }
-
 
   try {
     await updateUser({ body: payload });
@@ -154,7 +162,7 @@ watch(
     context="page"
   />
 
-  <UForm :state="form"  @submit="saveUser" v-else-if="detail">
+  <UForm :state="form" @submit="saveUser" v-else-if="detail">
     <UCard>
       <template #header>
         <div class="flex items-center justify-between">
@@ -177,15 +185,26 @@ watch(
           </div>
 
           <div>
-            <UButton
-              icon="lucide:trash"
-              label="Delete user"
-              color="error"
-              variant="solid"
-              :disabled="detail.isSystem || detail.isRootAdmin"
-              :loading="createButtonLoader('delete-user').isLoading.value"
-              @click="deleteUser"
-            />
+            <PermissionGate
+              :condition="{
+                and: [
+                  {
+                    route: '/user_definition',
+                    actions: ['delete'],
+                  },
+                ],
+              }"
+            >
+              <UButton
+                icon="lucide:trash"
+                label="Delete user"
+                color="error"
+                variant="solid"
+                :disabled="detail.isSystem || detail.isRootAdmin"
+                :loading="createButtonLoader('delete-user').isLoading.value"
+                @click="deleteUser"
+              />
+            </PermissionGate>
           </div>
         </div>
       </template>

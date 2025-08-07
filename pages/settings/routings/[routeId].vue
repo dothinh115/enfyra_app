@@ -17,7 +17,6 @@
   <UForm
     v-else-if="detail"
     :state="form"
-    
     @submit="updateRoute"
     class="space-y-6"
   >
@@ -105,6 +104,14 @@ useHeaderActionRegistry({
   variant: "solid",
   color: "primary",
   submit: updateRoute,
+  permission: {
+    and: [
+      {
+        route: "/route_definition",
+        actions: ["update"],
+      },
+    ],
+  },
 });
 
 // Setup useApiLazy composables at top level
@@ -173,7 +180,6 @@ async function updateRoute() {
     return;
   }
 
-
   try {
     await executeUpdateRoute({ body: form.value });
 
@@ -194,7 +200,6 @@ async function updateRoute() {
   } catch (error) {
     // Error already handled by useApiLazy
   }
-
 }
 
 async function deleteRoute() {

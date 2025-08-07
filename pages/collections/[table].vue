@@ -1,8 +1,5 @@
 <script setup lang="ts">
-import { useRoute } from "vue-router";
-import { useGlobalState } from "~/composables/useGlobalState";
-import { useConfirm } from "~/composables/useConfirm";
-import { useToast } from "#imports";
+// All composables are auto-imported
 
 const route = useRoute();
 const { tables, fetchSchema } = useGlobalState();
@@ -59,7 +56,7 @@ async function fetchData() {
       table.value = {
         ...tableDataRaw,
         columns: [...(tableDataRaw.columns || [])],
-        relations: [...(tableDataRaw.relations || [])]
+        relations: [...(tableDataRaw.relations || [])],
       };
     }
   } catch (error) {
@@ -156,12 +153,7 @@ async function deleteTable() {
     />
 
     <!-- Form content -->
-    <UForm
-      @submit.prevent="save"
-      :state="table"
-      
-      v-else-if="table"
-    >
+    <UForm @submit.prevent="save" :state="table" v-else-if="table">
       <div class="mx-auto">
         <TableForm v-model="table" @save="save">
           <div class="space-y-6">

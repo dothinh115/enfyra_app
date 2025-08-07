@@ -9,7 +9,7 @@ import {
   type SortingState,
   type VisibilityState,
 } from "@tanstack/vue-table";
-import { computed, ref, h } from "vue";
+// Vue functions are auto-imported
 
 export interface DataTableProps {
   data: any[];
@@ -27,7 +27,6 @@ const props = withDefaults(defineProps<DataTableProps>(), {
   selectable: false,
 });
 
-
 // Table state
 const sorting = ref<SortingState>([]);
 const columnVisibility = ref<VisibilityState>({});
@@ -36,36 +35,42 @@ const rowSelection = ref({});
 // Enhanced columns with checkbox if selectable
 const enhancedColumns = computed(() => {
   if (!props.selectable) return props.columns;
-  
+
   const selectColumn: ColumnDef<any> = {
-    id: 'select',
-    header: ({ table }) => h('input', {
-      type: 'checkbox',
-      class: 'rounded w-5 h-5 cursor-pointer block mx-auto',
-      checked: table.getIsAllRowsSelected(),
-      indeterminate: table.getIsSomeRowsSelected(),
-      onChange: table.getToggleAllRowsSelectedHandler(),
-      onClick: (e: Event) => e.stopPropagation(),
-      'aria-label': 'Select all rows',
-    }),
-    cell: ({ row }) => h('div', {
-      class: 'flex items-center justify-center'
-    }, [
-      h('input', {
-        type: 'checkbox',
-        class: 'rounded w-5 h-5 cursor-pointer',
-        checked: row.getIsSelected(),
-        disabled: !row.getCanSelect(),
-        onChange: row.getToggleSelectedHandler(),
+    id: "select",
+    header: ({ table }) =>
+      h("input", {
+        type: "checkbox",
+        class: "rounded w-5 h-5 cursor-pointer block mx-auto",
+        checked: table.getIsAllRowsSelected(),
+        indeterminate: table.getIsSomeRowsSelected(),
+        onChange: table.getToggleAllRowsSelectedHandler(),
         onClick: (e: Event) => e.stopPropagation(),
-        'aria-label': `Select row ${row.index + 1}`,
-      })
-    ]),
+        "aria-label": "Select all rows",
+      }),
+    cell: ({ row }) =>
+      h(
+        "div",
+        {
+          class: "flex items-center justify-center",
+        },
+        [
+          h("input", {
+            type: "checkbox",
+            class: "rounded w-5 h-5 cursor-pointer",
+            checked: row.getIsSelected(),
+            disabled: !row.getCanSelect(),
+            onChange: row.getToggleSelectedHandler(),
+            onClick: (e: Event) => e.stopPropagation(),
+            "aria-label": `Select row ${row.index + 1}`,
+          }),
+        ]
+      ),
     enableSorting: false,
     enableHiding: false,
     size: 50,
   };
-  
+
   return [selectColumn, ...props.columns];
 });
 
@@ -83,13 +88,16 @@ const table = useVueTable({
   getFilteredRowModel: getFilteredRowModel(),
   enableRowSelection: true,
   onSortingChange: (updater) => {
-    sorting.value = typeof updater === "function" ? updater(sorting.value) : updater;
+    sorting.value =
+      typeof updater === "function" ? updater(sorting.value) : updater;
   },
   onColumnVisibilityChange: (updater) => {
-    columnVisibility.value = typeof updater === "function" ? updater(columnVisibility.value) : updater;
+    columnVisibility.value =
+      typeof updater === "function" ? updater(columnVisibility.value) : updater;
   },
   onRowSelectionChange: (updater) => {
-    rowSelection.value = typeof updater === "function" ? updater(rowSelection.value) : updater;
+    rowSelection.value =
+      typeof updater === "function" ? updater(rowSelection.value) : updater;
   },
   state: {
     get sorting() {
@@ -111,10 +119,14 @@ const table = useVueTable({
 
 // Column visibility dropdown
 const columnDropdownItems = computed(() =>
-  table.getAllColumns()
+  table
+    .getAllColumns()
     .filter((col) => col.getCanHide())
     .map((col) => ({
-      label: typeof col.columnDef.header === 'string' ? col.columnDef.header : col.id,
+      label:
+        typeof col.columnDef.header === "string"
+          ? col.columnDef.header
+          : col.id,
       type: "checkbox" as const,
       checked: col.getIsVisible(),
       onSelect: (e: Event) => {
@@ -126,10 +138,10 @@ const columnDropdownItems = computed(() =>
 
 // Selected rows for bulk operations
 const selectedRows = computed(() => {
-  return table.getSelectedRowModel().rows.map(row => row.original);
+  return table.getSelectedRowModel().rows.map((row) => row.original);
 });
 
-// Bulk actions  
+// Bulk actions
 async function handleBulkDelete() {
   if (props.onBulkDelete && selectedRows.value.length > 0) {
     await props.onBulkDelete(selectedRows.value);
@@ -148,7 +160,6 @@ onMounted(() => {
   window.addEventListener("resize", checkMobile);
   onUnmounted(() => window.removeEventListener("resize", checkMobile));
 });
-
 </script>
 
 <template>
@@ -157,15 +168,15 @@ onMounted(() => {
     <div class="flex items-center justify-between gap-2">
       <div class="flex items-center gap-2">
         <slot name="header-actions" />
-        
+
         <!-- Bulk Actions -->
-        <DataTableBulkActions 
+        <DataTableBulkActions
           v-if="selectable"
           :selected-count="selectedRows.length"
           :on-delete="onBulkDelete ? handleBulkDelete : undefined"
         />
       </div>
-      
+
       <DataTableColumnSelector :items="columnDropdownItems" />
     </div>
 
@@ -175,8 +186,8 @@ onMounted(() => {
     </div>
 
     <!-- Desktop Table View -->
-    <div 
-      v-else-if="!isMobile" 
+    <div
+      v-else-if="!isMobile"
       class="overflow-auto rounded-lg border border-gray-200 dark:border-gray-800 transition-all duration-300 ease-in-out"
     >
       <table class="w-full" aria-label="Data table">
@@ -187,15 +198,16 @@ onMounted(() => {
               :key="header.id"
               :class="[
                 'px-4 py-3 text-left text-sm font-medium text-gray-900 dark:text-gray-100',
-                header.column.getCanSort() && 'cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-800',
+                header.column.getCanSort() &&
+                  'cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-800',
               ]"
               @click="header.column.getToggleSortingHandler()?.($event)"
               scope="col"
               :aria-sort="
-                header.column.getIsSorted() === 'asc' 
-                  ? 'ascending' 
-                  : header.column.getIsSorted() === 'desc' 
-                  ? 'descending' 
+                header.column.getIsSorted() === 'asc'
+                  ? 'ascending'
+                  : header.column.getIsSorted() === 'desc'
+                  ? 'descending'
                   : 'none'
               "
             >
@@ -266,7 +278,11 @@ onMounted(() => {
     </div>
 
     <!-- Mobile Card View -->
-    <div v-else class="space-y-3 transition-all duration-300 ease-in-out" aria-label="Mobile data view">
+    <div
+      v-else
+      class="space-y-3 transition-all duration-300 ease-in-out"
+      aria-label="Mobile data view"
+    >
       <DataTableMobileCard
         v-for="row in table.getRowModel().rows"
         :key="row.id"
@@ -286,6 +302,5 @@ onMounted(() => {
         />
       </div>
     </div>
-
   </div>
 </template>

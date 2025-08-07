@@ -46,6 +46,14 @@ useHeaderActionRegistry({
   size: "lg",
   to: "/settings/handlers/create",
   class: "rounded-full",
+  permission: {
+    and: [
+      {
+        route: "/route_handler_definition",
+        actions: ["create"],
+      },
+    ],
+  },
 });
 
 async function deleteHandler(id: number) {
@@ -121,12 +129,23 @@ watch(
 
             <!-- Delete button -->
             <div class="shrink-0">
-              <UButton
-                icon="lucide:trash-2"
-                size="xl"
-                color="error"
-                @click.stop.prevent="deleteHandler(handler.id)"
-              />
+              <PermissionGate
+                :condition="{
+                  and: [
+                    {
+                      route: '/route_handler_definition',
+                      actions: ['delete'],
+                    },
+                  ],
+                }"
+              >
+                <UButton
+                  icon="lucide:trash-2"
+                  size="xl"
+                  color="error"
+                  @click.stop.prevent="deleteHandler(handler.id)"
+                />
+              </PermissionGate>
             </div>
           </div>
         </UCard>

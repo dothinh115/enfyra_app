@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+// Vue functions are auto-imported
 
 const props = defineProps<{
   keyName: string;

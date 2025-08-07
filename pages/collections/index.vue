@@ -113,6 +113,16 @@ function getCleanTablePayload() {
   return clone;
 }
 
+// API composable for creating table
+const {
+  data: createData,
+  pending: createLoading,
+  execute: createTable,
+} = useApiLazy(() => "/table_definition", {
+  method: "post",
+  errorContext: "Create Table",
+});
+
 // Register header actions
 useHeaderActionRegistry({
   id: "create-table",
@@ -121,18 +131,18 @@ useHeaderActionRegistry({
   variant: "solid",
   color: "primary",
   size: "lg",
+  loading: computed(() => createLoading.value),
   submit: save,
   class: "rounded-full",
+  permission: {
+    and: [
+      {
+        route: "/table_definition",
+        actions: ["create"],
+      },
+    ],
+  },
 });
-
-// API composable for creating table
-const { data: createData, execute: createTable } = useApiLazy(
-  () => "/table_definition",
-  {
-    method: "post",
-    errorContext: "Create Table",
-  }
-);
 
 async function save() {
   if (!validateAll()) return;
@@ -162,7 +172,7 @@ async function save() {
 </script>
 
 <template>
-  <UForm @submit.prevent="save" :state="table" >
+  <UForm @submit.prevent="save" :state="table">
     <div class="mx-auto">
       <TableForm v-model="table" :new="true">
         <template #tableName>

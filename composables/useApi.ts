@@ -36,7 +36,8 @@ function handleApiError(error: any, context?: string) {
   if (error?.response?.data) {
     const responseData = error.response.data as BackendError;
     if (responseData.error) {
-      message = responseData.error.message || responseData.message || "Request failed";
+      message =
+        responseData.error.message || responseData.message || "Request failed";
       errorCode = responseData.error.code;
       correlationId = responseData.error.correlationId;
     } else {
@@ -45,7 +46,8 @@ function handleApiError(error: any, context?: string) {
   } else if (error?.data) {
     const errorData = error.data as BackendError;
     if (errorData.error) {
-      message = errorData.error.message || errorData.message || "Request failed";
+      message =
+        errorData.error.message || errorData.message || "Request failed";
       errorCode = errorData.error.code;
       correlationId = errorData.error.correlationId;
     } else {
@@ -61,7 +63,7 @@ function handleApiError(error: any, context?: string) {
       code: errorCode,
       message,
       correlationId,
-      context
+      context,
     });
   }
 
@@ -76,32 +78,32 @@ function handleApiError(error: any, context?: string) {
 
 function getErrorTitle(errorCode: string): string {
   const titleMap: Record<string, string> = {
-    'AUTHENTICATION_ERROR': 'Authentication Error',
-    'AUTHORIZATION_ERROR': 'Access Denied',
-    'VALIDATION_ERROR': 'Validation Error',
-    'RESOURCE_NOT_FOUND': 'Not Found',
-    'DUPLICATE_RESOURCE': 'Duplicate Entry',
-    'DATABASE_ERROR': 'Database Error',
-    'SCRIPT_EXECUTION_ERROR': 'Script Error',
-    'RATE_LIMIT_EXCEEDED': 'Rate Limit Exceeded',
+    AUTHENTICATION_ERROR: "Authentication Error",
+    AUTHORIZATION_ERROR: "Access Denied",
+    VALIDATION_ERROR: "Validation Error",
+    RESOURCE_NOT_FOUND: "Not Found",
+    DUPLICATE_RESOURCE: "Duplicate Entry",
+    DATABASE_ERROR: "Database Error",
+    SCRIPT_EXECUTION_ERROR: "Script Error",
+    RATE_LIMIT_EXCEEDED: "Rate Limit Exceeded",
   };
-  
-  return titleMap[errorCode] || 'Error';
+
+  return titleMap[errorCode] || "Error";
 }
 
 function getErrorIcon(errorCode: string): string {
   const iconMap: Record<string, string> = {
-    'AUTHENTICATION_ERROR': 'lucide:lock',
-    'AUTHORIZATION_ERROR': 'lucide:shield-x',
-    'VALIDATION_ERROR': 'lucide:alert-triangle',
-    'RESOURCE_NOT_FOUND': 'lucide:search-x',
-    'DUPLICATE_RESOURCE': 'lucide:copy-x',
-    'DATABASE_ERROR': 'lucide:database-x',
-    'SCRIPT_EXECUTION_ERROR': 'lucide:code',
-    'RATE_LIMIT_EXCEEDED': 'lucide:clock-x',
+    AUTHENTICATION_ERROR: "lucide:lock",
+    AUTHORIZATION_ERROR: "lucide:shield-x",
+    VALIDATION_ERROR: "lucide:alert-triangle",
+    RESOURCE_NOT_FOUND: "lucide:search-x",
+    DUPLICATE_RESOURCE: "lucide:copy-x",
+    DATABASE_ERROR: "lucide:database-x",
+    SCRIPT_EXECUTION_ERROR: "lucide:code",
+    RATE_LIMIT_EXCEEDED: "lucide:clock-x",
   };
-  
-  return iconMap[errorCode] || 'lucide:alert-circle';
+
+  return iconMap[errorCode] || "lucide:alert-circle";
 }
 
 export function useApi<T = any>(

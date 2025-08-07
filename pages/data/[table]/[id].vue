@@ -5,16 +5,6 @@ const toast = useToast();
 const { validate } = useSchema(route.params.table as string);
 const updateErrors = ref<Record<string, string>>({});
 
-// Register header actions
-useHeaderActionRegistry({
-  id: "save-data-entry",
-  label: "Save",
-  icon: "lucide:save",
-  variant: "solid",
-  color: "primary",
-  submit: handleUpdate,
-});
-
 const { confirm } = useConfirm();
 // API composable for fetching record
 const {
@@ -59,13 +49,33 @@ async function letsCreate() {
 }
 
 // API composable for updating record
-const { data: updateData, execute: updateRecord } = useApiLazy(
-  () => `/${route.params.table}/${route.params.id}`,
-  {
-    method: "patch",
-    errorContext: "Update Record",
-  }
-);
+const {
+  data: updateData,
+  pending: updateLoading,
+  execute: updateRecord,
+} = useApiLazy(() => `/${route.params.table}/${route.params.id}`, {
+  method: "patch",
+  errorContext: "Update Record",
+});
+
+// Register header actions
+useHeaderActionRegistry({
+  id: "save-data-entry",
+  label: "Save",
+  icon: "lucide:save",
+  variant: "solid",
+  color: "primary",
+  loading: computed(() => updateLoading.value),
+  submit: handleUpdate,
+  permission: {
+    and: [
+      {
+        route: `/${route.params.table}`,
+        actions: ["update"],
+      },
+    ],
+  },
+});
 
 async function handleUpdate() {
   const { isValid, errors } = validate(currentRecord.value);
@@ -79,7 +89,6 @@ async function handleUpdate() {
     });
     return;
   }
-
 
   try {
     await updateRecord({ body: currentRecord.value });
@@ -104,7 +113,7 @@ async function handleUpdate() {
   <CommonLoadingState type="form" v-if="loading" />
 
   <!-- Form content -->
-  <UForm v-else :state="currentRecord" @submit="letsCreate" >
+  <UForm v-else :state="currentRecord" @submit="letsCreate">
     <UCard variant="subtle">
       <template #header>
         <div class="flex items-center justify-between">

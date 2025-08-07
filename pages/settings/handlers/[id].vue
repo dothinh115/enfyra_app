@@ -11,7 +11,7 @@
     />
 
     <!-- Form content -->
-    <UForm v-else :state="form"  @submit="save">
+    <UForm v-else :state="form" @submit="save">
       <FormEditor
         v-model="form"
         :table-name="tableName"
@@ -43,7 +43,6 @@ const errors = ref<Record<string, string>>({});
 const loading = ref(false);
 const saving = ref(false);
 
-
 const { validate, getIncludeFields } = useSchema(tableName);
 
 // Register header actions
@@ -54,6 +53,14 @@ useHeaderActionRegistry({
   variant: "solid",
   color: "primary",
   submit: save,
+  permission: {
+    and: [
+      {
+        route: "/route_handler_definition",
+        actions: ["update"],
+      },
+    ],
+  },
 });
 
 // Setup useApiLazy composables at top level

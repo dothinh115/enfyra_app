@@ -1,30 +1,33 @@
 <script setup lang="ts">
-import { computed, resolveComponent } from "vue";
+// Vue functions are auto-imported
 import { UInput, UTextarea, USwitch, USelect } from "#components";
 
-const props = withDefaults(defineProps<{
-  keyName: string;
-  formData: Record<string, any>;
-  columnMap: Map<string, any>;
-  typeMap?: Record<
-    string,
-    | string
-    | {
-        type?: string;
-        disabled?: boolean;
-        placeholder?: string;
-        componentProps?: {
-          allowDelete?: boolean;
+const props = withDefaults(
+  defineProps<{
+    keyName: string;
+    formData: Record<string, any>;
+    columnMap: Map<string, any>;
+    typeMap?: Record<
+      string,
+      | string
+      | {
+          type?: string;
+          disabled?: boolean;
+          placeholder?: string;
+          componentProps?: {
+            allowDelete?: boolean;
+            [key: string]: any;
+          };
+          fieldProps?: Record<string, any>;
           [key: string]: any;
-        };
-        fieldProps?: Record<string, any>;
-        [key: string]: any;
-      }
-  >;
-  errors: Record<string, string>;
-}>(), {
-  errors: () => ({})
-});
+        }
+    >;
+    errors: Record<string, string>;
+  }>(),
+  {
+    errors: () => ({}),
+  }
+);
 
 const emit = defineEmits<{
   "update:formData": [key: string, value: any];

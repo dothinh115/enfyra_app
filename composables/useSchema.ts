@@ -1,5 +1,4 @@
-import { computed } from "vue";
-import { useGlobalState } from "@/composables/useGlobalState";
+// useGlobalState is auto-imported
 
 export function useSchema(tableName: string) {
   const { schemas } = useGlobalState();

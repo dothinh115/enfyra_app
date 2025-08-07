@@ -5,20 +5,14 @@
 </template>
 
 <script setup lang="ts">
-// Permission rule types
-type PermissionRule = {
-  route: string;
-  actions: ("read" | "create" | "update" | "delete")[];
-};
-
-type PermissionCondition = {
-  and?: PermissionRule[];
-  or?: PermissionRule[];
-};
+import type {
+  PermissionRule,
+  PermissionCondition,
+} from "~/composables/usePermissions";
 
 interface Props {
   // Legacy props for backward compatibility
-  actions?: ("read" | "create" | "update" | "delete")[];
+  actions?: string[];
   routes?: string[];
   mode?: "any" | "all";
 

@@ -37,6 +37,14 @@ useHeaderActionRegistry({
   size: "lg",
   to: "/settings/roles/create",
   class: "rounded-full",
+  permission: {
+    and: [
+      {
+        route: "/role_definition",
+        actions: ["create"],
+      },
+    ],
+  },
 });
 
 async function deleteRole(id: string) {
@@ -111,13 +119,24 @@ watch(
             </div>
 
             <div class="flex justify-end pt-4">
-              <UButton
-                icon="lucide:trash-2"
-                size="sm"
-                color="error"
-                variant="ghost"
-                @click.stop="deleteRole(role.id)"
-              />
+              <PermissionGate
+                :condition="{
+                  and: [
+                    {
+                      route: '/role_definition',
+                      actions: ['delete'],
+                    },
+                  ],
+                }"
+              >
+                <UButton
+                  icon="lucide:trash-2"
+                  size="sm"
+                  color="error"
+                  variant="ghost"
+                  @click.stop="deleteRole(role.id)"
+                />
+              </PermissionGate>
             </div>
           </div>
         </UCard>

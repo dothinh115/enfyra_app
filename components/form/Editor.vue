@@ -1,32 +1,35 @@
 <script setup lang="ts">
-import { computed } from "vue";
+// Vue functions are auto-imported
 
-const props = withDefaults(defineProps<{
-  modelValue: Record<string, any>;
-  errors: Record<string, string>;
-  tableName: string;
-  excluded?: string[];
-  includes?: string[];
-  typeMap?: Record<
-    string,
-    | string
-    | {
-        type?: string;
-        disabled?: boolean;
-        placeholder?: string;
-        componentProps?: {
-          allowDelete?: boolean;
+const props = withDefaults(
+  defineProps<{
+    modelValue: Record<string, any>;
+    errors: Record<string, string>;
+    tableName: string;
+    excluded?: string[];
+    includes?: string[];
+    typeMap?: Record<
+      string,
+      | string
+      | {
+          type?: string;
+          disabled?: boolean;
+          placeholder?: string;
+          componentProps?: {
+            allowDelete?: boolean;
+            [key: string]: any;
+          };
+          fieldProps?: Record<string, any>;
           [key: string]: any;
-        };
-        fieldProps?: Record<string, any>;
-        [key: string]: any;
-      }
-  >;
-  readonly?: boolean;
-}>(), {
-  errors: () => ({}),
-  modelValue: () => ({})
-});
+        }
+    >;
+    readonly?: boolean;
+  }>(),
+  {
+    errors: () => ({}),
+    modelValue: () => ({}),
+  }
+);
 
 const emit = defineEmits(["update:modelValue", "update:errors"]);
 
@@ -63,14 +66,14 @@ const visibleKeys = computed(() => {
   return filtered.sort((a, b) => {
     const fieldA = columnMap.value.get(a);
     const fieldB = columnMap.value.get(b);
-    
+
     const isRelationA = fieldA?.fieldType === "relation";
     const isRelationB = fieldB?.fieldType === "relation";
-    
+
     // Relations go to the end
     if (isRelationA && !isRelationB) return 1;
     if (!isRelationA && isRelationB) return -1;
-    
+
     // For fields of same type, sort by id
     const idA = fieldA?.id || 999999;
     const idB = fieldB?.id || 999999;

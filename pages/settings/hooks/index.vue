@@ -42,6 +42,14 @@ useHeaderActionRegistry({
   size: "lg",
   to: "/settings/hooks/create",
   class: "rounded-full",
+  permission: {
+    and: [
+      {
+        route: "/hook_definition",
+        actions: ["create"],
+      },
+    ],
+  },
 });
 
 watch(

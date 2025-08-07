@@ -12,6 +12,14 @@ useHeaderActionRegistry({
   variant: "solid",
   color: "primary",
   submit: handleSaveSetting,
+  permission: {
+    and: [
+      {
+        route: "/setting",
+        actions: ["update"],
+      },
+    ],
+  },
 });
 
 // API composable for loading settings
@@ -63,7 +71,6 @@ async function handleSaveSetting() {
     return;
   }
 
-
   try {
     await saveSetting({ body: setting.value });
     toast.add({ title: "Configuration saved", color: "primary" });
@@ -85,7 +92,7 @@ onMounted(() => loadSetting());
     context="page"
   />
 
-  <UForm v-else @submit="handleSaveSetting"  :state="setting">
+  <UForm v-else @submit="handleSaveSetting" :state="setting">
     <UCard>
       <template #header>
         <div class="font-semibold text-base">System Configuration</div>

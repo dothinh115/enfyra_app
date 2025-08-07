@@ -27,17 +27,17 @@ export function usePermissions() {
       ? routePath
       : `/${routePath}`;
 
-    // Find route permission that matches the route path
-    const routePermission = me.value.role.routePermissions.find(
+    // Find all route permissions that match the route path
+    const routePermissions = me.value.role.routePermissions.filter(
       (permission: any) =>
         permission.route?.path === normalizedRoutePath && permission.isEnabled
     );
 
-    if (!routePermission) return false;
+    if (!routePermissions.length) return false;
 
-    // Check if the permission has the required method
-    return routePermission.methods.some(
-      (methodObj: any) => methodObj.method === method
+    // Check if any permission has the required method
+    return routePermissions.some((permission: any) =>
+      permission.methods.some((methodObj: any) => methodObj.method === method)
     );
   };
 

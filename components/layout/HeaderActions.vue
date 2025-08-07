@@ -1,22 +1,24 @@
 <template>
   <div class="flex gap-2">
-    <UButton
-      v-for="action in visibleActions"
-      :key="action.id"
-      :label="
-        isMobile || action.id.includes('create') ? undefined : action.label
-      "
-      :icon="action.icon"
-      :variant="action.variant || 'solid'"
-      :color="action.color || 'primary'"
-      :size="isMobile ? 'sm' : action.size || 'md'"
-      :loading="action.loading"
-      :disabled="action.disabled"
-      :to="action.to"
-      :aria-label="action.label || action.id"
-      :class="action.class"
-      @click="handleActionClick(action)"
-    />
+    <template v-for="action in visibleActions" :key="action.id">
+      <PermissionGate :condition="action.permission">
+        <UButton
+          :label="
+            isMobile || action.id.includes('create') ? undefined : action.label
+          "
+          :icon="action.icon"
+          :variant="action.variant || 'solid'"
+          :color="action.color || 'primary'"
+          :size="isMobile ? 'sm' : action.size || 'md'"
+          :loading="action.loading"
+          :disabled="action.disabled"
+          :to="action.to"
+          :aria-label="action.label || action.id"
+          :class="action.class"
+          @click="handleActionClick(action)"
+        />
+      </PermissionGate>
+    </template>
   </div>
 </template>
 

@@ -14,7 +14,11 @@ export interface HeaderAction {
     | "error"
     | "neutral";
   size?: "sm" | "md" | "lg" | "xl";
-  loading?: boolean;
+  loading?:
+    | boolean
+    | Ref<boolean>
+    | Readonly<Ref<boolean>>
+    | ComputedRef<boolean>;
   disabled?: boolean;
   permission?: PermissionCondition;
   onClick?: () => void;

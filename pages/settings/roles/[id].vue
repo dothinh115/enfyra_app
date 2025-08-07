@@ -12,17 +12,28 @@
     <template v-else>
       <div class="flex justify-between items-center">
         <h1 class="text-xl font-semibold">Role Details</h1>
-        <UButton
-          icon="i-heroicons-trash"
-          label="Delete"
-          color="error"
-          variant="soft"
-          :loading="createButtonLoader('delete-role').isLoading.value"
-          @click="deleteRole"
-        />
+        <PermissionGate
+          :condition="{
+            and: [
+              {
+                route: '/role_definition',
+                actions: ['delete'],
+              },
+            ],
+          }"
+        >
+          <UButton
+            icon="i-heroicons-trash"
+            label="Delete"
+            color="error"
+            variant="soft"
+            :loading="createButtonLoader('delete-role').isLoading.value"
+            @click="deleteRole"
+          />
+        </PermissionGate>
       </div>
 
-      <UForm :state="form"  @submit="save">
+      <UForm :state="form" @submit="save">
         <FormEditor
           v-model="form"
           :table-name="tableName"
@@ -60,6 +71,14 @@ useHeaderActionRegistry({
   variant: "solid",
   color: "primary",
   submit: save,
+  permission: {
+    and: [
+      {
+        route: "/role_definition",
+        actions: ["update"],
+      },
+    ],
+  },
 });
 
 // Setup useApiLazy composables at top level
@@ -113,7 +132,6 @@ async function save() {
     });
     return;
   }
-
 
   try {
     await updateRole({ body: form.value });

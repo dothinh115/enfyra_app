@@ -6,6 +6,10 @@ const props = defineProps<{
   disabled?: boolean;
   allowDelete?: boolean;
   confirmingDeleteId: any;
+  deletePermission?: {
+    and?: { route: string; actions: string[] }[];
+    or?: { route: string; actions: string[] }[];
+  };
 }>();
 
 const emit = defineEmits<{
@@ -30,6 +34,14 @@ function viewDetails(item: any) {
 function handleDeleteClick(item: any) {
   emit("delete-click", item);
 }
+
+const { checkPermissionCondition } = usePermissions();
+
+const canDelete = computed(() => {
+  if (!props.allowDelete) return false;
+  if (!props.deletePermission) return true; // Allow delete if no permission specified
+  return checkPermissionCondition(props.deletePermission);
+});
 
 function getDisplayLabel(
   item: Record<string, any>,
@@ -111,7 +123,7 @@ function getDisplayLabel(
         size="md"
         :color="confirmingDeleteId === item.id ? 'primary' : 'error'"
         variant="outline"
-        v-if="allowDelete"
+        v-if="canDelete"
         @click.stop="handleDeleteClick(item)"
         :label="confirmingDeleteId === item.id ? 'Confirm' : undefined"
       />

@@ -6,6 +6,16 @@ const newRecord = ref<Record<string, any>>({});
 const { generateEmptyForm, validate } = useSchema(route.params.table as string);
 const createErrors = ref<Record<string, string>>({});
 
+// API composable for creating record
+const {
+  data: createData,
+  pending: createLoading,
+  execute: createRecord,
+} = useApiLazy(() => `/${route.params.table}`, {
+  method: "post",
+  errorContext: "Create Record",
+});
+
 // Register header actions
 useHeaderActionRegistry({
   id: "save-data-entry",
@@ -13,17 +23,17 @@ useHeaderActionRegistry({
   icon: "lucide:save",
   variant: "solid",
   color: "primary",
+  loading: computed(() => createLoading.value),
   submit: handleCreate,
+  permission: {
+    and: [
+      {
+        route: `/${route.params.table}`,
+        actions: ["create"],
+      },
+    ],
+  },
 });
-
-// API composable for creating record
-const { data: createData, execute: createRecord } = useApiLazy(
-  () => `/${route.params.table}`,
-  {
-    method: "post",
-    errorContext: "Create Record",
-  }
-);
 
 onMounted(() => {
   newRecord.value = generateEmptyForm();
@@ -41,11 +51,6 @@ async function handleCreate() {
     });
     return;
   }
-  const ok = await confirm({
-    content: "Are you sure?",
-  });
-  if (!ok) return;
-
 
   try {
     await createRecord({ body: newRecord.value });
@@ -65,7 +70,7 @@ async function handleCreate() {
 </script>
 
 <template>
-  <UForm :state="newRecord" @submit="handleCreate" >
+  <UForm :state="newRecord" @submit="handleCreate">
     <UCard variant="subtle">
       <template #header>
         <div class="flex items-center justify-between">
