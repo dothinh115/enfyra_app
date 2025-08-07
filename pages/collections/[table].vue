@@ -2,7 +2,7 @@
 // All composables are auto-imported
 
 const route = useRoute();
-const { tables, fetchSchema } = useGlobalState();
+const { tables, fetchSchema, globalLoading } = useGlobalState();
 const { createButtonLoader } = useButtonLoading();
 const { confirm } = useConfirm();
 const toast = useToast();
@@ -10,26 +10,26 @@ const tableName = "table_definition";
 const { getIncludeFields } = useSchema(tableName);
 
 const table = ref<any>();
-const loading = ref(false);
 
 // API composables at setup level
-const { data: tableData, execute: fetchTableData } = useApiLazy(
-  () => "/table_definition",
-  {
-    query: computed(() => ({
-      fields: getIncludeFields(),
-      filter: {
-        name: {
-          _eq: route.params.table,
-        },
+const {
+  data: tableData,
+  pending: loading,
+  execute: fetchTableData,
+} = useApiLazy(() => "/table_definition", {
+  query: computed(() => ({
+    fields: getIncludeFields(),
+    filter: {
+      name: {
+        _eq: route.params.table,
       },
-    })),
-    errorContext: "Fetch Table Data",
-  }
-);
+    },
+  })),
+  errorContext: "Fetch Table Data",
+});
 
 // Composable for patch table
-const { execute: executePatchTable } = useApiLazy(
+const { pending: saving, execute: executePatchTable } = useApiLazy(
   () => `/table_definition/${table.value?.id || "undefined"}`,
   {
     method: "patch",
@@ -39,7 +39,7 @@ const { execute: executePatchTable } = useApiLazy(
 );
 
 // Composable for delete table
-const { execute: executeDeleteTable } = useApiLazy(
+const { pending: deleting, execute: executeDeleteTable } = useApiLazy(
   () => `/table_definition/${table.value?.id || "undefined"}`,
   {
     method: "delete",
@@ -47,25 +47,49 @@ const { execute: executeDeleteTable } = useApiLazy(
   }
 );
 
+// Register header actions
+useHeaderActionRegistry({
+  id: "save-table",
+  label: "Save Changes",
+  icon: "lucide:save",
+  variant: "solid",
+  color: "primary",
+  size: "lg",
+  loading: computed(() => saving.value || globalLoading.value),
+  submit: save,
+  permission: {
+    and: [
+      {
+        route: "/table_definition",
+        actions: ["update"],
+      },
+    ],
+  },
+});
+
 async function fetchData() {
-  loading.value = true;
-  try {
-    await fetchTableData();
-    if ((tableData.value as any)?.data) {
-      const tableDataRaw = (tableData.value as any).data[0];
-      table.value = {
-        ...tableDataRaw,
-        columns: [...(tableDataRaw.columns || [])],
-        relations: [...(tableDataRaw.relations || [])],
-      };
-    }
-  } catch (error) {
-    console.error("Failed to fetch table data:", error);
+  await fetchTableData();
+  if ((tableData.value as any)?.data) {
+    const tableDataRaw = (tableData.value as any).data[0];
+    table.value = {
+      ...tableDataRaw,
+      columns: [...(tableDataRaw.columns || [])],
+      relations: [...(tableDataRaw.relations || [])],
+    };
   }
-  loading.value = false;
 }
 
 onMounted(fetchData);
+
+// Watch saving and deleting states to sync with globalLoading
+watch([saving, deleting], ([newSaving, newDeleting]) => {
+  // Set globalLoading when saving or deleting starts
+  // fetchSchema will handle its own globalLoading state when it runs
+  if (newSaving || newDeleting) {
+    globalLoading.value = true;
+  }
+  // Don't reset globalLoading here - let fetchSchema handle it
+});
 
 watch(
   () => table.value?.columns.map((col: any) => col.type),
@@ -95,9 +119,6 @@ async function save() {
 }
 
 async function patchTable() {
-  const { globalLoading } = useGlobalState();
-  globalLoading.value = true;
-
   await executePatchTable();
   await fetchSchema();
   toast.add({
@@ -105,13 +126,9 @@ async function patchTable() {
     color: "success",
     description: "Table structure updated!",
   });
-
-  globalLoading.value = false;
 }
 
 async function handleDelete() {
-  const deleteLoader = createButtonLoader("delete-table");
-
   const ok = await confirm({
     content: `Are you sure you want to delete table ${table.value.name}?`,
   });
@@ -119,15 +136,10 @@ async function handleDelete() {
     return;
   }
 
-  await deleteLoader.withLoading(async () => {
-    await deleteTable();
-  });
+  await deleteTable();
 }
 
 async function deleteTable() {
-  const { globalLoading } = useGlobalState();
-  globalLoading.value = true;
-
   await executeDeleteTable();
   await fetchSchema();
   toast.add({
@@ -135,7 +147,6 @@ async function deleteTable() {
     color: "success",
     description: "Table deleted!",
   });
-  globalLoading.value = false;
   return navigateTo(`/collections`);
 }
 </script>
@@ -176,8 +187,10 @@ async function deleteTable() {
                 variant="solid"
                 class="hover:cursor-pointer"
                 @click="handleDelete"
-                :disabled="table.isSystem"
-                :loading="createButtonLoader('delete-table').isLoading.value"
+                :disabled="
+                  table.isSystem || saving || deleting || globalLoading
+                "
+                :loading="deleting || globalLoading"
                 >Delete Table</UButton
               >
             </div>

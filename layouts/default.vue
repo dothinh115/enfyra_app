@@ -104,6 +104,32 @@
   <!-- Confirm Modal -->
   <div id="others-overlay"></div>
 
+  <Transition
+    enter-active-class="transition-all duration-300 ease-out"
+    enter-from-class="opacity-0 scale-95"
+    enter-to-class="opacity-100 scale-100"
+    leave-active-class="transition-all duration-200 ease-in"
+    leave-from-class="opacity-100 scale-100"
+    leave-to-class="opacity-0 scale-95"
+  >
+    <div
+      v-if="globalLoading"
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center"
+    >
+      <div
+        class="bg-background/95 backdrop-blur-md border border-muted/50 rounded-xl p-8 shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-100"
+      >
+        <CommonLoadingState
+          type="spinner"
+          context="page"
+          title="Updating Schema"
+          description="Please wait while we update the database schema. This may take a few moments..."
+          size="lg"
+        />
+      </div>
+    </div>
+  </Transition>
+
   <CommonGlobalConfirm />
   <CommonMobileWarning />
   <RouteLoading :show="routeLoading" message="Navigating..." />

@@ -113,7 +113,6 @@ function getCleanTablePayload() {
   return clone;
 }
 
-// API composable for creating table
 const {
   data: createData,
   pending: createLoading,
@@ -123,7 +122,12 @@ const {
   errorContext: "Create Table",
 });
 
-// Register header actions
+watch(createLoading, (newCreateLoading) => {
+  if (newCreateLoading) {
+    globalLoading.value = true;
+  }
+});
+
 useHeaderActionRegistry({
   id: "create-table",
   label: "Create New Table",
@@ -131,7 +135,7 @@ useHeaderActionRegistry({
   variant: "solid",
   color: "primary",
   size: "lg",
-  loading: computed(() => createLoading.value),
+  loading: computed(() => createLoading.value || globalLoading.value),
   submit: save,
   class: "rounded-full",
   permission: {
@@ -152,22 +156,16 @@ async function save() {
     return;
   }
 
-  globalLoading.value = true;
+  const payload = getCleanTablePayload();
+  await createTable({ body: payload });
 
-  try {
-    const payload = getCleanTablePayload();
-    await createTable({ body: payload });
-
-    await fetchSchema();
-    toast.add({
-      title: "Success",
-      color: "success",
-      description: "New table created!",
-    });
-    router.push(`/collections/${createData.value?.data[0]?.name}`);
-  } finally {
-    globalLoading.value = false;
-  }
+  await fetchSchema();
+  toast.add({
+    title: "Success",
+    color: "success",
+    description: "New table created!",
+  });
+  router.push(`/collections/${createData.value?.data[0]?.name}`);
 }
 </script>
 
