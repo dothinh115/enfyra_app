@@ -53,6 +53,7 @@ useHeaderActionRegistry({
   variant: "solid",
   color: "primary",
   submit: save,
+  loading: computed(() => saveLoading.value),
   permission: {
     and: [
       {
@@ -72,12 +73,13 @@ const {
   query: { fields: getIncludeFields(), filter: { id: { _eq: id } } },
 });
 
-const { error: saveError, execute: executeSaveHandler } = useApiLazy(
-  () => `/${tableName}/${id}`,
-  {
-    method: "patch",
-  }
-);
+const {
+  error: saveError,
+  execute: executeSaveHandler,
+  pending: saveLoading,
+} = useApiLazy(() => `/${tableName}/${id}`, {
+  method: "patch",
+});
 
 async function fetchHandler() {
   loading.value = true;

@@ -12,6 +12,7 @@ useHeaderActionRegistry({
   variant: "solid",
   color: "primary",
   submit: handleSaveSetting,
+  loading: computed(() => saveLoading.value),
   permission: {
     and: [
       {
@@ -49,7 +50,7 @@ watch(
 );
 
 // API composable for saving settings
-const { execute: saveSetting } = useApiLazy(
+const { execute: saveSetting, pending: saveLoading } = useApiLazy(
   () => `/setting_definition/${setting.value.id}`,
   {
     method: "patch",

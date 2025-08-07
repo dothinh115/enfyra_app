@@ -71,6 +71,7 @@ useHeaderActionRegistry({
   variant: "solid",
   color: "primary",
   submit: save,
+  loading: computed(() => updateLoading.value),
   permission: {
     and: [
       {
@@ -115,10 +116,13 @@ watch(
 );
 
 // API composable for updating role
-const { execute: updateRole } = useApiLazy(() => `/${tableName}/${id}`, {
-  method: "patch",
-  errorContext: "Update Role",
-});
+const { execute: updateRole, pending: updateLoading } = useApiLazy(
+  () => `/${tableName}/${id}`,
+  {
+    method: "patch",
+    errorContext: "Update Role",
+  }
+);
 
 async function save() {
   const { isValid, errors: validationErrors } = validate(form.value);

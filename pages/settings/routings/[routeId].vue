@@ -104,6 +104,7 @@ useHeaderActionRegistry({
   variant: "solid",
   color: "primary",
   submit: updateRoute,
+  loading: computed(() => updateLoading.value),
   permission: {
     and: [
       {
@@ -126,12 +127,13 @@ const {
   },
 });
 
-const { error: updateError, execute: executeUpdateRoute } = useApiLazy(
-  () => `/route_definition/${detail.value?.id}`,
-  {
-    method: "patch",
-  }
-);
+const {
+  error: updateError,
+  execute: executeUpdateRoute,
+  pending: updateLoading,
+} = useApiLazy(() => `/route_definition/${detail.value?.id}`, {
+  method: "patch",
+});
 
 const {
   data: deleteData,

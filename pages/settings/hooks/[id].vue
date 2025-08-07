@@ -97,6 +97,7 @@ useHeaderActionRegistry({
   variant: "solid",
   color: "primary",
   submit: updateHook,
+  loading: computed(() => updateLoading.value),
   permission: {
     and: [
       {
@@ -119,12 +120,13 @@ const {
   },
 });
 
-const { error: updateError, execute: executeUpdateHook } = useApiLazy(
-  () => `/hook_definition/${id}`,
-  {
-    method: "patch",
-  }
-);
+const {
+  error: updateError,
+  execute: executeUpdateHook,
+  pending: updateLoading,
+} = useApiLazy(() => `/hook_definition/${id}`, {
+  method: "patch",
+});
 
 const {
   data: deleteData,

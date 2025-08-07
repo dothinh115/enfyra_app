@@ -28,6 +28,7 @@ useHeaderActionRegistry({
   variant: "solid",
   color: "primary",
   submit: handleCreate,
+  loading: computed(() => createLoading.value),
   permission: {
     and: [
       {
@@ -43,6 +44,7 @@ const {
   data: createData,
   error: createError,
   execute: executeCreateRoute,
+  pending: createLoading,
 } = useApiLazy(() => `/${tableName}`, {
   method: "post",
 });

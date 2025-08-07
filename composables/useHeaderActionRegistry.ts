@@ -1,4 +1,5 @@
 import type { PermissionCondition } from "./usePermissions";
+import type { ComputedRef, Ref } from "vue";
 
 export interface HeaderAction {
   id: string;
