@@ -21,6 +21,8 @@ For detailed usage instructions, see:
 - [FormField System](./docs/FormField.md) - Dynamic form generation, validation, and error handling
 - [Permission System](./docs/permission-system.md) - Comprehensive guide to the RBAC permission system
 - [Permission System Quick Reference](./docs/permission-system-quick-reference.md) - Quick reference for common permission patterns
+- [Header Action Registry](./docs/header-action-registry.md) - Dynamic header actions and button management system
+- [Menu Registry](./docs/menu-registry.md) - Dynamic menu system for sidebar navigation
 
 ## Development
 
