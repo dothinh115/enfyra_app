@@ -12,6 +12,10 @@ export const useGlobalState = () => {
     "global:sidebar:visible",
     () => true
   );
+  const routeLoading = useState<boolean>(
+    "global:route:loading",
+    () => false
+  );
 
   const toast = useToast();
 
@@ -237,6 +241,10 @@ export const useGlobalState = () => {
     sidebarVisible.value = visible;
   }
 
+  function setRouteLoading(loading: boolean) {
+    routeLoading.value = loading;
+  }
+
   return {
     tables,
     routes,
@@ -245,10 +253,12 @@ export const useGlobalState = () => {
     globalLoading,
     buttonLoadingStates,
     sidebarVisible,
+    routeLoading,
     fetchSchema,
     setButtonLoading,
     getButtonLoading,
     toggleSidebar,
     setSidebarVisible,
+    setRouteLoading,
   };
 };

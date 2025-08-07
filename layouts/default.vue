@@ -106,6 +106,7 @@
 
   <CommonGlobalConfirm />
   <CommonMobileWarning />
+  <RouteLoading :show="routeLoading" message="Navigating..." />
 </template>
 
 <script setup lang="ts">
@@ -114,6 +115,7 @@ const {
   fetchSchema,
   globalLoading,
   sidebarVisible,
+  routeLoading,
   toggleSidebar,
   setSidebarVisible,
 } = useGlobalState();
