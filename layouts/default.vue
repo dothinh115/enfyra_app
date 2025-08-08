@@ -138,7 +138,6 @@
 <script setup lang="ts">
 const route = useRoute();
 const {
-  fetchSchema,
   globalLoading,
   sidebarVisible,
   routeLoading,
@@ -174,6 +173,4 @@ watch(
   },
   { immediate: true }
 );
-
-await fetchSchema();
 </script>

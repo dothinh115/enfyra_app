@@ -13,9 +13,15 @@ export function useMenuRegistry() {
   const menuItems = useState<MenuItem[]>("menu-items", () => []);
 
   const registerMenuItem = (item: MenuItem) => {
-    const existing = menuItems.value.find((m) => m.id === item.id);
-    if (!existing) {
+    const existingIndex = menuItems.value.findIndex((m) => m.id === item.id);
+    if (existingIndex > -1) {
+      // Replace existing item
+      menuItems.value[existingIndex] = item;
+      console.log("Replaced menu item:", item.id, item.sidebarId); // Debug log
+    } else {
+      // Add new item
       menuItems.value.push(item);
+      console.log("Added menu item:", item.id, item.sidebarId); // Debug log
     }
   };
 
@@ -30,6 +36,7 @@ export function useMenuRegistry() {
     const items = menuItems.value.filter(
       (item) => item.sidebarId === sidebarId
     );
+
     return items;
   };
 

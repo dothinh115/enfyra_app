@@ -1,6 +1,11 @@
-export default defineNuxtPlugin(() => {
+export default defineNuxtPlugin(async () => {
+  console.log("Menu registry plugin starting..."); // Debug log
   const { registerMiniSidebars } = useMiniSidebarRegistry();
   const { registerMenuItem } = useMenuRegistry();
+  const { tables, fetchSchema } = useGlobalState();
+  await fetchSchema();
+
+  console.log("Tables count:", tables.value.length); // Debug log
 
   // Register default mini sidebars
   registerMiniSidebars([
@@ -103,4 +108,50 @@ export default defineNuxtPlugin(() => {
       or: [{ route: "/role_definition", actions: ["read"] }],
     },
   });
+
+  // Register collections menu items
+  registerMenuItem({
+    id: "create-table",
+    label: "Create New Table",
+    route: "/collections/create",
+    icon: "lucide:plus",
+    sidebarId: "collections",
+    permission: {
+      or: [{ route: "/table_definition", actions: ["create"] }],
+    },
+  });
+
+  // Register collections menu items for all tables
+  tables.value.forEach((table) => {
+    registerMenuItem({
+      id: `table-${table.id}`,
+      label: table.name,
+      route: `/collections/${table.name}`,
+      icon: table.icon || "lucide:database",
+      sidebarId: "collections",
+      permission: {
+        or: [
+          { route: "/table_definition", actions: ["update"] },
+          { route: "/table_definition", actions: ["delete"] },
+        ],
+      },
+    });
+  });
+
+  // Register data menu items for all tables
+  tables.value
+    .filter((table) => !table.isSystem)
+    .forEach((table) => {
+      console.log("Registering data table:", table.id, table.name); // Debug log
+      registerMenuItem({
+        id: `data-${table.id}`,
+        label: table.name,
+        route: `/data/${table.name}`,
+        icon: table.icon || "lucide:list",
+        sidebarId: "data",
+        permission: {
+          or: [{ route: `/${table.name}`, actions: ["read"] }],
+        },
+      });
+    });
 });

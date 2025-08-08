@@ -98,7 +98,7 @@ function getErrorIcon(errorCode: string): string {
     VALIDATION_ERROR: "lucide:alert-triangle",
     RESOURCE_NOT_FOUND: "lucide:search-x",
     DUPLICATE_RESOURCE: "lucide:copy-x",
-    DATABASE_ERROR: "lucide:database-x",
+    DATABASE_ERROR: "lucide:database-off",
     SCRIPT_EXECUTION_ERROR: "lucide:code",
     RATE_LIMIT_EXCEEDED: "lucide:clock-x",
   };

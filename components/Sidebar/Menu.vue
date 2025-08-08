@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import type { PermissionCondition } from "~/composables/usePermissions";
-
-const { routes, tables, globalLoading, setSidebarVisible } = useGlobalState();
+const { globalLoading, setSidebarVisible } = useGlobalState();
 const route = useRoute();
 const { isMobile, isTablet } = useScreen();
-const { checkPermissionCondition } = usePermissions();
 const { getMenuItemsBySidebar } = useMenuRegistry();
+const { miniSidebars } = useMiniSidebarRegistry();
 
 function handleMenuClick() {
   if (isMobile.value || isTablet.value) {
@@ -13,28 +11,26 @@ function handleMenuClick() {
   }
 }
 
-// Check if user has permission for any table
-const hasAnyTablePermission = computed(() => {
-  const availableTables = tables.value.filter((table) =>
-    routes.value.some(
-      (route) => table.name === route.mainTable?.name && !table.isSystem
-    )
-  );
+// Function to check if item is active
+const isItemActive = (itemRoute: string) => {
+  const currentPath = route.path;
 
-  return availableTables.some((table) =>
-    checkPermissionCondition({
-      or: [{ route: `/${table.name}`, actions: ["read"] }],
-    })
-  );
-});
+  // If item route is exactly '/collections', only active when current path is exactly '/collections'
+  if (itemRoute === "/collections") {
+    return currentPath === "/collections";
+  }
 
-// Get current sidebar based on route
+  // For other routes, check if current path starts with item route
+  return currentPath.startsWith(itemRoute);
+};
+
+// Get current sidebar based on registered mini sidebars
 const currentSidebar = computed(() => {
   const path = route.path;
-  if (path.startsWith("/settings")) return "settings";
-  if (path.startsWith("/collections")) return "collections";
-  if (path.startsWith("/data")) return "data";
-  return null;
+  const matchingSidebar = miniSidebars.value.find((sidebar) => {
+    return path.startsWith(sidebar.route);
+  });
+  return matchingSidebar?.id || null;
 });
 
 // Get visible menu items for current sidebar
@@ -42,11 +38,11 @@ const visibleMenuItems = computed(() => {
   if (!currentSidebar.value) return [];
 
   const items = getMenuItemsBySidebar(currentSidebar.value);
-  return items.filter((item) => {
-    if (!item.permission) return true;
-    return checkPermissionCondition(item.permission);
-  });
+
+  // Return all items, let PermissionGate handle permission checking
+  return items;
 });
+console.log(visibleMenuItems.value);
 </script>
 
 <template>
@@ -57,131 +53,37 @@ const visibleMenuItems = computed(() => {
     </div>
   </div>
 
-  <!-- Collections menu -->
-  <nav
-    v-else-if="route.path.startsWith('/collections')"
-    class="flex flex-col space-y-3"
-  >
-    <PermissionGate
-      :condition="{
-        or: [{ route: '/table_definition', actions: ['create'] }],
-      }"
-    >
-      <UButton
-        size="lg"
-        variant="ghost"
-        color="neutral"
-        :to="`/collections`"
-        class="w-full hover:bg-primary/20"
-        active-class="bg-primary/20 text-white shadow hover:!bg-primary/20"
-        @click="handleMenuClick"
-      >
-        <template #trailing>
-          <Icon name="lucide:arrow-right" class="ml-auto" />
-        </template>
-        Create New Table
-      </UButton>
-    </PermissionGate>
-    <PermissionGate
-      v-for="item in tables"
-      :key="item.id"
-      :condition="{
-        or: [{ route: '/table_definition', actions: ['update', 'delete'] }],
-      }"
-    >
-      <UButton
-        size="lg"
-        variant="ghost"
-        color="neutral"
-        :icon="item.icon"
-        :to="`/collections/${item.name}`"
-        class="w-full hover:bg-primary/20"
-        active-class="bg-primary/20 text-white shadow hover:!bg-primary/20"
-        @click="handleMenuClick"
-      >
-        <template #trailing>
-          <Icon name="lucide:arrow-right" class="ml-auto" />
-        </template>
-        <span class="truncate">{{ item.name }}</span>
-      </UButton>
-    </PermissionGate>
-  </nav>
-  <nav
-    v-else-if="route.path.startsWith('/settings')"
-    class="flex flex-col space-y-3"
-  >
-    <PermissionGate
-      v-for="item in visibleMenuItems"
-      :key="item.id"
-      :condition="item.permission as any"
-    >
-      <UButton
-        size="lg"
-        variant="ghost"
-        color="neutral"
-        :icon="item.icon"
-        :to="item.route"
-        class="w-full hover:bg-primary/20"
-        :class="
-          route.path.startsWith(item.route) &&
-          'bg-primary/20 text-white shadow hover:!bg-primary/20'
-        "
-        @click="handleMenuClick"
-      >
-        <template #trailing>
-          <Icon name="lucide:arrow-right" class="ml-auto" />
-        </template>
-        {{ item.label }}
-      </UButton>
-    </PermissionGate>
-  </nav>
-  <nav
-    v-else-if="route.path.startsWith('/data')"
-    class="flex flex-col space-y-3"
-  >
-    <template
-      v-if="
-        tables.filter((table) =>
-          routes.some(
-            (route) => table.name === route.mainTable.name && !table.isSystem
-          )
-        ).length === 0
-      "
-    >
+  <!-- Menu items based on registry -->
+  <nav v-else class="flex flex-col space-y-3">
+    <!-- Empty state when no menu items available -->
+    <template v-if="visibleMenuItems.length === 0">
       <div
         class="flex flex-col items-center justify-center py-8 px-4 text-center"
       >
-        <Icon
-          name="lucide:database-off"
-          class="w-8 h-8 text-muted-foreground mb-2"
-        />
-        <p class="text-sm text-muted-foreground">No data tables available</p>
+        <Icon name="lucide:list" class="w-8 h-8 text-muted-foreground mb-2" />
+        <p class="text-sm text-muted-foreground">No menu items available</p>
         <p class="text-xs text-muted-foreground mt-1">
           Contact your administrator to get access
         </p>
       </div>
     </template>
+
+    <!-- Render menu items -->
     <template v-else>
       <PermissionGate
-        v-for="item in tables.filter((table) =>
-          routes.some(
-            (route) => table.name === route.mainTable.name && !table.isSystem
-          )
-        )"
+        v-for="item in visibleMenuItems"
         :key="item.id"
-        :condition="{
-          or: [{ route: `/${item.name}`, actions: ['read'] }],
-        }"
+        :condition="item.permission as any"
       >
         <UButton
           size="lg"
           variant="ghost"
           color="neutral"
           :icon="item.icon"
-          :to="`/data/${item.name}`"
+          :to="item.route"
           class="w-full hover:bg-primary/20"
           :class="
-            route.path.startsWith(`/data/${item.name}`) &&
+            isItemActive(item.route) &&
             'bg-primary/20 text-white shadow hover:!bg-primary/20'
           "
           @click="handleMenuClick"
@@ -189,21 +91,9 @@ const visibleMenuItems = computed(() => {
           <template #trailing>
             <Icon name="lucide:arrow-right" class="ml-auto" />
           </template>
-          <span class="truncate">{{ item.name }}</span>
+          <span class="truncate">{{ item.label }}</span>
         </UButton>
       </PermissionGate>
-
-      <!-- Show message if no tables are visible due to permissions -->
-      <div
-        v-if="!hasAnyTablePermission"
-        class="flex flex-col items-center justify-center py-8 px-4 text-center"
-      >
-        <Icon name="lucide:lock" class="w-8 h-8 text-muted-foreground mb-2" />
-        <p class="text-sm text-muted-foreground">No accessible data tables</p>
-        <p class="text-xs text-muted-foreground mt-1">
-          You don't have permission to view any data
-        </p>
-      </div>
     </template>
   </nav>
 </template>
