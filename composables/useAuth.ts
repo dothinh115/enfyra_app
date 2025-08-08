@@ -40,13 +40,10 @@ export function useAuth() {
     remember?: boolean;
   }) => {
     try {
-      console.log("🔥 Login payload:", payload);
       const response = await executeLogin({ body: payload });
-      console.log("🔥 Login response:", response);
       await fetchUser();
       return response;
     } catch (err: any) {
-      console.error("🔥 Login error:", err);
       return null;
     }
   };

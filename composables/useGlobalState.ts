@@ -12,10 +12,7 @@ export const useGlobalState = () => {
     "global:sidebar:visible",
     () => true
   );
-  const routeLoading = useState<boolean>(
-    "global:route:loading",
-    () => false
-  );
+  const routeLoading = useState<boolean>("global:route:loading", () => false);
 
   const toast = useToast();
 
@@ -103,7 +100,6 @@ export const useGlobalState = () => {
   }
 
   async function fetchSchema() {
-    console.log("🔥 fetchSchema called - only 3 APIs should be called");
     globalLoading.value = true;
     await Promise.all([fetchTable(), fetchRoute(), fetchSetting()]);
     schemas.value = convertToEnfyraSchema(tables.value);

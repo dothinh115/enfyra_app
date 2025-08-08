@@ -17,11 +17,9 @@ export function useMenuRegistry() {
     if (existingIndex > -1) {
       // Replace existing item
       menuItems.value[existingIndex] = item;
-      console.log("Replaced menu item:", item.id, item.sidebarId); // Debug log
     } else {
       // Add new item
       menuItems.value.push(item);
-      console.log("Added menu item:", item.id, item.sidebarId); // Debug log
     }
   };
 

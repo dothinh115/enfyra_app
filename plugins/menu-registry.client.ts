@@ -5,8 +5,6 @@ export default defineNuxtPlugin(async () => {
   const { tables, fetchSchema } = useGlobalState();
   await fetchSchema();
 
-  console.log("Tables count:", tables.value.length); // Debug log
-
   // Register default mini sidebars
   registerMiniSidebars([
     {
@@ -142,7 +140,6 @@ export default defineNuxtPlugin(async () => {
   tables.value
     .filter((table) => !table.isSystem)
     .forEach((table) => {
-      console.log("Registering data table:", table.id, table.name); // Debug log
       registerMenuItem({
         id: `data-${table.id}`,
         label: table.name,
