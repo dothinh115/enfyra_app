@@ -1,0 +1,25 @@
+{
+  "plugins": [
+    {
+      "id": "test-plugin",
+      "type": "page",
+      "active": true,
+      "description": "Test Plugin for Development",
+      "registration": {
+        "miniSidebar": {
+          "id": "settings",
+          "label": "Settings",
+          "icon": "heroicons:cog-6-tooth",
+          "route": "/settings"
+        },
+        "menuItem": {
+          "label": "Test Plugin",
+          "icon": "i-heroicons-beaker",
+          "route": "/settings/test-plugin",
+          "sidebarId": "settings"
+        }
+      },
+      "url": "/api/plugin/test-plugin/plugin.js"
+    }
+  ]
+}

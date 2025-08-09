@@ -2,6 +2,8 @@ export default defineNuxtPlugin(async () => {
   const { registerMiniSidebars } = useMiniSidebarRegistry();
   const { registerMenuItem } = useMenuRegistry();
   const { tables, fetchSchema } = useGlobalState();
+  const { getPlugins } = usePluginManager();
+
   await fetchSchema();
 
   // Register default mini sidebars
@@ -50,6 +52,7 @@ export default defineNuxtPlugin(async () => {
     id: "general",
     label: "General",
     route: "/settings/general",
+    icon: "heroicons:cog-8-tooth",
     sidebarId: "settings",
     permission: {
       or: [{ route: "/setting_definition", actions: ["read", "update"] }],
@@ -57,9 +60,18 @@ export default defineNuxtPlugin(async () => {
   });
 
   registerMenuItem({
+    id: "plugins",
+    label: "Plugins",
+    route: "/settings/plugins",
+    icon: "heroicons:puzzle-piece",
+    sidebarId: "settings",
+  });
+
+  registerMenuItem({
     id: "routings",
     label: "Routings",
     route: "/settings/routings",
+    icon: "heroicons:map",
     sidebarId: "settings",
     permission: {
       or: [{ route: "/route_definition", actions: ["read", "update"] }],
@@ -70,6 +82,7 @@ export default defineNuxtPlugin(async () => {
     id: "handlers",
     label: "Handlers",
     route: "/settings/handlers",
+    icon: "heroicons:command-line",
     sidebarId: "settings",
     permission: {
       or: [{ route: "/route_handler_definition", actions: ["read"] }],
@@ -80,6 +93,7 @@ export default defineNuxtPlugin(async () => {
     id: "hooks",
     label: "Hooks",
     route: "/settings/hooks",
+    icon: "heroicons:link",
     sidebarId: "settings",
     permission: {
       or: [{ route: "/hook_definition", actions: ["read"] }],
@@ -90,6 +104,7 @@ export default defineNuxtPlugin(async () => {
     id: "users",
     label: "Users",
     route: "/settings/users",
+    icon: "heroicons:users",
     sidebarId: "settings",
     permission: {
       or: [{ route: "/user_definition", actions: ["read"] }],
@@ -100,6 +115,7 @@ export default defineNuxtPlugin(async () => {
     id: "roles",
     label: "Roles",
     route: "/settings/roles",
+    icon: "heroicons:shield-check",
     sidebarId: "settings",
     permission: {
       or: [{ route: "/role_definition", actions: ["read"] }],
@@ -150,4 +166,43 @@ export default defineNuxtPlugin(async () => {
         },
       });
     });
+
+  // Register plugin menu items
+  try {
+    const plugins = await getPlugins();
+    const activePagePlugins = plugins.filter(
+      (plugin) => plugin.type === "page" && plugin.active && plugin.registration
+    );
+
+    activePagePlugins.forEach((plugin) => {
+      const { registration } = plugin;
+
+      if (!registration) return;
+
+      // Register mini sidebar if specified
+      if (registration.miniSidebar) {
+        registerMiniSidebars([
+          {
+            id: registration.miniSidebar.id,
+            label: registration.miniSidebar.label,
+            icon: registration.miniSidebar.icon,
+            route: registration.miniSidebar.route,
+          },
+        ]);
+      }
+
+      // Register menu item if specified
+      if (registration.menuItem) {
+        registerMenuItem({
+          id: `plugin-${plugin.id}`,
+          label: registration.menuItem.label,
+          route: registration.menuItem.route,
+          icon: registration.menuItem.icon || "heroicons:puzzle-piece",
+          sidebarId: registration.menuItem.sidebarId,
+        });
+      }
+    });
+  } catch (error) {
+    // Fail silently if plugins can't be loaded during app initialization
+  }
 });

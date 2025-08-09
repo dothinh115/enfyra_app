@@ -5,6 +5,14 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ["@nuxt/icon", "@nuxt/ui", "@nuxtjs/tailwindcss", "nuxt-codemirror"],
   ssr: false,
+  nitro: {
+    publicAssets: [
+      {
+        dir: "public/plugins",
+        maxAge: 0, // No cache for plugins
+      },
+    ],
+  },
   css: ["./assets/css/main.css"],
   app: {
     head: {

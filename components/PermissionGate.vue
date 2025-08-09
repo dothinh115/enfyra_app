@@ -24,8 +24,14 @@ const props = withDefaults(defineProps<Props>(), {
 
 const { hasAnyPermission, hasAllPermissions, checkPermissionCondition } =
   usePermissions();
+const { me } = useAuth();
 
 const hasPermission = computed(() => {
+  // Root admin always has access
+  if (me.value?.isRootAdmin) {
+    return true;
+  }
+
   // Use new condition-based approach if provided
   if (props.condition) {
     return checkPermissionCondition(props.condition);
@@ -40,6 +46,7 @@ const hasPermission = computed(() => {
     }
   }
 
-  return false;
+  // If no permission is specified, show by default (for items like plugins that don't need specific permissions)
+  return true;
 });
 </script>
