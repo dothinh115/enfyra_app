@@ -42,7 +42,6 @@ const visibleMenuItems = computed(() => {
   // Return all items, let PermissionGate handle permission checking
   return items;
 });
-console.log(visibleMenuItems.value);
 </script>
 
 <template>

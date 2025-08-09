@@ -9,22 +9,22 @@ export default defineNuxtConfig({
   app: {
     head: {
       htmlAttrs: {
-        lang: 'en'
+        lang: "en",
       },
       meta: [
-        { charset: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'theme-color', content: '#3b82f6' },
-        { name: 'color-scheme', content: 'dark light' }
+        { charset: "utf-8" },
+        { name: "viewport", content: "width=device-width, initial-scale=1" },
+        { name: "theme-color", content: "#3b82f6" },
+        { name: "color-scheme", content: "dark light" },
       ],
-      title: 'Enfyra CMS - Content Management System'
-    }
+      title: "Enfyra CMS - Content Management System",
+    },
   },
   imports: {
     dirs: [
       // Auto-import from utils
-      'utils/**'
-    ]
+      "utils/**",
+    ],
   },
   vite: {
     plugins: [tailwindcss()],
@@ -32,16 +32,16 @@ export default defineNuxtConfig({
       rollupOptions: {
         output: {
           manualChunks: {
-            // CodeMirror libraries
-            'codemirror': ['@codemirror/view', '@codemirror/state', '@codemirror/lang-javascript'],
-            // TinyMCE
-            'tinymce': ['tinymce'],
-            // Vue Table
-            'vue-table': ['@tanstack/vue-table']
-          }
-        }
-      }
-    }
+            codemirror: [
+              "@codemirror/view",
+              "@codemirror/state",
+              "@codemirror/lang-javascript",
+            ],
+            "vue-table": ["@tanstack/vue-table"],
+          },
+        },
+      },
+    },
   },
   runtimeConfig: {
     public: {

@@ -198,7 +198,7 @@ async function deleteTable() {
       v-else
       title="Table not found"
       description="The requested table could not be loaded"
-      icon="lucide:database-off"
+      icon="lucide:database"
       size="sm"
     />
   </div>

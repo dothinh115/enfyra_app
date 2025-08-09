@@ -1,5 +1,4 @@
 export default defineNuxtPlugin(async () => {
-  console.log("Menu registry plugin starting..."); // Debug log
   const { registerMiniSidebars } = useMiniSidebarRegistry();
   const { registerMenuItem } = useMenuRegistry();
   const { tables, fetchSchema } = useGlobalState();
