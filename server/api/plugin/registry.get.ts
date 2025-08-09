@@ -1,19 +1,11 @@
-import { readFile } from "fs/promises";
-import { join } from "path";
+import { readPluginRegistry } from "../../../utils/server/plugin-registry";
 
 export default defineEventHandler(async (event) => {
   // Public endpoint - không cần authentication
 
   try {
-    // Read registry file
-    const registryPath = join(
-      process.cwd(),
-      "public",
-      "plugins",
-      "plugin-registry.json"
-    );
-    const registryContent = await readFile(registryPath, "utf-8");
-    const registry = JSON.parse(registryContent);
+    // Read registry with auto-creation if missing
+    const registry = await readPluginRegistry();
 
     // Force no-cache headers
     setHeader(

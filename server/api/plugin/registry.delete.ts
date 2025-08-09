@@ -1,4 +1,8 @@
-import { readFile, writeFile, rm } from "fs/promises";
+import {
+  readPluginRegistry,
+  writePluginRegistry,
+} from "../../../utils/server/plugin-registry";
+import { rm } from "fs/promises";
 import { join } from "path";
 import { checkPluginPermission } from "../../../utils/auth/check-permissions";
 
@@ -18,14 +22,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     // Read current registry
-    const registryPath = join(
-      process.cwd(),
-      "public",
-      "plugins",
-      "plugin-registry.json"
-    );
-    const registryContent = await readFile(registryPath, "utf-8");
-    const registry = JSON.parse(registryContent);
+    const registry = await readPluginRegistry();
 
     // Find plugin
     const pluginIndex = registry.plugins.findIndex(
@@ -51,7 +48,7 @@ export default defineEventHandler(async (event) => {
     registry.plugins.splice(pluginIndex, 1);
 
     // Write updated registry back to file
-    await writeFile(registryPath, JSON.stringify(registry, null, 2), "utf-8");
+    await writePluginRegistry(registry);
 
     return {
       success: true,
