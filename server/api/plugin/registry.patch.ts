@@ -5,7 +5,7 @@ import {
 import { checkPluginPermission } from "../../../utils/auth/check-permissions";
 
 export default defineEventHandler(async (event) => {
-  // Kiểm tra quyền PATCH cho plugin registry
+  // Check PATCH permission for plugin registry
   await checkPluginPermission(event, "PATCH");
 
   const body = await readBody(event);
