@@ -32,13 +32,19 @@
                 <div class="font-medium truncate">{{ plugin.id }}</div>
               </div>
             </div>
-            <UButton
-              icon="i-heroicons-trash"
-              variant="outline"
-              size="md"
-              color="error"
-              @click="deletePlugin(plugin)"
-            />
+            <PermissionGate
+              :condition="{
+                or: [{ route: '/plugin_registry', actions: ['delete'] }],
+              }"
+            >
+              <UButton
+                icon="i-heroicons-trash"
+                variant="outline"
+                size="md"
+                color="error"
+                @click="deletePlugin(plugin)"
+              />
+            </PermissionGate>
           </div>
         </template>
 
@@ -77,14 +83,20 @@
                 >
                   {{ plugin.active ? "Active" : "Inactive" }}
                 </UBadge>
-                <UButton
-                  :icon="plugin.active ? 'heroicons:pause' : 'heroicons:play'"
-                  variant="outline"
-                  size="xs"
-                  :color="plugin.active ? 'warning' : 'success'"
-                  @click="togglePluginStatus(plugin)"
+                <PermissionGate
+                  :condition="{
+                    or: [{ route: '/plugin_registry', actions: ['update'] }],
+                  }"
                 >
-                </UButton>
+                  <UButton
+                    :icon="plugin.active ? 'heroicons:pause' : 'heroicons:play'"
+                    variant="outline"
+                    size="xs"
+                    :color="plugin.active ? 'warning' : 'success'"
+                    @click="togglePluginStatus(plugin)"
+                  >
+                  </UButton>
+                </PermissionGate>
               </div>
             </div>
           </div>
@@ -161,6 +173,9 @@ useHeaderActionRegistry({
   class: "rounded-full",
   onClick: () => {
     showUploadModal.value = true;
+  },
+  permission: {
+    or: [{ route: "/plugin_registry", actions: ["create"] }],
   },
 });
 

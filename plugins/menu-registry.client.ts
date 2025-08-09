@@ -42,6 +42,7 @@ export default defineNuxtPlugin(async () => {
           { route: "/hook_definition", actions: ["read"] },
           { route: "/user_definition", actions: ["read"] },
           { route: "/role_definition", actions: ["read"] },
+          { route: "/plugin_registry", actions: ["read"] },
         ],
       },
     },
@@ -65,6 +66,9 @@ export default defineNuxtPlugin(async () => {
     route: "/settings/plugins",
     icon: "heroicons:puzzle-piece",
     sidebarId: "settings",
+    permission: {
+      or: [{ route: "/plugin_registry", actions: ["read"] }],
+    },
   });
 
   registerMenuItem({

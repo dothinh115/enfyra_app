@@ -3,6 +3,7 @@ import { join } from "path";
 import JSZip from "jszip";
 import { build } from "vite";
 import vue from "@vitejs/plugin-vue";
+import { checkPluginPermission } from "../../../utils/auth/check-permissions";
 
 interface PluginRegistry {
   id: string;
@@ -183,6 +184,9 @@ async function updatePluginRegistry(
 }
 
 export default defineEventHandler(async (event) => {
+  // Kiểm tra quyền POST cho plugin registry
+  await checkPluginPermission(event, "POST");
+
   try {
     const formData = await readMultipartFormData(event);
 

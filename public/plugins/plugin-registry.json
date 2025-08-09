@@ -3,7 +3,7 @@
     {
       "id": "test-plugin",
       "type": "page",
-      "active": true,
+      "active": false,
       "description": "Test Plugin for Development",
       "registration": {
         "miniSidebar": {

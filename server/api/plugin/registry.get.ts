@@ -1,14 +1,8 @@
 import { readFile } from "fs/promises";
 import { join } from "path";
-import { getCookie } from "h3";
-import { ACCESS_TOKEN_KEY } from "../../../utils/constants";
 
 export default defineEventHandler(async (event) => {
-  // Check authentication via access token in cookie
-  const accessToken = getCookie(event, ACCESS_TOKEN_KEY);
-  if (!accessToken) {
-    throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
-  }
+  // Public endpoint - không cần authentication
 
   try {
     // Read registry file
