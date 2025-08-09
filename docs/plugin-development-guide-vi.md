@@ -22,6 +22,9 @@ my-plugin/
   "type": "page",
   "active": true,
   "description": "Mô tả plugin của bạn",
+  "permission": {
+    "and": [{ "route": "/plugin_registry", "actions": ["read"] }]
+  },
   "registration": {
     "miniSidebar": {
       "id": "settings",
@@ -45,6 +48,20 @@ my-plugin/
 - **`type`**: Loại plugin (`"page"` hoặc `"widget"`)
 - **`active`**: Trạng thái kích hoạt (`true`/`false`)
 - **`description`**: Mô tả plugin
+
+#### Permission (optional):
+
+- **`permission`**: Điều kiện permission để truy cập plugin
+
+Chi tiết về `PermissionCondition` type xem tại: **[Menu Registry Guide](./menu-registry.md)**
+
+```json
+{
+  "permission": {
+    "and": [{ "route": "/plugin_registry", "actions": ["read"] }]
+  }
+}
+```
 
 #### Registration (cho type "page"):
 

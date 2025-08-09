@@ -113,20 +113,33 @@
     </div>
 
     <!-- Empty State -->
-    <CommonEmptyState
+    <div
       v-else-if="!loading && plugins.length === 0"
-      title="No plugins found"
-      description="No plugins are currently registered in the system. Upload a plugin to get started."
-      icon="i-heroicons-puzzle-piece"
-      size="md"
-      :action="{
-        label: 'Upload Plugin',
-        onClick: () => {
-          showUploadModal = true;
-        },
-        icon: 'i-heroicons-arrow-up-tray',
-      }"
-    />
+      class="flex flex-col items-center justify-center py-12"
+    >
+      <UIcon
+        name="i-heroicons-puzzle-piece"
+        class="text-gray-400 mx-auto text-8xl mb-6"
+      />
+      <div class="text-center">
+        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+          No plugins found
+        </h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
+          No plugins are currently registered in the system. Upload a plugin to
+          get started.
+        </p>
+      </div>
+      <UButton
+        icon="i-heroicons-arrow-up-tray"
+        @click="showUploadModal = true"
+        size="sm"
+        variant="soft"
+        color="primary"
+      >
+        Upload Plugin
+      </UButton>
+    </div>
 
     <!-- Upload Modal -->
     <CommonUploadModal
