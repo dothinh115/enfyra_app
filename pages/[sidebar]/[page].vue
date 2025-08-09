@@ -64,7 +64,7 @@
 </template>
 
 <script setup>
-import { resolveComponent, reactive } from "vue";
+import { resolveComponent, markRaw } from "vue";
 
 // Get route params
 const route = useRoute();
@@ -73,31 +73,31 @@ const pageParam = route.params.page;
 
 // Resolve components in setup context (resolveComponent can only be used here)
 // Only include components that definitely exist
-const providedComponents = reactive({
+const providedComponents = {
   // Core Nuxt UI Components (confirmed to exist)
-  UIcon: resolveComponent("UIcon"),
-  UButton: resolveComponent("UButton"),
-  UCard: resolveComponent("UCard"),
-  UBadge: resolveComponent("UBadge"),
-  UInput: resolveComponent("UInput"),
-  UTextarea: resolveComponent("UTextarea"),
-  USelect: resolveComponent("USelect"),
-  UCheckbox: resolveComponent("UCheckbox"),
-  UModal: resolveComponent("UModal"),
-  UPopover: resolveComponent("UPopover"),
-  UTooltip: resolveComponent("UTooltip"),
-  UAlert: resolveComponent("UAlert"),
-  UAvatar: resolveComponent("UAvatar"),
-  UProgress: resolveComponent("UProgress"),
-  UTable: resolveComponent("UTable"),
-  UPagination: resolveComponent("UPagination"),
-  UBreadcrumb: resolveComponent("UBreadcrumb"),
-  UTabs: resolveComponent("UTabs"),
-  UAccordion: resolveComponent("UAccordion"),
+  UIcon: markRaw(resolveComponent("UIcon")),
+  UButton: markRaw(resolveComponent("UButton")),
+  UCard: markRaw(resolveComponent("UCard")),
+  UBadge: markRaw(resolveComponent("UBadge")),
+  UInput: markRaw(resolveComponent("UInput")),
+  UTextarea: markRaw(resolveComponent("UTextarea")),
+  USelect: markRaw(resolveComponent("USelect")),
+  UCheckbox: markRaw(resolveComponent("UCheckbox")),
+  UModal: markRaw(resolveComponent("UModal")),
+  UPopover: markRaw(resolveComponent("UPopover")),
+  UTooltip: markRaw(resolveComponent("UTooltip")),
+  UAlert: markRaw(resolveComponent("UAlert")),
+  UAvatar: markRaw(resolveComponent("UAvatar")),
+  UProgress: markRaw(resolveComponent("UProgress")),
+  UTable: markRaw(resolveComponent("UTable")),
+  UPagination: markRaw(resolveComponent("UPagination")),
+  UBreadcrumb: markRaw(resolveComponent("UBreadcrumb")),
+  UTabs: markRaw(resolveComponent("UTabs")),
+  UAccordion: markRaw(resolveComponent("UAccordion")),
 
   // Custom Components
-  PermissionGate: resolveComponent("PermissionGate"),
-});
+  PermissionGate: markRaw(resolveComponent("PermissionGate")),
+};
 
 // Reactive state
 const loading = ref(true);
@@ -126,10 +126,10 @@ const loadMatchingPlugin = async () => {
 
   // First check if plugin exists (regardless of active status)
   const existingPlugin = allPagePlugins.find((p) => {
-    const miniSidebarRoute = p.registration?.miniSidebar?.route;
     const menuItemRoute = p.registration?.menuItem?.route;
 
-    return miniSidebarRoute === sidebarRoute && menuItemRoute === fullRoute;
+    // Check if menuItem route matches the full route
+    return menuItemRoute === fullRoute;
   });
 
   if (!existingPlugin) {

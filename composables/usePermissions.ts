@@ -15,13 +15,11 @@ export function usePermissions() {
   // Helper function to check if user has permission for a specific route and method
   const hasPermission = (routePath: string, method: string): boolean => {
     if (!me.value) {
-      console.log("❌ No user found");
       return false;
     }
 
     // Root admin has all permissions
     if (me.value.isRootAdmin) {
-      console.log("✅ Root admin - full access");
       return true;
     }
 

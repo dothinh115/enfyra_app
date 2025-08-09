@@ -11,16 +11,7 @@ async function handleLogout() {
 }
 
 const items = computed(() => {
-  const defaultItems = [
-    {
-      label: "Dashboard",
-      icon: "lucide:layout-dashboard",
-      route: "/",
-      show: true, // Always show dashboard
-    },
-  ];
-
-  // Add registered mini sidebars
+  // Use only registered mini sidebars - Dashboard will be registered in plugin
   const registeredItems = miniSidebars.value
     .filter((sidebar) => {
       if (!sidebar.permission) return true;
@@ -33,11 +24,18 @@ const items = computed(() => {
       show: true,
     }));
 
-  return [...defaultItems, ...registeredItems];
+  return registeredItems;
 });
 
-const isActive = (path: string) =>
-  path === "/" ? route.path === path : route.path.startsWith(path);
+const isActive = (path: string) => {
+  // Handle dashboard route specifically
+  if (path === "/dashboard") {
+    return route.path === "/dashboard" || route.path === "/";
+  }
+
+  // For other routes, check if current path starts with item route
+  return route.path.startsWith(path);
+};
 </script>
 
 <template>

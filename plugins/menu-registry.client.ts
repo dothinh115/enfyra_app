@@ -9,6 +9,13 @@ export default defineNuxtPlugin(async () => {
   // Register default mini sidebars
   registerMiniSidebars([
     {
+      id: "dashboard",
+      label: "Dashboard",
+      icon: "lucide:layout-dashboard",
+      route: "/dashboard",
+      // No permission - always visible
+    },
+    {
       id: "data",
       label: "Data",
       icon: "lucide:list",

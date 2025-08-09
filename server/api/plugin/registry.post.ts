@@ -290,31 +290,35 @@ export default defineEventHandler(async (event) => {
         });
       }
 
-      // Check for new format (miniSidebar + menuItem) or legacy format
-      const hasNewFormat =
-        registry.registration.miniSidebar && registry.registration.menuItem;
+      // Check validation: menuItem is required, miniSidebar is optional
+      const hasMenuItemFormat = registry.registration.menuItem;
       const hasLegacyFormat =
         registry.registration.routePattern && registry.registration.title;
 
-      if (!hasNewFormat && !hasLegacyFormat) {
+      if (!hasMenuItemFormat && !hasLegacyFormat) {
         throw createError({
           statusCode: 400,
           statusMessage:
-            "Page plugins must have either (miniSidebar + menuItem) or (routePattern + title)",
+            "Page plugins must have either (menuItem) or (routePattern + title)",
         });
       }
 
-      // Validate new format
-      if (hasNewFormat) {
+      // Validate menuItem format
+      if (hasMenuItemFormat) {
         const { miniSidebar, menuItem } = registry.registration;
 
-        if (!miniSidebar?.id || !miniSidebar?.label || !miniSidebar?.route) {
+        // Validate miniSidebar if present (optional)
+        if (
+          miniSidebar &&
+          (!miniSidebar?.id || !miniSidebar?.label || !miniSidebar?.route)
+        ) {
           throw createError({
             statusCode: 400,
             statusMessage: "miniSidebar must have id, label, and route",
           });
         }
 
+        // Validate menuItem (required)
         if (!menuItem?.label || !menuItem?.route || !menuItem?.sidebarId) {
           throw createError({
             statusCode: 400,
