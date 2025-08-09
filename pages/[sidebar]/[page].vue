@@ -154,10 +154,6 @@ const loadMatchingPlugin = async () => {
     pluginComponent.value = component;
 
     pluginProps.value = {
-      pluginId: plugin.id,
-      pluginDescription: plugin.description,
-      sidebar: sidebarParam,
-      page: pageParam,
       // UI Components
       ui: providedComponents,
       // Custom Components
