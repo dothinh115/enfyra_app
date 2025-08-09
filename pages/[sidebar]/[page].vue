@@ -1,48 +1,42 @@
 <template>
   <div>
     <!-- Loading state -->
-    <div v-if="loading" class="flex items-center justify-center min-h-[400px]">
-      <div class="text-center">
-        <div
-          class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"
-        ></div>
-        <p class="text-gray-600">Loading plugin...</p>
-      </div>
-    </div>
+    <CommonLoadingState
+      v-if="loading"
+      title="Loading plugin..."
+      description="Fetching plugin component"
+      size="md"
+      type="dots"
+      context="page"
+    />
 
     <!-- Error state -->
-    <div
+    <CommonEmptyState
       v-else-if="error"
-      class="flex items-center justify-center min-h-[400px]"
-    >
-      <div class="text-center">
-        <div v-if="error.includes('disabled')" class="text-amber-500 text-6xl mb-4">🔒</div>
-        <div v-else class="text-red-500 text-6xl mb-4">⚠️</div>
-        
-        <h2 v-if="error.includes('disabled')" class="text-xl font-semibold text-gray-800 mb-2">Plugin Disabled</h2>
-        <h2 v-else class="text-xl font-semibold text-gray-800 mb-2">Plugin Error</h2>
-        
-        <p class="text-gray-600 mb-4">{{ error }}</p>
-        
-        <button
-          v-if="!error.includes('disabled')"
-          @click="retry"
-          class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-600"
-        >
-          Retry
-        </button>
-        
-        <UButton
-          v-else
-          to="/settings/plugins"
-          icon="i-heroicons-cog-6-tooth"
-          color="primary"
-          variant="outline"
-        >
-          Go to Plugin Settings
-        </UButton>
-      </div>
-    </div>
+      :title="error.includes('disabled') ? 'Plugin Disabled' : 'Plugin Error'"
+      :description="error"
+      :icon="
+        error.includes('disabled')
+          ? 'i-heroicons-lock-closed'
+          : 'i-heroicons-exclamation-triangle'
+      "
+      size="md"
+      :action="
+        error.includes('disabled')
+          ? {
+              label: 'Go to Plugin Settings',
+              onClick: () => {
+                $router.push('/settings/plugins');
+              },
+              icon: 'i-heroicons-cog-6-tooth',
+            }
+          : {
+              label: 'Retry',
+              onClick: retry,
+              icon: 'i-heroicons-arrow-path',
+            }
+      "
+    />
 
     <!-- Plugin component -->
     <component
@@ -52,15 +46,20 @@
     />
 
     <!-- 404 state -->
-    <div v-else class="flex items-center justify-center min-h-[400px]">
-      <div class="text-center">
-        <div class="text-gray-400 text-6xl mb-4">🔌</div>
-        <h2 class="text-xl font-semibold text-gray-800 mb-2">
-          Plugin Not Found
-        </h2>
-        <p class="text-gray-600">No plugin found for route: {{ route.path }}</p>
-      </div>
-    </div>
+    <CommonEmptyState
+      v-else
+      title="Plugin Not Found"
+      :description="`No plugin found for route: ${route.path}`"
+      icon="i-heroicons-puzzle-piece"
+      size="md"
+      :action="{
+        label: 'Browse Plugins',
+        onClick: () => {
+          $router.push('/settings/plugins');
+        },
+        icon: 'i-heroicons-cog-6-tooth',
+      }"
+    />
   </div>
 </template>
 

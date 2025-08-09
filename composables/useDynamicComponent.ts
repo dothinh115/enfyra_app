@@ -129,7 +129,9 @@ export const useDynamicComponent = () => {
       }
 
       // 2. Fetch plugin JS
-      const response = await fetch(url);
+      // Add cache busting to force reload updated plugins
+      const cacheBustedUrl = `${url}?_t=${Date.now()}`;
+      const response = await fetch(cacheBustedUrl);
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }

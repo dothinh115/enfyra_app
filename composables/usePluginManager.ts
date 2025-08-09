@@ -57,14 +57,21 @@ export const usePluginManager = () => {
   /**
    * Load plugin by ID
    * @param pluginId - Plugin ID
+   * @param forceReload - Force reload even if cached
    * @returns Loaded component
    */
-  const loadPlugin = async (pluginId: string) => {
+  const loadPlugin = async (pluginId: string, forceReload: boolean = false) => {
     const plugins = await getPlugins();
     const plugin = plugins.find((p) => p.id === pluginId);
 
     if (!plugin) {
       throw new Error(`Plugin not found: ${pluginId}`);
+    }
+
+    // If force reload, clear cache first
+    if (forceReload) {
+      loadedPlugins.value.delete(pluginId);
+      pluginComponents.value.delete(pluginId);
     }
 
     if (loadedPlugins.value.has(pluginId)) {
@@ -112,12 +119,21 @@ export const usePluginManager = () => {
     return pluginComponents.value.get(pluginId) || null;
   };
 
+  /**
+   * Clear all plugin cache (useful after upload/update)
+   */
+  const clearPluginCache = () => {
+    loadedPlugins.value.clear();
+    pluginComponents.value.clear();
+  };
+
   return {
     getPlugins,
     loadPlugin,
     unloadPlugin,
     loadAllPlugins,
     getPluginComponent,
+    clearPluginCache,
     loadedPlugins: readonly(loadedPlugins),
   };
 };

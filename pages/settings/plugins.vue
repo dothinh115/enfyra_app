@@ -9,7 +9,7 @@
       v-if="loading"
       title="Loading plugins..."
       description="Fetching plugin registry"
-      size="sm"
+      size="md"
       type="card"
       context="page"
     />
@@ -113,24 +113,20 @@
     </div>
 
     <!-- Empty State -->
-    <div
+    <CommonEmptyState
       v-else-if="!loading && plugins.length === 0"
-      class="flex flex-col items-center justify-center py-12"
-    >
-      <UIcon
-        name="i-heroicons-puzzle-piece"
-        class="text-gray-400 mx-auto text-8xl mb-6"
-      />
-      <div class="text-center">
-        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-          No plugins found
-        </h3>
-        <p class="text-sm text-gray-500 dark:text-gray-400">
-          No plugins are currently registered in the system. Upload a plugin to
-          get started.
-        </p>
-      </div>
-    </div>
+      title="No plugins found"
+      description="No plugins are currently registered in the system. Upload a plugin to get started."
+      icon="i-heroicons-puzzle-piece"
+      size="md"
+      :action="{
+        label: 'Upload Plugin',
+        onClick: () => {
+          showUploadModal = true;
+        },
+        icon: 'i-heroicons-arrow-up-tray',
+      }"
+    />
 
     <!-- Upload Modal -->
     <CommonUploadModal
@@ -163,6 +159,9 @@ const {
   pending: loading,
   execute: fetchPlugins,
 } = useApiLazy(() => "/plugin/registry", {
+  query: computed(() => ({
+    _t: Date.now(), // Cache busting
+  })),
   errorContext: "Fetch Plugins",
 });
 
@@ -228,6 +227,10 @@ const togglePluginStatus = async (plugin: Plugin) => {
     },
   });
 
+  // Clear plugin cache to force reload
+  const { clearPluginCache } = usePluginManager();
+  clearPluginCache();
+
   // Refetch plugins to update UI
   await fetchPlugins();
 
@@ -263,6 +266,10 @@ const deletePlugin = async (plugin: Plugin) => {
       body: { pluginId: plugin.id },
     });
 
+    // Clear plugin cache to remove deleted plugin
+    const { clearPluginCache } = usePluginManager();
+    clearPluginCache();
+
     // Refetch plugins to update UI
     await fetchPlugins();
 
@@ -287,6 +294,10 @@ const handlePluginUpload = async (files: File | File[]) => {
   await uploadPluginApi({
     body: formData,
   });
+
+  // Clear plugin cache to force reload updated components
+  const { clearPluginCache } = usePluginManager();
+  clearPluginCache();
 
   // Refetch plugins to update UI
   await fetchPlugins();
