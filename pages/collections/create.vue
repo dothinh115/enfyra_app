@@ -3,6 +3,7 @@ const router = useRouter();
 const { tables, globalLoading, fetchSchema } = useGlobalState();
 const { confirm } = useConfirm();
 const toast = useToast();
+const { reregisterTableMenus } = useMenuRegistry();
 const errors = ref<Record<string, string>>({});
 const table = reactive<any>({
   name: "",
@@ -159,6 +160,10 @@ async function save() {
   await createTable({ body: payload });
 
   await fetchSchema();
+
+  // Re-register all table menus to ensure sync
+  reregisterTableMenus(tables.value);
+
   toast.add({
     title: "Success",
     color: "success",

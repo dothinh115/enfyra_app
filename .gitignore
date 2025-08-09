@@ -25,3 +25,7 @@ logs
 
 # Plugin development folder
 enfyra-plugin/
+
+# Plugin registry and uploaded plugins
+public/plugins/plugin-registry.json
+public/plugins/*/

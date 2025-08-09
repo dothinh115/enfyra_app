@@ -2,6 +2,10 @@ import { useNuxtApp } from "#app";
 import { markRaw } from "vue";
 import { useAuth } from "./useAuth";
 import { useApi } from "./useApi";
+import { useHeaderActionRegistry } from "./useHeaderActionRegistry";
+import { useMenuRegistry } from "./useMenuRegistry";
+import { useMiniSidebarRegistry } from "./useMiniSidebarRegistry";
+import { usePermissions } from "./usePermissions";
 
 /**
  * Composable for loading external Vue components dynamically
@@ -42,6 +46,12 @@ export const useDynamicComponent = () => {
         g.useLazyFetch = useLazyFetch;
         g.useHead = useHead;
         g.useSeoMeta = useSeoMeta;
+
+        // Inject Enfyra-specific composables
+        g.useHeaderActionRegistry = useHeaderActionRegistry;
+        g.useMenuRegistry = useMenuRegistry;
+        g.useMiniSidebarRegistry = useMiniSidebarRegistry;
+        g.usePermissions = usePermissions;
 
         // Inject Vue lifecycle hooks
         const {

@@ -15,29 +15,70 @@ const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
 const { createButtonLoader } = useButtonLoading();
 const { checkPermissionCondition } = usePermissions();
 
-// Register header actions
-useHeaderActionRegistry({
-  id: "create-data-entry",
-  label: "Create Entry",
-  icon: "lucide:plus",
-  variant: "solid",
-  color: "primary",
-  size: "lg",
-  to: `/data/${route.params.table}/create`,
-  class: "rounded-full",
-  permission: {
-    and: [
-      {
-        route: `/${route.params.table}`,
-        actions: ["create"],
-      },
-    ],
-  },
-});
-
-// Filter state
+// Filter state (move up before use)
 const showFilterDrawer = ref(false);
 const currentFilter = ref(createEmptyFilter());
+
+// Filter button computed values
+const filterLabel = computed(() => {
+  const activeCount = currentFilter.value.conditions.length;
+  return activeCount > 0 ? `Filters (${activeCount})` : "Filter";
+});
+
+const filterVariant = computed(() => {
+  return hasActiveFilters(currentFilter.value) ? "solid" : "outline";
+});
+
+const filterColor = computed(() => {
+  return hasActiveFilters(currentFilter.value) ? "secondary" : "neutral";
+});
+
+// Register header actions directly
+useHeaderActionRegistry([
+  {
+    id: "filter-data-entries",
+    get label() {
+      return filterLabel.value;
+    },
+    icon: "lucide:filter",
+    get variant() {
+      return filterVariant.value;
+    },
+    get color() {
+      return filterColor.value;
+    },
+    size: "sm",
+    onClick: () => {
+      showFilterDrawer.value = true;
+    },
+    permission: {
+      and: [
+        {
+          route: `/${route.params.table}`,
+          actions: ["read"],
+        },
+      ],
+    },
+  },
+  {
+    id: "create-data-entry",
+    label: "Create Entry",
+    icon: "lucide:plus",
+    variant: "solid",
+    color: "primary",
+    size: "lg",
+    to: `/data/${route.params.table}/create`,
+    class: "rounded-full",
+    permission: {
+      and: [
+        {
+          route: `/${route.params.table}`,
+          actions: ["create"],
+        },
+      ],
+    },
+  },
+]);
 
 // API composables - all at setup level
 const {
@@ -273,31 +314,8 @@ onMounted(async () => {
   <div class="space-y-4">
     <UCard variant="subtle">
       <template #header>
-        <div class="flex items-center justify-between">
-          <div
-            class="text-xl font-semibold capitalize flex items-center space-x-2"
-          >
-            <span>{{ table?.name || "Records" }}</span>
-            <UButton
-              icon="i-lucide-refresh-ccw"
-              @click="fetchData()"
-              :loading="loading"
-            />
-          </div>
-          <div class="flex items-center gap-2">
-            <UButton
-              icon="i-lucide-filter"
-              :variant="hasActiveFilters(currentFilter) ? 'solid' : 'outline'"
-              :color="hasActiveFilters(currentFilter) ? 'primary' : 'neutral'"
-              @click="showFilterDrawer = true"
-              size="sm"
-            >
-              <template v-if="hasActiveFilters(currentFilter)">
-                Filters ({{ currentFilter.conditions.length }})
-              </template>
-              <template v-else> Filter </template>
-            </UButton>
-          </div>
+        <div class="text-xl font-semibold capitalize">
+          <span>{{ table?.name || "Records" }}</span>
         </div>
       </template>
 

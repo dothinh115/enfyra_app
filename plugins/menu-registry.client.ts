@@ -138,38 +138,9 @@ export default defineNuxtPlugin(async () => {
     },
   });
 
-  // Register collections menu items for all tables
-  tables.value.forEach((table) => {
-    registerMenuItem({
-      id: `table-${table.id}`,
-      label: table.name,
-      route: `/collections/${table.name}`,
-      icon: table.icon || "lucide:database",
-      sidebarId: "collections",
-      permission: {
-        or: [
-          { route: "/table_definition", actions: ["update"] },
-          { route: "/table_definition", actions: ["delete"] },
-        ],
-      },
-    });
-  });
-
-  // Register data menu items for all tables
-  tables.value
-    .filter((table) => !table.isSystem)
-    .forEach((table) => {
-      registerMenuItem({
-        id: `data-${table.id}`,
-        label: table.name,
-        route: `/data/${table.name}`,
-        icon: table.icon || "lucide:list",
-        sidebarId: "data",
-        permission: {
-          or: [{ route: `/${table.name}`, actions: ["read"] }],
-        },
-      });
-    });
+  // Register all table menus using helper function
+  const { reregisterTableMenus } = useMenuRegistry();
+  reregisterTableMenus(tables.value);
 
   // Register plugin menu items
   try {

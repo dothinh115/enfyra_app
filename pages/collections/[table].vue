@@ -5,6 +5,7 @@ const route = useRoute();
 const { tables, fetchSchema, globalLoading } = useGlobalState();
 const { confirm } = useConfirm();
 const toast = useToast();
+const { reregisterTableMenus } = useMenuRegistry();
 const tableName = "table_definition";
 const { getIncludeFields } = useSchema(tableName);
 
@@ -115,6 +116,10 @@ async function save() {
 async function patchTable() {
   await executePatchTable();
   await fetchSchema();
+
+  // Re-register table menus to reflect any name changes
+  reregisterTableMenus(tables.value);
+
   toast.add({
     title: "Success",
     color: "success",
@@ -136,6 +141,10 @@ async function handleDelete() {
 async function deleteTable() {
   await executeDeleteTable();
   await fetchSchema();
+
+  // Re-register table menus to remove deleted table
+  reregisterTableMenus(tables.value);
+
   toast.add({
     title: "Success",
     color: "success",

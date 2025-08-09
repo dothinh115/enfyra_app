@@ -16,15 +16,31 @@
       class="flex items-center justify-center min-h-[400px]"
     >
       <div class="text-center">
-        <div class="text-red-500 text-6xl mb-4">⚠️</div>
-        <h2 class="text-xl font-semibold text-gray-800 mb-2">Plugin Error</h2>
+        <div v-if="error.includes('disabled')" class="text-amber-500 text-6xl mb-4">🔒</div>
+        <div v-else class="text-red-500 text-6xl mb-4">⚠️</div>
+        
+        <h2 v-if="error.includes('disabled')" class="text-xl font-semibold text-gray-800 mb-2">Plugin Disabled</h2>
+        <h2 v-else class="text-xl font-semibold text-gray-800 mb-2">Plugin Error</h2>
+        
         <p class="text-gray-600 mb-4">{{ error }}</p>
+        
         <button
+          v-if="!error.includes('disabled')"
           @click="retry"
           class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-600"
         >
           Retry
         </button>
+        
+        <UButton
+          v-else
+          to="/settings/plugins"
+          icon="i-heroicons-cog-6-tooth"
+          color="primary"
+          variant="outline"
+        >
+          Go to Plugin Settings
+        </UButton>
       </div>
     </div>
 
@@ -102,25 +118,35 @@ const loadMatchingPlugin = async () => {
   error.value = null;
 
   const plugins = await getPlugins();
-  const pagePlugins = plugins.filter(
-    (p) => p.type === "page" && p.registration && p.active
+  const allPagePlugins = plugins.filter(
+    (p) => p.type === "page" && p.registration
   );
 
   const sidebarRoute = `/${sidebarParam}`;
   const fullRoute = `/${sidebarParam}/${pageParam}`;
 
-  const plugin = pagePlugins.find((p) => {
+  // First check if plugin exists (regardless of active status)
+  const existingPlugin = allPagePlugins.find((p) => {
     const miniSidebarRoute = p.registration?.miniSidebar?.route;
     const menuItemRoute = p.registration?.menuItem?.route;
 
     return miniSidebarRoute === sidebarRoute && menuItemRoute === fullRoute;
   });
 
-  if (!plugin) {
+  if (!existingPlugin) {
     error.value = `No plugin found for route: ${fullRoute}`;
     loading.value = false;
     return;
   }
+
+  // Check if plugin is disabled
+  if (!existingPlugin.active) {
+    error.value = `Plugin "${existingPlugin.id}" is currently disabled. Please contact an administrator to enable this plugin.`;
+    loading.value = false;
+    return;
+  }
+
+  const plugin = existingPlugin;
 
   matchedPlugin.value = plugin;
 

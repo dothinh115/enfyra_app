@@ -68,11 +68,19 @@
             >
               <div>Route:</div>
               <NuxtLink
+                v-if="plugin.active"
                 :to="plugin.registration.menuItem.route"
                 class="text-xs font-mono text-primary-500 hover:text-primary-600 hover:underline transition-colors"
               >
                 {{ plugin.registration.menuItem.route }}
               </NuxtLink>
+              <span
+                v-else
+                class="text-xs font-mono text-gray-400 cursor-not-allowed"
+                :title="'Plugin is disabled. Enable plugin to access this route.'"
+              >
+                {{ plugin.registration.menuItem.route }}
+              </span>
             </div>
             <div class="flex items-center justify-between mt-1">
               <div>Status:</div>
@@ -161,16 +169,17 @@ const {
 const plugins = computed(() => apiData.value?.plugins || []);
 
 const { confirm } = useConfirm();
-
 const toast = useToast();
+const { reregisterPluginMenus } = useMenuRegistry();
 
+// Register multiple header actions at once
 useHeaderActionRegistry({
   id: "add-plugin",
   icon: "i-heroicons-plus",
   variant: "solid",
   color: "primary",
-  size: "lg",
   class: "rounded-full",
+  size: "lg",
   onClick: () => {
     showUploadModal.value = true;
   },
@@ -219,17 +228,20 @@ const togglePluginStatus = async (plugin: Plugin) => {
     },
   });
 
-  // Show success toast and reload page after 3 seconds
+  // Refetch plugins to update UI
+  await fetchPlugins();
+
+  // Hot reload plugin menus
+  await reregisterPluginMenus();
+
+  // Show toast notification
   toast.add({
-    title: "Plugin Status Updated",
-    description: "Page will reload in 3 seconds to apply changes.",
+    title: "Success",
+    description: `Plugin "${plugin.id}" has been ${
+      newStatus ? "activated" : "deactivated"
+    } successfully!`,
     color: "success",
   });
-
-  // Reload page after 3 seconds
-  setTimeout(() => {
-    window.location.reload();
-  }, 3000);
 };
 
 // API composable for deleting plugin
@@ -251,17 +263,18 @@ const deletePlugin = async (plugin: Plugin) => {
       body: { pluginId: plugin.id },
     });
 
-    // Show success toast and reload page after 3 seconds
+    // Refetch plugins to update UI
+    await fetchPlugins();
+
+    // Hot reload plugin menus to remove deleted plugin
+    await reregisterPluginMenus();
+
+    // Show toast notification
     toast.add({
-      title: "Plugin Deleted Successfully",
-      description: "Page will reload in 3 seconds to apply changes.",
+      title: "Success",
+      description: `Plugin "${plugin.id}" has been deleted successfully!`,
       color: "success",
     });
-
-    // Reload page after 3 seconds
-    setTimeout(() => {
-      window.location.reload();
-    }, 3000);
   }
 };
 
@@ -275,20 +288,21 @@ const handlePluginUpload = async (files: File | File[]) => {
     body: formData,
   });
 
-  // Close modal after successful upload
+  // Refetch plugins to update UI
+  await fetchPlugins();
+
+  // Hot reload plugin menus to include new plugin
+  await reregisterPluginMenus();
+
+  // Close upload modal
   showUploadModal.value = false;
 
-  // Show success toast and reload page after 3 seconds
+  // Show toast notification
   toast.add({
-    title: "Plugin Installed Successfully",
-    description: "Page will reload in 3 seconds to apply changes.",
+    title: "Success",
+    description: "Plugin has been uploaded successfully!",
     color: "success",
   });
-
-  // Reload page after 3 seconds
-  setTimeout(() => {
-    window.location.reload();
-  }, 3000);
 };
 
 const handleUploadError = (message: string) => {
