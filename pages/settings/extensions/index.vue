@@ -206,7 +206,6 @@ const extensions = computed<ExtensionDefinition[]>(
 
 const { confirm } = useConfirm();
 const toast = useToast();
-const { reregisterExtensionMenus } = useMenuRegistry();
 
 // Register multiple header actions at once
 useHeaderActionRegistry({
@@ -253,9 +252,9 @@ const toggleExtensionStatus = async (extension: ExtensionDefinition) => {
 
   await updateExtension({
     body: {
-      extensionId: extension.id,
-      updates: { isEnabled: newStatus },
+      isEnabled: newStatus,
     },
+    id: extension.id,
   });
 
   // Refetch extensions to update UI
