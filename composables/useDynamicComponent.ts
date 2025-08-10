@@ -21,18 +21,34 @@ import {
   UTabs,
   UAccordion,
   UForm,
-  PermissionGate,
-  FormEditor,
-  Icon,
 } from "#components";
+
+// Import Enfyra components
+import PermissionGate from "~/components/PermissionGate.vue";
+import FormEditor from "~/components/form/FormEditor.vue";
+
+// Import Enfyra composables
+import { useApi, useApiLazy } from "~/composables/useApi";
+import { useHeaderActionRegistry } from "~/composables/useHeaderActionRegistry";
+import { useSchema } from "~/composables/useSchema";
+import { useScreen } from "~/composables/useScreen";
+import { useGlobalState } from "~/composables/useGlobalState";
+import { useConfirm } from "~/composables/useConfirm";
+import { useAuth } from "~/composables/useAuth";
+import { usePermissions } from "~/composables/usePermissions";
+
+// Import các components cần thiết
+import CommonLoadingState from "~/components/common/LoadingState.vue";
+import CommonEmptyState from "~/components/common/EmptyState.vue";
+import UploadModal from "~/components/common/UploadModal.vue";
 
 /**
  * Composable for loading dynamic Vue components from code
  */
 export const useDynamicComponent = () => {
   // Get components directly imported
-
   const availableComponents = {
+    // UI Components
     UIcon: markRaw(UIcon),
     UButton: markRaw(UButton),
     UCard: markRaw(UCard),
@@ -54,9 +70,15 @@ export const useDynamicComponent = () => {
     UTabs: markRaw(UTabs),
     UAccordion: markRaw(UAccordion),
     UForm: markRaw(UForm),
+
+    // Core Components
     PermissionGate: markRaw(PermissionGate),
     FormEditor: markRaw(FormEditor),
-    Icon: markRaw(Icon),
+
+    // Common Components
+    CommonLoadingState: markRaw(CommonLoadingState),
+    CommonEmptyState: markRaw(CommonEmptyState),
+    UploadModal: markRaw(UploadModal),
   };
 
   /**
@@ -82,8 +104,18 @@ export const useDynamicComponent = () => {
       // Inject composables globally
       const g = globalThis as any;
 
-      // Nuxt composables
+      // Core Enfyra composables
+      g.useApi = useApi;
+      g.useApiLazy = useApiLazy;
+      g.useHeaderActionRegistry = useHeaderActionRegistry;
+      g.useSchema = useSchema;
+      g.useScreen = useScreen;
+      g.useGlobalState = useGlobalState;
+      g.useConfirm = useConfirm;
       g.useAuth = useAuth;
+      g.usePermissions = usePermissions;
+
+      // Nuxt composables
       g.useToast = useToast;
       g.useState = useState;
       g.useRoute = useRoute;
