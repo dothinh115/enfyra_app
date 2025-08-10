@@ -210,11 +210,11 @@ const toast = useToast();
 // Register multiple header actions at once
 useHeaderActionRegistry({
   id: "add-extension",
+  label: "Create Extension",
   icon: "i-heroicons-plus",
   variant: "solid",
   color: "primary",
-  class: "rounded-full",
-  size: "lg",
+  size: "md",
   to: "/settings/extensions/create",
   permission: {
     and: [{ route: "/extension_definition", actions: ["create"] }],

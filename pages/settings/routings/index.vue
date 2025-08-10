@@ -5,7 +5,26 @@ const pageLimit = 7;
 const route = useRoute();
 const tableName = "route_definition";
 const { getIncludeFields } = useSchema(tableName);
+const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
 const routes = ref<any[]>([]);
+
+// Filter state
+const showFilterDrawer = ref(false);
+const currentFilter = ref(createEmptyFilter());
+
+// Filter button computed values
+const filterLabel = computed(() => {
+  const activeCount = currentFilter.value.conditions.length;
+  return activeCount > 0 ? `Filters (${activeCount})` : "Filter";
+});
+
+const filterVariant = computed(() => {
+  return hasActiveFilters(currentFilter.value) ? "solid" : "outline";
+});
+
+const filterColor = computed(() => {
+  return hasActiveFilters(currentFilter.value) ? "secondary" : "neutral";
+});
 
 // API composable for fetching routes
 const {
@@ -13,13 +32,20 @@ const {
   pending: loading,
   execute: fetchRoutes,
 } = useApiLazy(() => "/route_definition", {
-  query: computed(() => ({
-    fields: getIncludeFields(),
-    sort: "-createdAt",
-    meta: "*",
-    page: page.value,
-    limit: pageLimit,
-  })),
+  query: computed(() => {
+    const filterQuery = hasActiveFilters(currentFilter.value)
+      ? buildQuery(currentFilter.value)
+      : {};
+
+    return {
+      fields: getIncludeFields(),
+      sort: "-createdAt",
+      meta: "*",
+      page: page.value,
+      limit: pageLimit,
+      ...(Object.keys(filterQuery).length > 0 && { filter: filterQuery }),
+    };
+  }),
   errorContext: "Fetch Routes",
 });
 
@@ -28,24 +54,50 @@ const routesData = computed(() => apiData.value?.data || []);
 const total = computed(() => apiData.value?.meta?.totalCount || 0);
 
 // Register header actions
-useHeaderActionRegistry({
-  id: "create-routing",
-  label: "Create Routing",
-  icon: "lucide:plus",
-  variant: "solid",
-  color: "primary",
-  size: "lg",
-  to: "/settings/routings/create",
-  class: "rounded-full",
-  permission: {
-    and: [
-      {
-        route: "/route_definition",
-        actions: ["create"],
-      },
-    ],
+useHeaderActionRegistry([
+  {
+    id: "filter-routings",
+    icon: "lucide:filter",
+    get label() {
+      return filterLabel.value;
+    },
+    get variant() {
+      return filterVariant.value;
+    },
+    get color() {
+      return filterColor.value;
+    },
+    size: "md",
+    onClick: () => {
+      showFilterDrawer.value = true;
+    },
+    permission: {
+      and: [
+        {
+          route: "/route_definition",
+          actions: ["read"],
+        },
+      ],
+    },
   },
-});
+  {
+    id: "create-routing",
+    label: "Create Route",
+    icon: "lucide:plus",
+    variant: "solid",
+    color: "primary",
+    size: "md",
+    to: "/settings/routings/create",
+    permission: {
+      and: [
+        {
+          route: "/route_definition",
+          actions: ["create"],
+        },
+      ],
+    },
+  },
+]);
 
 // Update routes when data changes
 watch(
@@ -55,6 +107,17 @@ watch(
   },
   { immediate: true }
 );
+
+// Apply filters - called by FilterDrawer
+async function applyFilters() {
+  page.value = 1;
+  await fetchRoutes();
+}
+
+function clearFilters() {
+  currentFilter.value = createEmptyFilter();
+  applyFilters();
+}
 
 watch(
   () => route.query.page,
@@ -200,4 +263,13 @@ async function toggleEnabled(routeItem: any) {
       />
     </div>
   </div>
+
+  <!-- Filter Drawer -->
+  <FilterDrawer
+    v-model="showFilterDrawer"
+    v-model:filter-value="currentFilter"
+    :table-name="tableName"
+    @apply="applyFilters"
+    @clear="clearFilters"
+  />
 </template>

@@ -75,8 +75,8 @@ useHeaderActionRegistry({
   id: "upload-extension",
   label: "Upload",
   icon: "lucide:upload",
-  variant: "outline",
-  color: "primary",
+  variant: "solid",
+  color: "secondary",
   onClick: () => (showUploadModal.value = true),
   permission: {
     and: [

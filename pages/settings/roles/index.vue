@@ -34,9 +34,8 @@ useHeaderActionRegistry({
   icon: "lucide:plus",
   variant: "solid",
   color: "primary",
-  size: "lg",
+  size: "md",
   to: "/settings/roles/create",
-  class: "rounded-full",
   permission: {
     and: [
       {

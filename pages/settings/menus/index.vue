@@ -60,8 +60,15 @@ useHeaderActionRegistry([
   {
     id: "filter-menus",
     icon: "lucide:filter",
-    label: "Filter",
-    color: "secondary",
+    get label() {
+      return filterLabel.value;
+    },
+    get variant() {
+      return filterVariant.value;
+    },
+    get color() {
+      return filterColor.value;
+    },
     size: "md",
     onClick: () => {
       showFilterDrawer.value = true;
@@ -81,9 +88,8 @@ useHeaderActionRegistry([
     icon: "lucide:plus",
     variant: "solid",
     color: "primary",
-    size: "lg",
+    size: "md",
     to: "/settings/menus/create",
-    class: "rounded-full",
     permission: {
       and: [
         {

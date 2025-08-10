@@ -122,8 +122,8 @@ export function getFieldOptions(
     (f: any) => f.fieldType === "column" && f.name === fieldName
   );
 
-  if (field?.type === "enum" && field.options) {
-    return field.options.map((opt: string) => ({ label: opt, value: opt }));
+  if (field?.type === "enum" && field.enumValues) {
+    return field.enumValues.map((opt: string) => ({ label: opt, value: opt }));
   }
 
   return [];

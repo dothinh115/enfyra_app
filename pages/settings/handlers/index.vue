@@ -43,9 +43,8 @@ useHeaderActionRegistry({
   icon: "lucide:plus",
   variant: "solid",
   color: "primary",
-  size: "lg",
+  size: "md",
   to: "/settings/handlers/create",
-  class: "rounded-full",
   permission: {
     and: [
       {
