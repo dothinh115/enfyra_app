@@ -164,13 +164,22 @@ export function useMenuRegistry() {
       if (!tableName) return;
 
       registerMenuItem({
-        id: `data-${tableName}`,
+        id: `collections-${tableName}`,
         label: table.label || table.display_name || tableName,
         route: `/collections/${tableName}`,
         icon: table.icon || "lucide:table",
         sidebarId: 3,
         permission: {
-          or: [{ route: `/${tableName}`, actions: ["read"] }],
+          and: [
+            { route: `/table_definition`, actions: ["read"] },
+            {
+              or: [
+                { route: `/table_definition`, actions: ["create"] },
+                { route: `/table_definition`, actions: ["update"] },
+                { route: `/table_definition`, actions: ["delete"] },
+              ],
+            },
+          ],
         },
       });
     });
