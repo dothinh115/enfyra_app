@@ -58,7 +58,7 @@ async function deleteRecord(id: any) {
     selected.value = selected.value.filter((item) => item.id !== id);
     await fetchData();
   } catch (e) {
-    console.error("Error when deleting record:", e);
+    
   }
 }
 

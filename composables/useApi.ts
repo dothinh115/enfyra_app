@@ -26,8 +26,6 @@ interface BackendError {
 }
 
 function handleApiError(error: any, context?: string) {
-  console.error(`API Error${context ? ` in ${context}` : ""}:`, error);
-
   let message = "Request failed";
   let errorCode = "UNKNOWN_ERROR";
   let correlationId: string | undefined;
@@ -55,16 +53,6 @@ function handleApiError(error: any, context?: string) {
     }
   } else if (error?.message) {
     message = error.message;
-  }
-
-  // Log structured error for debugging
-  if (correlationId) {
-    console.error(`🔍 Error details:`, {
-      code: errorCode,
-      message,
-      correlationId,
-      context,
-    });
   }
 
   const toast = useToast();
@@ -124,7 +112,10 @@ export function useApi<T = any>(
     return rawPath.replace(/^\/?api\/?/, "");
   });
 
-  const execute = async (executeOpts?: { body?: any }) => {
+  const execute = async (executeOpts?: {
+    body?: any;
+    id?: string | number;
+  }) => {
     pending.value = true;
     error.value = null;
 
@@ -132,9 +123,14 @@ export function useApi<T = any>(
       const finalBody = executeOpts?.body || unref(body);
       const finalQuery = unref(query);
 
+      // Build final path with optional ID
+      const finalPath = executeOpts?.id
+        ? `${computedPath.value}/${executeOpts.id}`
+        : computedPath.value;
+
       // Call useFetch when execute is called
       const { data: fetchData, error: fetchError } = await useFetch<T>(
-        computedPath,
+        finalPath,
         {
           baseURL: apiPrefix,
           method: method as any,
@@ -188,16 +184,22 @@ export function useApiLazy<T = any>(
   const error = ref<any>(null);
   const pending = ref(false);
 
-  const execute = async (executeOpts?: { body?: any }) => {
+  const execute = async (executeOpts?: {
+    body?: any;
+    id?: string | number;
+  }) => {
     pending.value = true;
     error.value = null;
 
     try {
-      const computedPath = path().replace(/^\/?api\/?/, "");
+      const basePath = path().replace(/^\/?api\/?/, "");
+      const finalPath = executeOpts?.id
+        ? `${basePath}/${executeOpts.id}`
+        : basePath;
       const finalBody = executeOpts?.body || unref(body);
       const finalQuery = unref(query);
 
-      const response = await $fetch<T>(computedPath, {
+      const response = await $fetch<T>(finalPath, {
         baseURL: apiPrefix,
         method: method as any,
         body: finalBody ? toRaw(finalBody) : undefined,

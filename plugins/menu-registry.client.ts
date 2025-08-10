@@ -1,190 +1,41 @@
+import { useMenuRegistry } from "~/composables/useMenuRegistry";
+import { useMenuApi } from "~/composables/useMenuApi";
+import { useGlobalState } from "~/composables/useGlobalState";
+import { useAuth } from "~/composables/useAuth";
+
 export default defineNuxtPlugin(async () => {
-  const { registerMiniSidebars } = useMiniSidebarRegistry();
-  const { registerMenuItem } = useMenuRegistry();
+  const { me, fetchUser } = useAuth();
+
+  if (!me.value) {
+    await fetchUser();
+  }
+  if (!me.value) {
+    return;
+  }
+
+  const { registerAllMenusFromApi, registerMiniSidebars, registerMenuItem } =
+    useMenuRegistry();
   const { tables, fetchSchema } = useGlobalState();
-  const { getPlugins } = usePluginManager();
+
+  const { fetchMenuDefinitions } = useMenuApi();
 
   await fetchSchema();
 
-  // Register default mini sidebars
-  registerMiniSidebars([
-    {
-      id: "dashboard",
-      label: "Dashboard",
-      icon: "lucide:layout-dashboard",
-      route: "/dashboard",
-      // No permission - always visible
-    },
-    {
-      id: "data",
-      label: "Data",
-      icon: "lucide:list",
-      route: "/data",
-    },
+  // Fetch and register all menu definitions from API using unified function
+  const menuResponse = await fetchMenuDefinitions();
+  if (menuResponse?.data && menuResponse.data.length > 0) {
+    await registerAllMenusFromApi(menuResponse.data);
+  }
 
-    {
-      id: "collections",
-      label: "Collections",
-      icon: "lucide:database",
-      route: "/collections",
-      permission: {
-        or: [
-          {
-            route: "/table_definition",
-            actions: ["create", "update", "delete"],
-          },
-        ],
-      },
-    },
-    {
-      id: "settings",
-      label: "Settings",
-      icon: "lucide:settings",
-      route: "/settings",
-      permission: {
-        or: [
-          { route: "/setting_definition", actions: ["read", "update"] },
-          { route: "/route_definition", actions: ["read", "update"] },
-          { route: "/route_handler_definition", actions: ["read"] },
-          { route: "/hook_definition", actions: ["read"] },
-          { route: "/user_definition", actions: ["read"] },
-          { route: "/role_definition", actions: ["read"] },
-          { route: "/plugin_registry", actions: ["read"] },
-        ],
-      },
-    },
-  ]);
+  // Wait for tables to be loaded before registering table menus
+  if (tables.value.length === 0) {
+    // If tables are empty, wait a bit and try again
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
 
-  // Register default menu items
-  registerMenuItem({
-    id: "general",
-    label: "General",
-    route: "/settings/general",
-    icon: "heroicons:cog-8-tooth",
-    sidebarId: "settings",
-    permission: {
-      or: [{ route: "/setting_definition", actions: ["read", "update"] }],
-    },
-  });
-
-  registerMenuItem({
-    id: "plugins",
-    label: "Plugins",
-    route: "/settings/plugins",
-    icon: "heroicons:puzzle-piece",
-    sidebarId: "settings",
-    permission: {
-      or: [{ route: "/plugin_registry", actions: ["read"] }],
-    },
-  });
-
-  registerMenuItem({
-    id: "routings",
-    label: "Routings",
-    route: "/settings/routings",
-    icon: "heroicons:map",
-    sidebarId: "settings",
-    permission: {
-      or: [{ route: "/route_definition", actions: ["read", "update"] }],
-    },
-  });
-
-  registerMenuItem({
-    id: "handlers",
-    label: "Handlers",
-    route: "/settings/handlers",
-    icon: "heroicons:command-line",
-    sidebarId: "settings",
-    permission: {
-      or: [{ route: "/route_handler_definition", actions: ["read"] }],
-    },
-  });
-
-  registerMenuItem({
-    id: "hooks",
-    label: "Hooks",
-    route: "/settings/hooks",
-    icon: "heroicons:link",
-    sidebarId: "settings",
-    permission: {
-      or: [{ route: "/hook_definition", actions: ["read"] }],
-    },
-  });
-
-  registerMenuItem({
-    id: "users",
-    label: "Users",
-    route: "/settings/users",
-    icon: "heroicons:users",
-    sidebarId: "settings",
-    permission: {
-      or: [{ route: "/user_definition", actions: ["read"] }],
-    },
-  });
-
-  registerMenuItem({
-    id: "roles",
-    label: "Roles",
-    route: "/settings/roles",
-    icon: "heroicons:shield-check",
-    sidebarId: "settings",
-    permission: {
-      or: [{ route: "/role_definition", actions: ["read"] }],
-    },
-  });
-
-  // Register collections menu items
-  registerMenuItem({
-    id: "create-table",
-    label: "Create New Table",
-    route: "/collections/create",
-    icon: "lucide:plus",
-    sidebarId: "collections",
-    permission: {
-      or: [{ route: "/table_definition", actions: ["create"] }],
-    },
-  });
-
-  // Register all table menus using helper function
-  const { reregisterTableMenus } = useMenuRegistry();
-  reregisterTableMenus(tables.value);
-
-  // Register plugin menu items
-  try {
-    const plugins = await getPlugins();
-    const activePagePlugins = plugins.filter(
-      (plugin) => plugin.type === "page" && plugin.active && plugin.registration
-    );
-
-    activePagePlugins.forEach((plugin) => {
-      const { registration } = plugin;
-
-      if (!registration) return;
-
-      // Register mini sidebar if specified
-      if (registration.miniSidebar) {
-        registerMiniSidebars([
-          {
-            id: registration.miniSidebar.id,
-            label: registration.miniSidebar.label,
-            icon: registration.miniSidebar.icon,
-            route: registration.miniSidebar.route,
-          },
-        ]);
-      }
-
-      // Register menu item if specified
-      if (registration.menuItem) {
-        registerMenuItem({
-          id: `plugin-${plugin.id}`,
-          label: registration.menuItem.label,
-          route: registration.menuItem.route,
-          icon: registration.menuItem.icon || "heroicons:puzzle-piece",
-          sidebarId: registration.menuItem.sidebarId,
-        });
-      }
-    });
-  } catch (error) {
-    // Fail silently if plugins can't be loaded during app initialization
+  // Register all table menus using helper function (LAST - after all sidebars are registered)
+  if (tables.value.length > 0) {
+    const { registerTableMenusWithSidebarIds } = useMenuRegistry();
+    await registerTableMenusWithSidebarIds(tables.value);
   }
 });

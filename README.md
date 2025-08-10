@@ -5,7 +5,7 @@
 [![Vue](https://img.shields.io/badge/Vue-3-green.svg)](https://vuejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue.svg)](https://www.typescriptlang.org/)
 
-A modern, extensible headless CMS built with Nuxt 3, featuring dynamic table management, plugin system, API composables with automatic error handling, and a responsive Vue.js interface.
+A modern, extensible headless CMS built with Nuxt 3, featuring dynamic table management, extension system, API composables with automatic error handling, and a responsive Vue.js interface.
 
 ## Features
 
@@ -13,7 +13,7 @@ A modern, extensible headless CMS built with Nuxt 3, featuring dynamic table man
 - **Built-in API Composables** - `useApi` and `useApiLazy` with automatic error handling
 - **Toast Notifications** - Automatic error notifications with context
 - **TypeScript Support** - Full type safety throughout the application
-- **Plugin System** - Extensible architecture with dynamic plugin loading
+- **Extension System** - Extensible architecture with dynamic extension loading
 - **Responsive Design** - Mobile-friendly interface
 - **Authentication System** - Built-in user authentication and roles
 - **Permission System** - Comprehensive role-based access control (RBAC)

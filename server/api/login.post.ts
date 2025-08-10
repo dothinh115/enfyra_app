@@ -42,20 +42,19 @@ export default defineEventHandler(async (event: H3Event) => {
 
     return { accessToken };
   } catch (err: any) {
-    console.error("❌ Login failed", err);
-    
     // Extract error details from backend error response
     const statusCode = err?.response?.status || err?.statusCode || 401;
     const errorData = err?.response?._data || err?.data;
-    
+
     let errorMessage = "Authentication failed";
     let errorCode = "AUTHENTICATION_ERROR";
-    
+
     if (errorData?.error) {
-      errorMessage = errorData.error.message || errorData.message || errorMessage;
+      errorMessage =
+        errorData.error.message || errorData.message || errorMessage;
       errorCode = errorData.error.code || errorCode;
     }
-    
+
     return sendError(
       event,
       createError({
@@ -65,7 +64,7 @@ export default defineEventHandler(async (event: H3Event) => {
           code: errorCode,
           details: errorData?.error?.details,
           correlationId: errorData?.error?.correlationId,
-        }
+        },
       })
     );
   }

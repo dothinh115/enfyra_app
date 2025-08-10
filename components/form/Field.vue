@@ -24,6 +24,7 @@ function updateErrors(errors: Record<string, string>) {
 }
 
 const column = computed(() => props.columnMap.get(props.keyName));
+
 const fieldProps = computed(() => {
   const manualConfig = props.typeMap?.[props.keyName];
   const config =
@@ -55,6 +56,17 @@ const fieldProps = computed(() => {
     class="rounded-lg border border-muted p-4"
     :error="errors?.[keyName]"
   >
+    <template #label>
+      <span class="flex items-center gap-1">
+        {{ keyName }}
+        <span
+          v-if="column?.isNullable === false && column?.isGenerated !== true"
+          class="text-red-500"
+          >*</span
+        >
+      </span>
+    </template>
+
     <template #description v-if="column?.description">
       <div v-html="column?.description" />
     </template>

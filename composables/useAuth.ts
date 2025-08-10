@@ -54,7 +54,7 @@ export function useAuth() {
       me.value = null;
       window.location.reload();
     } catch (err) {
-      console.error("Logout failed", err);
+
     }
   };
 

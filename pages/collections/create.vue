@@ -3,7 +3,7 @@ const router = useRouter();
 const { tables, globalLoading, fetchSchema } = useGlobalState();
 const { confirm } = useConfirm();
 const toast = useToast();
-const { reregisterTableMenus } = useMenuRegistry();
+const { registerTableMenusWithSidebarIds } = useMenuRegistry();
 const errors = ref<Record<string, string>>({});
 const table = reactive<any>({
   name: "",
@@ -162,7 +162,7 @@ async function save() {
   await fetchSchema();
 
   // Re-register all table menus to ensure sync
-  reregisterTableMenus(tables.value);
+  registerTableMenusWithSidebarIds(tables.value);
 
   toast.add({
     title: "Success",

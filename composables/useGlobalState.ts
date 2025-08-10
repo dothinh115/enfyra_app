@@ -243,16 +243,13 @@ export const useGlobalState = () => {
 
   return {
     tables,
-    routes,
-    settings,
     schemas,
     globalLoading,
     buttonLoadingStates,
-    sidebarVisible,
-    routeLoading,
     fetchSchema,
     setButtonLoading,
     getButtonLoading,
+    sidebarVisible,
     toggleSidebar,
     setSidebarVisible,
     setRouteLoading,

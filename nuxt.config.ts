@@ -8,8 +8,8 @@ export default defineNuxtConfig({
   nitro: {
     publicAssets: [
       {
-        dir: "public/plugins",
-        maxAge: 0, // No cache for plugins
+        dir: "public/extensions",
+        maxAge: 0, // No cache for extensions
       },
     ],
   },

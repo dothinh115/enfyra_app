@@ -2,7 +2,7 @@
 const route = useRoute();
 const { confirm } = useConfirm();
 const { logout } = useAuth();
-const { miniSidebars } = useMiniSidebarRegistry();
+const { miniSidebars } = useMenuRegistry();
 const { checkPermissionCondition } = usePermissions();
 
 async function handleLogout() {
@@ -11,7 +11,7 @@ async function handleLogout() {
 }
 
 const items = computed(() => {
-  // Use only registered mini sidebars - Dashboard will be registered in plugin
+  // Use only registered mini sidebars - Dashboard will be registered in extension
   const registeredItems = miniSidebars.value
     .filter((sidebar) => {
       if (!sidebar.permission) return true;

@@ -28,15 +28,15 @@ export default defineNuxtPlugin(() => {
   `;
 
   // Insert loading into DOM immediately
-  document.body.insertAdjacentHTML('beforeend', loadingHtml);
+  document.body.insertAdjacentHTML("beforeend", loadingHtml);
 
   // Hide loading when app is ready
   const nuxtApp = useNuxtApp();
-  nuxtApp.hook('app:mounted', () => {
-    const loading = document.getElementById('app-loading');
+  nuxtApp.hook("app:mounted", () => {
+    const loading = document.getElementById("app-loading");
     if (loading) {
       setTimeout(() => {
-        loading.style.opacity = '0';
+        loading.style.opacity = "0";
         setTimeout(() => {
           loading.remove();
         }, 500);

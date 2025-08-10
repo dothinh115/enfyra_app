@@ -5,6 +5,18 @@ export function useSchema(tableName: string) {
 
   const definition = computed(() => schemas.value[tableName]?.definition || []);
 
+  // Helper function to sort fields by standard order
+  function sortFieldsByOrder(fields: any[]): any[] {
+    return [...fields].sort((a: any, b: any) => {
+      // First priority: fieldType (columns before relations)
+      if (a.fieldType === "column" && b.fieldType === "relation") return -1;
+      if (a.fieldType === "relation" && b.fieldType === "column") return 1;
+
+      // Second priority: if both are same type, maintain original order
+      return 0;
+    });
+  }
+
   const fieldMap = computed(() => {
     const map = new Map<string, any>();
     for (const field of definition.value) {
@@ -19,8 +31,8 @@ export function useSchema(tableName: string) {
   }
 
   // Fields eligible to be rendered in form
-  const editableFields = computed(() =>
-    definition.value.filter((field: any) => {
+  const editableFields = computed(() => {
+    let fields = definition.value.filter((field: any) => {
       const key = field.name || field.propertyName;
       if (!key) return false;
       if (
@@ -30,8 +42,11 @@ export function useSchema(tableName: string) {
       )
         return false;
       return true;
-    })
-  );
+    });
+
+    // Sort fields using helper function
+    return sortFieldsByOrder(fields);
+  });
 
   function generateEmptyForm(options?: {
     excluded?: string[];
@@ -108,13 +123,15 @@ export function useSchema(tableName: string) {
       if (isInverse) continue;
 
       const nullable = field.isNullable ?? true;
+      const isGenerated = field.isGenerated === true;
 
       const empty =
         value === null ||
         value === undefined ||
         (typeof value === "string" && value.trim() === "");
 
-      if (!nullable && empty) {
+      // Only validate as required if field is not nullable AND not auto-generated
+      if (!nullable && !isGenerated && empty) {
         errors[key] = "This field is required";
         isValid = false;
       }
@@ -139,5 +156,6 @@ export function useSchema(tableName: string) {
     generateEmptyForm,
     validate,
     getIncludeFields,
+    sortFieldsByOrder, // Export helper function for external use
   };
 }

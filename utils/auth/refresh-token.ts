@@ -16,7 +16,6 @@ export async function refreshToken(event: H3Event): Promise<string | null> {
 
   // If there's no refreshToken then give up
   if (!refreshToken) {
-    console.warn("⚠️ No refreshToken, cannot refresh");
     return null;
   }
 
@@ -61,23 +60,10 @@ export async function refreshToken(event: H3Event): Promise<string | null> {
     setCookie(event, REFRESH_TOKEN_KEY, newRefreshToken, cookieOptions);
     setCookie(event, EXP_TIME_KEY, String(newExpTime), cookieOptions);
 
-    console.log("✅ Token refreshed successfully");
-
     return newAccessToken;
   } catch (err: any) {
-    console.warn("⚠️ Refresh token failed:", err);
-
     const statusCode = err?.response?.status || err?.statusCode;
     const errorData = err?.response?._data || err?.data;
-    
-    // Log structured error info
-    if (errorData?.error) {
-      console.warn("⚠️ Backend error details:", {
-        code: errorData.error.code,
-        message: errorData.error.message,
-        correlationId: errorData.error.correlationId,
-      });
-    }
 
     // If error has code 401/403 then delete token
     const shouldDelete = statusCode === 401 || statusCode === 403;

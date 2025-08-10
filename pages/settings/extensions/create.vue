@@ -1,0 +1,197 @@
+<template>
+  <div class="mx-auto space-y-6">
+    <UForm :state="createForm" @submit="handleCreate">
+      <FormEditor
+        v-model="createForm"
+        :table-name="tableName"
+        :errors="createErrors"
+        :type-map="{
+          type: {
+            type: 'select',
+            options: [
+              { label: 'Page', value: 'page' },
+              { label: 'Widget', value: 'widget' },
+            ],
+          },
+        }"
+      />
+    </UForm>
+
+    <!-- Upload Modal -->
+    <CommonUploadModal
+      v-model="showUploadModal"
+      title="Upload Extension"
+      accept=".vue"
+      :multiple="false"
+      :max-size="5 * 1024 * 1024"
+      drag-text="Drag and drop your .vue extension file here"
+      accept-text="Only .vue files are accepted"
+      upload-text="Upload Extension"
+      uploading-text="Uploading..."
+      :loading="uploadLoading"
+      @upload="handleUpload"
+      @error="
+        (message) =>
+          toast.add({
+            title: 'Upload Error',
+            description: message,
+            color: 'error',
+          })
+      "
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+definePageMeta({
+  layout: "default",
+  title: "Create Extension",
+});
+
+const toast = useToast();
+
+const tableName = "extension_definition";
+
+const createForm = ref<Record<string, any>>({});
+const createErrors = ref<Record<string, string>>({});
+
+// Upload modal state
+const showUploadModal = ref(false);
+const uploadLoading = ref(false);
+
+const { generateEmptyForm, validate } = useSchema(tableName);
+
+// Register header actions
+useHeaderActionRegistry({
+  id: "save-extension",
+  label: "Save",
+  icon: "lucide:save",
+  variant: "solid",
+  color: "primary",
+  submit: handleCreate,
+  loading: computed(() => createLoading.value),
+  permission: {
+    and: [
+      {
+        route: "/extension_definition",
+        actions: ["create"],
+      },
+    ],
+  },
+});
+
+useHeaderActionRegistry({
+  id: "upload-extension",
+  label: "Upload",
+  icon: "lucide:upload",
+  variant: "outline",
+  color: "primary",
+  onClick: () => (showUploadModal.value = true),
+  permission: {
+    and: [
+      {
+        route: "/extension_definition",
+        actions: ["create"],
+      },
+    ],
+  },
+});
+
+// Setup useApiLazy composable at top level
+const {
+  data: createData,
+  error: createError,
+  execute: executeCreateExtension,
+  pending: createLoading,
+} = useApiLazy(() => `/${tableName}`, {
+  method: "post",
+});
+
+onMounted(() => {
+  createForm.value = generateEmptyForm();
+});
+
+async function handleCreate() {
+  const { isValid, errors } = validate(createForm.value);
+
+  if (!isValid) {
+    createErrors.value = errors;
+    toast.add({
+      title: "Error",
+      description: "Please check the fields with errors.",
+      color: "error",
+    });
+    return;
+  }
+
+  try {
+    await executeCreateExtension({ body: createForm.value });
+
+    if (createError.value) {
+      toast.add({
+        title: "Error",
+        description: createError.value.message,
+        color: "error",
+      });
+      return;
+    }
+
+    toast.add({
+      title: "Extension created successfully",
+      color: "success",
+    });
+
+    await navigateTo(`/settings/extensions/${createData.value.data[0].id}`);
+  } catch (error) {
+    // Error already handled by useApiLazy
+  }
+}
+
+async function handleUpload(files: File | File[]) {
+  const fileArray = Array.isArray(files) ? files : [files];
+
+  try {
+    uploadLoading.value = true;
+
+    for (const file of fileArray) {
+      // Read file content and put it into createForm.code field
+      const fileContent = await readFileContent(file);
+      createForm.value.code = fileContent;
+
+      toast.add({
+        title: "File Loaded",
+        description: `File "${file.name}" content has been loaded into the code field`,
+        color: "success",
+      });
+    }
+
+    showUploadModal.value = false;
+  } catch (error) {
+    toast.add({
+      title: "Upload Error",
+      description: "Failed to read file content",
+      color: "error",
+    });
+  } finally {
+    uploadLoading.value = false;
+  }
+}
+
+// Helper function to read file content
+function readFileContent(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      resolve(content);
+    };
+
+    reader.onerror = () => {
+      reject(new Error("Failed to read file"));
+    };
+
+    reader.readAsText(file);
+  });
+}
+</script>

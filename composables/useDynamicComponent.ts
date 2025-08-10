@@ -1,246 +1,236 @@
-import { useNuxtApp } from "#app";
 import { markRaw } from "vue";
-import { useAuth } from "./useAuth";
-import { useApi } from "./useApi";
-import { useHeaderActionRegistry } from "./useHeaderActionRegistry";
-import { useMenuRegistry } from "./useMenuRegistry";
-import { useMiniSidebarRegistry } from "./useMiniSidebarRegistry";
-import { usePermissions } from "./usePermissions";
+import {
+  UIcon,
+  UButton,
+  UCard,
+  UBadge,
+  UInput,
+  UTextarea,
+  USelect,
+  UCheckbox,
+  USwitch,
+  UModal,
+  UPopover,
+  UTooltip,
+  UAlert,
+  UAvatar,
+  UProgress,
+  UTable,
+  UPagination,
+  UBreadcrumb,
+  UTabs,
+  UAccordion,
+  UForm,
+  PermissionGate,
+  FormEditor,
+  Icon,
+} from "#components";
 
 /**
- * Composable for loading external Vue components dynamically
- * Simple approach: fetch JS -> inject Nuxt context -> return component
+ * Composable for loading dynamic Vue components from code
  */
 export const useDynamicComponent = () => {
+  // Get components directly imported
+
+  const availableComponents = {
+    UIcon: markRaw(UIcon),
+    UButton: markRaw(UButton),
+    UCard: markRaw(UCard),
+    UBadge: markRaw(UBadge),
+    UInput: markRaw(UInput),
+    UTextarea: markRaw(UTextarea),
+    USelect: markRaw(USelect),
+    UCheckbox: markRaw(UCheckbox),
+    USwitch: markRaw(USwitch),
+    UModal: markRaw(UModal),
+    UPopover: markRaw(UPopover),
+    UTooltip: markRaw(UTooltip),
+    UAlert: markRaw(UAlert),
+    UAvatar: markRaw(UAvatar),
+    UProgress: markRaw(UProgress),
+    UTable: markRaw(UTable),
+    UPagination: markRaw(UPagination),
+    UBreadcrumb: markRaw(UBreadcrumb),
+    UTabs: markRaw(UTabs),
+    UAccordion: markRaw(UAccordion),
+    UForm: markRaw(UForm),
+    PermissionGate: markRaw(PermissionGate),
+    FormEditor: markRaw(FormEditor),
+    Icon: markRaw(Icon),
+  };
+
   /**
-   * Load external component from URL (UMD format)
-   * @param url - URL to the component JS file
-   * @param pluginId - Plugin identifier
-   * @returns Promise that resolves to Vue component
+   * Load component from compiled code string
+   * @param code - Compiled JavaScript code string
+   * @param extensionId - Extension ID to match component name
+   * @returns Promise that resolves to Vue component with injected dependencies
    */
-  const loadExternalComponent = async (url: string, pluginId: string) => {
+  const loadDynamicComponent = async (
+    code: string,
+    extensionId: string | number = 8
+  ) => {
     try {
-      // 1. Inject Nuxt context globally (one time setup)
-      if (!window.Vue) {
-        const Vue = await import("vue");
-        window.Vue = Vue;
+      console.log(`Loading dynamic component for extension ${extensionId}`);
+      console.log(`Code length: ${code.length}`);
+      console.log(`Code preview:`, code.substring(0, 200) + "...");
+
+      // 1. Setup globals if not already done
+      if (!(window as any).Vue) {
+        (window as any).Vue = await import("vue");
       }
 
-      if (!window.__NUXT_APP__) {
-        const nuxtApp = useNuxtApp();
-        window.__NUXT_APP__ = nuxtApp;
+      // Inject composables globally
+      const g = globalThis as any;
 
-        // Inject all Nuxt composables globally
-        const g = globalThis as any;
-        g.useState = useState;
-        g.useApi = useApi;
-        g.useAuth = useAuth;
-        g.useToast = () => useToast();
-        g.useRouter = () => nuxtApp.$router;
-        g.useCookie = useCookie;
-        g.useNuxtApp = () => nuxtApp;
-        g.navigateTo = navigateTo;
-        g.useRoute = useRoute;
-        g.useFetch = useFetch;
-        g.useAsyncData = useAsyncData;
-        g.useLazyFetch = useLazyFetch;
-        g.useHead = useHead;
-        g.useSeoMeta = useSeoMeta;
+      // Nuxt composables
+      g.useAuth = useAuth;
+      g.useToast = useToast;
+      g.useState = useState;
+      g.useRoute = useRoute;
+      g.useRouter = useRouter;
+      g.useCookie = useCookie;
+      g.useNuxtApp = useNuxtApp;
+      g.navigateTo = navigateTo;
+      g.useFetch = useFetch;
+      g.useAsyncData = useAsyncData;
+      g.useLazyFetch = useLazyFetch;
+      g.useHead = useHead;
+      g.useSeoMeta = useSeoMeta;
 
-        // Inject Enfyra-specific composables
-        g.useHeaderActionRegistry = useHeaderActionRegistry;
-        g.useMenuRegistry = useMenuRegistry;
-        g.useMiniSidebarRegistry = useMiniSidebarRegistry;
-        g.usePermissions = usePermissions;
+      // Vue functions
+      const {
+        ref,
+        reactive,
+        computed,
+        watch,
+        watchEffect,
+        onMounted,
+        onUnmounted,
+        onBeforeMount,
+        onBeforeUnmount,
+        onUpdated,
+        onBeforeUpdate,
+        nextTick,
+        resolveComponent,
+        h,
+        defineComponent,
+        defineProps,
+        defineEmits,
+        defineExpose,
+        toRef,
+        toRefs,
+        unref,
+        isRef,
+        shallowRef,
+        triggerRef,
+        customRef,
+        shallowReactive,
+        readonly,
+        shallowReadonly,
+        isProxy,
+        isReactive,
+        isReadonly,
+        toRaw,
+        markRaw,
+        effectScope,
+        getCurrentScope,
+        onScopeDispose,
+      } = await import("vue");
 
-        // Inject Vue lifecycle hooks
-        const {
-          onMounted,
-          onUnmounted,
-          onBeforeMount,
-          onBeforeUnmount,
-          watch,
-          computed,
-          ref,
-          reactive,
-          resolveComponent,
-        } = await import("vue");
-        g.onMounted = onMounted;
-        g.onUnmounted = onUnmounted;
-        g.onBeforeMount = onBeforeMount;
-        g.onBeforeUnmount = onBeforeUnmount;
-        g.watch = watch;
-        g.computed = computed;
-        g.ref = ref;
-        g.reactive = reactive;
-        g.resolveComponent = resolveComponent;
+      g.ref = ref;
+      g.reactive = reactive;
+      g.computed = computed;
+      g.watch = watch;
+      g.watchEffect = watchEffect;
+      g.onMounted = onMounted;
+      g.onUnmounted = onUnmounted;
+      g.onBeforeMount = onBeforeMount;
+      g.onBeforeUnmount = onBeforeUnmount;
+      g.onUpdated = onUpdated;
+      g.onBeforeUpdate = onBeforeUpdate;
+      g.nextTick = nextTick;
+      g.resolveComponent = resolveComponent;
+      g.h = h;
+      g.defineComponent = defineComponent;
+      g.defineProps = defineProps;
+      g.defineEmits = defineEmits;
+      g.defineExpose = defineExpose;
+      g.toRef = toRef;
+      g.toRefs = toRefs;
+      g.unref = unref;
+      g.isRef = isRef;
+      g.shallowRef = shallowRef;
+      g.triggerRef = triggerRef;
+      g.customRef = customRef;
+      g.shallowReactive = shallowReactive;
+      g.readonly = readonly;
+      g.shallowReadonly = shallowReadonly;
+      g.isProxy = isProxy;
+      g.isReactive = isReactive;
+      g.isReadonly = isReadonly;
+      g.toRaw = toRaw;
+      g.markRaw = markRaw;
+      g.effectScope = effectScope;
+      g.getCurrentScope = getCurrentScope;
+      g.onScopeDispose = onScopeDispose;
 
-        // Inject Nuxt UI components via createApp context
-        try {
-          // Make Vue app available globally for component resolution
-          window.__VUE_APP__ = nuxtApp.vueApp;
+      // 2. Execute the code
+      // For page extensions, use default name "Extension"
+      // All page extensions will have the same component name for consistency
+      const componentName = "Extension";
 
-          // Inject common Nuxt UI components directly
-          const { createApp } = await import("vue");
+      console.log("Expected component name:", componentName);
 
-          // Create resolver function for components
-          g.resolveUIComponent = (name: string) => {
-            const app = window.__VUE_APP__;
-            return app?.component(name) || null;
-          };
+      // Clear any existing component with same name
+      delete (window as any)[componentName];
 
-          // Inject specific components that are commonly used
-          const uiComponents = [
-            "UIcon",
-            "UButton",
-            "UCard",
-            "UBadge",
-            "UInput",
-            "UTextarea",
-            "USelect",
-            "UCheckbox",
-            "URadio",
-            "USwitch",
-            "UModal",
-            "UPopover",
-            "UDropdown",
-            "UTooltip",
-            "UAlert",
-            "UAvatar",
-            "UProgress",
-            "UTable",
-            "UPagination",
-            "UBreadcrumb",
-            "UTabs",
-            "UAccordion",
-          ];
+      // Create and execute script
+      const script = document.createElement("script");
+      script.textContent = code;
+      script.type = "text/javascript";
 
-          uiComponents.forEach((componentName) => {
-            const component = nuxtApp.vueApp.component(componentName);
-            if (component) {
-              g[componentName] = component;
-              // Also make available on window for eval context
-              window[componentName] = component;
-            }
-          });
-        } catch (error) {
-          console.warn("Failed to inject UI components:", error);
-        }
-      }
+      // Execute script synchronously
+      document.head.appendChild(script);
 
-      // 2. Fetch plugin JS
-      // Add cache busting to force reload updated plugins
-      const cacheBustedUrl = `${url}?_t=${Date.now()}`;
-      const response = await fetch(cacheBustedUrl);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
+      // Wait a bit for script to execute
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
-      const jsCode = await response.text();
+      // Remove script after execution
+      document.head.removeChild(script);
 
-      // Validate response is JavaScript, not HTML
-      if (jsCode.trim().startsWith("<")) {
+      // Check what's available in window for error reporting
+      const availableExtensions = Object.keys(window as any).filter(
+        (k) => k.startsWith("Extension") || k.startsWith("extension")
+      );
+
+      // Check if component was registered
+      const component = (window as any)[componentName];
+      if (!component) {
+        // No fallback allowed - must match exact component name
+        const availableExtensions = Object.keys(window as any).filter(
+          (k) => k.startsWith("Extension") || k.startsWith("extension")
+        );
+
         throw new Error(
-          `Received HTML instead of JavaScript from ${url}. Check if plugin file exists and is compiled correctly.`
+          `Component "${componentName}" not found. Expected exact match for page extension. Available extensions: ${availableExtensions.join(
+            ", "
+          )}`
         );
       }
 
-      // 3. Calculate component name from plugin ID
-      const componentName = `Plugin_${pluginId.replace(/[^a-zA-Z0-9]/g, "_")}`;
+      // 3. Create wrapper component with injected dependencies
+      const wrappedComponent = markRaw({
+        ...component,
+        components: availableComponents,
+      });
 
-      // 4. Clear existing component & create plugin context
-      delete (window as any)[componentName];
-
-      // Create and execute script element instead of eval for better security
-      const script = document.createElement("script");
-      script.textContent = jsCode;
-      script.type = "text/javascript";
-
-      // Execute script in controlled environment
-      try {
-        document.head.appendChild(script);
-        // Remove script immediately after execution
-        document.head.removeChild(script);
-      } catch (scriptError) {
-        document.head.removeChild(script);
-        throw scriptError;
-      }
-
-      // 5. Get component
-      const component = (window as any)[componentName];
-
-      if (!component) {
-        throw new Error(`${componentName} not found in global scope`);
-      }
-
-      // 6. Return with markRaw
-      return markRaw(component);
+      return markRaw(wrappedComponent);
     } catch (error: any) {
       throw new Error(`Failed to load component: ${error?.message || error}`);
     }
   };
 
   return {
-    loadExternalComponent,
+    loadDynamicComponent,
   };
 };
-
-// Type declarations
-declare global {
-  interface Window {
-    [key: string]: any;
-    Vue?: any;
-    __NUXT_APP__?: any;
-    __VUE_APP__?: any;
-  }
-
-  interface GlobalThis {
-    useState?: any;
-    useApi?: any;
-    useAuth?: any;
-    useToast?: any;
-    useRouter?: any;
-    useCookie?: any;
-    useNuxtApp?: any;
-    navigateTo?: any;
-    useRoute?: any;
-    useFetch?: any;
-    useAsyncData?: any;
-    useLazyFetch?: any;
-    useHead?: any;
-    useSeoMeta?: any;
-    onMounted?: any;
-    onUnmounted?: any;
-    onBeforeMount?: any;
-    onBeforeUnmount?: any;
-    watch?: any;
-    computed?: any;
-    ref?: any;
-    reactive?: any;
-    resolveComponent?: any;
-    resolveUIComponent?: any;
-    // Nuxt UI components
-    UIcon?: any;
-    UButton?: any;
-    UCard?: any;
-    UBadge?: any;
-    UInput?: any;
-    UTextarea?: any;
-    USelect?: any;
-    UCheckbox?: any;
-    URadio?: any;
-    USwitch?: any;
-    UModal?: any;
-    UPopover?: any;
-    UDropdown?: any;
-    UTooltip?: any;
-    UAlert?: any;
-    UAvatar?: any;
-    UProgress?: any;
-    UTable?: any;
-    UPagination?: any;
-    UBreadcrumb?: any;
-    UTabs?: any;
-    UAccordion?: any;
-  }
-}

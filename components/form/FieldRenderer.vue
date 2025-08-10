@@ -177,6 +177,25 @@ function getComponentConfigByKey(key: string) {
   }
 
   if (finalType === "code") {
+    // If field is disabled, show disabled input instead of code editor
+    if (disabled) {
+      return {
+        component: UInput,
+        componentProps: {
+          ...componentPropsBase,
+          type: "text",
+          modelValue: props.formData[key] ?? "",
+          "onUpdate:modelValue": (val: string) => {
+            updateFormData(key, val);
+          },
+        },
+        fieldProps: {
+          ...fieldProps,
+          class: "col-span-2",
+        },
+      };
+    }
+
     return {
       component: resolveComponent("FormCodeEditorLazy"),
       componentProps: {
@@ -219,6 +238,26 @@ function getComponentConfigByKey(key: string) {
   }
 
   if (finalType === "richtext") {
+    // If field is disabled, show disabled input instead of rich text editor
+    if (disabled) {
+      return {
+        component: UInput,
+        componentProps: {
+          ...componentPropsBase,
+          type: "text",
+          class: "w-full bg-gray-100",
+          modelValue: props.formData[key] ?? "",
+          "onUpdate:modelValue": (val: string) => {
+            updateFormData(key, val);
+          },
+        },
+        fieldProps: {
+          ...fieldProps,
+          class: "col-span-2",
+        },
+      };
+    }
+
     return {
       component: resolveComponent("FormRichTextEditorLazy"),
       componentProps: {

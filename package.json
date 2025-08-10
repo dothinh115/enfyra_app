@@ -69,7 +69,6 @@
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.10",
     "@types/lodash": "^4.17.20",
-    "add": "^2.0.6",
     "sass-embedded": "^1.89.2",
     "tailwindcss": "^4.1.10",
     "typescript": "^5.8.3",

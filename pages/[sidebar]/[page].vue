@@ -3,8 +3,8 @@
     <!-- Loading state -->
     <CommonLoadingState
       v-if="loading"
-      title="Loading plugin..."
-      description="Fetching plugin component"
+      title="Loading extension..."
+      description="Fetching extension component"
       size="md"
       type="dots"
       context="page"
@@ -13,7 +13,9 @@
     <!-- Error state -->
     <CommonEmptyState
       v-else-if="error"
-      :title="error.includes('disabled') ? 'Plugin Disabled' : 'Plugin Error'"
+      :title="
+        error.includes('disabled') ? 'Extension Disabled' : 'Extension Error'
+      "
       :description="error"
       :icon="
         error.includes('disabled')
@@ -24,9 +26,9 @@
       :action="
         error.includes('disabled')
           ? {
-              label: 'Go to Plugin Settings',
+              label: 'Go to Extension Settings',
               onClick: () => {
-                $router.push('/settings/plugins');
+                $router.push('/settings/extensions');
               },
               icon: 'i-heroicons-cog-6-tooth',
             }
@@ -38,24 +40,24 @@
       "
     />
 
-    <!-- Plugin component -->
+    <!-- Extension component -->
     <component
-      v-else-if="pluginComponent"
-      :is="pluginComponent"
-      v-bind="pluginProps"
+      v-else-if="extensionComponent"
+      :is="extensionComponent"
+      :components="extensionComponent.components"
     />
 
     <!-- 404 state -->
     <CommonEmptyState
       v-else
-      title="Plugin Not Found"
-      :description="`No plugin found for route: ${route.path}`"
+      title="Extension Not Found"
+      :description="`No extension found for route: ${route.path}`"
       icon="i-heroicons-puzzle-piece"
       size="md"
       :action="{
-        label: 'Browse Plugins',
+        label: 'Browse Extensions',
         onClick: () => {
-          $router.push('/settings/plugins');
+          $router.push('/settings/extensions');
         },
         icon: 'i-heroicons-cog-6-tooth',
       }"
@@ -63,109 +65,116 @@
   </div>
 </template>
 
-<script setup>
-import { resolveComponent, markRaw } from "vue";
+<script setup lang="ts">
+// Imports
+import { useDynamicComponent } from "~/composables/useDynamicComponent";
+import { useMenuApi } from "~/composables/useMenuApi";
+import { useApiLazy } from "~/composables/useApi";
 
 // Get route params
 const route = useRoute();
 const sidebarParam = route.params.sidebar;
 const pageParam = route.params.page;
 
-// Resolve components in setup context (resolveComponent can only be used here)
-// Only include components that definitely exist
-const providedComponents = {
-  // Core Nuxt UI Components (confirmed to exist)
-  UIcon: markRaw(resolveComponent("UIcon")),
-  UButton: markRaw(resolveComponent("UButton")),
-  UCard: markRaw(resolveComponent("UCard")),
-  UBadge: markRaw(resolveComponent("UBadge")),
-  UInput: markRaw(resolveComponent("UInput")),
-  UTextarea: markRaw(resolveComponent("UTextarea")),
-  USelect: markRaw(resolveComponent("USelect")),
-  UCheckbox: markRaw(resolveComponent("UCheckbox")),
-  UModal: markRaw(resolveComponent("UModal")),
-  UPopover: markRaw(resolveComponent("UPopover")),
-  UTooltip: markRaw(resolveComponent("UTooltip")),
-  UAlert: markRaw(resolveComponent("UAlert")),
-  UAvatar: markRaw(resolveComponent("UAvatar")),
-  UProgress: markRaw(resolveComponent("UProgress")),
-  UTable: markRaw(resolveComponent("UTable")),
-  UPagination: markRaw(resolveComponent("UPagination")),
-  UBreadcrumb: markRaw(resolveComponent("UBreadcrumb")),
-  UTabs: markRaw(resolveComponent("UTabs")),
-  UAccordion: markRaw(resolveComponent("UAccordion")),
-
-  // Custom Components
-  PermissionGate: markRaw(resolveComponent("PermissionGate")),
-};
+// Use the new dynamic component composable
+const { loadDynamicComponent } = useDynamicComponent();
 
 // Reactive state
 const loading = ref(true);
-const error = ref(null);
-const pluginComponent = ref(null);
-const pluginProps = ref({});
-const matchedPlugin = ref(null);
+const error = ref<string | null>(null);
+const extensionComponent = ref<any>(null);
+const matchedExtension = ref<Record<string, any> | null>(null);
 
-// Plugin manager
-const { getPlugins, loadPlugin } = usePluginManager();
+// Menu API để lấy menu data
+const { fetchMenuDefinitions, getMenuItems } = useMenuApi();
+
+// Reactive extension ID (có thể là number hoặc string)
+const extensionId = ref<number | string | null>(null);
+
+// Setup useApiLazy composable ở top level
+const {
+  data: extensionResponse,
+  error: extensionError,
+  execute: executeFetchExtension,
+} = useApiLazy(() => "/extension_definition", {
+  query: computed(() => {
+    // Tìm extension theo route path thay vì menu ID
+    const query: any = {
+      fields: "*,menu.*,createdBy.*,updatedBy.*",
+      "filter[id][_eq]": extensionId.value,
+    };
+
+    return query;
+  }),
+  errorContext: "Fetch Extension Definition",
+});
 
 /**
- * Find and load matching plugin
+ * Find and load matching extension
  */
-const loadMatchingPlugin = async () => {
+const loadMatchingExtension = async () => {
   loading.value = true;
   error.value = null;
 
-  const plugins = await getPlugins();
-  const allPagePlugins = plugins.filter(
-    (p) => p.type === "page" && p.registration
-  );
-
-  const sidebarRoute = `/${sidebarParam}`;
-  const fullRoute = `/${sidebarParam}/${pageParam}`;
-
-  // First check if plugin exists (regardless of active status)
-  const existingPlugin = allPagePlugins.find((p) => {
-    const menuItemRoute = p.registration?.menuItem?.route;
-
-    // Check if menuItem route matches the full route
-    return menuItemRoute === fullRoute;
-  });
-
-  if (!existingPlugin) {
-    error.value = `No plugin found for route: ${fullRoute}`;
-    loading.value = false;
-    return;
-  }
-
-  // Check if plugin is disabled
-  if (!existingPlugin.active) {
-    error.value = `Plugin "${existingPlugin.id}" is currently disabled. Please contact an administrator to enable this plugin.`;
-    loading.value = false;
-    return;
-  }
-
-  const plugin = existingPlugin;
-
-  matchedPlugin.value = plugin;
-
   try {
-    const component = await loadPlugin(plugin.id);
-    pluginComponent.value = component;
+    // 1. Fetch menu definitions để tìm menu match với route
+    await fetchMenuDefinitions();
+    const menuDefinitions = getMenuItems.value || [];
+    const fullRoute = `/${sidebarParam}/${pageParam}`;
 
-    pluginProps.value = {
-      // UI Components
-      ui: providedComponents,
-      // Custom Components
-      components: {
-        PermissionGate: providedComponents.PermissionGate,
-      },
-    };
+    // 2. Tìm menu item match với route hiện tại
+    const matchingMenuItem = menuDefinitions.find((menu: any) => {
+      const isMatch = menu.path === fullRoute && menu.isEnabled;
+      return isMatch;
+    });
+
+    if (!matchingMenuItem) {
+      error.value = `No menu found for route: ${fullRoute}`;
+      loading.value = false;
+      return;
+    }
+    if (!matchingMenuItem.extension) {
+      error.value = `No extension found for route: ${fullRoute}`;
+      loading.value = false;
+      return;
+    }
+    extensionId.value = matchingMenuItem.extension.id;
+    await executeFetchExtension();
+
+    if (extensionError.value) {
+      error.value = `API Error: ${extensionError.value}`;
+      loading.value = false;
+      return;
+    }
+
+    if (
+      !extensionResponse.value?.data ||
+      extensionResponse.value.data.length === 0
+    ) {
+      error.value = `No page extensions found`;
+      loading.value = false;
+      return;
+    }
+
+    // Nếu có nhiều extensions, chọn extension đầu tiên
+    // Trong tương lai có thể cải thiện logic này
+    const extensions = extensionResponse.value.data;
+    const extension = extensions[0]; // Chọn extension đầu tiên
+
+    // 4. Kiểm tra extension có enabled không
+    if (!extension.isEnabled) {
+      error.value = `Extension "${extension.name}" is currently disabled. Please contact an administrator to enable this extension.`;
+      loading.value = false;
+      return;
+    }
+
+    // 5. Load extension using the new composable
+    const component = await loadDynamicComponent(extension.code, extension.id);
+
+    extensionComponent.value = component;
     loading.value = false;
-  } catch (pluginError) {
-    error.value = `Failed to load plugin: ${
-      pluginError?.message || pluginError
-    }`;
+  } catch (err: any) {
+    error.value = `Failed to load extension: ${err?.message || err}`;
     loading.value = false;
   }
 };
@@ -174,19 +183,19 @@ const loadMatchingPlugin = async () => {
  * Retry loading
  */
 const retry = () => {
-  loadMatchingPlugin();
+  loadMatchingExtension();
 };
 
-// Load plugin on mount and when route changes
+// Load extension on mount and when route changes
 onMounted(() => {
-  loadMatchingPlugin();
+  loadMatchingExtension();
 });
 
 // Watch route changes
 watch(
   () => route.params,
   () => {
-    loadMatchingPlugin();
+    loadMatchingExtension();
   },
   { deep: true }
 );

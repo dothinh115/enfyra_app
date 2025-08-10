@@ -1,7 +1,7 @@
 import { getCookie, H3Event } from "h3";
 import { ACCESS_TOKEN_KEY } from "../constants";
 
-export async function checkPluginPermission(
+export async function checkExtensionPermission(
   event: H3Event,
   requiredMethod: string
 ) {
@@ -41,7 +41,7 @@ export async function checkPluginPermission(
       return user;
     }
 
-    // Check if user has permission to access /plugin_registry
+    // Check if user has permission to access /extension_registry
     if (!user.role?.routePermissions) {
       throw createError({
         statusCode: 403,
@@ -49,30 +49,31 @@ export async function checkPluginPermission(
       });
     }
 
-    const pluginRoutePermissions = user.role.routePermissions.filter(
+    const extensionRoutePermissions = user.role.routePermissions.filter(
       (permission: any) =>
-        permission.route?.path === "/plugin_registry" && permission.isEnabled
+        permission.route?.path === "/extension_registry" && permission.isEnabled
     );
 
-    if (!pluginRoutePermissions.length) {
+    if (!extensionRoutePermissions.length) {
       throw createError({
         statusCode: 403,
         statusMessage:
-          "Access denied. No permission to access plugin management.",
+          "Access denied. No permission to access extension management.",
       });
     }
 
     // Check if user has the required method permission
-    const hasMethodPermission = pluginRoutePermissions.some((permission: any) =>
-      permission.methods.some(
-        (methodObj: any) => methodObj.method === requiredMethod
-      )
+    const hasMethodPermission = extensionRoutePermissions.some(
+      (permission: any) =>
+        permission.methods.some(
+          (methodObj: any) => methodObj.method === requiredMethod
+        )
     );
 
     if (!hasMethodPermission) {
       throw createError({
         statusCode: 403,
-        statusMessage: `Access denied. No permission for ${requiredMethod} on plugin management.`,
+        statusMessage: `Access denied. No permission for ${requiredMethod} on extension management.`,
       });
     }
 
@@ -128,7 +129,7 @@ export async function checkAccessToken(event: H3Event) {
       return user;
     }
 
-    // Check if user has permission to access /plugin_registry
+    // Check if user has permission to access /extension_registry
     if (!user.role?.routePermissions) {
       throw createError({
         statusCode: 403,
@@ -136,20 +137,20 @@ export async function checkAccessToken(event: H3Event) {
       });
     }
 
-    const pluginRoutePermissions = user.role.routePermissions.filter(
+    const extensionRoutePermissions = user.role.routePermissions.filter(
       (permission: any) =>
-        permission.route?.path === "/plugin_registry" && permission.isEnabled
+        permission.route?.path === "/extension_registry" && permission.isEnabled
     );
 
-    if (!pluginRoutePermissions.length) {
+    if (!extensionRoutePermissions.length) {
       throw createError({
         statusCode: 403,
         statusMessage:
-          "Access denied. No permission to access plugin management.",
+          "Access denied. No permission to access extension management.",
       });
     }
 
-    // For file serving, just need any plugin permission (read is enough)
+    // For file serving, just need any extension permission (read is enough)
     return user;
   } catch (error: any) {
     // Nếu đã là createError thì re-throw

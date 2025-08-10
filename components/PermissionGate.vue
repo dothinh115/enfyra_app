@@ -46,7 +46,7 @@ const hasPermission = computed(() => {
     }
   }
 
-  // If no permission is specified, show by default (for items like plugins that don't need specific permissions)
+  // If no permission is specified, show by default (for items like extensions that don't need specific permissions)
   return true;
 });
 </script>

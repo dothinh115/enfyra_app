@@ -23,8 +23,6 @@ logs
 .env.*
 !.env.example
 
-# Plugin development folder
-enfyra-plugin/
+# Extension development folder
+enfyra-extension/
 
-# Plugin registry and uploaded plugins - ignore everything
-public/plugins/*

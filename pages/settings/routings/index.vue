@@ -98,69 +98,82 @@ async function toggleEnabled(routeItem: any) {
       title="Loading routes..."
       description="Fetching routing configuration"
       size="sm"
-      type="table"
+      type="card"
       context="page"
     />
-    <div class="space-y-3 flex flex-col" v-else-if="routes.length">
-      <ULink
-        :to="`/settings/routings/${route.id}`"
-        v-for="route in routes"
-        class="cursor-pointer relative z-10 cursor-pointer"
-      >
-        <UCard
+    <div v-else-if="routes.length" class="space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <ULink
+          :to="`/settings/routings/${route.id}`"
+          v-for="route in routes"
           :key="route.id"
-          class="hover:bg-gray-50 dark:hover:bg-gray-800 transition"
-          variant="subtle"
+          class="cursor-pointer relative z-10"
         >
-          <div class="flex items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-              <Icon
-                :name="route.icon || 'lucide:circle'"
-                class="text-xl text-primary mt-1"
-              />
-              <div class="space-y-1">
-                <div class="flex space-x-1 items-center">
-                  <span class="text-xs text-gray-400">Path:</span>
-                  <div class="font-medium text-primary">{{ route.path }}</div>
-                </div>
-                <div class="flex space-x-1 items-center">
-                  <span class="text-xs text-gray-400">Table:</span>
-                  <div class="text-sm text-gray-300">
+          <UCard
+            class="h-full hover:bg-gray-50 dark:hover:bg-gray-800 transition hover:shadow-md"
+            variant="subtle"
+          >
+            <div class="flex flex-col h-full gap-3">
+              <div class="flex items-center gap-3">
+                <Icon
+                  :name="route.icon || 'lucide:circle'"
+                  class="text-xl text-primary mt-1"
+                />
+                <div class="flex-1 min-w-0">
+                  <div class="font-medium text-primary truncate">
+                    {{ route.path }}
+                  </div>
+                  <div class="text-sm text-gray-500 truncate">
                     {{ route.mainTable.name }}
                   </div>
                 </div>
-                <div
-                  class="flex space-x-1 items-center"
-                  v-if="route.publishedMethods?.length"
+              </div>
+
+              <div class="flex flex-wrap gap-2">
+                <UBadge
+                  :color="route.isEnabled ? 'success' : 'warning'"
+                  size="xs"
                 >
-                  <span class="text-xs text-gray-400">Published Methods:</span>
-                  <div class="mt-1 flex flex-wrap gap-1">
-                    <UBadge
-                      v-for="m in route.publishedMethods"
-                      :key="m"
-                      size="xs"
-                      color="secondary"
-                    >
-                      {{ m.method }}
-                    </UBadge>
-                  </div>
+                  {{ route.isEnabled ? "Enabled" : "Disabled" }}
+                </UBadge>
+                <UBadge v-if="route.isSystem" color="info" size="xs">
+                  System
+                </UBadge>
+              </div>
+
+              <!-- Published methods inline -->
+              <div
+                v-if="route.publishedMethods?.length"
+                class="flex items-center gap-2"
+              >
+                <span class="text-xs text-gray-400">Published Methods:</span>
+                <div class="flex flex-wrap gap-1">
+                  <UBadge
+                    v-for="method in route.publishedMethods"
+                    :key="method.method"
+                    size="xs"
+                    color="secondary"
+                  >
+                    {{ method.method }}
+                  </UBadge>
                 </div>
               </div>
-            </div>
 
-            <div class="flex items-end">
-              <USwitch
-                :model-value="route.isEnabled"
-                @update:model-value="toggleEnabled(route)"
-                label="Is enabled"
-                @click.prevent
-                v-if="!route.isSystem"
-              />
+              <div class="flex items-center justify-between mt-auto">
+                <USwitch
+                  :model-value="route.isEnabled"
+                  @update:model-value="toggleEnabled(route)"
+                  label="Is enabled"
+                  @click.prevent
+                  v-if="!route.isSystem"
+                />
+              </div>
             </div>
-          </div>
-        </UCard>
-      </ULink>
+          </UCard>
+        </ULink>
+      </div>
     </div>
+
     <CommonEmptyState
       v-else-if="!loading"
       title="No routes found"
@@ -169,7 +182,7 @@ async function toggleEnabled(routeItem: any) {
       size="sm"
     />
 
-    <div class="flex justify-center mt-6">
+    <div class="flex justify-center mt-6" v-if="total > pageLimit">
       <UPagination
         v-model:page="page"
         :items-per-page="pageLimit"
@@ -184,7 +197,6 @@ async function toggleEnabled(routeItem: any) {
         "
         color="secondary"
         active-color="secondary"
-        v-if="!loading"
       />
     </div>
   </div>

@@ -138,9 +138,5 @@ export function useHeaderActionRegistry(
   return {
     headerActions,
     register,
-    registerMultiple,
-    unregisterHeaderAction,
-    unregisterHeaderActions,
-    clearHeaderActions,
   };
 }

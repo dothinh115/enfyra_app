@@ -14,10 +14,14 @@
       >
         <div class="flex flex-col items-center gap-3">
           <!-- Simple spinner -->
-          <div class="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-          
+          <div
+            class="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin"
+          ></div>
+
           <!-- Optional message -->
-          <p v-if="message" class="text-sm text-muted-foreground">{{ message }}</p>
+          <p v-if="message" class="text-sm text-muted-foreground">
+            {{ message }}
+          </p>
         </div>
       </div>
     </Transition>
@@ -26,11 +30,12 @@
 
 <script setup lang="ts">
 interface Props {
-  show: boolean;
+  show?: boolean;
   message?: string;
 }
 
 withDefaults(defineProps<Props>(), {
-  message: 'Loading...'
+  show: false,
+  message: "Loading...",
 });
 </script>

@@ -2,8 +2,7 @@
 const { globalLoading, setSidebarVisible } = useGlobalState();
 const route = useRoute();
 const { isMobile, isTablet } = useScreen();
-const { getMenuItemsBySidebar } = useMenuRegistry();
-const { miniSidebars } = useMiniSidebarRegistry();
+const { getMenuItemsBySidebar, miniSidebars } = useMenuRegistry();
 
 function handleMenuClick() {
   if (isMobile.value || isTablet.value) {
@@ -30,7 +29,7 @@ const currentSidebar = computed(() => {
   const matchingSidebar = miniSidebars.value.find((sidebar) => {
     return path.startsWith(sidebar.route);
   });
-  return matchingSidebar?.id || null;
+  return matchingSidebar?.id ? Number(matchingSidebar.id) : null;
 });
 
 // Get visible menu items for current sidebar

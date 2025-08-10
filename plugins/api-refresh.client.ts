@@ -17,13 +17,10 @@ export default defineNuxtPlugin(() => {
         // First API call - store server ID
         if (lastServerId === null) {
           lastServerId = serverId;
-          console.log('Auto-refresh: Initial server ID:', serverId);
+      
         } else if (serverId !== lastServerId) {
           // Server restarted - different ID
-          console.log('Auto-refresh: Server restarted, refreshing page...', {
-            oldId: lastServerId,
-            newId: serverId
-          });
+
           window.location.reload();
         }
       }
@@ -32,7 +29,7 @@ export default defineNuxtPlugin(() => {
     } catch (error) {
       // Network error might indicate server restart
       if (lastServerId !== null) {
-        console.log('Auto-refresh: Network error, might be server restart');
+
       }
       throw error;
     }
