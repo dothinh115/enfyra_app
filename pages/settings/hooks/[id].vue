@@ -14,32 +14,11 @@
     @submit="updateHook"
     class="space-y-6"
   >
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <Icon name="lucide:zap" class="text-2xl text-primary" />
-        <div class="text-xl font-bold text-primary">
-          Hook: {{ detail.name || "(no name)" }}
-        </div>
+    <div class="flex items-center gap-3">
+      <Icon name="lucide:zap" class="text-2xl text-primary" />
+      <div class="text-xl font-bold text-primary">
+        Hook: {{ detail.name || "(no name)" }}
       </div>
-      <PermissionGate
-        :condition="{
-          and: [
-            {
-              route: '/hook_definition',
-              actions: ['delete'],
-            },
-          ],
-        }"
-      >
-        <UButton
-          v-if="!detail.isSystem"
-          icon="lucide:trash-2"
-          size="xl"
-          color="error"
-          :loading="createButtonLoader('delete-hook').isLoading.value"
-          @click="deleteHook"
-        />
-      </PermissionGate>
     </div>
 
     <UCard>
@@ -90,23 +69,46 @@ const loading = ref(false);
 const { validate, getIncludeFields } = useSchema(tableName);
 
 // Register header actions
-useHeaderActionRegistry({
-  id: "save-hook",
-  label: "Save",
-  icon: "lucide:save",
-  variant: "solid",
-  color: "primary",
-  submit: updateHook,
-  loading: computed(() => updateLoading.value),
-  permission: {
-    and: [
-      {
-        route: "/hook_definition",
-        actions: ["update"],
-      },
-    ],
+useHeaderActionRegistry([
+  {
+    id: "save-hook",
+    label: "Save",
+    icon: "lucide:save",
+    variant: "solid",
+    color: "primary",
+    size: "md",
+    submit: updateHook,
+    loading: computed(() => updateLoading.value),
+    disabled: computed(() => detail.value?.isSystem || false),
+    permission: {
+      and: [
+        {
+          route: "/hook_definition",
+          actions: ["update"],
+        },
+      ],
+    },
   },
-});
+  {
+    id: "delete-hook",
+    label: "Delete",
+    icon: "lucide:trash",
+    variant: "solid",
+    color: "error",
+    size: "md",
+    onClick: deleteHook,
+    loading: computed(() => createButtonLoader("delete-hook").isLoading.value),
+    disabled: computed(() => detail.value?.isSystem || false),
+    permission: {
+      and: [
+        {
+          route: "/hook_definition",
+          actions: ["delete"],
+        },
+      ],
+    },
+  },
+]);
 
 // Setup useApiLazy composables at top level
 const {

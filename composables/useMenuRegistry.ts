@@ -1,4 +1,5 @@
 import type { PermissionCondition } from "./usePermissions";
+import { isSystemTableModifiable } from "~/utils/constants";
 
 // API Response Interface from /menu_definition
 interface MenuDefinition {
@@ -158,8 +159,19 @@ export function useMenuRegistry() {
   const registerTableMenusWithSidebarIds = async (tables: any[]) => {
     if (!tables || tables.length === 0) return;
 
-    // Register menu items for each table in the "data" sidebar
-    tables.forEach((table) => {
+    // Filter tables that can be modified in collections
+    const modifiableTables = tables.filter((table) => {
+      // User tables (non-system) can always be modified
+      if (!table.isSystem) return true;
+      // System tables can only be modified if explicitly allowed
+      return isSystemTableModifiable(table.name || table.table_name);
+    });
+
+    // Filter out system tables for data sidebar
+    const nonSystemTables = tables.filter((table) => !table.isSystem);
+
+    // Register modifiable tables in collections sidebar (ID: 3)
+    modifiableTables.forEach((table) => {
       const tableName = table.name || table.table_name;
       if (!tableName) return;
 
@@ -169,6 +181,32 @@ export function useMenuRegistry() {
         route: `/collections/${tableName}`,
         icon: table.icon || "lucide:table",
         sidebarId: 3,
+        permission: {
+          and: [
+            { route: `/table_definition`, actions: ["read"] },
+            {
+              or: [
+                { route: `/table_definition`, actions: ["create"] },
+                { route: `/table_definition`, actions: ["update"] },
+                { route: `/table_definition`, actions: ["delete"] },
+              ],
+            },
+          ],
+        },
+      });
+    });
+
+    // Register non-system tables in data sidebar (ID: 2)
+    nonSystemTables.forEach((table) => {
+      const tableName = table.name || table.table_name;
+      if (!tableName) return;
+
+      registerMenuItem({
+        id: `data-${tableName}`,
+        label: table.label || table.display_name || tableName,
+        route: `/data/${tableName}`,
+        icon: table.icon || "lucide:database",
+        sidebarId: 2,
         permission: {
           and: [
             { route: `/table_definition`, actions: ["read"] },

@@ -27,20 +27,6 @@
           Extension: {{ detail.name }}
         </div>
       </div>
-      <PermissionGate
-        :condition="{
-          or: [{ route: '/extension_definition', actions: ['delete'] }],
-        }"
-      >
-        <UButton
-          v-if="detail?.isSystem === false"
-          icon="lucide:trash-2"
-          size="xl"
-          color="error"
-          :loading="createButtonLoader('delete-extension').isLoading.value"
-          @click="deleteExtension"
-        />
-      </PermissionGate>
     </div>
 
     <UCard>
@@ -61,15 +47,6 @@
         v-model:errors="errors"
         :table-name="tableName"
         :excluded="['id', 'createdAt', 'updatedAt', 'isSystem']"
-        :type-map="{
-          type: {
-            type: 'select',
-            options: [
-              { label: 'Page', value: 'page' },
-              { label: 'Widget', value: 'widget' },
-            ],
-          },
-        }"
       />
     </UCard>
   </UForm>
@@ -124,40 +101,58 @@ const uploadLoading = ref(false);
 const { validate, getIncludeFields } = useSchema(tableName);
 
 // Register header actions
-useHeaderActionRegistry({
-  id: "save-extension",
-  label: "Save",
-  icon: "lucide:save",
-  variant: "solid",
-  color: "primary",
-  submit: updateExtension,
-  loading: computed(() => updateLoading.value),
-  permission: {
-    and: [
-      {
-        route: "/extension_definition",
-        actions: ["update"],
-      },
-    ],
+useHeaderActionRegistry([
+  {
+    id: "save-extension",
+    label: "Save",
+    icon: "lucide:save",
+    variant: "solid",
+    color: "primary",
+    submit: updateExtension,
+    loading: computed(() => updateLoading.value),
+    permission: {
+      and: [
+        {
+          route: "/extension_definition",
+          actions: ["update"],
+        },
+      ],
+    },
   },
-});
-
-useHeaderActionRegistry({
-  id: "upload-extension",
-  label: "Upload",
-  icon: "lucide:upload",
-  variant: "outline",
-  color: "primary",
-  onClick: () => (showUploadModal.value = true),
-  permission: {
-    and: [
-      {
-        route: "/extension_definition",
-        actions: ["update"],
-      },
-    ],
+  {
+    id: "upload-extension",
+    label: "Upload",
+    icon: "lucide:upload",
+    variant: "solid",
+    color: "secondary",
+    onClick: () => (showUploadModal.value = true),
+    permission: {
+      and: [
+        {
+          route: "/extension_definition",
+          actions: ["update"],
+        },
+      ],
+    },
   },
-});
+  {
+    id: "delete-extension",
+    label: "Delete",
+    icon: "lucide:trash",
+    variant: "solid",
+    color: "error",
+    onClick: deleteExtension,
+    loading: computed(() => deleteLoading.value),
+    permission: {
+      and: [
+        {
+          route: "/extension_definition",
+          actions: ["delete"],
+        },
+      ],
+    },
+  },
+]);
 
 // Setup useApiLazy composables at top level
 const {
@@ -180,9 +175,9 @@ const {
 });
 
 const {
-  data: deleteData,
   error: deleteError,
   execute: executeDeleteExtension,
+  pending: deleteLoading,
 } = useApiLazy(() => `/extension_definition/${route.params.id}`, {
   method: "delete",
 });

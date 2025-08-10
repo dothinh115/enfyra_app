@@ -20,7 +20,11 @@ export interface HeaderAction {
     | Ref<boolean>
     | Readonly<Ref<boolean>>
     | ComputedRef<boolean>;
-  disabled?: boolean;
+  disabled?:
+    | boolean
+    | Ref<boolean>
+    | Readonly<Ref<boolean>>
+    | ComputedRef<boolean>;
   permission?: PermissionCondition;
   onClick?: () => void;
   to?: string;

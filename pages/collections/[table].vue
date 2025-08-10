@@ -8,6 +8,7 @@ const toast = useToast();
 const { registerTableMenusWithSidebarIds } = useMenuRegistry();
 const tableName = "table_definition";
 const { getIncludeFields } = useSchema(tableName);
+import { isSystemTableModifiable } from "~/utils/constants";
 
 const table = ref<any>();
 
@@ -48,24 +49,50 @@ const { pending: deleting, execute: executeDeleteTable } = useApiLazy(
 );
 
 // Register header actions
-useHeaderActionRegistry({
-  id: "save-table",
-  label: "Save Changes",
-  icon: "lucide:save",
-  variant: "solid",
-  color: "primary",
-  size: "lg",
-  loading: computed(() => saving.value || globalLoading.value),
-  submit: save,
-  permission: {
-    and: [
-      {
-        route: "/table_definition",
-        actions: ["update"],
-      },
-    ],
+useHeaderActionRegistry([
+  {
+    id: "save-table",
+    label: "Save",
+    icon: "lucide:save",
+    variant: "solid",
+    color: "primary",
+    size: "lg",
+    loading: computed(() => saving.value || globalLoading.value),
+    disabled: computed(
+      () => table.value?.isSystem && !isSystemTableModifiable(table.value?.name)
+    ),
+    submit: save,
+    permission: {
+      and: [
+        {
+          route: "/table_definition",
+          actions: ["update"],
+        },
+      ],
+    },
   },
-});
+  {
+    id: "delete-table",
+    label: "Delete",
+    icon: "lucide:trash",
+    variant: "solid",
+    color: "error",
+    size: "lg",
+    loading: computed(() => deleting.value || globalLoading.value),
+    disabled: computed(
+      () => table.value?.isSystem && !isSystemTableModifiable(table.value?.name)
+    ),
+    onClick: handleDelete,
+    permission: {
+      and: [
+        {
+          route: "/table_definition",
+          actions: ["delete"],
+        },
+      ],
+    },
+  },
+]);
 
 async function fetchData() {
   await fetchTableData();
@@ -182,21 +209,6 @@ async function deleteTable() {
                 tables?.map((t) => ({ label: t?.name, value: { id: t.id } }))
               "
             />
-            <div>
-              <UButton
-                icon="lucide:delete"
-                size="sm"
-                color="error"
-                variant="solid"
-                class="hover:cursor-pointer"
-                @click="handleDelete"
-                :disabled="
-                  table.isSystem || saving || deleting || globalLoading
-                "
-                :loading="deleting || globalLoading"
-                >Delete Table</UButton
-              >
-            </div>
           </div>
         </TableForm>
       </div>

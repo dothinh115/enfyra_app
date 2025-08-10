@@ -5,15 +5,6 @@
         v-model="createForm"
         :table-name="tableName"
         :errors="createErrors"
-        :type-map="{
-          type: {
-            type: 'select',
-            options: [
-              { label: 'Page', value: 'page' },
-              { label: 'Widget', value: 'widget' },
-            ],
-          },
-        }"
       />
     </UForm>
 

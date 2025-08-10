@@ -20,30 +20,12 @@
     @submit="updateRoute"
     class="space-y-6"
   >
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <Icon
-          :name="detail.icon || 'lucide:circle'"
-          class="text-2xl text-primary"
-        />
-        <div class="text-xl font-bold text-primary">
-          Route: {{ detail.path }}
-        </div>
-      </div>
-      <PermissionGate
-        :condition="{
-          or: [{ route: '/route_definition', actions: ['delete'] }],
-        }"
-      >
-        <UButton
-          v-if="detail?.isSystem === false"
-          icon="lucide:trash-2"
-          size="xl"
-          color="error"
-          :loading="createButtonLoader('delete-route').isLoading.value"
-          @click="deleteRoute"
-        />
-      </PermissionGate>
+    <div class="flex items-center gap-3">
+      <Icon
+        :name="detail.icon || 'lucide:circle'"
+        class="text-2xl text-primary"
+      />
+      <div class="text-xl font-bold text-primary">Route: {{ detail.path }}</div>
     </div>
 
     <UCard>
@@ -97,23 +79,46 @@ const loading = ref(false);
 const { validate, getIncludeFields } = useSchema(tableName);
 
 // Register header actions
-useHeaderActionRegistry({
-  id: "save-routing",
-  label: "Save",
-  icon: "lucide:save",
-  variant: "solid",
-  color: "primary",
-  submit: updateRoute,
-  loading: computed(() => updateLoading.value),
-  permission: {
-    and: [
-      {
-        route: "/route_definition",
-        actions: ["update"],
-      },
-    ],
+useHeaderActionRegistry([
+  {
+    id: "save-routing",
+    label: "Save",
+    icon: "lucide:save",
+    variant: "solid",
+    color: "primary",
+    size: "md",
+    submit: updateRoute,
+    loading: computed(() => updateLoading.value),
+    disabled: computed(() => detail.value?.isSystem || false),
+    permission: {
+      and: [
+        {
+          route: "/route_definition",
+          actions: ["update"],
+        },
+      ],
+    },
   },
-});
+  {
+    id: "delete-routing",
+    label: "Delete",
+    icon: "lucide:trash",
+    variant: "solid",
+    color: "error",
+    size: "md",
+    onClick: deleteRoute,
+    loading: computed(() => createButtonLoader("delete-route").isLoading.value),
+    disabled: computed(() => detail.value?.isSystem || false),
+    permission: {
+      and: [
+        {
+          route: "/route_definition",
+          actions: ["delete"],
+        },
+      ],
+    },
+  },
+]);
 
 // Setup useApiLazy composables at top level
 const {

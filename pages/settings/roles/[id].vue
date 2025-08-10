@@ -12,25 +12,6 @@
     <template v-else>
       <div class="flex justify-between items-center">
         <h1 class="text-xl font-semibold">Role Details</h1>
-        <PermissionGate
-          :condition="{
-            and: [
-              {
-                route: '/role_definition',
-                actions: ['delete'],
-              },
-            ],
-          }"
-        >
-          <UButton
-            icon="i-heroicons-trash"
-            label="Delete"
-            color="error"
-            variant="soft"
-            :loading="createButtonLoader('delete-role').isLoading.value"
-            @click="deleteRole"
-          />
-        </PermissionGate>
       </div>
 
       <UForm :state="form" @submit="save">
@@ -64,23 +45,41 @@ const tableName = "role_definition";
 const { getIncludeFields } = useSchema(tableName);
 
 // Register header actions
-useHeaderActionRegistry({
-  id: "save-role",
-  label: "Save",
-  icon: "lucide:save",
-  variant: "solid",
-  color: "primary",
-  submit: save,
-  loading: computed(() => updateLoading.value),
-  permission: {
-    and: [
-      {
-        route: "/role_definition",
-        actions: ["update"],
-      },
-    ],
+useHeaderActionRegistry([
+  {
+    id: "save-role",
+    label: "Save",
+    icon: "lucide:save",
+    variant: "solid",
+    color: "primary",
+    submit: save,
+    loading: computed(() => updateLoading.value),
+    permission: {
+      and: [
+        {
+          route: "/role_definition",
+          actions: ["update"],
+        },
+      ],
+    },
   },
-});
+  {
+    id: "delete-role",
+    label: "Delete",
+    icon: "lucide:trash",
+    variant: "soft",
+    color: "error",
+    onClick: deleteRole,
+    permission: {
+      and: [
+        {
+          route: "/role_definition",
+          actions: ["delete"],
+        },
+      ],
+    },
+  },
+]);
 
 // Setup useApiLazy composables at top level
 const errors = ref<Record<string, string>>({});

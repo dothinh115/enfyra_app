@@ -96,12 +96,26 @@ function getComponentConfigByKey(key: string) {
     };
   }
 
-  if (finalType === "select") {
+  if (finalType === "select" || finalType === "enum") {
+    // Get options from config or from schema enumValues
+    let items = config.options ?? [];
+
+    // If no options provided and field type is enum, get from schema
+    if (items.length === 0) {
+      const column = props.columnMap.get(key);
+      if (column?.type === "enum" && column?.enumValues) {
+        items = column.enumValues.map((opt: string) => ({
+          label: opt,
+          value: opt,
+        }));
+      }
+    }
+
     return {
       component: USelect,
       componentProps: {
         ...componentPropsBase,
-        items: config.options ?? [],
+        items: items,
         modelValue: props.formData[key] ?? null,
         "onUpdate:modelValue": (val: any) => {
           updateFormData(key, val);
@@ -125,7 +139,54 @@ function getComponentConfigByKey(key: string) {
     };
   }
 
-  if (finalType === "simple-json" || finalType === "text") {
+  if (finalType === "simple-json") {
+    // If field is disabled, show disabled input instead of code editor
+    if (disabled) {
+      return {
+        component: UInput,
+        componentProps: {
+          ...componentPropsBase,
+          type: "text",
+          modelValue: props.formData[key] ?? "",
+          "onUpdate:modelValue": (val: string) => {
+            updateFormData(key, val);
+          },
+        },
+        fieldProps: {
+          ...fieldProps,
+          class: "col-span-2",
+        },
+      };
+    }
+
+    return {
+      component: resolveComponent("FormCodeEditorLazy"),
+      componentProps: {
+        ...componentPropsBase,
+        modelValue: props.formData[key] ?? "",
+        language: "json",
+        height: config.height || "300px", // Default height for JSON fields
+        "onUpdate:modelValue": (val: string) => {
+          updateFormData(key, val);
+        },
+        onDiagnostics: (diags: any[]) => {
+          const updated = { ...props.errors };
+          if (diags?.length > 0) {
+            updated[key] = "JSON syntax error";
+          } else {
+            delete updated[key];
+          }
+          updateErrors(updated);
+        },
+      },
+      fieldProps: {
+        ...fieldProps,
+        class: "col-span-2",
+      },
+    };
+  }
+
+  if (finalType === "text") {
     return {
       component: UTextarea,
       componentProps: {
@@ -202,6 +263,7 @@ function getComponentConfigByKey(key: string) {
         ...componentPropsBase,
         modelValue: props.formData[key] ?? "",
         language: config.language ?? "javascript",
+        height: config.height || "400px", // Default height for code fields
         "onUpdate:modelValue": (val: string) => {
           updateFormData(key, val);
         },

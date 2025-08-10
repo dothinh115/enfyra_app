@@ -16,6 +16,7 @@
           :aria-label="action.label || action.id"
           :class="action.class"
           @click="handleActionClick(action)"
+          class="cursor-pointer"
         />
       </PermissionGate>
     </template>

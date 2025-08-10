@@ -159,17 +159,28 @@ async function save() {
   const payload = getCleanTablePayload();
   await createTable({ body: payload });
 
+  // Fetch schema first to get updated tables
   await fetchSchema();
 
+  // Wait a bit to ensure tables.value is updated
+  await nextTick();
+
   // Re-register all table menus to ensure sync
-  registerTableMenusWithSidebarIds(tables.value);
+  await registerTableMenusWithSidebarIds(tables.value);
 
   toast.add({
     title: "Success",
     color: "success",
     description: "New table created!",
   });
-  router.push(`/collections/${createData.value?.data[0]?.name}`);
+
+  // Get the newly created table name from response
+  const newTableName = createData.value?.data?.[0]?.name;
+  if (newTableName) {
+    router.push(`/collections/${newTableName}`);
+  } else {
+    router.push("/collections");
+  }
 }
 </script>
 

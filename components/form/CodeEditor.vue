@@ -18,6 +18,7 @@ import eslint from "eslint-linter-browserify";
 const props = defineProps<{
   modelValue?: string;
   language?: string;
+  height?: string;
 }>();
 
 const emit = defineEmits(["update:modelValue", "diagnostics"]);
@@ -182,7 +183,7 @@ const extensions = [
       v-model="code"
       :extensions="extensions"
       theme="dark"
-      height="400px"
+      :height="props.height || '400px'"
       basic-setup
       :editable="true"
       :read-only="false"

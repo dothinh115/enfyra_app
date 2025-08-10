@@ -34,7 +34,9 @@
 
 <script setup lang="ts">
 const route = useRoute();
+const router = useRouter();
 const toast = useToast();
+const { confirm } = useConfirm();
 
 const id = route.params.id as string;
 const tableName = "route_handler_definition";
@@ -46,23 +48,46 @@ const saving = ref(false);
 const { validate, getIncludeFields } = useSchema(tableName);
 
 // Register header actions
-useHeaderActionRegistry({
-  id: "save-handler",
-  label: "Save",
-  icon: "lucide:save",
-  variant: "solid",
-  color: "primary",
-  submit: save,
-  loading: computed(() => saveLoading.value),
-  permission: {
-    and: [
-      {
-        route: "/route_handler_definition",
-        actions: ["update"],
-      },
-    ],
+useHeaderActionRegistry([
+  {
+    id: "save-handler",
+    label: "Save",
+    icon: "lucide:save",
+    variant: "solid",
+    color: "primary",
+    size: "md",
+    submit: save,
+    loading: computed(() => saveLoading.value),
+    disabled: computed(() => form.value?.isSystem || false),
+    permission: {
+      and: [
+        {
+          route: "/route_handler_definition",
+          actions: ["update"],
+        },
+      ],
+    },
   },
-});
+  {
+    id: "delete-handler",
+    label: "Delete",
+    icon: "lucide:trash",
+    variant: "solid",
+    color: "error",
+    size: "md",
+    onClick: deleteHandler,
+    loading: computed(() => deleteLoading.value),
+    disabled: computed(() => form.value?.isSystem || false),
+    permission: {
+      and: [
+        {
+          route: "/route_handler_definition",
+          actions: ["delete"],
+        },
+      ],
+    },
+  },
+]);
 
 // Setup useApiLazy composables at top level
 const {
@@ -79,6 +104,14 @@ const {
   pending: saveLoading,
 } = useApiLazy(() => `/${tableName}/${id}`, {
   method: "patch",
+});
+
+const {
+  error: deleteError,
+  execute: executeDeleteHandler,
+  pending: deleteLoading,
+} = useApiLazy(() => `/${tableName}/${id}`, {
+  method: "delete",
 });
 
 async function fetchHandler() {
@@ -133,6 +166,29 @@ async function save() {
   }
 
   saving.value = false;
+}
+
+async function deleteHandler() {
+  const ok = await confirm({ title: "Are you sure?" });
+  if (!ok || form.value?.isSystem) return;
+
+  try {
+    await executeDeleteHandler();
+
+    if (deleteError.value) {
+      toast.add({
+        title: "Error deleting",
+        description: deleteError.value.message,
+        color: "error",
+      });
+      return;
+    }
+
+    toast.add({ title: "Handler deleted", color: "success" });
+    router.push("/settings/handlers");
+  } catch (error) {
+    // Error already handled by useApiLazy
+  }
 }
 
 onMounted(fetchHandler);

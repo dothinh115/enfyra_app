@@ -4,8 +4,6 @@ const router = useRouter();
 const toast = useToast();
 const { confirm } = useConfirm();
 
-const { createButtonLoader } = useButtonLoading();
-
 const tableName = "menu_definition";
 const detail = ref<Record<string, any> | null>(null);
 const form = ref<Record<string, any>>({});
@@ -49,24 +47,46 @@ const { execute: executeDeleteMenu, pending: deleteLoading } = useApiLazy(
 );
 
 // Register header actions
-useHeaderActionRegistry({
-  id: "save-menu",
-  label: "Save Changes",
-  icon: "lucide:save",
-  variant: "solid",
-  color: "primary",
-  size: "lg",
-  loading: updateLoading,
-  onClick: updateMenuDetail,
-  permission: {
-    and: [
-      {
-        route: "/menu_definition",
-        actions: ["update"],
-      },
-    ],
+useHeaderActionRegistry([
+  {
+    id: "save-menu",
+    label: "Save Changes",
+    icon: "lucide:save",
+    variant: "solid",
+    color: "primary",
+    size: "md",
+    loading: updateLoading,
+    disabled: computed(() => detail.value?.isSystem || false),
+    onClick: updateMenuDetail,
+    permission: {
+      and: [
+        {
+          route: "/menu_definition",
+          actions: ["update"],
+        },
+      ],
+    },
   },
-});
+  {
+    id: "delete-menu",
+    label: "Delete",
+    icon: "lucide:trash",
+    variant: "solid",
+    color: "error",
+    size: "md",
+    onClick: deleteMenuDetail,
+    loading: deleteLoading,
+    disabled: computed(() => detail.value?.isSystem || false),
+    permission: {
+      and: [
+        {
+          route: "/menu_definition",
+          actions: ["delete"],
+        },
+      ],
+    },
+  },
+]);
 
 async function fetchMenuDetail(menuId: number) {
   await executeFetchMenu();
@@ -156,20 +176,6 @@ watch(
           Menu: {{ detail.label }}
         </div>
       </div>
-      <PermissionGate
-        :condition="{
-          or: [{ route: '/menu_definition', actions: ['delete'] }],
-        }"
-      >
-        <UButton
-          v-if="detail?.isSystem === false"
-          icon="lucide:trash-2"
-          size="xl"
-          color="error"
-          :loading="deleteLoading"
-          @click="deleteMenuDetail"
-        />
-      </PermissionGate>
     </div>
 
     <UCard>
@@ -194,18 +200,14 @@ watch(
         :table-name="tableName"
         :excluded="['isSystem']"
         :type-map="{
-          type: {
-            type: 'select',
-            options: [
-              { label: 'Sidebar', value: 'mini' },
-              { label: 'Menu Item', value: 'menu' },
-            ],
-          },
           order: {
             componentProps: {
               min: 0,
               step: 1,
             },
+          },
+          permission: {
+            height: '100px',
           },
           path: { disabled: detail?.isSystem },
           isEnabled: { disabled: detail?.isSystem },

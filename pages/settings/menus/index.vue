@@ -5,7 +5,28 @@ const pageLimit = 10;
 const route = useRoute();
 const tableName = "menu_definition";
 const { getIncludeFields } = useSchema(tableName);
+const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
 const menus = ref<any[]>([]);
+const { schemas } = useGlobalState();
+console.log(schemas.value);
+
+// Filter state
+const showFilterDrawer = ref(false);
+const currentFilter = ref(createEmptyFilter());
+
+// Filter button computed values
+const filterLabel = computed(() => {
+  const activeCount = currentFilter.value.conditions.length;
+  return activeCount > 0 ? `Filters (${activeCount})` : "Filter";
+});
+
+const filterVariant = computed(() => {
+  return hasActiveFilters(currentFilter.value) ? "solid" : "outline";
+});
+
+const filterColor = computed(() => {
+  return hasActiveFilters(currentFilter.value) ? "secondary" : "neutral";
+});
 
 // API composable for fetching menus
 const {
@@ -13,13 +34,20 @@ const {
   pending: loading,
   execute: fetchMenus,
 } = useApiLazy(() => "/menu_definition", {
-  query: computed(() => ({
-    fields: getIncludeFields(),
-    sort: "order",
-    meta: "*",
-    page: page.value,
-    limit: pageLimit,
-  })),
+  query: computed(() => {
+    const filterQuery = hasActiveFilters(currentFilter.value)
+      ? buildQuery(currentFilter.value)
+      : {};
+
+    return {
+      fields: getIncludeFields(),
+      sort: "order",
+      meta: "*",
+      page: page.value,
+      limit: pageLimit,
+      ...(Object.keys(filterQuery).length > 0 && { filter: filterQuery }),
+    };
+  }),
   errorContext: "Fetch Menus",
 });
 
@@ -28,24 +56,44 @@ const menusData = computed(() => apiData.value?.data || []);
 const total = computed(() => apiData.value?.meta?.totalCount || 0);
 
 // Register header actions
-useHeaderActionRegistry({
-  id: "create-menu",
-  label: "Create Menu",
-  icon: "lucide:plus",
-  variant: "solid",
-  color: "primary",
-  size: "lg",
-  to: "/settings/menus/create",
-  class: "rounded-full",
-  permission: {
-    and: [
-      {
-        route: "/menu_definition",
-        actions: ["create"],
-      },
-    ],
+useHeaderActionRegistry([
+  {
+    id: "filter-menus",
+    icon: "lucide:filter",
+    label: "Filter",
+    color: "secondary",
+    size: "md",
+    onClick: () => {
+      showFilterDrawer.value = true;
+    },
+    permission: {
+      and: [
+        {
+          route: "/menu_definition",
+          actions: ["read"],
+        },
+      ],
+    },
   },
-});
+  {
+    id: "create-menu",
+    label: "Create Menu",
+    icon: "lucide:plus",
+    variant: "solid",
+    color: "primary",
+    size: "lg",
+    to: "/settings/menus/create",
+    class: "rounded-full",
+    permission: {
+      and: [
+        {
+          route: "/menu_definition",
+          actions: ["create"],
+        },
+      ],
+    },
+  },
+]);
 
 // Update menus when data changes
 watch(
@@ -65,6 +113,17 @@ watch(
   },
   { immediate: true }
 );
+
+// Apply filters - called by FilterDrawer
+async function applyFilters() {
+  page.value = 1;
+  await fetchMenus();
+}
+
+function clearFilters() {
+  currentFilter.value = createEmptyFilter();
+  applyFilters();
+}
 
 async function toggleEnabled(menuItem: any) {
   const newEnabled = !menuItem.isEnabled;
@@ -192,4 +251,13 @@ async function toggleEnabled(menuItem: any) {
       size="sm"
     />
   </div>
+
+  <!-- Filter Drawer -->
+  <FilterDrawer
+    v-model="showFilterDrawer"
+    v-model:filter-value="currentFilter"
+    :table-name="tableName"
+    @apply="applyFilters"
+    @clear="clearFilters"
+  />
 </template>

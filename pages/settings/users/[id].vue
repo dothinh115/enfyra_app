@@ -11,23 +11,42 @@ const errors = ref<Record<string, string>>({});
 const { validate, getIncludeFields } = useSchema(tableName);
 
 // Register header actions
-useHeaderActionRegistry({
-  id: "save-user",
-  label: "Save",
-  icon: "lucide:save",
-  variant: "solid",
-  color: "primary",
-  loading: computed(() => updateLoading.value),
-  submit: saveUser,
-  permission: {
-    and: [
-      {
-        route: "/user_definition",
-        actions: ["update"],
-      },
-    ],
+useHeaderActionRegistry([
+  {
+    id: "save-user",
+    label: "Save",
+    icon: "lucide:save",
+    variant: "solid",
+    color: "primary",
+    loading: computed(() => updateLoading.value),
+    submit: saveUser,
+    permission: {
+      and: [
+        {
+          route: "/user_definition",
+          actions: ["update"],
+        },
+      ],
+    },
   },
-});
+  {
+    id: "delete-user",
+    label: "Delete",
+    icon: "lucide:trash",
+    variant: "soft",
+    color: "error",
+    onClick: deleteUser,
+    loading: computed(() => deleting.value),
+    permission: {
+      and: [
+        {
+          route: "/user_definition",
+          actions: ["delete"],
+        },
+      ],
+    },
+  },
+]);
 
 // API composable for fetching user
 const {
@@ -101,7 +120,7 @@ async function saveUser() {
 }
 
 // API composable for deleting user
-const { execute: removeUser } = useApiLazy(
+const { execute: removeUser, pending: deleting } = useApiLazy(
   () => `/${tableName}/${detail.value?.id}`,
   {
     method: "delete",
@@ -182,29 +201,6 @@ watch(
                 {{ detail.email }}
               </div>
             </div>
-          </div>
-
-          <div>
-            <PermissionGate
-              :condition="{
-                and: [
-                  {
-                    route: '/user_definition',
-                    actions: ['delete'],
-                  },
-                ],
-              }"
-            >
-              <UButton
-                icon="lucide:trash"
-                label="Delete user"
-                color="error"
-                variant="solid"
-                :disabled="detail.isSystem || detail.isRootAdmin"
-                :loading="createButtonLoader('delete-user').isLoading.value"
-                @click="deleteUser"
-              />
-            </PermissionGate>
           </div>
         </div>
       </template>
