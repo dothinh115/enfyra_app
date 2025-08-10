@@ -108,19 +108,25 @@ const users = computed(() => apiData.value?.data || []);
 const total = computed(() => apiData.value?.meta?.totalCount || 0);
 
 // Register header actions
-useHeaderActionRegistry({
-  id: "create-user",
-  label: "Create User",
-  icon: "lucide:plus",
-  variant: "solid",
-  color: "primary",
-  size: "lg",
-  to: "/settings/users/create",
-  class: "rounded-full",
-  permission: {
-    or: [{ route: "/user_definition", actions: ["create"] }],
+useHeaderActionRegistry([
+  {
+    id: "create-user",
+    label: "Create User",
+    icon: "lucide:plus",
+    variant: "solid",
+    color: "primary",
+    size: "md",
+    to: "/settings/users/create",
+    permission: {
+      and: [
+        {
+          route: "/user_definition",
+          actions: ["create"],
+        },
+      ],
+    },
   },
-});
+]);
 
 watch(page, () => fetchUsers(), { immediate: true });
 </script>

@@ -61,10 +61,7 @@ const visibleFields = computed(() => {
     const key = field.name || field.propertyName;
     if (!key) return false;
     if (props.excluded.includes(key)) return false;
-    if (
-      ["id", "createdAt", "updatedAt", "isSystem", "isRootAdmin"].includes(key)
-    )
-      return false;
+    if (["isSystem", "isRootAdmin"].includes(key)) return false;
     return true;
   });
 

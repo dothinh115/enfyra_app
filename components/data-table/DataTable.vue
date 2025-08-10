@@ -197,7 +197,8 @@ onMounted(() => {
               v-for="header in table.getFlatHeaders()"
               :key="header.id"
               :class="[
-                'px-4 py-3 text-left text-sm font-medium text-gray-900 dark:text-gray-100',
+                'px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100',
+                header.id === '__actions' ? 'text-center' : 'text-left',
                 header.column.getCanSort() &&
                   'cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-800',
               ]"
@@ -211,7 +212,12 @@ onMounted(() => {
                   : 'none'
               "
             >
-              <div class="flex items-center gap-2">
+              <div
+                :class="[
+                  'flex items-center gap-2',
+                  header.id === '__actions' ? 'justify-center' : '',
+                ]"
+              >
                 <span v-if="typeof header.column.columnDef.header === 'string'">
                   {{ header.column.columnDef.header }}
                 </span>

@@ -3,15 +3,13 @@
     <template v-for="action in visibleActions" :key="action.id">
       <PermissionGate :condition="action.permission">
         <UButton
-          :label="
-            isMobile || action.id.includes('create') ? undefined : action.label
-          "
+          :label="action.label"
           :icon="action.icon"
           :variant="action.variant || 'solid'"
           :color="action.color || 'primary'"
-          :size="isMobile ? 'sm' : action.size || 'md'"
+          :size="action.size || 'md'"
           :loading="unref(action.loading)"
-          :disabled="action.disabled"
+          :disabled="unref(action.disabled)"
           :to="action.to"
           :aria-label="action.label || action.id"
           :class="action.class"
@@ -25,10 +23,10 @@
 
 <script setup lang="ts">
 import type { HeaderAction } from "~/composables/useHeaderActionRegistry";
+import { unref } from "vue";
 
 const route = useRoute();
 const { headerActions } = useHeaderActionRegistry();
-const { isMobile } = useScreen();
 
 // Filter actions based on current route
 const visibleActions = computed(() => {

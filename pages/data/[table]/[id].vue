@@ -1,11 +1,13 @@
 <script setup lang="ts">
 const route = useRoute();
+const router = useRouter();
 
 const toast = useToast();
 const { validate } = useSchema(route.params.table as string);
 const updateErrors = ref<Record<string, string>>({});
 
 const { confirm } = useConfirm();
+
 // API composable for fetching record
 const {
   data: apiData,
@@ -39,44 +41,6 @@ watch(
 
 onMounted(() => fetchRecord());
 
-async function letsCreate() {
-  const ok = await confirm({
-    content: "Are you sure?",
-  });
-  if (ok) {
-    await handleUpdate();
-  }
-}
-
-// API composable for updating record
-const {
-  data: updateData,
-  pending: updateLoading,
-  execute: updateRecord,
-} = useApiLazy(() => `/${route.params.table}/${route.params.id}`, {
-  method: "patch",
-  errorContext: "Update Record",
-});
-
-// Register header actions
-useHeaderActionRegistry({
-  id: "save-data-entry",
-  label: "Save",
-  icon: "lucide:save",
-  variant: "solid",
-  color: "primary",
-  loading: computed(() => updateLoading.value),
-  submit: handleUpdate,
-  permission: {
-    and: [
-      {
-        route: `/${route.params.table}`,
-        actions: ["update"],
-      },
-    ],
-  },
-});
-
 async function handleUpdate() {
   const { isValid, errors } = validate(currentRecord.value);
 
@@ -103,9 +67,99 @@ async function handleUpdate() {
     await navigateTo(
       `/data/${route.params.table}/${updateData.value?.data[0]?.id}`
     );
-  } finally {
+  } catch (error) {
+    // Error already handled by useApiLazy
   }
 }
+
+// API composable for updating record
+const {
+  data: updateData,
+  pending: updateLoading,
+  execute: updateRecord,
+} = useApiLazy(() => `/${route.params.table}/${route.params.id}`, {
+  method: "patch",
+  errorContext: "Update Record",
+});
+
+// API composable for deleting record
+const {
+  error: deleteError,
+  execute: executeDeleteRecord,
+  pending: deleteLoading,
+} = useApiLazy(() => `/${route.params.table}/${route.params.id}`, {
+  method: "delete",
+  errorContext: "Delete Record",
+});
+
+async function deleteRecord() {
+  const ok = await confirm({
+    title: "Are you sure?",
+    content: "This action cannot be undone.",
+  });
+  if (!ok) return;
+
+  try {
+    await executeDeleteRecord();
+
+    if (deleteError.value) {
+      toast.add({
+        title: "Error deleting",
+        description: deleteError.value.message,
+        color: "error",
+      });
+      return;
+    }
+
+    toast.add({
+      title: "Record deleted",
+      color: "success",
+    });
+    router.push(`/data/${route.params.table}`);
+  } catch (error) {
+    // Error already handled by useApiLazy
+  }
+}
+
+// Register header actions
+useHeaderActionRegistry([
+  {
+    id: "save-data-entry",
+    label: "Save",
+    icon: "lucide:save",
+    variant: "solid",
+    color: "primary",
+    size: "md",
+    loading: computed(() => updateLoading.value),
+    submit: handleUpdate,
+    permission: {
+      and: [
+        {
+          route: `/${route.params.table}`,
+          actions: ["update"],
+        },
+      ],
+    },
+  },
+  {
+    id: "delete-data-entry",
+    label: "Delete",
+    icon: "lucide:trash",
+    variant: "solid",
+    color: "error",
+    size: "md",
+    loading: computed(() => deleteLoading.value),
+    onClick: deleteRecord,
+    permission: {
+      and: [
+        {
+          route: `/${route.params.table}`,
+          actions: ["delete"],
+        },
+      ],
+    },
+  },
+]);
 </script>
 
 <template>
@@ -113,12 +167,12 @@ async function handleUpdate() {
   <CommonLoadingState type="form" v-if="loading" />
 
   <!-- Form content -->
-  <UForm v-else :state="currentRecord" @submit="letsCreate">
+  <UForm v-else :state="currentRecord" @submit="handleUpdate">
     <UCard variant="subtle">
       <template #header>
         <div class="flex items-center justify-between">
           <div class="text-lg font-semibold capitalize">
-            {{ route.params.table }}: new record
+            {{ route.params.table }}: {{ currentRecord.id || "Loading..." }}
           </div>
         </div>
       </template>
@@ -126,8 +180,8 @@ async function handleUpdate() {
       <template #default>
         <FormEditor
           :table-name="(route.params.table as string)"
+          mode="edit"
           v-model="currentRecord"
-          :excluded="['id']"
           v-model:errors="updateErrors"
         />
       </template>

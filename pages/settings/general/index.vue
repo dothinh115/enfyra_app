@@ -5,23 +5,26 @@ const errors = ref<Record<string, string>>({});
 const { generateEmptyForm, validate } = useSchema("setting_definition");
 
 // Register header actions
-useHeaderActionRegistry({
-  id: "save-general",
-  label: "Save",
-  icon: "lucide:save",
-  variant: "solid",
-  color: "primary",
-  submit: handleSaveSetting,
-  loading: computed(() => saveLoading.value),
-  permission: {
-    and: [
-      {
-        route: "/setting",
-        actions: ["update"],
-      },
-    ],
+useHeaderActionRegistry([
+  {
+    id: "save-settings",
+    label: "Save",
+    icon: "lucide:save",
+    variant: "solid",
+    color: "primary",
+    size: "md",
+    submit: handleSaveSetting,
+    loading: computed(() => saveLoading.value),
+    permission: {
+      and: [
+        {
+          route: "/setting",
+          actions: ["update"],
+        },
+      ],
+    },
   },
-});
+]);
 
 // API composable for loading settings
 const {

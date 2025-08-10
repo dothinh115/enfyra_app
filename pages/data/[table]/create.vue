@@ -17,23 +17,26 @@ const {
 });
 
 // Register header actions
-useHeaderActionRegistry({
-  id: "save-data-entry",
-  label: "Save",
-  icon: "lucide:save",
-  variant: "solid",
-  color: "primary",
-  loading: computed(() => createLoading.value),
-  submit: handleCreate,
-  permission: {
-    and: [
-      {
-        route: `/${route.params.table}`,
-        actions: ["create"],
-      },
-    ],
+useHeaderActionRegistry([
+  {
+    id: "save-data-entry",
+    label: "Save",
+    icon: "lucide:save",
+    variant: "solid",
+    color: "primary",
+    size: "md",
+    loading: computed(() => createLoading.value),
+    submit: handleCreate,
+    permission: {
+      and: [
+        {
+          route: `/${route.params.table}`,
+          actions: ["create"],
+        },
+      ],
+    },
   },
-});
+]);
 
 onMounted(() => {
   newRecord.value = generateEmptyForm();
@@ -64,7 +67,8 @@ async function handleCreate() {
     await navigateTo(
       `/data/${route.params.table}/${createData.value?.data[0]?.id}`
     );
-  } finally {
+  } catch (error) {
+    // Error already handled by useApiLazy
   }
 }
 </script>
@@ -83,8 +87,8 @@ async function handleCreate() {
       <template #default>
         <FormEditor
           :table-name="(route.params.table as string)"
+          mode="create"
           v-model="newRecord"
-          :excluded="['createdAt', 'updatedAt']"
           v-model:errors="createErrors"
         />
       </template>

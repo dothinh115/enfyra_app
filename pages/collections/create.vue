@@ -128,25 +128,26 @@ watch(createLoading, (newCreateLoading) => {
   globalLoading.value = newCreateLoading;
 });
 
-useHeaderActionRegistry({
-  id: "create-table",
-  label: "Create New Table",
-  icon: "lucide:plus",
-  variant: "solid",
-  color: "primary",
-  size: "lg",
-  loading: computed(() => createLoading.value || globalLoading.value),
-  submit: save,
-  class: "rounded-full",
-  permission: {
-    and: [
-      {
-        route: "/table_definition",
-        actions: ["create"],
-      },
-    ],
+useHeaderActionRegistry([
+  {
+    id: "create-table",
+    label: "Create New Table",
+    icon: "lucide:plus",
+    variant: "solid",
+    color: "primary",
+    size: "md",
+    loading: computed(() => createLoading.value || globalLoading.value),
+    submit: save,
+    permission: {
+      and: [
+        {
+          route: "/table_definition",
+          actions: ["create"],
+        },
+      ],
+    },
   },
-});
+]);
 
 async function save() {
   if (!validateAll()) return;
@@ -185,7 +186,7 @@ async function save() {
 </script>
 
 <template>
-  <UForm @submit.prevent="save" :state="table">
+  <UForm :state="table">
     <div class="mx-auto">
       <TableForm v-model="table" :new="true">
         <template #tableName>

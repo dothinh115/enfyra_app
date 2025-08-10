@@ -28,25 +28,26 @@ const { execute: createMenu, pending: creating } = useApiLazy(
 );
 
 // Register header actions
-useHeaderActionRegistry({
-  id: "save-menu",
-  label: "Save Menu",
-  icon: "lucide:save",
-  variant: "solid",
-  color: "primary",
-  size: "lg",
-  loading: createButtonLoader("save-menu").isLoading,
-  onClick: saveMenu,
-  class: "rounded-full",
-  permission: {
-    and: [
-      {
-        route: "/menu_definition",
-        actions: ["create"],
-      },
-    ],
+useHeaderActionRegistry([
+  {
+    id: "save-menu",
+    label: "Save",
+    icon: "lucide:save",
+    variant: "solid",
+    color: "primary",
+    size: "md",
+    submit: saveMenu,
+    loading: computed(() => creating.value),
+    permission: {
+      and: [
+        {
+          route: "/menu_definition",
+          actions: ["create"],
+        },
+      ],
+    },
   },
-});
+]);
 
 onMounted(() => {
   form.value = generateEmptyForm();
@@ -113,13 +114,6 @@ async function saveMenu() {
           :table-name="tableName"
           :excluded="['id', 'createdAt', 'updatedAt', 'isSystem']"
           :type-map="{
-            type: {
-              type: 'select',
-              options: [
-                { label: 'Sidebar', value: 'mini' },
-                { label: 'Menu Item', value: 'menu' },
-              ],
-            },
             order: {
               componentProps: {
                 min: 0,

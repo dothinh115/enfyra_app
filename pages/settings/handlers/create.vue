@@ -21,23 +21,26 @@ const createErrors = ref<Record<string, string>>({});
 const { generateEmptyForm, validate } = useSchema(tableName);
 
 // Register header actions
-useHeaderActionRegistry({
-  id: "save-handler",
-  label: "Save",
-  icon: "lucide:save",
-  variant: "solid",
-  color: "primary",
-  submit: handleCreate,
-  loading: computed(() => createLoading.value),
-  permission: {
-    and: [
-      {
-        route: "/route_handler_definition",
-        actions: ["create"],
-      },
-    ],
+useHeaderActionRegistry([
+  {
+    id: "save-handler",
+    label: "Save",
+    icon: "lucide:save",
+    variant: "solid",
+    color: "primary",
+    size: "md",
+    submit: handleCreate,
+    loading: computed(() => createLoading.value),
+    permission: {
+      and: [
+        {
+          route: "/route_handler_definition",
+          actions: ["create"],
+        },
+      ],
+    },
   },
-});
+]);
 
 // Setup useApiLazy composable at top level
 const {

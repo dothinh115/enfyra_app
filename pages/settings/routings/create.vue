@@ -1,10 +1,10 @@
 <template>
   <div class="mx-auto space-y-6">
-    <UForm state="createForm" @submit="handleCreate">
+    <UForm :state="createForm" @submit="handleCreate">
       <FormEditor
         v-model="createForm"
         :table-name="tableName"
-        :errors="createErrors"
+        v-model:errors="createErrors"
       />
     </UForm>
   </div>
@@ -21,23 +21,26 @@ const createErrors = ref<Record<string, string>>({});
 const { generateEmptyForm, validate } = useSchema(tableName);
 
 // Register header actions
-useHeaderActionRegistry({
-  id: "save-routing",
-  label: "Save",
-  icon: "lucide:save",
-  variant: "solid",
-  color: "primary",
-  submit: handleCreate,
-  loading: computed(() => createLoading.value),
-  permission: {
-    and: [
-      {
-        route: "/route_definition",
-        actions: ["create"],
-      },
-    ],
+useHeaderActionRegistry([
+  {
+    id: "save-routing",
+    label: "Save",
+    icon: "lucide:save",
+    variant: "solid",
+    color: "primary",
+    size: "md",
+    submit: handleCreate,
+    loading: computed(() => createLoading.value),
+    permission: {
+      and: [
+        {
+          route: "/route_definition",
+          actions: ["create"],
+        },
+      ],
+    },
   },
-});
+]);
 
 // Setup useApiLazy composable at top level
 const {
