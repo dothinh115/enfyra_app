@@ -166,7 +166,7 @@ export function useMenuRegistry() {
       registerMenuItem({
         id: `data-${tableName}`,
         label: table.label || table.display_name || tableName,
-        route: `/data/${tableName}`,
+        route: `/collections/${tableName}`,
         icon: table.icon || "lucide:table",
         sidebarId: 3,
         permission: {
