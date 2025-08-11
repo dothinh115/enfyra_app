@@ -5,6 +5,7 @@
         v-model="createForm"
         :table-name="tableName"
         :errors="createErrors"
+        :excluded="['code']"
       />
     </UForm>
 

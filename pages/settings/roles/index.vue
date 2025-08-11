@@ -89,7 +89,7 @@ watch(
       title="Loading roles..."
       description="Fetching role definitions"
       size="sm"
-      type="table"
+      type="card"
       context="page"
     />
 

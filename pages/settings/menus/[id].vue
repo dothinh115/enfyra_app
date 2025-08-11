@@ -157,18 +157,14 @@ watch(
 
 <template>
   <!-- Loading state -->
-  <div
+  <CommonLoadingState
     v-if="fetchPending"
-    class="flex flex-col items-center justify-center py-20 gap-4"
-  >
-    <div class="relative">
-      <div class="w-12 h-12 border-4 border-primary/20 rounded-full"></div>
-      <div
-        class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"
-      ></div>
-    </div>
-    <p class="text-sm text-muted-foreground">Loading menu...</p>
-  </div>
+    title="Loading menu..."
+    description="Fetching menu details"
+    size="sm"
+    type="form"
+    context="page"
+  />
 
   <!-- Form content -->
   <UForm

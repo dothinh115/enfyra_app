@@ -1,9 +1,5 @@
 <script setup lang="ts">
-import { useLoader } from "~/composables/useLoader";
 const toast = useToast();
-const { confirm } = useConfirm();
-
-const { createLoader } = useLoader();
 
 const tableName = "menu_definition";
 const form = ref<Record<string, any>>({});
