@@ -16,7 +16,7 @@ const { createLoader } = useLoader();
 const { checkPermissionCondition } = usePermissions();
 
 // Mounted state để đánh dấu first render
-const isMounted = ref(false);
+const { isMounted } = useMounted();
 
 // Filter state (move up before use)
 const showFilterDrawer = ref(false);
@@ -329,7 +329,6 @@ async function handleBulkDelete(selectedRows: any[]) {
 
 onMounted(async () => {
   await fetchData();
-  isMounted.value = true;
 });
 
 // Remove auto-watch - FilterDrawer handles apply/clear events

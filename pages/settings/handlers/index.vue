@@ -7,10 +7,8 @@ const tableName = "route_handler_definition";
 const { confirm } = useConfirm();
 const { getIncludeFields } = useSchema(tableName);
 
-// Mounted state để đánh dấu first render
-const isMounted = ref(false);
+const { isMounted } = useMounted();
 
-// API composable for fetching handlers
 const {
   data: apiData,
   pending: loading,
@@ -26,7 +24,6 @@ const {
   errorContext: "Fetch Route Handlers",
 });
 
-// API composable for deleting handlers (reusable)
 const { execute: removeHandler } = useApiLazy(
   () => `/route_handler_definition/0`,
   {
@@ -35,15 +32,11 @@ const { execute: removeHandler } = useApiLazy(
   }
 );
 
-// Computed values from API data
 const routeHandlers = computed(() => apiData.value?.data || []);
 const total = computed(() => {
-  // Use filterCount when there are active filters, otherwise use totalCount
-  // Note: This page doesn't have filters yet, but keeping the logic consistent
   return apiData.value?.meta?.totalCount || 0;
 });
 
-// Register header actions
 useHeaderActionRegistry({
   id: "create-handler",
   label: "Create Handler",
@@ -68,7 +61,6 @@ async function deleteHandler(id: number) {
   });
   if (!ok) return;
 
-  // Create a specific instance for this deletion
   const { execute: deleteSpecificHandler } = useApiLazy(
     () => `/route_handler_definition/${id}`,
     {
@@ -93,14 +85,12 @@ watch(
 );
 
 onMounted(async () => {
-  isMounted.value = true;
 });
 </script>
 
 <template>
   <div class="space-y-6">
     <Transition name="loading-fade" mode="out-in">
-      <!-- Loading State: khi chưa mounted hoặc đang loading -->
       <CommonLoadingState
         v-if="!isMounted || loading"
         title="Loading handlers..."
@@ -110,7 +100,6 @@ onMounted(async () => {
         context="page"
       />
 
-      <!-- Handlers Grid: khi có data -->
       <div v-else-if="routeHandlers.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <UCard v-for="handler in routeHandlers" :key="handler.id" class="relative group">
           <template #header>
@@ -167,7 +156,6 @@ onMounted(async () => {
         </UCard>
       </div>
 
-      <!-- Empty State: khi đã mounted, không loading và không có data -->
       <CommonEmptyState
         v-else
         title="No handlers found"
@@ -177,7 +165,6 @@ onMounted(async () => {
       />
     </Transition>
 
-    <!-- Pagination - chỉ hiển thị khi có data -->
     <div class="flex justify-center" v-if="!loading && routeHandlers.length > 0">
       <UPagination
         v-model="page"

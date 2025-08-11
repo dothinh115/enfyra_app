@@ -1,6 +1,5 @@
 <template>
   <Transition name="loading-fade" mode="out-in">
-    <!-- Loading State: khi chưa mounted hoặc đang loading -->
     <CommonLoadingState
       v-if="!isMounted || loading"
       title="Loading extension..."
@@ -10,7 +9,6 @@
       context="page"
     />
 
-    <!-- Error state -->
     <CommonEmptyState
       v-else-if="error"
       :title="
@@ -40,7 +38,6 @@
       "
     />
 
-    <!-- Extension component -->
     <PermissionGate
       v-else-if="extensionComponent"
       :condition="menuResponse?.data[0]?.permission ?? { allowAll: true }"
@@ -51,7 +48,6 @@
       />
     </PermissionGate>
 
-    <!-- 404 state -->
     <CommonEmptyState
       v-else
       title="Extension Not Found"
@@ -74,13 +70,10 @@ const route = useRoute();
 const sidebarParam = route.params.sidebar;
 const pageParam = route.params.page;
 
-// Mounted state để đánh dấu first render
-const isMounted = ref(false);
+const { isMounted } = useMounted();
 
-// Use the new dynamic component composable
 const { loadDynamicComponent } = useDynamicComponent();
 
-// Reactive state
 const error = ref<string | null>(null);
 const extensionComponent = ref<any>(null);
 
@@ -110,9 +103,6 @@ const {
   errorContext: "Fetch Menu with Extension",
 });
 
-/**
- * Find and load matching extension
- */
 const loadMatchingExtension = async () => {
   error.value = null;
 
@@ -154,20 +144,14 @@ const loadMatchingExtension = async () => {
   }
 };
 
-/**
- * Retry loading
- */
 const retry = () => {
   loadMatchingExtension();
 };
 
-// Load extension on mount and when route changes
 onMounted(async () => {
   await loadMatchingExtension();
-  isMounted.value = true;
 });
 
-// Watch route changes
 watch(
   () => route.params,
   () => {

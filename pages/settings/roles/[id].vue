@@ -1,7 +1,6 @@
 <template>
   <div class="mx-auto space-y-6">
     <Transition name="loading-fade" mode="out-in">
-      <!-- Loading State: khi chưa mounted hoặc đang loading -->
       <CommonLoadingState
         v-if="!isMounted || loading"
         title="Loading role..."
@@ -11,7 +10,6 @@
         context="page"
       />
 
-      <!-- Form Content: khi có data -->
       <div v-else-if="role" class="space-y-6">
         <div class="flex justify-between items-center">
           <h1 class="text-xl font-semibold">Role Details</h1>
@@ -33,7 +31,6 @@
         </UForm>
       </div>
 
-      <!-- Empty State: khi đã mounted, không loading và không có data -->
       <CommonEmptyState
         v-else
         title="Role not found"
@@ -54,10 +51,8 @@ const id = route.params.id as string;
 const tableName = "role_definition";
 const { getIncludeFields } = useSchema(tableName);
 
-// Mounted state để đánh dấu first render
-const isMounted = ref(false);
+const { isMounted } = useMounted();
 
-// Register header actions
 useHeaderActionRegistry([
   {
     id: "save-role",
@@ -99,7 +94,6 @@ const errors = ref<Record<string, string>>({});
 
 const { validate } = useSchema(tableName);
 
-// API composable for fetching role
 const {
   data: apiData,
   pending: loading,
@@ -112,13 +106,10 @@ const {
   errorContext: "Fetch Role",
 });
 
-// Form data as ref
 const form = ref<Record<string, any>>({});
 
-// Computed role detail
 const role = computed(() => apiData.value?.data?.[0]);
 
-// Watch API data and update form
 watch(
   apiData,
   (newData) => {
@@ -129,7 +120,6 @@ watch(
   { immediate: true }
 );
 
-// API composable for updating role
 const { execute: updateRole, pending: updateLoading } = useApiLazy(
   () => `/${tableName}/${id}`,
   {
@@ -138,7 +128,6 @@ const { execute: updateRole, pending: updateLoading } = useApiLazy(
   }
 );
 
-// API composable for deleting role
 const { execute: deleteRoleApi, pending: deleteLoading } = useApiLazy(
   () => `/${tableName}/${id}`,
   {
@@ -170,7 +159,6 @@ async function save() {
     });
     errors.value = {};
   } catch (error) {
-    // Error already handled by useApiLazy
   }
 }
 
@@ -186,12 +174,10 @@ async function deleteRole() {
     toast.add({ title: "Role deleted", color: "success" });
     await navigateTo("/settings/roles");
   } catch (error) {
-    // Error already handled by useApiLazy
   }
 }
 
 onMounted(async () => {
   await fetchRole();
-  isMounted.value = true;
 });
 </script>

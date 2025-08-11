@@ -233,6 +233,7 @@ export const useGlobalState = () => {
     globalLoading,
     fetchSchema,
     sidebarVisible,
+    routeLoading,
     toggleSidebar,
     setSidebarVisible,
     setRouteLoading,

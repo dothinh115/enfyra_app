@@ -6,18 +6,15 @@ const { confirm } = useConfirm();
 
 const tableName = "menu_definition";
 
-// Mounted state để đánh dấu first render
-const isMounted = ref(false);
+const { isMounted } = useMounted();
 
 const { validate, getIncludeFields } = useSchema(tableName);
 
-// Menu registry composables for reregistering after changes
 const { fetchMenuDefinitions } = useMenuApi();
 const { reregisterAllMenus, registerTableMenusWithSidebarIds } =
   useMenuRegistry();
 const { tables } = useGlobalState();
 
-// API composable for fetching menu detail
 const {
   data: menuData,
   pending: loading,
@@ -30,7 +27,6 @@ const {
   errorContext: "Fetch Menu",
 });
 
-// API composable for updating menu
 const {
   execute: executeUpdateMenu,
   pending: updateLoading,
@@ -40,7 +36,6 @@ const {
   errorContext: "Update Menu",
 });
 
-// API composable for deleting menu
 const { execute: executeDeleteMenu, pending: deleteLoading } = useApiLazy(
   () => `/${tableName}`,
   {
@@ -49,16 +44,12 @@ const { execute: executeDeleteMenu, pending: deleteLoading } = useApiLazy(
   }
 );
 
-// Computed menu detail
 const detail = computed(() => menuData.value?.data?.[0]);
 
-// Form data as ref
 const form = ref<Record<string, any>>({});
 
-// Form errors
 const errors = ref<Record<string, string>>({});
 
-// Watch API data and update form
 watch(
   menuData,
   (newData) => {
@@ -69,7 +60,6 @@ watch(
   { immediate: true }
 );
 
-// Register header actions
 useHeaderActionRegistry([
   {
     id: "save-menu",
@@ -128,7 +118,6 @@ async function updateMenuDetail() {
   try {
     await executeUpdateMenu({ id: Number(route.params.id), body: form.value });
 
-    // Reregister menus after update
     await fetchMenuDefinitions();
     await reregisterAllMenus(fetchMenuDefinitions as any);
 
@@ -139,7 +128,6 @@ async function updateMenuDetail() {
     });
     errors.value = {};
   } catch (error) {
-    // Error already handled by useApiLazy
   }
 }
 
@@ -153,26 +141,22 @@ async function deleteMenuDetail() {
   try {
     await executeDeleteMenu({ id: Number(route.params.id) });
 
-    // Reregister menus after delete
     await fetchMenuDefinitions();
     await reregisterAllMenus(fetchMenuDefinitions as any);
 
     toast.add({ title: "Menu deleted", color: "success" });
     await navigateTo("/settings/menus");
   } catch (error) {
-    // Error already handled by useApiLazy
   }
 }
 
 onMounted(async () => {
   await executeFetchMenu();
-  isMounted.value = true;
 });
 </script>
 
 <template>
   <Transition name="loading-fade" mode="out-in">
-    <!-- Loading State: khi chưa mounted hoặc đang loading -->
     <CommonLoadingState
       v-if="!isMounted || loading"
       title="Loading menu..."
@@ -182,7 +166,6 @@ onMounted(async () => {
       context="page"
     />
 
-    <!-- Form Content: khi có data -->
     <div v-else-if="detail" class="space-y-6">
       <div class="flex items-center gap-3">
         <Icon
@@ -215,7 +198,6 @@ onMounted(async () => {
       </UCard>
     </div>
 
-    <!-- Empty State: khi đã mounted, không loading và không có data -->
     <CommonEmptyState
       v-else
       title="Menu not found"

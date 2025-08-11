@@ -5,10 +5,8 @@ const toast = useToast();
 const { confirm } = useConfirm();
 const { validate } = useSchema("user_definition");
 
-// Mounted state để đánh dấu first render
-const isMounted = ref(false);
+const { isMounted } = useMounted();
 
-// API composable for fetching user
 const {
   data: apiData,
   pending: loading,
@@ -25,16 +23,12 @@ const {
   errorContext: "Fetch User",
 });
 
-// Form data as ref
 const form = ref<Record<string, any>>({});
 
-// Computed user detail
 const detail = computed(() => apiData.value?.data?.[0]);
 
-// Form errors
 const errors = ref<Record<string, string>>({});
 
-// Watch API data and update form
 watch(
   apiData,
   (newData) => {
@@ -45,7 +39,6 @@ watch(
   { immediate: true }
 );
 
-// API composable for updating user
 const { execute: updateUser, pending: updateLoading } = useApiLazy(
   () => `/user_definition/${route.params.id}`,
   {
@@ -54,7 +47,6 @@ const { execute: updateUser, pending: updateLoading } = useApiLazy(
   }
 );
 
-// API composable for deleting user
 const { execute: removeUser, pending: deleteLoading } = useApiLazy(
   () => `/user_definition/${route.params.id}`,
   {
@@ -63,7 +55,6 @@ const { execute: removeUser, pending: deleteLoading } = useApiLazy(
   }
 );
 
-// Register header actions
 useHeaderActionRegistry([
   {
     id: "save-user",
@@ -126,7 +117,6 @@ async function saveUser() {
     });
     errors.value = {};
   } catch (error) {
-    // Error already handled by useApiLazy
   }
 }
 
@@ -144,7 +134,6 @@ async function deleteUser() {
     });
     await navigateTo("/settings/users");
   } catch (error) {
-    // Error already handled by useApiLazy
   }
 }
 
@@ -161,13 +150,11 @@ async function fetchUserDetail(userId: string) {
       router.push("/settings/users");
     }
   } catch (error) {
-    // Error handled by useApiLazy
   }
 }
 
 onMounted(async () => {
   await fetchUserDetail(route.params.id as string);
-  isMounted.value = true;
 });
 
 watch(
@@ -178,7 +165,6 @@ watch(
 
 <template>
   <Transition name="loading-fade" mode="out-in">
-    <!-- Loading State: khi chưa mounted hoặc đang loading -->
     <CommonLoadingState
       v-if="!isMounted || loading"
       title="Loading user..."
@@ -188,7 +174,6 @@ watch(
       context="page"
     />
 
-    <!-- Form Content: khi có data -->
     <UForm v-else-if="detail" :state="form" @submit="saveUser">
       <UCard>
         <template #header>
@@ -223,7 +208,6 @@ watch(
       </UCard>
     </UForm>
 
-    <!-- Empty State: khi đã mounted, không loading và không có data -->
     <CommonEmptyState
       v-else
       title="User not found"

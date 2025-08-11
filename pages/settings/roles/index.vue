@@ -7,10 +7,8 @@ const tableName = "role_definition";
 const { confirm } = useConfirm();
 const { getIncludeFields } = useSchema(tableName);
 
-// Mounted state để đánh dấu first render
-const isMounted = ref(false);
+const { isMounted } = useMounted();
 
-// API composable for fetching roles
 const {
   data: apiData,
   pending: loading,
@@ -26,15 +24,11 @@ const {
   errorContext: "Fetch Roles",
 });
 
-// Computed values from API data
 const roles = computed(() => apiData.value?.data || []);
 const total = computed(() => {
-  // Use filterCount when there are active filters, otherwise use totalCount
-  // Note: This page doesn't have filters yet, but keeping the logic consistent
   return apiData.value?.meta?.totalCount || 0;
 });
 
-// Register header actions
 useHeaderActionRegistry({
   id: "create-role",
   label: "Create Role",
@@ -60,7 +54,6 @@ async function deleteRole(id: string) {
   });
   if (!ok) return;
 
-  // Create a specific instance for this role deletion
   const { execute: removeSpecificRole, error: deleteError } = useApiLazy(
     () => `/role_definition/${id}`,
     {
@@ -89,14 +82,12 @@ watch(
 );
 
 onMounted(async () => {
-  isMounted.value = true;
 });
 </script>
 
 <template>
   <div class="space-y-6">
     <Transition name="loading-fade" mode="out-in">
-      <!-- Loading State: khi chưa mounted hoặc đang loading -->
       <CommonLoadingState
         v-if="!isMounted || loading"
         title="Loading roles..."
@@ -106,7 +97,6 @@ onMounted(async () => {
         context="page"
       />
 
-      <!-- Roles Grid: khi có data -->
       <div
         v-else-if="roles.length"
         class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
@@ -160,7 +150,6 @@ onMounted(async () => {
         </UCard>
       </div>
 
-      <!-- Empty State: khi đã mounted, không loading và không có data -->
       <CommonEmptyState
         v-else
         title="No roles found"
@@ -170,7 +159,6 @@ onMounted(async () => {
       />
     </Transition>
 
-    <!-- Pagination - chỉ hiển thị khi có data -->
     <div class="flex justify-center" v-if="!loading && roles.length > 0">
       <UPagination
         v-model="page"

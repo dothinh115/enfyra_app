@@ -1,6 +1,5 @@
 <template>
   <Transition name="loading-fade" mode="out-in">
-    <!-- Loading State: khi chưa mounted hoặc đang loading -->
     <CommonLoadingState
       v-if="!isMounted || loading"
       title="Loading extension..."
@@ -10,7 +9,6 @@
       context="page"
     />
 
-    <!-- Form Content: khi có data -->
     <UForm
       v-else-if="detail"
       :state="form"
@@ -48,7 +46,6 @@
       </UCard>
     </UForm>
 
-    <!-- Empty State: khi đã mounted, không loading và không có data -->
     <CommonEmptyState
       v-else
       title="Extension not found"
@@ -95,16 +92,13 @@ const { confirm } = useConfirm();
 
 const tableName = "extension_definition";
 
-// Mounted state để đánh dấu first render
-const isMounted = ref(false);
+const { isMounted } = useMounted();
 
-// Upload modal state
 const showUploadModal = ref(false);
 const uploadLoading = ref(false);
 
 const { validate, getIncludeFields } = useSchema(tableName);
 
-// Register header actions
 useHeaderActionRegistry([
   {
     id: "save-extension",
@@ -161,7 +155,6 @@ useHeaderActionRegistry([
   },
 ]);
 
-// API composable for fetching extension
 const {
   data: extensionData,
   pending: loading,
@@ -174,7 +167,6 @@ const {
   errorContext: "Fetch Extension",
 });
 
-// API composable for updating extension
 const {
   error: updateError,
   execute: executeUpdateExtension,
@@ -184,7 +176,6 @@ const {
   errorContext: "Update Extension",
 });
 
-// API composable for deleting extension
 const {
   error: deleteError,
   execute: executeDeleteExtension,
@@ -194,16 +185,12 @@ const {
   errorContext: "Delete Extension",
 });
 
-// Computed extension detail
 const detail = computed(() => extensionData.value?.data?.[0]);
 
-// Form data as ref
 const form = ref<Record<string, any>>({});
 
-// Form errors
 const errors = ref<Record<string, string>>({});
 
-// Watch API data and update form
 watch(
   extensionData,
   (newData) => {
@@ -240,7 +227,6 @@ async function updateExtension() {
     });
     errors.value = {};
   } catch (error) {
-    // Error already handled by useApiLazy
   }
 }
 
@@ -256,7 +242,6 @@ async function deleteExtension() {
     toast.add({ title: "Extension deleted", color: "success" });
     await navigateTo("/settings/extensions");
   } catch (error) {
-    // Error already handled by useApiLazy
   }
 }
 
@@ -290,6 +275,5 @@ async function handleUpload(files: File | File[]) {
 
 onMounted(async () => {
   await executeGetExtension();
-  isMounted.value = true;
 });
 </script>

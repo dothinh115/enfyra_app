@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// All composables are auto-imported
 
 const route = useRoute();
 const { tables, fetchSchema, globalLoading } = useGlobalState();
@@ -10,12 +9,10 @@ const tableName = "table_definition";
 const { getIncludeFields } = useSchema(tableName);
 import { isSystemTableModifiable } from "~/utils/constants";
 
-// Mounted state để đánh dấu first render
-const isMounted = ref(false);
+const { isMounted } = useMounted();
 
 const table = ref<any>();
 
-// API composables at setup level
 const {
   data: tableData,
   pending: loading,
@@ -32,7 +29,6 @@ const {
   errorContext: "Fetch Table Data",
 });
 
-// Composable for patch table
 const { pending: saving, execute: executePatchTable } = useApiLazy(
   () => `/table_definition/${table.value?.id || "undefined"}`,
   {
@@ -42,7 +38,6 @@ const { pending: saving, execute: executePatchTable } = useApiLazy(
   }
 );
 
-// Composable for delete table
 const { pending: deleting, execute: executeDeleteTable } = useApiLazy(
   () => `/table_definition/${table.value?.id || "undefined"}`,
   {
@@ -51,7 +46,6 @@ const { pending: deleting, execute: executeDeleteTable } = useApiLazy(
   }
 );
 
-// Register header actions
 useHeaderActionRegistry([
   {
     id: "save-table",
@@ -105,7 +99,6 @@ async function fetchData() {
   }
 }
 
-// Watch for table data changes
 watch(
   tableData,
   (newData) => {
@@ -131,7 +124,6 @@ async function patchTable() {
   await executePatchTable();
   await fetchSchema();
 
-  // Re-register table menus to reflect any name changes
   registerTableMenusWithSidebarIds(tables.value);
 
   toast.add({
@@ -156,7 +148,6 @@ async function deleteTable() {
   await executeDeleteTable();
   await fetchSchema();
 
-  // Re-register table menus to remove deleted table
   registerTableMenusWithSidebarIds(tables.value);
 
   toast.add({
@@ -169,14 +160,12 @@ async function deleteTable() {
 
 onMounted(async () => {
   await fetchData();
-  isMounted.value = true;
 });
 </script>
 
 <template>
   <div class="relative">
     <Transition name="loading-fade" mode="out-in">
-      <!-- Loading State: khi chưa mounted hoặc đang loading -->
       <CommonLoadingState
         v-if="!isMounted || loading"
         type="form"
@@ -186,7 +175,6 @@ onMounted(async () => {
         size="sm"
       />
 
-      <!-- Form Content: khi có data -->
       <UForm v-else-if="table" @submit.prevent="save" :state="table">
         <div class="mx-auto">
           <TableForm v-model="table" @save="save">
@@ -207,7 +195,6 @@ onMounted(async () => {
         </div>
       </UForm>
 
-      <!-- Empty State: khi đã mounted, không loading và không có data -->
       <CommonEmptyState
         v-else
         title="Table not found"

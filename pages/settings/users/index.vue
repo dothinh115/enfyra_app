@@ -1,7 +1,6 @@
 <template>
   <div class="space-y-4">
     <Transition name="loading-fade" mode="out-in">
-      <!-- Loading State: khi chưa mounted hoặc đang loading -->
       <CommonLoadingState
         v-if="!isMounted || loading"
         title="Loading users..."
@@ -11,7 +10,6 @@
         context="page"
       />
 
-      <!-- Users Grid: khi có data -->
       <div
         v-else-if="users.length > 0"
         class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
@@ -65,7 +63,6 @@
         </UCard>
       </div>
 
-      <!-- Empty State: khi đã mounted, không loading và không có data -->
       <CommonEmptyState
         v-else
         title="No users found"
@@ -75,7 +72,6 @@
       />
     </Transition>
 
-    <!-- Pagination - chỉ hiển thị khi có data -->
     <div class="flex justify-center mt-4" v-if="!loading && users.length > 0">
       <UPagination
         v-model="page"
@@ -86,7 +82,6 @@
       />
     </div>
 
-    <!-- Filter Drawer -->
     <FilterDrawer
       v-model="showFilterDrawer"
       v-model:filter-value="currentFilter"
@@ -103,14 +98,11 @@ const tableName = "user_definition";
 const { getIncludeFields } = useSchema(tableName);
 const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
 
-// Mounted state để đánh dấu first render
-const isMounted = ref(false);
+const { isMounted } = useMounted();
 
-// Filter state
 const showFilterDrawer = ref(false);
 const currentFilter = ref(createEmptyFilter());
 
-// API composable
 const {
   data: apiData,
   pending: loading,
@@ -132,11 +124,9 @@ const {
   errorContext: "Fetch Users",
 });
 
-// Computed users data
 const users = computed(() => apiData.value?.data || []);
 const total = computed(() => apiData.value?.meta?.totalCount || 0);
 
-// Filter functions
 const filterLabel = computed(() => {
   const activeCount = currentFilter.value.conditions.length;
   return activeCount > 0 ? `Filters (${activeCount})` : "Filter";
@@ -150,7 +140,6 @@ const filterColor = computed(() => {
   return hasActiveFilters(currentFilter.value) ? "secondary" : "neutral";
 });
 
-// Header actions
 useHeaderActionRegistry([
   {
     id: "filter-users",
@@ -196,7 +185,6 @@ useHeaderActionRegistry([
   },
 ]);
 
-// Apply filters
 async function applyFilters() {
   page.value = 1;
   await fetchUsers();
@@ -207,12 +195,10 @@ function clearFilters() {
   applyFilters();
 }
 
-// Watch for API data changes
 watch(
   apiData,
   (newData) => {
     if (newData?.data) {
-      // Data updated
     }
   },
   { immediate: true }
@@ -220,6 +206,5 @@ watch(
 
 onMounted(async () => {
   await fetchUsers();
-  isMounted.value = true;
 });
 </script>

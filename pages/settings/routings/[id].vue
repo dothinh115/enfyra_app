@@ -1,6 +1,5 @@
 <template>
   <Transition name="loading-fade" mode="out-in">
-    <!-- Loading State: khi chưa mounted hoặc đang loading -->
     <CommonLoadingState
       v-if="!isMounted || loading"
       title="Loading route..."
@@ -10,7 +9,6 @@
       context="page"
     />
 
-    <!-- Form Content: khi có data -->
     <UForm
       v-else-if="detail"
       :state="form"
@@ -51,7 +49,6 @@
       </UCard>
     </UForm>
 
-    <!-- Empty State: khi đã mounted, không loading và không có data -->
     <CommonEmptyState
       v-else
       title="Route not found"
@@ -70,12 +67,10 @@ const { confirm } = useConfirm();
 
 const tableName = "route_definition";
 
-// Mounted state để đánh dấu first render
-const isMounted = ref(false);
+const { isMounted } = useMounted();
 
 const { validate, getIncludeFields } = useSchema(tableName);
 
-// Register header actions
 useHeaderActionRegistry([
   {
     id: "save-routing",
@@ -115,7 +110,6 @@ useHeaderActionRegistry([
   },
 ]);
 
-// API composable for fetching route
 const {
   data: routeData,
   pending: loading,
@@ -128,7 +122,6 @@ const {
   errorContext: "Fetch Route",
 });
 
-// API composable for updating route
 const {
   error: updateError,
   execute: executeUpdateRoute,
@@ -138,7 +131,6 @@ const {
   errorContext: "Update Route",
 });
 
-// API composable for deleting route
 const {
   error: deleteError,
   execute: executeDeleteRoute,
@@ -148,16 +140,12 @@ const {
   errorContext: "Delete Route",
 });
 
-// Computed route detail
 const detail = computed(() => routeData.value?.data?.[0]);
 
-// Form data as ref
 const form = ref<Record<string, any>>({});
 
-// Form errors
 const errors = ref<Record<string, string>>({});
 
-// Watch API data and update form
 watch(
   routeData,
   (newData) => {
@@ -194,7 +182,6 @@ async function updateRoute() {
     });
     errors.value = {};
   } catch (error) {
-    // Error already handled by useApiLazy
   }
 }
 
@@ -210,12 +197,10 @@ async function deleteRoute() {
     toast.add({ title: "Route deleted", color: "success" });
     await navigateTo("/settings/routings");
   } catch (error) {
-    // Error already handled by useApiLazy
   }
 }
 
 onMounted(async () => {
   await executeGetRoute();
-  isMounted.value = true;
 });
 </script>

@@ -6,7 +6,6 @@
     </div>
 
     <Transition name="loading-fade" mode="out-in">
-      <!-- Loading State: khi chưa mounted hoặc đang loading -->
       <CommonLoadingState
         v-if="!isMounted || loading"
         title="Loading extensions..."
@@ -16,7 +15,6 @@
         context="page"
       />
 
-      <!-- Extensions Grid: khi có data -->
       <div
         v-else-if="extensions.length > 0"
         class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
@@ -121,7 +119,6 @@
         </UCard>
       </div>
 
-      <!-- Empty State: khi đã mounted, không loading và không có data -->
       <CommonEmptyState
         v-else
         title="No extensions found"
@@ -134,7 +131,6 @@
 </template>
 
 <script setup lang="ts">
-// Interface for Extension Definition
 interface ExtensionDefinition {
   id: number;
   code: string;
@@ -169,10 +165,8 @@ const toast = useToast();
 const { confirm } = useConfirm();
 const { createLoader } = useLoader();
 
-// Mounted state để đánh dấu first render
-const isMounted = ref(false);
+const { isMounted } = useMounted();
 
-// API composable for fetching extensions
 const {
   data: apiData,
   pending: loading,
@@ -186,19 +180,15 @@ const {
   errorContext: "Fetch Extensions",
 });
 
-// Computed extensions data
 const extensions = computed(() => apiData.value?.data || []);
 
-// Extension loaders for individual toggle operations
 const extensionLoaders = ref<Record<string, any>>({});
 
-// API composable for updating extension
 const { execute: updateExtension } = useApiLazy(() => `/extension_definition`, {
   method: "patch",
   errorContext: "Update Extension",
 });
 
-// Header actions
 useHeaderActionRegistry([
   {
     id: "create-extension",
@@ -219,7 +209,6 @@ useHeaderActionRegistry([
   },
 ]);
 
-// Helper functions
 function getExtensionIcon(extension: ExtensionDefinition) {
   switch (extension.type) {
     case "page":
@@ -257,15 +246,10 @@ function getExtensionLoader(extensionId: string) {
   return extensionLoaders.value[extensionId];
 }
 
-/**
- * Toggle extension active status
- */
 const toggleExtensionStatus = async (extension: ExtensionDefinition) => {
   const loader = getExtensionLoader(extension.id.toString());
   const newStatus = !extension.isEnabled;
 
-  // Optimistic update - change UI immediately
-  // Update directly in apiData to trigger reactivity
   if (apiData.value?.data) {
     const extensionIndex = apiData.value.data.findIndex(
       (e: any) => e.id === extension.id
@@ -285,7 +269,6 @@ const toggleExtensionStatus = async (extension: ExtensionDefinition) => {
       })
     );
 
-    // Show toast notification
     toast.add({
       title: "Success",
       description: `Extension "${extension.name}" has been ${
@@ -294,7 +277,6 @@ const toggleExtensionStatus = async (extension: ExtensionDefinition) => {
       color: "success",
     });
   } catch (error) {
-    // Revert optimistic update on error
     if (apiData.value?.data) {
       const extensionIndex = apiData.value.data.findIndex(
         (e: any) => e.id === extension.id
@@ -312,7 +294,6 @@ const toggleExtensionStatus = async (extension: ExtensionDefinition) => {
   }
 };
 
-// API composable for deleting extension
 const { execute: deleteExtensionApi } = useApiLazy(
   () => `/extension_definition`,
   {
@@ -332,10 +313,8 @@ const deleteExtension = async (extension: ExtensionDefinition) => {
   if (isConfirmed) {
     await deleteExtensionApi({ id: extension.id });
 
-    // Refetch extensions to update UI
     await fetchExtensions();
 
-    // Show toast notification
     toast.add({
       title: "Success",
       description: `Extension "${extension.id}" has been deleted successfully!`,
@@ -346,6 +325,5 @@ const deleteExtension = async (extension: ExtensionDefinition) => {
 
 onMounted(async () => {
   await fetchExtensions();
-  isMounted.value = true;
 });
 </script>

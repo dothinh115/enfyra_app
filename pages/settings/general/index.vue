@@ -4,10 +4,8 @@ const errors = ref<Record<string, string>>({});
 
 const { generateEmptyForm, validate } = useSchema("setting_definition");
 
-// Mounted state để đánh dấu first render
-const isMounted = ref(false);
+const { isMounted } = useMounted();
 
-// Register header actions
 useHeaderActionRegistry([
   {
     id: "save-settings",
@@ -29,7 +27,6 @@ useHeaderActionRegistry([
   },
 ]);
 
-// API composable for loading settings
 const {
   data: apiData,
   pending: loading,
@@ -42,10 +39,8 @@ const {
   errorContext: "Load Settings",
 });
 
-// Form data as ref
 const setting = ref<Record<string, any>>({});
 
-// Watch API data and update form
 watch(
   apiData,
   (newData) => {
@@ -55,7 +50,6 @@ watch(
   { immediate: true }
 );
 
-// API composable for saving settings
 const { execute: saveSetting, pending: saveLoading } = useApiLazy(
   () => `/setting_definition/${setting.value.id}`,
   {
@@ -88,13 +82,11 @@ async function handleSaveSetting() {
 
 onMounted(async () => {
   await loadSetting();
-  isMounted.value = true;
 });
 </script>
 
 <template>
   <Transition name="loading-fade" mode="out-in">
-    <!-- Loading State: khi chưa mounted hoặc đang loading -->
     <CommonLoadingState
       v-if="!isMounted || loading"
       title="Loading settings..."
@@ -104,7 +96,6 @@ onMounted(async () => {
       context="page"
     />
 
-    <!-- Form Content: khi đã mounted và không loading -->
     <UForm v-else @submit="handleSaveSetting" :state="setting">
       <UCard>
         <template #header>

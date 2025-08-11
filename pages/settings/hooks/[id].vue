@@ -1,6 +1,5 @@
 <template>
   <Transition name="loading-fade" mode="out-in">
-    <!-- Loading State: khi chưa mounted hoặc đang loading -->
     <CommonLoadingState
       v-if="!isMounted || loading"
       title="Loading hook..."
@@ -10,7 +9,6 @@
       context="page"
     />
 
-    <!-- Form Content: khi có data -->
     <UForm
       v-else-if="detail"
       :state="form"
@@ -45,7 +43,6 @@
       </UCard>
     </UForm>
 
-    <!-- Empty State: khi đã mounted, không loading và không có data -->
     <CommonEmptyState
       v-else
       title="Hook not found"
@@ -65,12 +62,10 @@ const { confirm } = useConfirm();
 
 const id = route.params.id as string;
 
-// Mounted state để đánh dấu first render
-const isMounted = ref(false);
+const { isMounted } = useMounted();
 
 const { validate, getIncludeFields } = useSchema(tableName);
 
-// Register header actions
 useHeaderActionRegistry([
   {
     id: "save-hook",
@@ -110,7 +105,6 @@ useHeaderActionRegistry([
   },
 ]);
 
-// Setup useApiLazy composables at top level
 const {
   data: hookData,
   pending: loading,
@@ -138,16 +132,12 @@ const {
   errorContext: "Delete Hook",
 });
 
-// Computed hook detail
 const detail = computed(() => hookData.value?.data?.[0]);
 
-// Form data as ref
 const form = ref<Record<string, any>>({});
 
-// Form errors
 const errors = ref<Record<string, string>>({});
 
-// Watch API data and update form
 watch(
   hookData,
   (newData) => {
@@ -181,7 +171,6 @@ async function updateHook() {
     });
     errors.value = {};
   } catch (error) {
-    // Error already handled by useApiLazy
   }
 }
 
@@ -197,12 +186,10 @@ async function deleteHook() {
     toast.add({ title: "Hook deleted", color: "success" });
     await navigateTo("/settings/hooks");
   } catch (error) {
-    // Error already handled by useApiLazy
   }
 }
 
 onMounted(async () => {
   await executeGetHook();
-  isMounted.value = true;
 });
 </script>

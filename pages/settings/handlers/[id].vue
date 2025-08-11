@@ -1,7 +1,6 @@
 <template>
   <div class="mx-auto space-y-6">
     <Transition name="loading-fade" mode="out-in">
-      <!-- Loading State: khi chưa mounted hoặc đang loading -->
       <CommonLoadingState
         v-if="!isMounted || loading"
         title="Loading handler..."
@@ -11,7 +10,6 @@
         context="page"
       />
 
-      <!-- Form Content: khi có data -->
       <UForm v-else-if="handler" :state="form" @submit="save">
         <FormEditor
           v-model="form"
@@ -20,7 +18,6 @@
         />
       </UForm>
 
-      <!-- Empty State: khi đã mounted, không loading và không có data -->
       <CommonEmptyState
         v-else
         title="Handler not found"
@@ -43,12 +40,10 @@ const tableName = "route_handler_definition";
 const form = ref<Record<string, any>>({});
 const errors = ref<Record<string, string>>({});
 
-// Mounted state để đánh dấu first render
-const isMounted = ref(false);
+const { isMounted } = useMounted();
 
 const { validate, getIncludeFields } = useSchema(tableName);
 
-// Register header actions
 useHeaderActionRegistry([
   {
     id: "save-handler",
@@ -90,7 +85,6 @@ useHeaderActionRegistry([
   },
 ]);
 
-// Setup useApiLazy composables at top level
 const {
   data: handlerData,
   pending: loading,
@@ -118,10 +112,8 @@ const {
   errorContext: "Delete Handler",
 });
 
-// Computed handler detail
 const handler = computed(() => handlerData.value?.data?.[0]);
 
-// Watch API data and update form
 watch(
   handlerData,
   (newData) => {
@@ -155,7 +147,6 @@ async function save() {
     });
     errors.value = {};
   } catch (error) {
-    // Error already handled by useApiLazy
   }
 }
 
@@ -171,12 +162,10 @@ async function deleteHandler() {
     toast.add({ title: "Handler deleted", color: "success" });
     await navigateTo("/settings/handlers");
   } catch (error) {
-    // Error already handled by useApiLazy
   }
 }
 
 onMounted(async () => {
   await executeGetHandler();
-  isMounted.value = true;
 });
 </script>
