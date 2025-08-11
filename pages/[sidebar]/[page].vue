@@ -78,7 +78,6 @@ const error = ref<string | null>(null);
 const extensionComponent = ref<any>(null);
 const matchedExtension = ref<Record<string, any> | null>(null);
 
-// Setup useApiLazy composable để fetch menu với extension trong một request
 const {
   data: menuResponse,
   error: menuError,
@@ -112,7 +111,6 @@ const loadMatchingExtension = async () => {
   error.value = null;
 
   try {
-    // 1. Fetch menu với extension trong một request
     await executeFetchMenu();
 
     if (menuError.value) {
@@ -125,7 +123,6 @@ const loadMatchingExtension = async () => {
       return;
     }
 
-    // 2. Lấy menu item đầu tiên (vì đã filter theo path và isEnabled)
     const menuItem = menuResponse.value.data[0];
 
     if (!menuItem.extension || menuItem.extension.length === 0) {

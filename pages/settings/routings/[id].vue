@@ -182,7 +182,7 @@ async function updateRoute() {
   await executeUpdateRoute({ body: form.value });
 
   if (updateError.value) {
-    return; // Error đã được handle tự động bởi useApiLazy
+    return;
   }
 
   toast.add({
@@ -199,7 +199,7 @@ async function deleteRoute() {
   await executeDeleteRoute();
 
   if (deleteError.value) {
-    return; // Error đã được handle tự động bởi useApiLazy
+    return;
   }
 
   toast.add({

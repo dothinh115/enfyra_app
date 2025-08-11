@@ -30,7 +30,11 @@ const items = computed(() => {
 const isActive = (path: string) => {
   // Handle dashboard route specifically
   if (path === "/dashboard") {
-    return route.path === "/dashboard" || route.path === "/";
+    return (
+      route.path === "/dashboard" ||
+      route.path === "/" ||
+      route.path.startsWith("/dashboard/")
+    );
   }
 
   // For other routes, check if current path starts with item route

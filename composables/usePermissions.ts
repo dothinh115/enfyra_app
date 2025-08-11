@@ -7,6 +7,7 @@ export type PermissionRule = {
 export type PermissionCondition = {
   and?: (PermissionRule | PermissionCondition)[];
   or?: (PermissionRule | PermissionCondition)[];
+  allowAll?: boolean;
 };
 
 export function usePermissions() {
@@ -67,6 +68,10 @@ export function usePermissions() {
   const checkPermissionCondition = (
     condition: PermissionCondition
   ): boolean => {
+    if (condition.allowAll === true) {
+      return true;
+    }
+
     if (condition.and) {
       return condition.and.every((item) => {
         if ("route" in item) {

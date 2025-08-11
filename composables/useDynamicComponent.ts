@@ -28,8 +28,6 @@ import {
   CommonUploadModal,
 } from "#components";
 
-// Import Enfyra components
-
 // Import Enfyra composables
 import { useApi, useApiLazy } from "~/composables/useApi";
 import { useHeaderActionRegistry } from "~/composables/useHeaderActionRegistry";
@@ -79,21 +77,8 @@ export const useDynamicComponent = () => {
     CommonUploadModal: markRaw(CommonUploadModal),
   };
 
-  /**
-   * Load component from compiled code string
-   * @param code - Compiled JavaScript code string
-   * @param extensionName - Tên extension để tìm component (mặc định: "Extension")
-   * @returns Promise that resolves to Vue component with injected dependencies
-   */
-  const loadDynamicComponent = async (
-    code: string,
-    extensionName: string = "Extension"
-  ) => {
+  const loadDynamicComponent = async (code: string, extensionName: string) => {
     try {
-      console.log(`Loading dynamic component for extension: ${extensionName}`);
-      console.log(`Code length: ${code.length}`);
-      console.log(`Code preview:`, code.substring(0, 200) + "...");
-
       // 1. Setup globals if not already done
       if (!(window as any).Vue) {
         (window as any).Vue = await import("vue");
@@ -207,8 +192,6 @@ export const useDynamicComponent = () => {
       // 2. Execute the code
       // Sử dụng tên extension được truyền vào để tìm component
       const componentName = extensionName;
-
-      console.log("Expected component name:", componentName);
 
       // Clear any existing component with same name
       delete (window as any)[componentName];

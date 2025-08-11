@@ -16,9 +16,6 @@
 </template>
 
 <script setup lang="ts">
-// Vue functions are auto-imported
-import FormField from "./Field.vue";
-
 const props = withDefaults(
   defineProps<{
     modelValue: Record<string, any>;
@@ -44,11 +41,9 @@ const emit = defineEmits<{
 
 const { definition, fieldMap, sortFieldsByOrder } = useSchema(props.tableName);
 
-// Fields to display
 const visibleFields = computed(() => {
   let fields = definition.value;
 
-  // Filter by includes if specified
   if (props.includes.length > 0) {
     fields = fields.filter((field: any) => {
       const key = field.name || field.propertyName;
@@ -56,7 +51,6 @@ const visibleFields = computed(() => {
     });
   }
 
-  // Filter by excluded
   fields = fields.filter((field: any) => {
     const key = field.name || field.propertyName;
     if (!key) return false;
@@ -65,35 +59,28 @@ const visibleFields = computed(() => {
     return true;
   });
 
-  // Tự động loại bỏ các field không có trong v-model
   fields = fields.filter((field: any) => {
     const key = field.name || field.propertyName;
     if (!key) return false;
 
-    // Chỉ hiển thị field có trong v-model
     return key in props.modelValue;
   });
 
-  // Sort fields using helper function from useSchema
   return sortFieldsByOrder(fields);
 });
 
-// Type map with generated fields disabled
 const typeMapWithGenerated = computed(() => {
   const result = { ...props.typeMap };
 
-  // Check each field for isGenerated and disable if true
   for (const field of visibleFields.value) {
     const key = field.name || field.propertyName;
     if (key && field.isGenerated === true) {
-      // If field already has typeMap config, merge with disabled
       if (result[key]) {
         result[key] = {
           ...result[key],
           disabled: true,
         };
       } else {
-        // Create new config with disabled
         result[key] = {
           disabled: true,
         };

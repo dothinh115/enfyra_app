@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { FilterGroup } from "~/utils/filter/FilterTypes";
-import FilterBuilder from "~/components/filter/Builder.vue";
 
 const props = defineProps<{
   modelValue: boolean;
@@ -8,7 +7,6 @@ const props = defineProps<{
   tableName: string;
 }>();
 
-// Get schemas from global state instead of props
 const { schemas } = useGlobalState();
 
 const emit = defineEmits<{
@@ -18,10 +16,8 @@ const emit = defineEmits<{
   clear: [];
 }>();
 
-// Local filter state for editing
 const localFilter = ref<FilterGroup>({ ...props.filterValue });
 
-// Watch for external filter changes
 watch(
   () => props.filterValue,
   (newValue) => {
@@ -55,7 +51,6 @@ function handleClose() {
   emit("update:modelValue", false);
 }
 
-// Check if filter has active conditions
 const hasActiveConditions = computed(() => {
   return localFilter.value.conditions.some((condition) => {
     if ("field" in condition) {
@@ -146,13 +141,13 @@ function hasActiveFilters(group: FilterGroup): boolean {
               Clear All
             </UButton>
 
-            <UButton 
-              @click="handleClose" 
+            <UButton
+              @click="handleClose"
               variant="outline"
               icon="i-lucide-x-circle"
               color="error"
-            > 
-              Cancel 
+            >
+              Cancel
             </UButton>
 
             <UButton

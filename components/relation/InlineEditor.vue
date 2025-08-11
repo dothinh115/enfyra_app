@@ -13,18 +13,15 @@ const selectedIds = ref<any[]>([]);
 watch(
   () => props.modelValue,
   () => {
-    // Xử lý selectedIds dựa trên loại relation
     if (
       props.relationMeta.type === "one-to-one" ||
       props.relationMeta.type === "many-to-one"
     ) {
-      // One-to-One và Many-to-One: modelValue là object {id: 1}
       selectedIds.value =
         props.modelValue && props.modelValue.id ? [props.modelValue] : [];
     } else {
-      // One-to-Many và Many-to-Many: modelValue là array [{id: 1}]
       selectedIds.value = Array.isArray(props.modelValue)
-        ? props.modelValue.filter((item) => item && item.id) // Chỉ lấy items có id
+        ? props.modelValue.filter((item) => item && item.id)
         : [];
     }
   },
@@ -32,17 +29,14 @@ watch(
 );
 
 function applySelection(ids: any[]) {
-  // Xử lý theo loại relation
   let result;
   switch (props.relationMeta.type) {
     case "one-to-one":
     case "many-to-one":
-      // One-to-One và Many-to-One: trả về object {id: 1}
       result = ids.length > 0 ? ids[0] : null;
       break;
     case "one-to-many":
     case "many-to-many":
-      // One-to-Many và Many-to-Many: trả về array [{id: 1}]
       result = ids;
       break;
     default:
@@ -54,7 +48,6 @@ function applySelection(ids: any[]) {
 }
 
 function removeId(id: any) {
-  // Kiểm tra id có hợp lệ không
   if (id === undefined || id === null) {
     console.warn("Cannot remove item with undefined/null id:", id);
     return;
@@ -64,11 +57,9 @@ function removeId(id: any) {
     props.relationMeta.type === "one-to-one" ||
     props.relationMeta.type === "many-to-one"
   ) {
-    // One-to-One và Many-to-One: emit null
     emit("update:modelValue", null);
     selectedIds.value = [];
   } else {
-    // One-to-Many và Many-to-Many: emit array rỗng
     const updated = selectedIds.value.filter((i) => i.id !== id);
     emit("update:modelValue", updated);
     selectedIds.value = updated;

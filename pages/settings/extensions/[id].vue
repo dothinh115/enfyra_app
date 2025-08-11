@@ -217,12 +217,9 @@ async function updateExtension() {
 
   await executeUpdateExtension({ id: detail.value?.id, body: form.value });
 
-  // Chỉ hiện toast thành công nếu không có lỗi
   if (!updateError.value) {
-    // Refetch data sau khi update thành công
     await executeFetchExtension();
 
-    // Update form với data mới nhất
     if (extensionData.value?.data?.[0]) {
       detail.value = extensionData.value.data[0];
       form.value = { ...detail.value };
