@@ -69,26 +69,22 @@ async function handleCreate() {
     return;
   }
 
-  try {
-    await executeCreateHandler({ body: createForm.value });
+  await executeCreateHandler({ body: createForm.value });
 
-    if (createError.value) {
-      toast.add({
-        title: "Error",
-        description: createError.value.message,
-        color: "error",
-      });
-      return;
-    }
-
+  if (createError.value) {
     toast.add({
-      title: "Handler created successfully",
-      color: "success",
+      title: "Error",
+      description: createError.value.message,
+      color: "error",
     });
-
-    await navigateTo(`/settings/handlers/${createData.value.data[0].id}`);
-  } catch (error) {
-    // Error already handled by useApiLazy
+    return;
   }
+
+  toast.add({
+    title: "Handler created successfully",
+    color: "success",
+  });
+
+  await navigateTo(`/settings/handlers/${createData.value.data[0].id}`);
 }
 </script>

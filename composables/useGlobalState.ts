@@ -3,10 +3,7 @@ export const useGlobalState = () => {
   const routes = useState<any[]>("global:routes", () => []);
   const settings = useState<any>("global:settings", () => {});
   const globalLoading = useState<boolean>("global:loading", () => false);
-  const buttonLoadingStates = useState<Record<string, boolean>>(
-    "global:button:loading",
-    () => ({})
-  );
+
   const schemas = useState<any>("global:schemas", () => []);
   const sidebarVisible = useState<boolean>(
     "global:sidebar:visible",
@@ -218,17 +215,6 @@ export const useGlobalState = () => {
     }
   }
 
-  function setButtonLoading(buttonId: string, loading: boolean) {
-    buttonLoadingStates.value = {
-      ...buttonLoadingStates.value,
-      [buttonId]: loading,
-    };
-  }
-
-  function getButtonLoading(buttonId: string): boolean {
-    return buttonLoadingStates.value[buttonId] || false;
-  }
-
   function toggleSidebar() {
     sidebarVisible.value = !sidebarVisible.value;
   }
@@ -245,10 +231,7 @@ export const useGlobalState = () => {
     tables,
     schemas,
     globalLoading,
-    buttonLoadingStates,
     fetchSchema,
-    setButtonLoading,
-    getButtonLoading,
     sidebarVisible,
     toggleSidebar,
     setSidebarVisible,

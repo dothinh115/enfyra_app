@@ -1,6 +1,5 @@
 <script setup lang="ts">
 const route = useRoute();
-const router = useRouter();
 
 const toast = useToast();
 const { validate } = useSchema(route.params.table as string);
@@ -54,22 +53,21 @@ async function handleUpdate() {
     return;
   }
 
-  try {
-    await updateRecord({ body: currentRecord.value });
+  await updateRecord({
+    id: route.params.id as string,
+    body: currentRecord.value,
+  });
 
-    toast.add({
-      title: "Success",
-      color: "success",
-      description: "Record updated!",
-    });
-    updateErrors.value = {};
+  toast.add({
+    title: "Success",
+    color: "success",
+    description: "Record updated!",
+  });
+  updateErrors.value = {};
 
-    await navigateTo(
-      `/data/${route.params.table}/${updateData.value?.data[0]?.id}`
-    );
-  } catch (error) {
-    // Error already handled by useApiLazy
-  }
+  await navigateTo(
+    `/data/${route.params.table}/${updateData.value?.data[0]?.id}`
+  );
 }
 
 // API composable for updating record
@@ -77,7 +75,7 @@ const {
   data: updateData,
   pending: updateLoading,
   execute: updateRecord,
-} = useApiLazy(() => `/${route.params.table}/${route.params.id}`, {
+} = useApiLazy(() => `/${route.params.table}`, {
   method: "patch",
   errorContext: "Update Record",
 });
@@ -87,7 +85,7 @@ const {
   error: deleteError,
   execute: executeDeleteRecord,
   pending: deleteLoading,
-} = useApiLazy(() => `/${route.params.table}/${route.params.id}`, {
+} = useApiLazy(() => `/${route.params.table}`, {
   method: "delete",
   errorContext: "Delete Record",
 });
@@ -99,26 +97,22 @@ async function deleteRecord() {
   });
   if (!ok) return;
 
-  try {
-    await executeDeleteRecord();
+  await executeDeleteRecord({ id: route.params.id as string });
 
-    if (deleteError.value) {
-      toast.add({
-        title: "Error deleting",
-        description: deleteError.value.message,
-        color: "error",
-      });
-      return;
-    }
-
+  if (deleteError.value) {
     toast.add({
-      title: "Record deleted",
-      color: "success",
+      title: "Error deleting",
+      description: deleteError.value.message,
+      color: "error",
     });
-    router.push(`/data/${route.params.table}`);
-  } catch (error) {
-    // Error already handled by useApiLazy
+    return;
   }
+
+  toast.add({
+    title: "Record deleted",
+    color: "success",
+  });
+  await navigateTo(`/data/${route.params.table}`);
 }
 
 // Register header actions

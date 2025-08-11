@@ -86,8 +86,6 @@ const router = useRouter();
 const toast = useToast();
 const { confirm } = useConfirm();
 
-const { createButtonLoader } = useButtonLoading();
-
 const tableName = "extension_definition";
 const detail = ref<Record<string, any> | null>(null);
 const form = ref<Record<string, any>>({});
@@ -170,7 +168,7 @@ const {
   error: updateError,
   execute: executeUpdateExtension,
   pending: updateLoading,
-} = useApiLazy(() => `/extension_definition/${detail.value?.id}`, {
+} = useApiLazy(() => `/extension_definition`, {
   method: "patch",
 });
 
@@ -178,7 +176,7 @@ const {
   error: deleteError,
   execute: executeDeleteExtension,
   pending: deleteLoading,
-} = useApiLazy(() => `/extension_definition/${route.params.id}`, {
+} = useApiLazy(() => `/extension_definition`, {
   method: "delete",
 });
 
@@ -217,7 +215,7 @@ async function updateExtension() {
     return;
   }
 
-  await executeUpdateExtension({ body: form.value });
+  await executeUpdateExtension({ id: detail.value?.id, body: form.value });
 
   // Chỉ hiện toast thành công nếu không có lỗi
   if (!updateError.value) {
@@ -242,27 +240,19 @@ async function deleteExtension() {
   const ok = await confirm({ title: "Are you sure?" });
   if (!ok || detail.value?.isSystem) return;
 
-  const deleteLoader = createButtonLoader("delete-extension");
-  await deleteLoader.withLoading(async () => {
-    await executeDeleteExtension();
+  await executeDeleteExtension({ id: route.params.id as string });
 
-    if (deleteError.value) {
-      toast.add({
-        title: "Error",
-        description: "Delete failed",
-        color: "error",
-      });
-      return;
-    }
+  if (deleteError.value) {
+    return;
+  }
 
-    toast.add({
-      title: "Deleted",
-      description: "Extension has been removed.",
-      color: "primary",
-    });
-
-    router.push("/settings/extensions");
+  toast.add({
+    title: "Deleted",
+    description: "Extension has been removed.",
+    color: "primary",
   });
+
+  router.push("/settings/extensions");
 }
 
 onMounted(() => fetchExtensionDetail(Number(route.params.id)));

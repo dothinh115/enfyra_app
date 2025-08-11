@@ -111,6 +111,9 @@
                     size="xs"
                     :color="extension.isEnabled ? 'warning' : 'success'"
                     @click.stop="toggleExtensionStatus(extension)"
+                    :disabled="
+                      getExtensionLoader(extension.id.toString()).isLoading
+                    "
                   >
                   </UButton>
                 </PermissionGate>
@@ -206,6 +209,7 @@ const extensions = computed<ExtensionDefinition[]>(
 
 const { confirm } = useConfirm();
 const toast = useToast();
+const { createLoader } = useLoader();
 
 // Register multiple header actions at once
 useHeaderActionRegistry({
@@ -244,30 +248,69 @@ const { execute: updateExtension } = useApiLazy(() => "/extension_definition", {
   errorContext: "Update Extension",
 });
 
+// Create loaders for each extension toggle button
+const extensionLoaders = ref<Record<string, any>>({});
+
+function getExtensionLoader(extensionId: string) {
+  if (!extensionLoaders.value[extensionId]) {
+    extensionLoaders.value[extensionId] = createLoader();
+  }
+  return extensionLoaders.value[extensionId];
+}
+
 /**
  * Toggle extension active status
  */
 const toggleExtensionStatus = async (extension: ExtensionDefinition) => {
+  const loader = getExtensionLoader(extension.id.toString());
   const newStatus = !extension.isEnabled;
 
-  await updateExtension({
-    body: {
-      isEnabled: newStatus,
-    },
-    id: extension.id,
-  });
+  // Optimistic update - change UI immediately
+  // Update directly in apiData to trigger reactivity
+  if (apiData.value?.data) {
+    const extensionIndex = apiData.value.data.findIndex(
+      (e: any) => e.id === extension.id
+    );
+    if (extensionIndex !== -1) {
+      apiData.value.data[extensionIndex].isEnabled = newStatus;
+    }
+  }
 
-  // Refetch extensions to update UI
-  await fetchExtensions();
+  try {
+    await loader.withLoading(() =>
+      updateExtension({
+        body: {
+          isEnabled: newStatus,
+        },
+        id: extension.id,
+      })
+    );
 
-  // Show toast notification
-  toast.add({
-    title: "Success",
-    description: `Extension "${extension.id}" has been ${
-      newStatus ? "activated" : "deactivated"
-    } successfully!`,
-    color: "success",
-  });
+    // Show toast notification
+    toast.add({
+      title: "Success",
+      description: `Extension "${extension.name}" has been ${
+        newStatus ? "activated" : "deactivated"
+      } successfully!`,
+      color: "success",
+    });
+  } catch (error) {
+    // Revert optimistic update on error
+    if (apiData.value?.data) {
+      const extensionIndex = apiData.value.data.findIndex(
+        (e: any) => e.id === extension.id
+      );
+      if (extensionIndex !== -1) {
+        apiData.value.data[extensionIndex].isEnabled = !newStatus;
+      }
+    }
+
+    toast.add({
+      title: "Error",
+      description: "Failed to update extension status",
+      color: "error",
+    });
+  }
 };
 
 // API composable for deleting extension

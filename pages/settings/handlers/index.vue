@@ -70,14 +70,10 @@ async function deleteHandler(id: number) {
     }
   );
 
-  try {
-    await deleteSpecificHandler();
+  await deleteSpecificHandler();
 
-    toast.add({ title: "Deleted", color: "success" });
-    await fetchRouteHandlers();
-  } catch (error) {
-    // Error already handled by useApiLazy
-  }
+  toast.add({ title: "Deleted", color: "success" });
+  await fetchRouteHandlers();
 }
 
 watch(

@@ -21,11 +21,14 @@ import {
   UTabs,
   UAccordion,
   UForm,
+  CommonLoadingState,
+  CommonEmptyState,
+  PermissionGate,
+  FormEditor,
+  CommonUploadModal,
 } from "#components";
 
 // Import Enfyra components
-import PermissionGate from "~/components/PermissionGate.vue";
-import FormEditor from "~/components/form/FormEditor.vue";
 
 // Import Enfyra composables
 import { useApi, useApiLazy } from "~/composables/useApi";
@@ -36,11 +39,6 @@ import { useGlobalState } from "~/composables/useGlobalState";
 import { useConfirm } from "~/composables/useConfirm";
 import { useAuth } from "~/composables/useAuth";
 import { usePermissions } from "~/composables/usePermissions";
-
-// Import các components cần thiết
-import CommonLoadingState from "~/components/common/LoadingState.vue";
-import CommonEmptyState from "~/components/common/EmptyState.vue";
-import UploadModal from "~/components/common/UploadModal.vue";
 
 /**
  * Composable for loading dynamic Vue components from code
@@ -78,7 +76,7 @@ export const useDynamicComponent = () => {
     // Common Components
     CommonLoadingState: markRaw(CommonLoadingState),
     CommonEmptyState: markRaw(CommonEmptyState),
-    UploadModal: markRaw(UploadModal),
+    CommonUploadModal: markRaw(CommonUploadModal),
   };
 
   /**

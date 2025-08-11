@@ -12,7 +12,7 @@ const table = computed(() => tables.value.find((t) => t.name === tableName));
 const { confirm } = useConfirm();
 const toast = useToast();
 const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
-const { createButtonLoader } = useButtonLoading();
+const { createLoader } = useLoader();
 const { checkPermissionCondition } = usePermissions();
 
 // Filter state (move up before use)
@@ -47,7 +47,7 @@ useHeaderActionRegistry([
     get color() {
       return filterColor.value;
     },
-    size: "sm",
+    size: "md",
     onClick: () => {
       showFilterDrawer.value = true;
     },
@@ -62,13 +62,12 @@ useHeaderActionRegistry([
   },
   {
     id: "create-data-entry",
-    label: "Create Entry",
+    label: "Create",
     icon: "lucide:plus",
     variant: "solid",
     color: "primary",
-    size: "lg",
+    size: "md",
     to: `/data/${route.params.table}/create`,
-    class: "rounded-full",
     permission: {
       and: [
         {
@@ -243,7 +242,7 @@ async function handleDelete(id: string) {
 
   if (!result) return;
 
-  const deleteLoader = createButtonLoader(`delete-${id}`);
+  const deleteLoader = createLoader();
 
   await deleteLoader.withLoading(async () => {
     // Set the id and execute pre-defined composable
@@ -269,7 +268,7 @@ async function handleBulkDelete(selectedRows: any[]) {
 
   if (!result) return;
 
-  const deleteLoader = createButtonLoader("bulk-delete");
+  const deleteLoader = createLoader();
 
   await deleteLoader.withLoading(async () => {
     let successCount = 0;

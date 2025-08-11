@@ -23,7 +23,12 @@ export default defineNuxtPlugin(async () => {
 
   // Fetch and register all menu definitions from API using unified function
   const menuResponse = await fetchMenuDefinitions();
-  if (menuResponse?.data && menuResponse.data.length > 0) {
+  if (
+    menuResponse &&
+    "data" in menuResponse &&
+    Array.isArray(menuResponse.data) &&
+    menuResponse.data.length > 0
+  ) {
     await registerAllMenusFromApi(menuResponse.data);
   }
 

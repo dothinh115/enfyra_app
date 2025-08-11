@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { useLoader } from "~/composables/useLoader";
+import { useMenuRegistry } from "~/composables/useMenuRegistry";
+import { useMenuApi } from "~/composables/useMenuApi";
+
 const toast = useToast();
 const page = ref(1);
 const pageLimit = 10;
@@ -8,6 +12,7 @@ const { getIncludeFields } = useSchema(tableName);
 const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
 const menus = ref<any[]>([]);
 const { schemas } = useGlobalState();
+const { createLoader } = useLoader();
 console.log(schemas.value);
 
 // Filter state
@@ -120,6 +125,16 @@ watch(
   { immediate: true }
 );
 
+// Create loaders for each menu toggle button
+const menuLoaders = ref<Record<string, any>>({});
+
+function getMenuLoader(menuId: string) {
+  if (!menuLoaders.value[menuId]) {
+    menuLoaders.value[menuId] = createLoader();
+  }
+  return menuLoaders.value[menuId];
+}
+
 // Apply filters - called by FilterDrawer
 async function applyFilters() {
   page.value = 1;
@@ -132,27 +147,60 @@ function clearFilters() {
 }
 
 async function toggleEnabled(menuItem: any) {
+  const loader = getMenuLoader(menuItem.id);
   const newEnabled = !menuItem.isEnabled;
 
-  // Create a specific instance for this menu update
-  const { execute: updateSpecificMenu } = useApiLazy(
-    () => `/menu_definition/${menuItem.id}`,
-    {
-      method: "patch",
-      errorContext: "Toggle Menu",
+  // Optimistic update - change UI immediately
+  // Update directly in apiData to trigger reactivity
+  if (apiData.value?.data) {
+    const menuIndex = apiData.value.data.findIndex(
+      (m: any) => m.id === menuItem.id
+    );
+    if (menuIndex !== -1) {
+      apiData.value.data[menuIndex].isEnabled = newEnabled;
     }
-  );
+  }
 
   try {
-    await updateSpecificMenu({ body: { isEnabled: newEnabled } });
-    // If successful, update the local state
-    const index = menus.value.findIndex((m) => m.id === menuItem.id);
-    if (index !== -1) {
-      menus.value[index] = { ...menus.value[index], isEnabled: newEnabled };
-    }
+    // Create a specific instance for this menu update
+    const { execute: updateSpecificMenu } = useApiLazy(
+      () => `/menu_definition/${menuItem.id}`,
+      {
+        method: "patch",
+        errorContext: "Toggle Menu",
+      }
+    );
+
+    await loader.withLoading(() =>
+      updateSpecificMenu({ body: { isEnabled: newEnabled } })
+    );
+
+    // Reregister all menus after successful update
+    const { reregisterAllMenus } = useMenuRegistry();
+    const { fetchMenuDefinitions } = useMenuApi();
+    await reregisterAllMenus(fetchMenuDefinitions as any);
+
+    toast.add({
+      title: "Success",
+      description: `Menu ${newEnabled ? "enabled" : "disabled"} successfully`,
+      color: "success",
+    });
   } catch (error) {
-    // Error will be handled by useApiLazy (including 403 redirect)
-    // No need to revert since we didn't change the original object
+    // Revert optimistic update on error
+    if (apiData.value?.data) {
+      const menuIndex = apiData.value.data.findIndex(
+        (m: any) => m.id === menuItem.id
+      );
+      if (menuIndex !== -1) {
+        apiData.value.data[menuIndex].isEnabled = !newEnabled;
+      }
+    }
+
+    toast.add({
+      title: "Error",
+      description: "Failed to update menu status",
+      color: "error",
+    });
   }
 }
 </script>
@@ -221,6 +269,7 @@ async function toggleEnabled(menuItem: any) {
                   @update:model-value="toggleEnabled(menu)"
                   label="Is enabled"
                   @click.prevent
+                  :disabled="getMenuLoader(menu.id).isLoading"
                   v-if="!menu.isSystem"
                 />
               </div>

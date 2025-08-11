@@ -102,7 +102,7 @@ const {
   error: saveError,
   execute: executeSaveHandler,
   pending: saveLoading,
-} = useApiLazy(() => `/${tableName}/${id}`, {
+} = useApiLazy(() => `/${tableName}`, {
   method: "patch",
 });
 
@@ -110,7 +110,7 @@ const {
   error: deleteError,
   execute: executeDeleteHandler,
   pending: deleteLoading,
-} = useApiLazy(() => `/${tableName}/${id}`, {
+} = useApiLazy(() => `/${tableName}`, {
   method: "delete",
 });
 
@@ -148,22 +148,14 @@ async function save() {
 
   saving.value = true;
 
-  try {
-    await executeSaveHandler({ body: form.value });
+  await executeSaveHandler({ id, body: form.value });
 
-    if (saveError.value) {
-      toast.add({
-        title: "Error saving",
-        description: saveError.value.message,
-        color: "error",
-      });
-    } else {
-      toast.add({ title: "Handler saved", color: "success" });
-      errors.value = {};
-    }
-  } catch (error) {
-    // Error already handled by useApiLazy
+  if (saveError.value) {
+    return;
   }
+
+  toast.add({ title: "Handler saved", color: "success" });
+  errors.value = {};
 
   saving.value = false;
 }
@@ -172,23 +164,14 @@ async function deleteHandler() {
   const ok = await confirm({ title: "Are you sure?" });
   if (!ok || form.value?.isSystem) return;
 
-  try {
-    await executeDeleteHandler();
+  await executeDeleteHandler({ id });
 
-    if (deleteError.value) {
-      toast.add({
-        title: "Error deleting",
-        description: deleteError.value.message,
-        color: "error",
-      });
-      return;
-    }
-
-    toast.add({ title: "Handler deleted", color: "success" });
-    router.push("/settings/handlers");
-  } catch (error) {
-    // Error already handled by useApiLazy
+  if (deleteError.value) {
+    return;
   }
+
+  toast.add({ title: "Handler deleted", color: "success" });
+  router.push("/settings/handlers");
 }
 
 onMounted(fetchHandler);

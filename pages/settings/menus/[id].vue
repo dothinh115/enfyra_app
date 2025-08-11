@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const route = useRoute();
-const router = useRouter();
+
 const toast = useToast();
 const { confirm } = useConfirm();
 
@@ -31,16 +31,17 @@ const {
 });
 
 // API composable for updating menu
-const { execute: executeUpdateMenu, pending: updateLoading } = useApiLazy(
-  () => `/menu_definition/${detail.value?.id}`,
-  {
-    method: "patch",
-  }
-);
+const {
+  execute: executeUpdateMenu,
+  pending: updateLoading,
+  error: updateError,
+} = useApiLazy(() => `/menu_definition`, {
+  method: "patch",
+});
 
 // API composable for deleting menu
 const { execute: executeDeleteMenu, pending: deleteLoading } = useApiLazy(
-  () => `/menu_definition/${route.params.id}`,
+  () => `/menu_definition`,
   {
     method: "delete",
   }
@@ -92,7 +93,7 @@ async function fetchMenuDetail(menuId: number) {
   await executeFetchMenu();
 
   if (!menuData.value?.data?.[0]) {
-    router.replace("/settings/menus");
+    await navigateTo("/settings/menus");
     return;
   }
 
@@ -109,32 +110,42 @@ async function updateMenuDetail() {
     return;
   }
 
-  await executeUpdateMenu({ body: form.value });
+  await executeUpdateMenu({ id: detail.value?.id, body: form.value });
+
+  if (updateError.value) {
+    return;
+  }
 
   // Reregister all menus after update
-  await reregisterAllMenus(fetchMenuDefinitions);
+  await reregisterAllMenus(fetchMenuDefinitions as any);
 
   // Also reregister table menus to ensure consistency
   if (tables.value.length > 0) {
     await registerTableMenusWithSidebarIds(tables.value);
   }
+
+  toast.add({
+    title: "Success",
+    description: "Menu updated successfully",
+    color: "success",
+  });
 }
 
 async function deleteMenuDetail() {
   const ok = await confirm({ title: "Are you sure?" });
   if (!ok || detail.value?.isSystem) return;
 
-  await executeDeleteMenu();
+  await executeDeleteMenu({ id: detail.value?.id });
 
   // Reregister all menus after delete
-  await reregisterAllMenus(fetchMenuDefinitions);
+  await reregisterAllMenus(fetchMenuDefinitions as any);
 
   // Also reregister table menus to ensure consistency
   if (tables.value.length > 0) {
     await registerTableMenusWithSidebarIds(tables.value);
   }
 
-  router.push("/settings/menus");
+  await navigateTo("/settings/menus");
 }
 
 onMounted(() => fetchMenuDetail(Number(route.params.id)));

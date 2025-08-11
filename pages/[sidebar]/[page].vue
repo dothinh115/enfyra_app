@@ -27,8 +27,8 @@
         error.includes('disabled')
           ? {
               label: 'Go to Extension Settings',
-              onClick: () => {
-                $router.push('/settings/extensions');
+              onClick: async () => {
+                await navigateTo('/settings/extensions');
               },
               icon: 'i-heroicons-cog-6-tooth',
             }
@@ -56,8 +56,8 @@
       size="md"
       :action="{
         label: 'Browse Extensions',
-        onClick: () => {
-          $router.push('/settings/extensions');
+        onClick: async () => {
+          await navigateTo('/settings/extensions');
         },
         icon: 'i-heroicons-cog-6-tooth',
       }"

@@ -68,8 +68,6 @@ const router = useRouter();
 const toast = useToast();
 const { confirm } = useConfirm();
 
-const { createButtonLoader } = useButtonLoading();
-
 const tableName = "route_definition";
 const detail = ref<Record<string, any> | null>(null);
 const form = ref<Record<string, any>>({});
@@ -107,7 +105,7 @@ useHeaderActionRegistry([
     color: "error",
     size: "md",
     onClick: deleteRoute,
-    loading: computed(() => createButtonLoader("delete-route").isLoading.value),
+    loading: computed(() => deleteLoading.value),
     disabled: computed(() => detail.value?.isSystem || false),
     permission: {
       and: [
@@ -128,7 +126,7 @@ const {
 } = useApiLazy(() => "/route_definition", {
   query: {
     fields: getIncludeFields(),
-    filter: { id: { _eq: Number(route.params.routeId) } },
+    filter: { id: { _eq: Number(route.params.id) } },
   },
 });
 
@@ -144,7 +142,8 @@ const {
   data: deleteData,
   error: deleteError,
   execute: executeDeleteRoute,
-} = useApiLazy(() => `/route_definition/${route.params.routeId}`, {
+  pending: deleteLoading,
+} = useApiLazy(() => `/route_definition/${route.params.id}`, {
   method: "delete",
 });
 
@@ -187,62 +186,41 @@ async function updateRoute() {
     return;
   }
 
-  try {
-    await executeUpdateRoute({ body: form.value });
+  await executeUpdateRoute({ body: form.value });
 
-    if (updateError.value) {
-      toast.add({
-        title: "Error",
-        description: updateError.value.message,
-        color: "error",
-      });
-      return;
-    }
-
-    toast.add({
-      title: "Saved",
-      description: "Route updated",
-      color: "primary",
-    });
-  } catch (error) {
-    // Error already handled by useApiLazy
+  if (updateError.value) {
+    return; // Error đã được handle tự động bởi useApiLazy
   }
+
+  toast.add({
+    title: "Saved",
+    description: "Route updated",
+    color: "primary",
+  });
 }
 
 async function deleteRoute() {
   const ok = await confirm({ title: "Are you sure?" });
   if (!ok || detail.value?.isSystem) return;
 
-  const deleteLoader = createButtonLoader("delete-route");
-  await deleteLoader.withLoading(async () => {
-    try {
-      await executeDeleteRoute();
+  await executeDeleteRoute();
 
-      if (deleteError.value) {
-        toast.add({
-          title: "Error",
-          description: "Delete failed",
-          color: "error",
-        });
-        return;
-      }
+  if (deleteError.value) {
+    return; // Error đã được handle tự động bởi useApiLazy
+  }
 
-      toast.add({
-        title: "Deleted",
-        description: "Route has been removed.",
-        color: "primary",
-      });
-
-      router.push("/settings/routings");
-    } catch (error) {
-      // Error already handled by useApiLazy
-    }
+  toast.add({
+    title: "Deleted",
+    description: "Route has been removed.",
+    color: "primary",
   });
+
+  router.push("/settings/routings");
 }
 
-onMounted(() => fetchRouteDetail(Number(route.params.routeId)));
+onMounted(() => fetchRouteDetail(Number(route.params.id)));
 watch(
-  () => route.params.routeId,
+  () => route.params.id,
   (newVal) => fetchRouteDetail(Number(newVal))
 );
 </script>

@@ -54,7 +54,7 @@ async function deleteRole(id: string) {
   if (!ok) return;
 
   // Create a specific instance for this role deletion
-  const { execute: removeSpecificRole } = useApiLazy(
+  const { execute: removeSpecificRole, error: deleteError } = useApiLazy(
     () => `/role_definition/${id}`,
     {
       method: "delete",
@@ -62,14 +62,14 @@ async function deleteRole(id: string) {
     }
   );
 
-  try {
-    await removeSpecificRole();
+  await removeSpecificRole();
 
-    toast.add({ title: "Role deleted", color: "success" });
-    await fetchRoles();
-  } catch (error) {
-    // Error already handled by useApiLazy
+  if (deleteError.value) {
+    return;
   }
+
+  toast.add({ title: "Role deleted", color: "success" });
+  await fetchRoles();
 }
 
 watch(
@@ -102,7 +102,7 @@ watch(
           :key="role.id"
           class="hover:bg-gray-50 dark:hover:bg-gray-800 transition cursor-pointer"
           variant="subtle"
-          @click="$router.push(`/settings/roles/${role.id}`)"
+          @click="navigateTo(`/settings/roles/${role.id}`)"
         >
           <div class="flex flex-col h-full justify-between">
             <div class="space-y-1">

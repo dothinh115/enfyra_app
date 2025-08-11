@@ -1,14 +1,13 @@
 <script setup lang="ts">
-const router = useRouter();
+import { useLoader } from "~/composables/useLoader";
 const toast = useToast();
 const { confirm } = useConfirm();
 
-const { createButtonLoader } = useButtonLoading();
+const { createLoader } = useLoader();
 
 const tableName = "menu_definition";
 const form = ref<Record<string, any>>({});
 const errors = ref<Record<string, string>>({});
-const loading = ref(false);
 
 const { validate, generateEmptyForm } = useSchema(tableName);
 
@@ -73,7 +72,7 @@ async function saveMenu() {
   await createMenu({ body: form.value });
 
   // Reregister all menus after create
-  await reregisterAllMenus(fetchMenuDefinitions);
+  await reregisterAllMenus(fetchMenuDefinitions as any);
 
   // Also reregister table menus to ensure consistency
   if (tables.value.length > 0) {
@@ -87,7 +86,7 @@ async function saveMenu() {
   });
 
   // Redirect to menus list
-  router.push("/settings/menus");
+  await navigateTo("/settings/menus");
 }
 </script>
 

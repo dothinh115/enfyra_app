@@ -3,8 +3,6 @@ const route = useRoute();
 const router = useRouter();
 const toast = useToast();
 
-const { createButtonLoader } = useButtonLoading();
-
 const tableName = "user_definition";
 
 const errors = ref<Record<string, string>>({});
@@ -134,15 +132,16 @@ async function deleteUser() {
   });
   if (!ok) return;
 
-  const deleteLoader = createButtonLoader("delete-user");
-  await deleteLoader.withLoading(async () => {
+  try {
     await removeUser();
     toast.add({
       title: "User deleted",
       color: "success",
     });
     await navigateTo("/settings/users");
-  });
+  } catch (error) {
+    // Error already handled by useApiLazy
+  }
 }
 
 async function fetchUserDetail(userId: string) {

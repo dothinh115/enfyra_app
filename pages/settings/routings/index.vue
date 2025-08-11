@@ -6,6 +6,7 @@ const route = useRoute();
 const tableName = "route_definition";
 const { getIncludeFields } = useSchema(tableName);
 const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
+const { createLoader } = useLoader();
 const routes = ref<any[]>([]);
 
 // Filter state
@@ -128,28 +129,65 @@ watch(
   { immediate: true }
 );
 
+// Create loaders for each route toggle button
+const routeLoaders = ref<Record<string, any>>({});
+
+function getRouteLoader(routeId: string) {
+  if (!routeLoaders.value[routeId]) {
+    routeLoaders.value[routeId] = createLoader();
+  }
+  return routeLoaders.value[routeId];
+}
+
 async function toggleEnabled(routeItem: any) {
+  const loader = getRouteLoader(routeItem.id);
+
+  // Optimistic update - change UI immediately
   const newEnabled = !routeItem.isEnabled;
 
-  // Create a specific instance for this route update
-  const { execute: updateSpecificRoute } = useApiLazy(
-    () => `/route_definition/${routeItem.id}`,
-    {
-      method: "patch",
-      errorContext: "Toggle Route",
+  // Update directly in apiData to trigger reactivity
+  if (apiData.value?.data) {
+    const routeIndex = apiData.value.data.findIndex(
+      (r: any) => r.id === routeItem.id
+    );
+    if (routeIndex !== -1) {
+      apiData.value.data[routeIndex].isEnabled = newEnabled;
     }
-  );
+  }
 
   try {
+    // Create a specific instance for this route update
+    const { execute: updateSpecificRoute } = useApiLazy(
+      () => `/route_definition/${routeItem.id}`,
+      {
+        method: "patch",
+        errorContext: "Toggle Route",
+      }
+    );
+
     await updateSpecificRoute({ body: { isEnabled: newEnabled } });
-    // If successful, update the local state
-    const index = routes.value.findIndex((r) => r.id === routeItem.id);
-    if (index !== -1) {
-      routes.value[index] = { ...routes.value[index], isEnabled: newEnabled };
-    }
+
+    toast.add({
+      title: "Success",
+      description: `Route ${newEnabled ? "enabled" : "disabled"} successfully`,
+      color: "success",
+    });
   } catch (error) {
-    // Error will be handled by useApiLazy (including 403 redirect)
-    // No need to revert since we didn't change the original object
+    // Revert optimistic update on error
+    if (apiData.value?.data) {
+      const routeIndex = apiData.value.data.findIndex(
+        (r: any) => r.id === routeItem.id
+      );
+      if (routeIndex !== -1) {
+        apiData.value.data[routeIndex].isEnabled = !newEnabled;
+      }
+    }
+
+    toast.add({
+      title: "Error",
+      description: "Failed to update route status",
+      color: "error",
+    });
   }
 }
 </script>
@@ -167,9 +205,9 @@ async function toggleEnabled(routeItem: any) {
     <div v-else-if="routes.length" class="space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <ULink
-          :to="`/settings/routings/${route.id}`"
-          v-for="route in routes"
-          :key="route.id"
+          :to="`/settings/routings/${routeItem.id}`"
+          v-for="routeItem in routes"
+          :key="routeItem.id"
           class="cursor-pointer relative z-10"
         >
           <UCard
@@ -179,40 +217,43 @@ async function toggleEnabled(routeItem: any) {
             <div class="flex flex-col h-full gap-3">
               <div class="flex items-center gap-3">
                 <Icon
-                  :name="route.icon || 'lucide:circle'"
+                  :name="routeItem.icon || 'lucide:circle'"
                   class="text-xl text-primary mt-1"
                 />
                 <div class="flex-1 min-w-0">
                   <div class="font-medium text-primary truncate">
-                    {{ route.path }}
+                    {{ routeItem.path }}
                   </div>
                   <div class="text-sm text-gray-500 truncate">
-                    {{ route.mainTable.name }}
+                    {{ routeItem.mainTable.name }}
                   </div>
                 </div>
               </div>
 
               <div class="flex flex-wrap gap-2">
                 <UBadge
-                  :color="route.isEnabled ? 'success' : 'warning'"
+                  :color="routeItem.isEnabled ? 'success' : 'warning'"
                   size="xs"
                 >
-                  {{ route.isEnabled ? "Enabled" : "Disabled" }}
+                  {{ routeItem.isEnabled ? "Enabled" : "Disabled" }}
                 </UBadge>
-                <UBadge v-if="route.isSystem" color="info" size="xs">
+                <UBadge v-if="routeItem.isSystem" color="info" size="xs">
                   System
+                </UBadge>
+                <UBadge v-if="routeItem.order" color="secondary" size="xs">
+                  Order: {{ routeItem.order }}
                 </UBadge>
               </div>
 
               <!-- Published methods inline -->
               <div
-                v-if="route.publishedMethods?.length"
+                v-if="routeItem.publishedMethods?.length"
                 class="flex items-center gap-2"
               >
                 <span class="text-xs text-gray-400">Published Methods:</span>
                 <div class="flex flex-wrap gap-1">
                   <UBadge
-                    v-for="method in route.publishedMethods"
+                    v-for="method in routeItem.publishedMethods"
                     :key="method.method"
                     size="xs"
                     color="secondary"
@@ -222,13 +263,14 @@ async function toggleEnabled(routeItem: any) {
                 </div>
               </div>
 
-              <div class="flex items-center justify-between mt-auto">
+              <div class="flex items-center justify-end mt-auto">
                 <USwitch
-                  :model-value="route.isEnabled"
-                  @update:model-value="toggleEnabled(route)"
+                  :model-value="routeItem.isEnabled"
+                  @update:model-value="toggleEnabled(routeItem)"
                   label="Is enabled"
                   @click.prevent
-                  v-if="!route.isSystem"
+                  :disabled="getRouteLoader(routeItem.id).isLoading"
+                  v-if="!routeItem.isSystem"
                 />
               </div>
             </div>

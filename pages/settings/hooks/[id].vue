@@ -53,12 +53,11 @@
 
 <script setup lang="ts">
 const route = useRoute();
-const router = useRouter();
+
 const toast = useToast();
 const tableName = "hook_definition";
 const { confirm } = useConfirm();
 
-const { createButtonLoader } = useButtonLoading();
 const id = route.params.id as string;
 
 const detail = ref<Record<string, any> | null>(null);
@@ -97,7 +96,7 @@ useHeaderActionRegistry([
     color: "error",
     size: "md",
     onClick: deleteHook,
-    loading: computed(() => createButtonLoader("delete-hook").isLoading.value),
+    loading: computed(() => deleteLoading.value),
     disabled: computed(() => detail.value?.isSystem || false),
     permission: {
       and: [
@@ -126,7 +125,7 @@ const {
   error: updateError,
   execute: executeUpdateHook,
   pending: updateLoading,
-} = useApiLazy(() => `/hook_definition/${id}`, {
+} = useApiLazy(() => `/hook_definition`, {
   method: "patch",
 });
 
@@ -134,7 +133,8 @@ const {
   data: deleteData,
   error: deleteError,
   execute: executeDeleteHook,
-} = useApiLazy(() => `/hook_definition/${id}`, {
+  pending: deleteLoading,
+} = useApiLazy(() => `/hook_definition`, {
   method: "delete",
 });
 
@@ -162,7 +162,7 @@ async function fetchHookDetail() {
         description: "Hook does not exist.",
         color: "error",
       });
-      router.replace("/settings/hooks");
+      await navigateTo("/settings/hooks");
       loading.value = false;
       return;
     }
@@ -189,25 +189,17 @@ async function updateHook() {
     return;
   }
 
-  try {
-    await executeUpdateHook({ body: form.value });
+  await executeUpdateHook({ id, body: form.value });
 
-    if (updateError.value) {
-      toast.add({
-        title: "Error",
-        description: updateError.value.message,
-        color: "error",
-      });
-    } else {
-      toast.add({
-        title: "Saved",
-        description: "Hook has been updated",
-        color: "primary",
-      });
-    }
-  } catch (error) {
-    // Error already handled by useApiLazy
+  if (updateError.value) {
+    return;
   }
+
+  toast.add({
+    title: "Saved",
+    description: "Hook has been updated",
+    color: "primary",
+  });
 }
 
 async function deleteHook() {
@@ -216,29 +208,18 @@ async function deleteHook() {
   });
   if (!ok || detail.value?.isSystem) return;
 
-  const deleteLoader = createButtonLoader("delete-hook");
-  await deleteLoader.withLoading(async () => {
-    try {
-      await executeDeleteHook();
+  await executeDeleteHook({ id });
 
-      if (deleteData.value) {
-        toast.add({
-          title: "Deleted",
-          description: "Hook has been deleted",
-          color: "primary",
-        });
-        router.push("/settings/hooks");
-      } else if (deleteError.value) {
-        toast.add({
-          title: "Error",
-          description: "Cannot delete",
-          color: "error",
-        });
-      }
-    } catch (error) {
-      // Error already handled by useApiLazy
-    }
+  if (deleteError.value) {
+    return;
+  }
+
+  toast.add({
+    title: "Deleted",
+    description: "Hook has been deleted",
+    color: "primary",
   });
+  await navigateTo("/settings/hooks");
 }
 
 onMounted(fetchHookDetail);

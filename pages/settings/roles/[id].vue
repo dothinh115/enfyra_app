@@ -70,6 +70,7 @@ useHeaderActionRegistry([
     variant: "soft",
     color: "error",
     onClick: deleteRole,
+    loading: computed(() => deleteLoading.value),
     permission: {
       and: [
         {
@@ -81,11 +82,9 @@ useHeaderActionRegistry([
   },
 ]);
 
-// Setup useApiLazy composables at top level
 const errors = ref<Record<string, string>>({});
 
 const { validate } = useSchema(tableName);
-const { createButtonLoader } = useButtonLoading();
 
 // API composable for fetching role
 const {
@@ -115,13 +114,14 @@ watch(
 );
 
 // API composable for updating role
-const { execute: updateRole, pending: updateLoading } = useApiLazy(
-  () => `/${tableName}/${id}`,
-  {
-    method: "patch",
-    errorContext: "Update Role",
-  }
-);
+const {
+  execute: updateRole,
+  pending: updateLoading,
+  error: updateError,
+} = useApiLazy(() => `/${tableName}`, {
+  method: "patch",
+  errorContext: "Update Role",
+});
 
 async function save() {
   const { isValid, errors: validationErrors } = validate(form.value);
@@ -136,16 +136,22 @@ async function save() {
     return;
   }
 
-  try {
-    await updateRole({ body: form.value });
-    toast.add({ title: "Role saved", color: "success" });
-    errors.value = {};
-  } finally {
+  await updateRole({ id, body: form.value });
+
+  if (updateError.value) {
+    return;
   }
+
+  toast.add({ title: "Role saved", color: "success" });
+  errors.value = {};
 }
 
 // API composable for deleting role
-const { execute: removeRole } = useApiLazy(() => `/${tableName}/${id}`, {
+const {
+  execute: removeRole,
+  pending: deleteLoading,
+  error: deleteError,
+} = useApiLazy(() => `/${tableName}`, {
   method: "delete",
   errorContext: "Delete Role",
 });
@@ -157,12 +163,14 @@ async function deleteRole() {
   });
   if (!ok) return;
 
-  const deleteLoader = createButtonLoader("delete-role");
-  await deleteLoader.withLoading(async () => {
-    await removeRole();
-    toast.add({ title: "Role deleted", color: "success" });
-    await navigateTo("/settings/roles");
-  });
+  await removeRole({ id });
+
+  if (deleteError.value) {
+    return;
+  }
+
+  toast.add({ title: "Role deleted", color: "success" });
+  await navigateTo("/settings/roles");
 }
 
 onMounted(() => fetchRole());

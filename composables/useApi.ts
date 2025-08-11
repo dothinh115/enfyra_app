@@ -1,3 +1,5 @@
+import { useLoader } from "./useLoader";
+
 type HttpMethod = "get" | "post" | "delete" | "patch";
 interface UseApiOptions<T> {
   method?: HttpMethod;
@@ -8,6 +10,7 @@ interface UseApiOptions<T> {
   default?: () => T | Ref<T>;
   immediate?: boolean;
   watch?: boolean;
+  disableBatch?: boolean;
 }
 
 interface BackendError {
@@ -105,7 +108,8 @@ export function useApi<T = any>(
 
   const data = ref<T | null>(null);
   const error = ref<any>(null);
-  const pending = ref(false);
+  const { createLoader } = useLoader();
+  const loader = createLoader();
 
   const computedPath = computed(() => {
     const rawPath = path();
@@ -115,13 +119,38 @@ export function useApi<T = any>(
   const execute = async (executeOpts?: {
     body?: any;
     id?: string | number;
+    ids?: (string | number)[];
   }) => {
-    pending.value = true;
+    loader.startLoading();
     error.value = null;
 
     try {
       const finalBody = executeOpts?.body || unref(body);
       const finalQuery = unref(query);
+
+      // Batch operation with multiple IDs (only for patch and delete)
+      if (
+        executeOpts?.ids &&
+        executeOpts.ids.length > 0 &&
+        (method === "patch" || method === "delete")
+      ) {
+        const promises = executeOpts.ids.map(async (id) => {
+          const finalPath = `${computedPath.value}/${id}`;
+          return useFetch<T>(finalPath, {
+            baseURL: apiPrefix,
+            method: method as any,
+            body: finalBody ? toRaw(finalBody) : undefined,
+            headers,
+            query: finalQuery,
+            server: false,
+          });
+        });
+
+        const responses = await Promise.all(promises);
+        const results = responses.map((r) => r.data.value);
+        data.value = results as T;
+        return results;
+      }
 
       // Build final path with optional ID
       const finalPath = executeOpts?.id
@@ -154,7 +183,7 @@ export function useApi<T = any>(
       handleApiError(err, errorContext);
       throw err;
     } finally {
-      pending.value = false;
+      loader.stopLoading();
     }
   };
 
@@ -166,7 +195,7 @@ export function useApi<T = any>(
   return {
     data: readonly(data),
     error: readonly(error),
-    pending: readonly(pending),
+    pending: loader.isLoading,
     execute,
   };
 }
@@ -182,22 +211,49 @@ export function useApiLazy<T = any>(
 
   const data = ref<T | null>(null);
   const error = ref<any>(null);
-  const pending = ref(false);
+  const { createLoader } = useLoader();
+  const loader = createLoader();
 
   const execute = async (executeOpts?: {
     body?: any;
     id?: string | number;
+    ids?: (string | number)[];
   }) => {
-    pending.value = true;
+    loader.startLoading();
     error.value = null;
 
     try {
       const basePath = path().replace(/^\/?api\/?/, "");
+      const finalBody = executeOpts?.body || unref(body);
+      const finalQuery = unref(query);
+
+      // Batch operation with multiple IDs (only for patch and delete)
+      if (
+        !opts.disableBatch &&
+        executeOpts?.ids &&
+        executeOpts.ids.length > 0 &&
+        (method === "patch" || method === "delete")
+      ) {
+        const promises = executeOpts.ids.map(async (id) => {
+          const finalPath = `${basePath}/${id}`;
+          return $fetch<T>(finalPath, {
+            baseURL: apiPrefix,
+            method: method as any,
+            body: finalBody ? toRaw(finalBody) : undefined,
+            headers,
+            query: finalQuery,
+          });
+        });
+
+        const responses = await Promise.all(promises);
+        data.value = responses as T;
+        return responses;
+      }
+
+      // Single operation with single ID
       const finalPath = executeOpts?.id
         ? `${basePath}/${executeOpts.id}`
         : basePath;
-      const finalBody = executeOpts?.body || unref(body);
-      const finalQuery = unref(query);
 
       const response = await $fetch<T>(finalPath, {
         baseURL: apiPrefix,
@@ -214,14 +270,14 @@ export function useApiLazy<T = any>(
       handleApiError(err, errorContext);
       throw err;
     } finally {
-      pending.value = false;
+      loader.stopLoading();
     }
   };
 
   return {
-    data: readonly(data),
+    data,
     error: readonly(error),
-    pending: readonly(pending),
+    pending: loader.isLoading,
     execute,
   };
 }
