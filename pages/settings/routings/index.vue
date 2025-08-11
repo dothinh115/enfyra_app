@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const toast = useToast();
 const page = ref(1);
-const pageLimit = 7;
+const pageLimit = 15;
 const route = useRoute();
 const tableName = "route_definition";
 const { getIncludeFields } = useSchema(tableName);
@@ -200,116 +200,124 @@ async function toggleEnabled(routeItem: any) {
 
 <template>
   <div class="space-y-6">
-    <CommonLoadingState
-      v-if="loading"
-      title="Loading routes..."
-      description="Fetching routing configuration"
-      size="sm"
-      type="card"
-      context="page"
-    />
-    <div v-else-if="routes.length" class="space-y-6">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <ULink
-          :to="`/settings/routings/${routeItem.id}`"
-          v-for="routeItem in routes"
-          :key="routeItem.id"
-          class="cursor-pointer relative z-10"
-        >
-          <UCard
-            class="h-full hover:bg-gray-50 dark:hover:bg-gray-800 transition hover:shadow-md"
-            variant="subtle"
-          >
-            <div class="flex flex-col h-full gap-3">
-              <div class="flex items-center gap-3">
-                <Icon
-                  :name="routeItem.icon || 'lucide:circle'"
-                  class="text-xl text-primary mt-1"
-                />
-                <div class="flex-1 min-w-0">
-                  <div class="font-medium text-primary truncate">
-                    {{ routeItem.path }}
-                  </div>
-                  <div class="text-sm text-gray-500 truncate">
-                    {{ routeItem.mainTable.name }}
-                  </div>
-                </div>
-              </div>
-
-              <div class="flex flex-wrap gap-2">
-                <UBadge
-                  :color="routeItem.isEnabled ? 'success' : 'warning'"
-                  size="xs"
-                >
-                  {{ routeItem.isEnabled ? "Enabled" : "Disabled" }}
-                </UBadge>
-                <UBadge v-if="routeItem.isSystem" color="info" size="xs">
-                  System
-                </UBadge>
-                <UBadge v-if="routeItem.order" color="secondary" size="xs">
-                  Order: {{ routeItem.order }}
-                </UBadge>
-              </div>
-
-              <!-- Published methods inline -->
-              <div
-                v-if="routeItem.publishedMethods?.length"
-                class="flex items-center gap-2"
-              >
-                <span class="text-xs text-gray-400">Published Methods:</span>
-                <div class="flex flex-wrap gap-1">
-                  <UBadge
-                    v-for="method in routeItem.publishedMethods"
-                    :key="method.method"
-                    size="xs"
-                    color="secondary"
-                  >
-                    {{ method.method }}
-                  </UBadge>
-                </div>
-              </div>
-
-              <div class="flex items-center justify-end mt-auto">
-                <USwitch
-                  :model-value="routeItem.isEnabled"
-                  @update:model-value="toggleEnabled(routeItem)"
-                  label="Is enabled"
-                  @click.prevent
-                  :disabled="getRouteLoader(routeItem.id).isLoading"
-                  v-if="!routeItem.isSystem"
-                />
-              </div>
-            </div>
-          </UCard>
-        </ULink>
+    <Transition name="loading-fade" mode="out-in">
+      <div v-if="loading">
+        <CommonLoadingState
+          title="Loading routes..."
+          description="Fetching routing configuration"
+          size="sm"
+          type="card"
+          context="page"
+        />
       </div>
-    </div>
 
-    <CommonEmptyState
-      v-else-if="!loading"
-      title="No routes found"
-      description="No routing configurations have been created yet"
-      icon="lucide:route"
-      size="sm"
-    />
+      <div v-else class="space-y-6">
+        <div v-if="routes.length" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <ULink
+              :to="`/settings/routings/${routeItem.id}`"
+              v-for="routeItem in routes"
+              :key="routeItem.id"
+              class="cursor-pointer relative z-10"
+            >
+              <UCard
+                class="h-full hover:bg-gray-50 dark:hover:bg-gray-800 transition hover:shadow-md"
+                variant="subtle"
+              >
+                <div class="flex flex-col h-full gap-3">
+                  <div class="flex items-center gap-3">
+                    <Icon
+                      :name="routeItem.icon || 'lucide:circle'"
+                      class="text-xl text-primary mt-1"
+                    />
+                    <div class="flex-1 min-w-0">
+                      <div class="font-medium text-primary truncate">
+                        {{ routeItem.path }}
+                      </div>
+                      <div class="text-sm text-gray-500 truncate">
+                        {{ routeItem.mainTable.name }}
+                      </div>
+                    </div>
+                  </div>
 
-    <div class="flex justify-center mt-6" v-if="total > pageLimit">
-      <UPagination
-        v-model:page="page"
-        :items-per-page="pageLimit"
-        :total="total"
-        show-edges
-        :sibling-count="1"
-        :to="
-          (p) => ({
-            path: route.path,
-            query: { ...route.query, page: p },
-          })
-        "
-        color="secondary"
-        active-color="secondary"
-      />
-    </div>
+                  <div class="flex flex-wrap gap-2">
+                    <UBadge
+                      :color="routeItem.isEnabled ? 'success' : 'warning'"
+                      size="xs"
+                    >
+                      {{ routeItem.isEnabled ? "Enabled" : "Disabled" }}
+                    </UBadge>
+                    <UBadge v-if="routeItem.isSystem" color="info" size="xs">
+                      System
+                    </UBadge>
+                    <UBadge v-if="routeItem.order" color="secondary" size="xs">
+                      Order: {{ routeItem.order }}
+                    </UBadge>
+                  </div>
+
+                  <!-- Published methods inline -->
+                  <div
+                    v-if="routeItem.publishedMethods?.length"
+                    class="flex items-center gap-2"
+                  >
+                    <span class="text-xs text-gray-400"
+                      >Published Methods:</span
+                    >
+                    <div class="flex flex-wrap gap-1">
+                      <UBadge
+                        v-for="method in routeItem.publishedMethods"
+                        :key="method.method"
+                        size="xs"
+                        color="secondary"
+                      >
+                        {{ method.method }}
+                      </UBadge>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center justify-end mt-auto">
+                    <USwitch
+                      :model-value="routeItem.isEnabled"
+                      @update:model-value="toggleEnabled(routeItem)"
+                      label="Is enabled"
+                      @click.prevent
+                      :disabled="getRouteLoader(routeItem.id).isLoading"
+                      v-if="!routeItem.isSystem"
+                    />
+                  </div>
+                </div>
+              </UCard>
+            </ULink>
+          </div>
+        </div>
+
+        <CommonEmptyState
+          v-else-if="!loading"
+          title="No routes found"
+          description="No routing configurations have been created yet"
+          icon="lucide:route"
+          size="sm"
+        />
+
+        <div class="flex justify-center mt-6" v-if="total > pageLimit">
+          <UPagination
+            v-model:page="page"
+            :items-per-page="pageLimit"
+            :total="total"
+            show-edges
+            :sibling-count="1"
+            :to="
+              (p) => ({
+                path: route.path,
+                query: { ...route.query, page: p },
+              })
+            "
+            color="secondary"
+            active-color="secondary"
+          />
+        </div>
+      </div>
+    </Transition>
   </div>
 
   <!-- Filter Drawer -->

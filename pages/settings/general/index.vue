@@ -4,6 +4,9 @@ const errors = ref<Record<string, string>>({});
 
 const { generateEmptyForm, validate } = useSchema("setting_definition");
 
+// Mounted state để đánh dấu first render
+const isMounted = ref(false);
+
 // Register header actions
 useHeaderActionRegistry([
   {
@@ -83,38 +86,40 @@ async function handleSaveSetting() {
   }
 }
 
-onMounted(() => loadSetting());
+onMounted(async () => {
+  await loadSetting();
+  isMounted.value = true;
+});
 </script>
 
 <template>
-  <CommonLoadingState
-    v-if="loading"
-    title="Loading settings..."
-    description="Fetching system configuration"
-    size="sm"
-    type="form"
-    context="page"
-  />
+  <Transition name="loading-fade" mode="out-in">
+    <!-- Loading State: khi chưa mounted hoặc đang loading -->
+    <CommonLoadingState
+      v-if="!isMounted || loading"
+      title="Loading settings..."
+      description="Fetching system configuration"
+      size="sm"
+      type="form"
+      context="page"
+    />
 
-  <UForm v-else @submit="handleSaveSetting" :state="setting">
-    <UCard>
-      <template #header>
-        <div class="font-semibold text-base">System Configuration</div>
-      </template>
+    <!-- Form Content: khi đã mounted và không loading -->
+    <UForm v-else @submit="handleSaveSetting" :state="setting">
+      <UCard>
+        <template #header>
+          <div class="text-lg font-semibold">General Settings</div>
+        </template>
 
-      <FormEditor
-        v-model="setting"
-        table-name="setting_definition"
-        v-model:errors="errors"
-        :excluded="['isInit', 'isSystem']"
-        :type-map="{
-          methods: {
-            componentProps: {
-              disabled: true,
-            },
-          },
-        }"
-      />
-    </UCard>
-  </UForm>
+        <template #default>
+          <FormEditor
+            table-name="setting_definition"
+            mode="edit"
+            v-model="setting"
+            v-model:errors="errors"
+          />
+        </template>
+      </UCard>
+    </UForm>
+  </Transition>
 </template>

@@ -1,23 +1,34 @@
 <template>
   <div class="mx-auto space-y-6">
-    <!-- Loading state -->
-    <CommonLoadingState
-      v-if="loading"
-      title="Loading handler..."
-      description="Fetching handler details"
-      size="sm"
-      type="form"
-      context="page"
-    />
-
-    <!-- Form content -->
-    <UForm v-else :state="form" @submit="save">
-      <FormEditor
-        v-model="form"
-        :table-name="tableName"
-        v-model:errors="errors"
+    <Transition name="loading-fade" mode="out-in">
+      <!-- Loading State: khi chưa mounted hoặc đang loading -->
+      <CommonLoadingState
+        v-if="!isMounted || loading"
+        title="Loading handler..."
+        description="Fetching handler details"
+        size="sm"
+        type="form"
+        context="page"
       />
-    </UForm>
+
+      <!-- Form Content: khi có data -->
+      <UForm v-else-if="handler" :state="form" @submit="save">
+        <FormEditor
+          v-model="form"
+          :table-name="tableName"
+          v-model:errors="errors"
+        />
+      </UForm>
+
+      <!-- Empty State: khi đã mounted, không loading và không có data -->
+      <CommonEmptyState
+        v-else
+        title="Handler not found"
+        description="The requested handler could not be loaded"
+        icon="lucide:command-x"
+        size="sm"
+      />
+    </Transition>
   </div>
 </template>
 
@@ -31,8 +42,9 @@ const id = route.params.id as string;
 const tableName = "route_handler_definition";
 const form = ref<Record<string, any>>({});
 const errors = ref<Record<string, string>>({});
-const loading = ref(false);
-const saving = ref(false);
+
+// Mounted state để đánh dấu first render
+const isMounted = ref(false);
 
 const { validate, getIncludeFields } = useSchema(tableName);
 
@@ -81,10 +93,11 @@ useHeaderActionRegistry([
 // Setup useApiLazy composables at top level
 const {
   data: handlerData,
-  error: fetchError,
+  pending: loading,
   execute: executeGetHandler,
 } = useApiLazy(() => `/${tableName}`, {
   query: { fields: getIncludeFields(), filter: { id: { _eq: id } } },
+  errorContext: "Fetch Handler",
 });
 
 const {
@@ -93,6 +106,7 @@ const {
   pending: saveLoading,
 } = useApiLazy(() => `/${tableName}`, {
   method: "patch",
+  errorContext: "Save Handler",
 });
 
 const {
@@ -101,30 +115,27 @@ const {
   pending: deleteLoading,
 } = useApiLazy(() => `/${tableName}`, {
   method: "delete",
+  errorContext: "Delete Handler",
 });
 
-async function fetchHandler() {
-  loading.value = true;
+// Computed handler detail
+const handler = computed(() => handlerData.value?.data?.[0]);
 
-  try {
-    await executeGetHandler();
-
-    if (fetchError.value) {
-      toast.add({ title: "Cannot load handler", color: "error" });
-      loading.value = false;
-      return;
+// Watch API data and update form
+watch(
+  handlerData,
+  (newData) => {
+    if (newData?.data?.[0]) {
+      form.value = { ...newData.data[0] };
     }
-
-    form.value = handlerData.value?.data?.[0] || {};
-    loading.value = false;
-  } catch (error) {
-    loading.value = false;
-  }
-}
+  },
+  { immediate: true }
+);
 
 async function save() {
-  const { isValid, errors: validationErrors } = validate(form.value);
+  if (!form.value) return;
 
+  const { isValid, errors: validationErrors } = validate(form.value);
   if (!isValid) {
     errors.value = validationErrors;
     toast.add({
@@ -135,33 +146,37 @@ async function save() {
     return;
   }
 
-  saving.value = true;
-
-  await executeSaveHandler({ id, body: form.value });
-
-  if (saveError.value) {
-    return;
+  try {
+    await executeSaveHandler({ id, body: form.value });
+    toast.add({
+      title: "Success",
+      color: "success",
+      description: "Handler updated!",
+    });
+    errors.value = {};
+  } catch (error) {
+    // Error already handled by useApiLazy
   }
-
-  toast.add({ title: "Handler saved", color: "success" });
-  errors.value = {};
-
-  saving.value = false;
 }
 
 async function deleteHandler() {
-  const ok = await confirm({ title: "Are you sure?" });
-  if (!ok || form.value?.isSystem) return;
+  const ok = await confirm({
+    title: "Are you sure?",
+    content: "This action cannot be undone.",
+  });
+  if (!ok) return;
 
-  await executeDeleteHandler({ id });
-
-  if (deleteError.value) {
-    return;
+  try {
+    await executeDeleteHandler({ id });
+    toast.add({ title: "Handler deleted", color: "success" });
+    await navigateTo("/settings/handlers");
+  } catch (error) {
+    // Error already handled by useApiLazy
   }
-
-  toast.add({ title: "Handler deleted", color: "success" });
-  router.push("/settings/handlers");
 }
 
-onMounted(fetchHandler);
+onMounted(async () => {
+  await executeGetHandler();
+  isMounted.value = true;
+});
 </script>

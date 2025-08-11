@@ -5,7 +5,7 @@ import { useMenuApi } from "~/composables/useMenuApi";
 
 const toast = useToast();
 const page = ref(1);
-const pageLimit = 10;
+const pageLimit = 15;
 const route = useRoute();
 const tableName = "menu_definition";
 const { getIncludeFields } = useSchema(tableName);
@@ -213,127 +213,133 @@ async function toggleEnabled(menuItem: any) {
 
 <template>
   <div class="space-y-6">
-    <CommonLoadingState
-      v-if="loading"
-      title="Loading menus..."
-      description="Fetching menu configuration"
-      size="sm"
-      type="card"
-      context="page"
-    />
+    <Transition name="loading-fade" mode="out-in">
+      <CommonLoadingState
+        v-if="loading"
+        title="Loading menus..."
+        description="Fetching menu configuration"
+        size="sm"
+        type="card"
+        context="page"
+      />
 
-    <div v-else-if="menus.length" class="space-y-6">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <ULink
-          :to="`/settings/menus/${menu.id}`"
-          v-for="menu in menus"
-          :key="menu.id"
-          class="cursor-pointer relative z-10"
-        >
-          <UCard
-            class="h-full hover:bg-gray-50 dark:hover:bg-gray-800 transition hover:shadow-md"
-            variant="subtle"
+      <div v-else-if="menus.length" class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <ULink
+            :to="`/settings/menus/${menu.id}`"
+            v-for="menu in menus"
+            :key="menu.id"
+            class="cursor-pointer relative z-10"
           >
-            <div class="flex flex-col h-full gap-3">
-              <div class="flex items-center gap-3">
-                <Icon
-                  :name="menu.icon || 'lucide:circle'"
-                  class="text-xl text-primary mt-1"
-                />
-                <div class="flex-1 min-w-0">
-                  <div class="font-medium text-primary truncate">
-                    {{ menu.path }}
-                  </div>
-                  <div class="text-sm text-gray-500 truncate">
-                    {{ menu.label }}
+            <UCard
+              class="h-full hover:bg-gray-50 dark:hover:bg-gray-800 transition hover:shadow-md"
+              variant="subtle"
+            >
+              <div class="flex flex-col h-full gap-3">
+                <div class="flex items-center gap-3">
+                  <Icon
+                    :name="menu.icon || 'lucide:circle'"
+                    class="text-xl text-primary mt-1"
+                  />
+                  <div class="flex-1 min-w-0">
+                    <div class="font-medium text-primary truncate">
+                      {{ menu.path }}
+                    </div>
+                    <div class="text-sm text-gray-500 truncate">
+                      {{ menu.label }}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div class="flex flex-wrap gap-2">
-                <UBadge
-                  :color="menu.type === 'mini' ? 'primary' : 'secondary'"
-                  size="xs"
-                >
-                  {{ menu.type === "mini" ? "Sidebar" : "Menu Item" }}
-                </UBadge>
-                <UBadge
-                  :color="menu.isEnabled ? 'success' : 'warning'"
-                  size="xs"
-                >
-                  {{ menu.isEnabled ? "Enabled" : "Disabled" }}
-                </UBadge>
-                <UBadge v-if="menu.isSystem" color="info" size="xs">
-                  System
-                </UBadge>
-              </div>
+                <div class="flex flex-wrap gap-2">
+                  <UBadge
+                    :color="menu.type === 'mini' ? 'primary' : 'secondary'"
+                    size="xs"
+                  >
+                    {{ menu.type === "mini" ? "Sidebar" : "Menu Item" }}
+                  </UBadge>
+                  <UBadge
+                    :color="menu.isEnabled ? 'success' : 'warning'"
+                    size="xs"
+                  >
+                    {{ menu.isEnabled ? "Enabled" : "Disabled" }}
+                  </UBadge>
+                  <UBadge v-if="menu.isSystem" color="info" size="xs">
+                    System
+                  </UBadge>
+                </div>
 
-              <div class="flex items-center justify-between mt-auto">
-                <div class="text-xs text-gray-400">Order: {{ menu.order }}</div>
-                <USwitch
-                  :model-value="menu.isEnabled"
-                  @update:model-value="toggleEnabled(menu)"
-                  label="Is enabled"
-                  @click.prevent
-                  :disabled="getMenuLoader(menu.id).isLoading"
-                  v-if="!menu.isSystem"
-                />
+                <div class="flex items-center justify-between mt-auto">
+                  <div class="text-xs text-gray-400">
+                    Order: {{ menu.order }}
+                  </div>
+                  <USwitch
+                    :model-value="menu.isEnabled"
+                    @update:model-value="toggleEnabled(menu)"
+                    label="Is enabled"
+                    @click.prevent
+                    :disabled="getMenuLoader(menu.id).isLoading"
+                    v-if="!menu.isSystem"
+                  />
+                </div>
               </div>
-            </div>
-          </UCard>
-        </ULink>
+            </UCard>
+          </ULink>
+        </div>
+
+        <!-- Pagination - chỉ hiện khi có nhiều trang -->
+        <div class="flex justify-center mt-6" v-if="total > pageLimit">
+          <UPagination
+            v-model:page="page"
+            :items-per-page="pageLimit"
+            :total="total"
+            show-edges
+            :sibling-count="1"
+            :to="
+              (p) => ({
+                path: route.path,
+                query: { ...route.query, page: p },
+              })
+            "
+            color="secondary"
+            active-color="secondary"
+          />
+        </div>
       </div>
 
-      <!-- Pagination - chỉ hiện khi có nhiều trang -->
-      <div class="flex justify-center mt-6" v-if="total > pageLimit">
-        <UPagination
-          v-model:page="page"
-          :items-per-page="pageLimit"
-          :total="total"
-          show-edges
-          :sibling-count="1"
-          :to="
-            (p) => ({
-              path: route.path,
-              query: { ...route.query, page: p },
-            })
-          "
-          color="secondary"
-          active-color="secondary"
-        />
-      </div>
-    </div>
-
-    <div
-      v-else-if="!loading && menus.length === 0"
-      class="flex flex-col items-center justify-center py-16"
-    >
-      <UIcon
-        name="i-heroicons-bars-3"
-        class="text-gray-400 mx-auto text-8xl mb-6"
-      />
-      <div class="text-center">
-        <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3">
-          No menus found
-        </h3>
-        <p
-          class="text-base text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto"
-        >
-          No menu configurations have been created yet. Create your first menu
-          to start building the navigation structure.
-        </p>
-      </div>
-      <UButton
-        icon="i-heroicons-plus"
-        to="/settings/menus/create"
-        size="lg"
-        variant="solid"
-        color="primary"
-        class="shadow-lg hover:shadow-xl transition-all duration-200"
+      <div
+        v-else-if="!loading && menus.length === 0"
+        class="flex flex-col items-center justify-center py-16"
       >
-        Create First Menu
-      </UButton>
-    </div>
+        <UIcon
+          name="i-heroicons-bars-3"
+          class="text-gray-400 mx-auto text-8xl mb-6"
+        />
+        <div class="text-center">
+          <h3
+            class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3"
+          >
+            No menus found
+          </h3>
+          <p
+            class="text-base text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto"
+          >
+            No menu configurations have been created yet. Create your first menu
+            to start building the navigation structure.
+          </p>
+        </div>
+        <UButton
+          icon="i-heroicons-plus"
+          to="/settings/menus/create"
+          size="lg"
+          variant="solid"
+          color="primary"
+          class="shadow-lg hover:shadow-xl transition-all duration-200"
+        >
+          Create First Menu
+        </UButton>
+      </div>
+    </Transition>
   </div>
 
   <!-- Filter Drawer -->

@@ -2,11 +2,66 @@
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
+const { confirm } = useConfirm();
+const { validate } = useSchema("user_definition");
 
-const tableName = "user_definition";
+// Mounted state để đánh dấu first render
+const isMounted = ref(false);
 
+// API composable for fetching user
+const {
+  data: apiData,
+  pending: loading,
+  execute: fetchUser,
+} = useApiLazy(() => "/user_definition", {
+  query: computed(() => ({
+    fields: "*",
+    filter: {
+      id: {
+        _eq: route.params.id,
+      },
+    },
+  })),
+  errorContext: "Fetch User",
+});
+
+// Form data as ref
+const form = ref<Record<string, any>>({});
+
+// Computed user detail
+const detail = computed(() => apiData.value?.data?.[0]);
+
+// Form errors
 const errors = ref<Record<string, string>>({});
-const { validate, getIncludeFields } = useSchema(tableName);
+
+// Watch API data and update form
+watch(
+  apiData,
+  (newData) => {
+    if (newData?.data?.[0]) {
+      form.value = { ...newData.data[0] };
+    }
+  },
+  { immediate: true }
+);
+
+// API composable for updating user
+const { execute: updateUser, pending: updateLoading } = useApiLazy(
+  () => `/user_definition/${route.params.id}`,
+  {
+    method: "patch",
+    errorContext: "Update User",
+  }
+);
+
+// API composable for deleting user
+const { execute: removeUser, pending: deleteLoading } = useApiLazy(
+  () => `/user_definition/${route.params.id}`,
+  {
+    method: "delete",
+    errorContext: "Delete User",
+  }
+);
 
 // Register header actions
 useHeaderActionRegistry([
@@ -16,6 +71,7 @@ useHeaderActionRegistry([
     icon: "lucide:save",
     variant: "solid",
     color: "primary",
+    size: "md",
     loading: computed(() => updateLoading.value),
     submit: saveUser,
     permission: {
@@ -31,10 +87,11 @@ useHeaderActionRegistry([
     id: "delete-user",
     label: "Delete",
     icon: "lucide:trash",
-    variant: "soft",
+    variant: "solid",
     color: "error",
+    size: "md",
+    loading: computed(() => deleteLoading.value),
     onClick: deleteUser,
-    loading: computed(() => deleting.value),
     permission: {
       and: [
         {
@@ -46,63 +103,14 @@ useHeaderActionRegistry([
   },
 ]);
 
-// API composable for fetching user
-const {
-  data: apiData,
-  pending: loading,
-  execute: fetchUser,
-} = useApiLazy(() => `/${tableName}`, {
-  query: computed(() => ({
-    fields: getIncludeFields(),
-    filter: {
-      id: { _eq: route.params.id },
-    },
-  })),
-  errorContext: "Fetch User",
-});
-
-// User detail for display
-const detail = ref<Record<string, any> | null>(null);
-// Form data as ref
-const form = ref<Record<string, any>>({});
-
-// Watch API data and update refs
-watch(
-  apiData,
-  (newData) => {
-    if (newData?.data?.[0]) {
-      const userData = newData.data[0];
-      detail.value = userData;
-      form.value = {
-        ...userData,
-        password: null, // to not display password
-      };
-    } else {
-      detail.value = null;
-      form.value = {};
-    }
-  },
-  { immediate: true }
-);
-
-// API composable for updating user
-const { pending: updateLoading, execute: updateUser } = useApiLazy(
-  () => `/${tableName}/${form.value.id}`,
-  {
-    method: "patch",
-    errorContext: "Update User",
-  }
-);
-
 async function saveUser() {
-  const payload = { ...form.value };
-  if (!payload.password) delete payload.password; // to not overwrite with null
-  const { isValid, errors: validationErrors } = validate(payload);
+  if (!form.value) return;
 
+  const { isValid, errors: validationErrors } = validate(form.value);
   if (!isValid) {
     errors.value = validationErrors;
     toast.add({
-      title: "Error",
+      title: "Missing information",
       description: "Please fill in all required fields.",
       color: "error",
     });
@@ -110,24 +118,20 @@ async function saveUser() {
   }
 
   try {
-    await updateUser({ body: payload });
-    toast.add({ title: "Information saved", color: "primary" });
+    await updateUser({ body: form.value });
+    toast.add({
+      title: "Success",
+      color: "success",
+      description: "User updated!",
+    });
     errors.value = {};
-  } finally {
+  } catch (error) {
+    // Error already handled by useApiLazy
   }
 }
 
-// API composable for deleting user
-const { execute: removeUser, pending: deleting } = useApiLazy(
-  () => `/${tableName}/${detail.value?.id}`,
-  {
-    method: "delete",
-    errorContext: "Delete User",
-  }
-);
-
 async function deleteUser() {
-  const ok = await useConfirm().confirm({
+  const ok = await confirm({
     content: `Are you sure you want to delete user "${detail.value?.name}"?`,
   });
   if (!ok) return;
@@ -161,9 +165,11 @@ async function fetchUserDetail(userId: string) {
   }
 }
 
-onMounted(() => {
-  fetchUserDetail(route.params.id as string);
+onMounted(async () => {
+  await fetchUserDetail(route.params.id as string);
+  isMounted.value = true;
 });
+
 watch(
   () => route.params.id,
   (newId) => fetchUserDetail(newId as string)
@@ -171,54 +177,59 @@ watch(
 </script>
 
 <template>
-  <CommonLoadingState
-    v-if="loading"
-    title="Loading user..."
-    description="Fetching user details"
-    size="sm"
-    type="form"
-    context="page"
-  />
+  <Transition name="loading-fade" mode="out-in">
+    <!-- Loading State: khi chưa mounted hoặc đang loading -->
+    <CommonLoadingState
+      v-if="!isMounted || loading"
+      title="Loading user..."
+      description="Fetching user details"
+      size="sm"
+      type="form"
+      context="page"
+    />
 
-  <UForm :state="form" @submit="saveUser" v-else-if="detail">
-    <UCard>
-      <template #header>
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-4">
-            <UAvatar
-              v-if="detail.avatar"
-              :src="detail.avatar"
-              :alt="detail.name"
-              size="xl"
-            />
-            <UAvatar v-else :alt="detail.name" size="xl">
-              {{ detail.email?.charAt(0)?.toUpperCase() || "?" }}
-            </UAvatar>
-            <div>
-              <div class="text-xl font-semibold">{{ detail.name }}</div>
-              <div class="text-sm text-muted-foreground">
-                {{ detail.email }}
+    <!-- Form Content: khi có data -->
+    <UForm v-else-if="detail" :state="form" @submit="saveUser">
+      <UCard>
+        <template #header>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <UAvatar
+                v-if="detail.avatar"
+                :src="detail.avatar"
+                :alt="detail.name"
+                size="xl"
+              />
+              <UAvatar v-else :alt="detail.name" size="xl">
+                {{ detail.email?.charAt(0)?.toUpperCase() || "?" }}
+              </UAvatar>
+              <div>
+                <div class="text-xl font-semibold">{{ detail.name }}</div>
+                <div class="text-sm text-muted-foreground">
+                  {{ detail.email }}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </template>
+        </template>
 
-      <FormEditor
-        v-model="form"
-        v-model:errors="errors"
-        table-name="user_definition"
-        :excluded="['isRootAdmin', 'isSystem']"
-        class="mt-4"
-      />
-    </UCard>
-  </UForm>
+        <FormEditor
+          v-model="form"
+          v-model:errors="errors"
+          table-name="user_definition"
+          :excluded="['isRootAdmin', 'isSystem']"
+          class="mt-4"
+        />
+      </UCard>
+    </UForm>
 
-  <CommonEmptyState
-    v-else
-    title="User not found"
-    description="The requested user could not be loaded"
-    icon="lucide:user-x"
-    size="sm"
-  />
+    <!-- Empty State: khi đã mounted, không loading và không có data -->
+    <CommonEmptyState
+      v-else
+      title="User not found"
+      description="The requested user could not be loaded"
+      icon="lucide:user-x"
+      size="sm"
+    />
+  </Transition>
 </template>

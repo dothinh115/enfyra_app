@@ -176,8 +176,6 @@ onMounted(() => {
           :on-delete="onBulkDelete ? handleBulkDelete : undefined"
         />
       </div>
-
-      <DataTableColumnSelector :items="columnDropdownItems" />
     </div>
 
     <!-- Loading State -->
@@ -266,7 +264,7 @@ onMounted(() => {
               />
             </td>
           </tr>
-          <tr v-if="!table.getRowModel().rows.length">
+          <tr v-if="!loading && props.data.length === 0">
             <td
               :colspan="table.getFlatHeaders().length"
               class="px-4 py-8 text-center"
@@ -299,7 +297,7 @@ onMounted(() => {
         :on-toggle-select="() => row.getToggleSelectedHandler()?.($event)"
         :on-click="() => onRowClick?.(row.original)"
       />
-      <div v-if="!table.getRowModel().rows.length" class="py-8">
+      <div v-if="!loading && props.data.length === 0" class="py-8">
         <CommonEmptyState
           title="No data available"
           description="There are no records to display"

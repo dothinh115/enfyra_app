@@ -7,6 +7,9 @@ const tableName = "route_handler_definition";
 const { confirm } = useConfirm();
 const { getIncludeFields } = useSchema(tableName);
 
+// Mounted state để đánh dấu first render
+const isMounted = ref(false);
+
 // API composable for fetching handlers
 const {
   data: apiData,
@@ -88,91 +91,100 @@ watch(
   },
   { immediate: true }
 );
+
+onMounted(async () => {
+  isMounted.value = true;
+});
 </script>
 
 <template>
   <div class="space-y-6">
-    <CommonLoadingState
-      v-if="loading"
-      title="Loading handlers..."
-      description="Fetching route handlers"
-      size="sm"
-      type="card"
-      context="page"
-    />
-    <div class="space-y-3" v-else-if="routeHandlers.length">
-      <ULink
-        v-for="handler in routeHandlers"
-        :key="handler.id"
-        :to="`/settings/handlers/${handler.id}`"
-      >
-        <UCard
-          class="hover:bg-gray-50 dark:hover:bg-gray-800 transition"
-          variant="subtle"
-        >
-          <div class="flex justify-between items-start gap-4">
-            <div class="space-y-1 flex-1">
-              <div class="text-base font-semibold text-primary">
-                {{ handler.method?.method || "Unknown method" }}
+    <Transition name="loading-fade" mode="out-in">
+      <!-- Loading State: khi chưa mounted hoặc đang loading -->
+      <CommonLoadingState
+        v-if="!isMounted || loading"
+        title="Loading handlers..."
+        description="Fetching route handlers"
+        size="sm"
+        type="card"
+        context="page"
+      />
+
+      <!-- Handlers Grid: khi có data -->
+      <div v-else-if="routeHandlers.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <UCard v-for="handler in routeHandlers" :key="handler.id" class="relative group">
+          <template #header>
+            <div class="flex items-center gap-3">
+              <div class="p-2 bg-primary/10 rounded-lg">
+                <Icon name="lucide:command-line" class="w-5 h-5 text-primary" />
               </div>
-              <div class="text-sm text-gray-400">
-                Route: <code>{{ handler.route?.path || "N/A" }}</code>
-              </div>
-              <div
-                class="text-sm text-muted-foreground"
-                v-if="handler.description"
-              >
-                {{ handler.description }}
+              <div>
+                <div class="font-medium">{{ handler.name }}</div>
+                <div class="text-xs text-muted-foreground">
+                  {{ handler.description || "No description" }}
+                </div>
               </div>
             </div>
+          </template>
 
-            <!-- Delete button -->
-            <div class="shrink-0">
-              <PermissionGate
-                :condition="{
-                  and: [
-                    {
-                      route: '/route_handler_definition',
-                      actions: ['delete'],
-                    },
-                  ],
-                }"
-              >
-                <UButton
-                  icon="lucide:trash-2"
-                  size="xl"
-                  color="error"
-                  @click.stop.prevent="deleteHandler(handler.id)"
-                />
-              </PermissionGate>
+          <div class="text-sm text-muted-foreground space-y-2">
+            <div class="flex items-center justify-between">
+              <span>Type:</span>
+              <UBadge variant="soft" color="primary">
+                {{ handler.type || "Unknown" }}
+              </UBadge>
+            </div>
+            <div class="flex items-center justify-between">
+              <span>Created:</span>
+              <span>{{ new Date(handler.createdAt).toLocaleDateString() }}</span>
             </div>
           </div>
+
+          <template #footer>
+            <div class="flex gap-2">
+              <UButton
+                icon="lucide:eye"
+                variant="outline"
+                size="sm"
+                :to="`/settings/handlers/${handler.id}`"
+                block
+              >
+                View Details
+              </UButton>
+              <UButton
+                v-if="!handler.isSystem"
+                icon="lucide:trash"
+                variant="outline"
+                size="sm"
+                color="error"
+                @click="deleteHandler(handler.id)"
+                block
+              >
+                Delete
+              </UButton>
+            </div>
+          </template>
         </UCard>
-      </ULink>
-    </div>
-    <CommonEmptyState
-      v-else-if="!loading"
-      title="No handlers found"
-      description="No route handlers have been created yet"
-      icon="lucide:code"
-      size="lg"
-    />
-    <div class="flex justify-center mt-6">
+      </div>
+
+      <!-- Empty State: khi đã mounted, không loading và không có data -->
+      <CommonEmptyState
+        v-else
+        title="No handlers found"
+        description="No route handlers have been created yet"
+        icon="lucide:command-line"
+        size="sm"
+      />
+    </Transition>
+
+    <!-- Pagination - chỉ hiển thị khi có data -->
+    <div class="flex justify-center" v-if="!loading && routeHandlers.length > 0">
       <UPagination
-        v-model:page="page"
-        :items-per-page="pageLimit"
+        v-model="page"
+        :page-count="pageLimit"
         :total="total"
-        show-edges
-        :sibling-count="1"
-        :to="
-          (p) => ({
-            path: route.path,
-            query: { ...route.query, page: p },
-          })
-        "
-        color="secondary"
-        active-color="secondary"
-        v-if="page > 1 && !loading"
+        size="sm"
+        v-if="total > pageLimit"
       />
     </div>
   </div>

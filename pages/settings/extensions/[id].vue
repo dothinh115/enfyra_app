@@ -1,55 +1,62 @@
 <template>
-  <!-- Loading state -->
-  <div
-    v-if="loading"
-    class="flex flex-col items-center justify-center py-20 gap-4"
-  >
-    <div class="relative">
-      <div class="w-12 h-12 border-4 border-primary/20 rounded-full"></div>
-      <div
-        class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-primary rounded-full animate-spin"
-      ></div>
-    </div>
-    <p class="text-sm text-muted-foreground">Loading extension...</p>
-  </div>
+  <Transition name="loading-fade" mode="out-in">
+    <!-- Loading State: khi chưa mounted hoặc đang loading -->
+    <CommonLoadingState
+      v-if="!isMounted || loading"
+      title="Loading extension..."
+      description="Fetching extension details"
+      size="sm"
+      type="form"
+      context="page"
+    />
 
-  <!-- Form content -->
-  <UForm
-    v-else-if="detail"
-    :state="form"
-    @submit="updateExtension"
-    class="space-y-6"
-  >
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <Icon name="i-heroicons-puzzle-piece" class="text-2xl text-primary" />
-        <div class="text-xl font-bold text-primary">
-          Extension: {{ detail.name }}
-        </div>
-      </div>
-    </div>
-
-    <UCard>
-      <template #header>
-        <div class="flex justify-between items-center">
-          <div class="flex items-center gap-3">
-            <UBadge color="primary" v-if="form.isSystem"
-              >System Extension</UBadge
-            >
-            <UBadge color="secondary" v-if="form.isEnabled">Enabled</UBadge>
-            <UBadge color="info">{{ form.type }}</UBadge>
+    <!-- Form Content: khi có data -->
+    <UForm
+      v-else-if="detail"
+      :state="form"
+      @submit="updateExtension"
+      class="space-y-6"
+    >
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <Icon name="i-heroicons-puzzle-piece" class="text-2xl text-primary" />
+          <div class="text-xl font-bold text-primary">
+            Extension: {{ detail.name }}
           </div>
         </div>
-      </template>
+      </div>
 
-      <FormEditor
-        v-model="form"
-        v-model:errors="errors"
-        :table-name="tableName"
-        :excluded="['createdAt', 'updatedAt', 'isSystem', 'code']"
-      />
-    </UCard>
-  </UForm>
+      <UCard>
+        <template #header>
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-3">
+              <UBadge color="primary" v-if="form.isSystem"
+                >System Extension</UBadge
+              >
+              <UBadge color="secondary" v-if="form.isEnabled">Enabled</UBadge>
+              <UBadge color="info">{{ form.type }}</UBadge>
+            </div>
+          </div>
+        </template>
+
+        <FormEditor
+          v-model="form"
+          v-model:errors="errors"
+          :table-name="tableName"
+          :excluded="['createdAt', 'updatedAt', 'isSystem', 'code']"
+        />
+      </UCard>
+    </UForm>
+
+    <!-- Empty State: khi đã mounted, không loading và không có data -->
+    <CommonEmptyState
+      v-else
+      title="Extension not found"
+      description="The requested extension could not be loaded"
+      icon="lucide:puzzle"
+      size="sm"
+    />
+  </Transition>
 
   <!-- Upload Modal -->
   <CommonUploadModal
@@ -87,10 +94,9 @@ const toast = useToast();
 const { confirm } = useConfirm();
 
 const tableName = "extension_definition";
-const detail = ref<Record<string, any> | null>(null);
-const form = ref<Record<string, any>>({});
-const errors = ref<Record<string, string>>({});
-const loading = ref(false);
+
+// Mounted state để đánh dấu first render
+const isMounted = ref(false);
 
 // Upload modal state
 const showUploadModal = ref(false);
@@ -106,24 +112,9 @@ useHeaderActionRegistry([
     icon: "lucide:save",
     variant: "solid",
     color: "primary",
+    size: "md",
     submit: updateExtension,
     loading: computed(() => updateLoading.value),
-    permission: {
-      and: [
-        {
-          route: "/extension_definition",
-          actions: ["update"],
-        },
-      ],
-    },
-  },
-  {
-    id: "upload-extension",
-    label: "Upload",
-    icon: "lucide:upload",
-    variant: "solid",
-    color: "secondary",
-    onClick: () => (showUploadModal.value = true),
     permission: {
       and: [
         {
@@ -139,6 +130,7 @@ useHeaderActionRegistry([
     icon: "lucide:trash",
     variant: "solid",
     color: "error",
+    size: "md",
     onClick: deleteExtension,
     loading: computed(() => deleteLoading.value),
     permission: {
@@ -150,133 +142,141 @@ useHeaderActionRegistry([
       ],
     },
   },
+  {
+    id: "upload-extension",
+    label: "Upload",
+    icon: "lucide:upload",
+    variant: "outline",
+    color: "secondary",
+    size: "md",
+    onClick: () => (showUploadModal.value = true),
+    permission: {
+      and: [
+        {
+          route: "/extension_definition",
+          actions: ["update"],
+        },
+      ],
+    },
+  },
 ]);
 
-// Setup useApiLazy composables at top level
+// API composable for fetching extension
 const {
   data: extensionData,
-  error: fetchError,
-  execute: executeFetchExtension,
-} = useApiLazy(() => "/extension_definition", {
+  pending: loading,
+  execute: executeGetExtension,
+} = useApiLazy(() => `/${tableName}`, {
   query: {
     fields: getIncludeFields(),
-    filter: { id: { _eq: Number(route.params.id) } },
+    filter: { id: { _eq: route.params.id } },
   },
+  errorContext: "Fetch Extension",
 });
 
+// API composable for updating extension
 const {
   error: updateError,
   execute: executeUpdateExtension,
   pending: updateLoading,
-} = useApiLazy(() => `/extension_definition`, {
+} = useApiLazy(() => `/${tableName}`, {
   method: "patch",
+  errorContext: "Update Extension",
 });
 
+// API composable for deleting extension
 const {
   error: deleteError,
   execute: executeDeleteExtension,
   pending: deleteLoading,
-} = useApiLazy(() => `/extension_definition`, {
+} = useApiLazy(() => `/${tableName}`, {
   method: "delete",
+  errorContext: "Delete Extension",
 });
 
-async function fetchExtensionDetail(extensionId: number) {
-  loading.value = true;
+// Computed extension detail
+const detail = computed(() => extensionData.value?.data?.[0]);
 
-  await executeFetchExtension();
+// Form data as ref
+const form = ref<Record<string, any>>({});
 
-  if (fetchError.value || !extensionData.value?.data?.[0]) {
-    toast.add({
-      title: "Not found",
-      description: "This extension does not exist.",
-      color: "error",
-    });
-    router.replace("/settings/extensions");
-    loading.value = false;
-    return;
-  }
+// Form errors
+const errors = ref<Record<string, string>>({});
 
-  detail.value = extensionData.value.data[0];
-  form.value = { ...detail.value };
-  errors.value = {};
-  loading.value = false;
-}
+// Watch API data and update form
+watch(
+  extensionData,
+  (newData) => {
+    if (newData?.data?.[0]) {
+      form.value = { ...newData.data[0] };
+    }
+  },
+  { immediate: true }
+);
 
 async function updateExtension() {
-  const { isValid, errors: validationErrors } = validate(form.value);
+  if (!form.value) return;
 
+  const { isValid, errors: validationErrors } = validate(form.value);
   if (!isValid) {
     errors.value = validationErrors;
     toast.add({
-      title: "Error",
-      description: "Please check the fields with errors.",
+      title: "Missing information",
+      description: "Please fill in all required fields.",
       color: "error",
     });
     return;
   }
 
-  await executeUpdateExtension({ id: detail.value?.id, body: form.value });
-
-  if (!updateError.value) {
-    await executeFetchExtension();
-
-    if (extensionData.value?.data?.[0]) {
-      detail.value = extensionData.value.data[0];
-      form.value = { ...detail.value };
-    }
-
-    toast.add({
-      title: "Saved",
-      description: "Extension updated",
-      color: "primary",
+  try {
+    await executeUpdateExtension({
+      id: route.params.id as string,
+      body: form.value,
     });
+    toast.add({
+      title: "Success",
+      color: "success",
+      description: "Extension updated!",
+    });
+    errors.value = {};
+  } catch (error) {
+    // Error already handled by useApiLazy
   }
 }
 
 async function deleteExtension() {
-  const ok = await confirm({ title: "Are you sure?" });
-  if (!ok || detail.value?.isSystem) return;
-
-  await executeDeleteExtension({ id: route.params.id as string });
-
-  if (deleteError.value) {
-    return;
-  }
-
-  toast.add({
-    title: "Deleted",
-    description: "Extension has been removed.",
-    color: "primary",
+  const ok = await confirm({
+    title: "Are you sure?",
+    content: "This action cannot be undone.",
   });
+  if (!ok) return;
 
-  router.push("/settings/extensions");
+  try {
+    await executeDeleteExtension({ id: route.params.id as string });
+    toast.add({ title: "Extension deleted", color: "success" });
+    await navigateTo("/settings/extensions");
+  } catch (error) {
+    // Error already handled by useApiLazy
+  }
 }
-
-onMounted(() => fetchExtensionDetail(Number(route.params.id)));
-watch(
-  () => route.params.id,
-  (newVal) => fetchExtensionDetail(Number(newVal))
-);
 
 async function handleUpload(files: File | File[]) {
   const fileArray = Array.isArray(files) ? files : [files];
+  if (fileArray.length === 0) return;
+
+  uploadLoading.value = true;
+  const file = fileArray[0];
 
   try {
-    uploadLoading.value = true;
-
-    for (const file of fileArray) {
-      // Read file content and put it into form.code field
-      const fileContent = await readFileContent(file);
-      form.value.code = fileContent;
-
-      toast.add({
-        title: "File Loaded",
-        description: `File "${file.name}" content has been loaded into the code field.`,
-        color: "success",
-      });
-    }
-
+    const content = await file.text();
+    form.value.code = content;
     showUploadModal.value = false;
+
+    toast.add({
+      title: "Success",
+      description: "Extension code uploaded successfully",
+      color: "success",
+    });
   } catch (error) {
     toast.add({
       title: "Upload Error",
@@ -288,21 +288,8 @@ async function handleUpload(files: File | File[]) {
   }
 }
 
-// Helper function to read file content
-function readFileContent(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-
-    reader.onload = (e) => {
-      const content = e.target?.result as string;
-      resolve(content);
-    };
-
-    reader.onerror = () => {
-      reject(new Error("Failed to read file"));
-    };
-
-    reader.readAsText(file);
-  });
-}
+onMounted(async () => {
+  await executeGetExtension();
+  isMounted.value = true;
+});
 </script>

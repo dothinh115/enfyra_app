@@ -7,6 +7,9 @@ const tableName = "role_definition";
 const { confirm } = useConfirm();
 const { getIncludeFields } = useSchema(tableName);
 
+// Mounted state để đánh dấu first render
+const isMounted = ref(false);
+
 // API composable for fetching roles
 const {
   data: apiData,
@@ -84,87 +87,97 @@ watch(
   },
   { immediate: true }
 );
+
+onMounted(async () => {
+  isMounted.value = true;
+});
 </script>
 
 <template>
   <div class="space-y-6">
-    <CommonLoadingState
-      v-if="loading"
-      title="Loading roles..."
-      description="Fetching role definitions"
-      size="sm"
-      type="card"
-      context="page"
-    />
+    <Transition name="loading-fade" mode="out-in">
+      <!-- Loading State: khi chưa mounted hoặc đang loading -->
+      <CommonLoadingState
+        v-if="!isMounted || loading"
+        title="Loading roles..."
+        description="Fetching role definitions"
+        size="sm"
+        type="card"
+        context="page"
+      />
 
-    <div v-else-if="roles.length">
+      <!-- Roles Grid: khi có data -->
       <div
-        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+        v-else-if="roles.length"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
       >
-        <UCard
-          v-for="role in roles"
-          :key="role.id"
-          class="hover:bg-gray-50 dark:hover:bg-gray-800 transition cursor-pointer"
-          variant="subtle"
-          @click="navigateTo(`/settings/roles/${role.id}`)"
-        >
-          <div class="flex flex-col h-full justify-between">
-            <div class="space-y-1">
-              <div class="text-base font-semibold text-primary">
-                {{ role.name || "Unnamed" }}
+        <UCard v-for="role in roles" :key="role.id" class="relative group">
+          <template #header>
+            <div class="flex items-center gap-3">
+              <div class="p-2 bg-primary/10 rounded-lg">
+                <Icon name="lucide:shield-check" class="w-5 h-5 text-primary" />
               </div>
-              <div
-                class="text-sm text-muted-foreground"
-                v-if="role.description"
-              >
-                {{ role.description }}
+              <div>
+                <div class="font-medium">{{ role.name }}</div>
+                <div class="text-xs text-muted-foreground">
+                  {{ role.description || "No description" }}
+                </div>
               </div>
             </div>
+          </template>
 
-            <div class="flex justify-end pt-4">
-              <PermissionGate
-                :condition="{
-                  and: [
-                    {
-                      route: '/role_definition',
-                      actions: ['delete'],
-                    },
-                  ],
-                }"
-              >
-                <UButton
-                  icon="lucide:trash-2"
-                  size="sm"
-                  color="error"
-                  variant="ghost"
-                  @click.stop="deleteRole(role.id)"
-                />
-              </PermissionGate>
+          <div class="text-sm text-muted-foreground space-y-2">
+            <div class="flex items-center justify-between">
+              <span>Created:</span>
+              <span>{{ new Date(role.createdAt).toLocaleDateString() }}</span>
             </div>
           </div>
+
+          <template #footer>
+            <div class="flex gap-2">
+              <UButton
+                icon="lucide:eye"
+                variant="outline"
+                size="sm"
+                :to="`/settings/roles/${role.id}`"
+                block
+              >
+                View Details
+              </UButton>
+              <UButton
+                v-if="!role.isSystem"
+                icon="lucide:trash"
+                variant="outline"
+                size="sm"
+                color="error"
+                @click="deleteRole(role.id)"
+                block
+              >
+                Delete
+              </UButton>
+            </div>
+          </template>
         </UCard>
       </div>
-    </div>
 
-    <CommonEmptyState
-      v-else
-      title="No roles found"
-      description="No role definitions have been created yet"
-      icon="lucide:shield"
-      size="sm"
-    />
+      <!-- Empty State: khi đã mounted, không loading và không có data -->
+      <CommonEmptyState
+        v-else
+        title="No roles found"
+        description="No role definitions have been created yet"
+        icon="lucide:shield-check"
+        size="sm"
+      />
+    </Transition>
 
-    <div class="flex justify-center mt-6">
+    <!-- Pagination - chỉ hiển thị khi có data -->
+    <div class="flex justify-center" v-if="!loading && roles.length > 0">
       <UPagination
-        v-model:page="page"
-        :items-per-page="pageLimit"
+        v-model="page"
+        :page-count="pageLimit"
         :total="total"
-        show-edges
-        :sibling-count="1"
-        :to="(p) => ({ path: route.path, query: { ...route.query, page: p } })"
-        color="secondary"
-        active-color="secondary"
-        v-if="total > pageLimit && !loading"
+        size="sm"
+        v-if="total > pageLimit"
       />
     </div>
   </div>

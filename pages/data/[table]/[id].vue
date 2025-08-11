@@ -38,7 +38,7 @@ watch(
   { immediate: true }
 );
 
-onMounted(() => fetchRecord());
+onMounted(async () => await fetchRecord());
 
 async function handleUpdate() {
   const { isValid, errors } = validate(currentRecord.value);
@@ -157,16 +157,22 @@ useHeaderActionRegistry([
 </script>
 
 <template>
-  <!-- Loading state -->
-  <CommonLoadingState type="form" v-if="loading" />
-
-  <!-- Form content -->
-  <UForm v-else :state="currentRecord" @submit="handleUpdate">
-    <UCard variant="subtle">
+  <Transition name="loading-fade" mode="out-in">
+    <!-- Loading state -->
+    <CommonLoadingState
+      v-if="loading || !currentRecord.id"
+      type="form"
+      context="page"
+      size="lg"
+      :title="`Loading ${route.params.table}...`"
+      :description="`Fetching record details`"
+    />
+    <!-- Form content - chỉ hiển thị khi có data thật sự -->
+    <UCard v-else-if="currentRecord.id" variant="subtle">
       <template #header>
         <div class="flex items-center justify-between">
           <div class="text-lg font-semibold capitalize">
-            {{ route.params.table }}: {{ currentRecord.id || "Loading..." }}
+            {{ route.params.table }}: {{ currentRecord.id }}
           </div>
         </div>
       </template>
@@ -180,5 +186,13 @@ useHeaderActionRegistry([
         />
       </template>
     </UCard>
-  </UForm>
+  </Transition>
+
+  <!-- Debug info -->
+  <div
+    class="fixed bottom-4 right-4 bg-gray-800 text-white p-2 rounded text-xs"
+  >
+    Loading: {{ loading }} | Has Data: {{ !!apiData?.data?.length }} | Record
+    ID: {{ currentRecord.id }}
+  </div>
 </template>

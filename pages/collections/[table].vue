@@ -10,6 +10,9 @@ const tableName = "table_definition";
 const { getIncludeFields } = useSchema(tableName);
 import { isSystemTableModifiable } from "~/utils/constants";
 
+// Mounted state để đánh dấu first render
+const isMounted = ref(false);
+
 const table = ref<any>();
 
 // API composables at setup level
@@ -98,36 +101,20 @@ async function fetchData() {
   await fetchTableData();
   if ((tableData.value as any)?.data) {
     const tableDataRaw = (tableData.value as any).data[0];
-    table.value = {
-      ...tableDataRaw,
-      columns: [...(tableDataRaw.columns || [])],
-      relations: [...(tableDataRaw.relations || [])],
-    };
+    table.value = tableDataRaw;
   }
 }
 
-onMounted(fetchData);
-
-// Watch saving and deleting states to sync with globalLoading
-watch([saving, deleting], ([newSaving, newDeleting]) => {
-  globalLoading.value = newSaving || newDeleting;
-});
-
+// Watch for table data changes
 watch(
-  () => table.value?.columns.map((col: any) => col.type),
-  (newTypes, oldTypes) => {
-    if (!newTypes || !oldTypes) return;
-    const notIndexable = ["text", "varchar", "simple-json"];
-    newTypes?.forEach((type: any, i: number) => {
-      if (type !== oldTypes[i]) {
-        // 👉 Column i just changed type
-        if (notIndexable.includes(type)) {
-          table.value.columns[i].isIndex = false;
-        }
-      }
-    });
+  tableData,
+  (newData) => {
+    if (newData?.data) {
+      const tableDataRaw = newData.data[0];
+      table.value = tableDataRaw;
+    }
   },
-  { deep: true }
+  { immediate: true }
 );
 
 async function save() {
@@ -179,48 +166,55 @@ async function deleteTable() {
   });
   return navigateTo(`/collections`);
 }
+
+onMounted(async () => {
+  await fetchData();
+  isMounted.value = true;
+});
 </script>
 
 <template>
   <div class="relative">
-    <!-- Loading state -->
-    <CommonLoadingState
-      type="form"
-      context="page"
-      v-if="loading"
-      title="Loading table structure..."
-      description="Fetching table definition and schema"
-      size="sm"
-    />
+    <Transition name="loading-fade" mode="out-in">
+      <!-- Loading State: khi chưa mounted hoặc đang loading -->
+      <CommonLoadingState
+        v-if="!isMounted || loading"
+        type="form"
+        context="page"
+        title="Loading table structure..."
+        description="Fetching table definition and schema"
+        size="sm"
+      />
 
-    <!-- Form content -->
-    <UForm @submit.prevent="save" :state="table" v-else-if="table">
-      <div class="mx-auto">
-        <TableForm v-model="table" @save="save">
-          <div class="space-y-6">
-            <TableConstraints
-              v-model="table"
-              :column-names="table.columns?.map((c:any) => c?.name)"
-            />
-            <TableColumns v-model="table.columns" />
-            <TableRelations
-              v-model="table.relations"
-              :table-options="
-                tables?.map((t) => ({ label: t?.name, value: { id: t.id } }))
-              "
-            />
-          </div>
-        </TableForm>
-      </div>
-    </UForm>
+      <!-- Form Content: khi có data -->
+      <UForm v-else-if="table" @submit.prevent="save" :state="table">
+        <div class="mx-auto">
+          <TableForm v-model="table" @save="save">
+            <div class="space-y-6">
+              <TableConstraints
+                v-model="table"
+                :column-names="table.columns?.map((c:any) => c?.name)"
+              />
+              <TableColumns v-model="table.columns" />
+              <TableRelations
+                v-model="table.relations"
+                :table-options="
+                  tables?.map((t) => ({ label: t?.name, value: { id: t.id } }))
+                "
+              />
+            </div>
+          </TableForm>
+        </div>
+      </UForm>
 
-    <!-- Empty state -->
-    <CommonEmptyState
-      v-else
-      title="Table not found"
-      description="The requested table could not be loaded"
-      icon="lucide:database"
-      size="sm"
-    />
+      <!-- Empty State: khi đã mounted, không loading và không có data -->
+      <CommonEmptyState
+        v-else
+        title="Table not found"
+        description="The requested table could not be loaded"
+        icon="lucide:database"
+        size="sm"
+      />
+    </Transition>
   </div>
 </template>

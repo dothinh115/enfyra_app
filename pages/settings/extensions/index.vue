@@ -5,158 +5,136 @@
       <h1 class="text-2xl font-bold text-gray-300">Extension Manager</h1>
     </div>
 
-    <CommonLoadingState
-      v-if="loading"
-      title="Loading extensions..."
-      description="Fetching extension registry"
-      size="md"
-      type="card"
-      context="page"
-    />
-
-    <div
-      v-else-if="extensions.length > 0"
-      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
-    >
-      <UCard
-        v-for="extension in extensions"
-        :key="extension.id"
-        class="relative group cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all"
-        @click="navigateToDetail(extension)"
-      >
-        <template #header>
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <UAvatar
-                :icon="getExtensionIcon(extension)"
-                size="sm"
-                color="primary"
-                variant="soft"
-              />
-              <div>
-                <div class="font-medium truncate">{{ extension.name }}</div>
-              </div>
-            </div>
-            <PermissionGate
-              :condition="{
-                or: [{ route: '/extension_definition', actions: ['delete'] }],
-              }"
-            >
-              <UButton
-                icon="i-heroicons-trash"
-                variant="outline"
-                size="md"
-                color="error"
-                @click.stop="deleteExtension(extension)"
-              />
-            </PermissionGate>
-          </div>
-        </template>
-
-        <div class="space-y-3">
-          <!-- Description -->
-          <div class="text-sm text-gray-300 line-clamp-2 leading-relaxed">
-            {{ extension.description }}
-          </div>
-
-          <!-- Extension Info -->
-          <div class="text-sm text-muted-foreground">
-            <div class="flex items-center justify-between">
-              <div>Type:</div>
-              <UBadge variant="soft" color="primary">
-                {{ getExtensionTypeLabel(extension.type) }}
-              </UBadge>
-            </div>
-            <div
-              class="flex items-center justify-between mt-1"
-              v-if="extension.menu?.path"
-            >
-              <div>Route:</div>
-              <NuxtLink
-                v-if="extension.isEnabled"
-                :to="extension.menu.path"
-                class="text-xs font-mono text-primary-500 hover:text-primary-600 hover:underline transition-colors"
-              >
-                {{ extension.menu.path }}
-              </NuxtLink>
-              <span
-                v-else
-                class="text-xs font-mono text-gray-400 cursor-not-allowed"
-                :title="'Extension is disabled. Enable extension to access this route.'"
-              >
-                {{ extension.menu.path }}
-              </span>
-            </div>
-            <div class="flex items-center justify-between mt-1">
-              <div>Status:</div>
-              <div class="flex items-center gap-2">
-                <UBadge
-                  :color="extension.isEnabled ? 'success' : 'neutral'"
-                  variant="soft"
-                >
-                  {{ extension.isEnabled ? "Active" : "Inactive" }}
-                </UBadge>
-                <PermissionGate
-                  :condition="{
-                    or: [
-                      { route: '/extension_definition', actions: ['update'] },
-                    ],
-                  }"
-                >
-                  <UButton
-                    :icon="
-                      extension.isEnabled ? 'heroicons:pause' : 'heroicons:play'
-                    "
-                    variant="outline"
-                    size="xs"
-                    :color="extension.isEnabled ? 'warning' : 'success'"
-                    @click.stop="toggleExtensionStatus(extension)"
-                    :disabled="
-                      getExtensionLoader(extension.id.toString()).isLoading
-                    "
-                  >
-                  </UButton>
-                </PermissionGate>
-              </div>
-            </div>
-          </div>
-        </div>
-      </UCard>
-    </div>
-
-    <!-- Empty State -->
-    <div
-      v-else-if="!loading && extensions.length === 0"
-      class="flex flex-col items-center justify-center py-12"
-    >
-      <UIcon
-        name="i-heroicons-puzzle-piece"
-        class="text-gray-400 mx-auto text-8xl mb-6"
+    <Transition name="loading-fade" mode="out-in">
+      <!-- Loading State: khi chưa mounted hoặc đang loading -->
+      <CommonLoadingState
+        v-if="!isMounted || loading"
+        title="Loading extensions..."
+        description="Fetching extension registry"
+        size="md"
+        type="card"
+        context="page"
       />
-      <div class="text-center">
-        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-          No extensions found
-        </h3>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
-          No extensions are currently registered in the system. Upload an
-          extension to get started.
-        </p>
-      </div>
-      <UButton
-        icon="i-heroicons-arrow-up-tray"
-        to="/settings/extensions/create"
-        size="sm"
-        variant="soft"
-        color="primary"
+
+      <!-- Extensions Grid: khi có data -->
+      <div
+        v-else-if="extensions.length > 0"
+        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
       >
-        Create Extension
-      </UButton>
-    </div>
+        <UCard
+          v-for="extension in extensions"
+          :key="extension.id"
+          class="relative group cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all"
+          @click="navigateToDetail(extension)"
+        >
+          <template #header>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <UAvatar
+                  :icon="getExtensionIcon(extension)"
+                  size="sm"
+                  color="primary"
+                  variant="soft"
+                />
+                <div>
+                  <div class="font-medium truncate">{{ extension.name }}</div>
+                </div>
+              </div>
+              <PermissionGate
+                :condition="{
+                  or: [{ route: '/extension_definition', actions: ['delete'] }],
+                }"
+              >
+                <UButton
+                  icon="i-heroicons-trash"
+                  variant="outline"
+                  size="md"
+                  color="error"
+                  @click.stop="deleteExtension(extension)"
+                />
+              </PermissionGate>
+            </div>
+          </template>
+
+          <div class="space-y-3">
+            <!-- Description -->
+            <div class="text-sm text-gray-300 line-clamp-2 leading-relaxed">
+              {{ extension.description }}
+            </div>
+
+            <!-- Extension Info -->
+            <div class="text-sm text-muted-foreground">
+              <div class="flex items-center justify-between">
+                <div>Type:</div>
+                <UBadge variant="soft" color="primary">
+                  {{ getExtensionTypeLabel(extension.type) }}
+                </UBadge>
+              </div>
+              <div
+                class="flex items-center justify-between mt-1"
+                v-if="extension.menu?.path"
+              >
+                <div>Route:</div>
+                <NuxtLink
+                  v-if="extension.isEnabled"
+                  :to="extension.menu.path"
+                  class="text-xs font-mono text-primary-500 hover:text-primary-600 hover:underline transition-colors"
+                >
+                  {{ extension.menu.path }}
+                </NuxtLink>
+                <span
+                  v-else
+                  class="text-xs font-mono text-gray-400 cursor-not-allowed"
+                  :title="'Extension is disabled. Enable extension to access this route.'"
+                >
+                  {{ extension.menu.path }}
+                </span>
+              </div>
+              <div class="flex items-center justify-between mt-1">
+                <div>Status:</div>
+                <div class="flex items-center gap-2">
+                  <UBadge
+                    :color="extension.isEnabled ? 'success' : 'neutral'"
+                    variant="soft"
+                  >
+                    {{ extension.isEnabled ? "Active" : "Inactive" }}
+                  </UBadge>
+                  <PermissionGate
+                    :condition="{
+                      or: [
+                        { route: '/extension_definition', actions: ['update'] },
+                      ],
+                    }"
+                  >
+                    <USwitch
+                      :model-value="extension.isEnabled"
+                      @update:model-value="toggleExtensionStatus(extension)"
+                      :disabled="
+                        getExtensionLoader(extension.id.toString()).isLoading
+                      "
+                    />
+                  </PermissionGate>
+                </div>
+              </div>
+            </div>
+          </div>
+        </UCard>
+      </div>
+
+      <!-- Empty State: khi đã mounted, không loading và không có data -->
+      <CommonEmptyState
+        v-else
+        title="No extensions found"
+        description="No extensions have been created yet"
+        icon="lucide:puzzle"
+        size="lg"
+      />
+    </Transition>
   </div>
 </template>
 
 <script setup lang="ts">
-// Interface for API response from /extension_definition
+// Interface for Extension Definition
 interface ExtensionDefinition {
   id: number;
   code: string;
@@ -187,69 +165,90 @@ interface ExtensionDefinition {
   updatedAt: string;
 }
 
-const tableName = "extension_definition";
-const { getIncludeFields } = useSchema(tableName);
+const toast = useToast();
+const { confirm } = useConfirm();
+const { createLoader } = useLoader();
 
+// Mounted state để đánh dấu first render
+const isMounted = ref(false);
+
+// API composable for fetching extensions
 const {
   data: apiData,
   pending: loading,
   execute: fetchExtensions,
 } = useApiLazy(() => "/extension_definition", {
-  query: computed(() => ({
-    fields: getIncludeFields(),
-    sort: "-createdAt",
-    meta: "*",
-  })),
+  query: {
+    fields: ["*", "menu.*"].join(","),
+    limit: 0,
+    sort: ["id"].join(","),
+  },
   errorContext: "Fetch Extensions",
 });
 
-const extensions = computed<ExtensionDefinition[]>(
-  () => apiData.value?.data || []
-);
+// Computed extensions data
+const extensions = computed(() => apiData.value?.data || []);
 
-const { confirm } = useConfirm();
-const toast = useToast();
-const { createLoader } = useLoader();
+// Extension loaders for individual toggle operations
+const extensionLoaders = ref<Record<string, any>>({});
 
-// Register multiple header actions at once
-useHeaderActionRegistry({
-  id: "add-extension",
-  label: "Create Extension",
-  icon: "i-heroicons-plus",
-  variant: "solid",
-  color: "primary",
-  size: "md",
-  to: "/settings/extensions/create",
-  permission: {
-    and: [{ route: "/extension_definition", actions: ["create"] }],
-  },
-});
-
-const getExtensionIcon = (extension: ExtensionDefinition) => {
-  if (extension.type === "page") return "heroicons:document";
-  if (extension.type === "widget") return "heroicons:cube";
-  return "heroicons:puzzle-piece";
-};
-
-const navigateToDetail = (extension: ExtensionDefinition) => {
-  navigateTo(`/settings/extensions/${extension.id}`);
-};
-
-const getExtensionTypeLabel = (type: string) => {
-  const labels: Record<string, string> = {
-    page: "Page Extension",
-    widget: "Widget Extension",
-  };
-  return labels[type] || type;
-};
-
-const { execute: updateExtension } = useApiLazy(() => "/extension_definition", {
+// API composable for updating extension
+const { execute: updateExtension } = useApiLazy(() => `/extension_definition`, {
   method: "patch",
   errorContext: "Update Extension",
 });
 
-// Create loaders for each extension toggle button
-const extensionLoaders = ref<Record<string, any>>({});
+// Header actions
+useHeaderActionRegistry([
+  {
+    id: "create-extension",
+    label: "Create Extension",
+    icon: "lucide:plus",
+    variant: "solid",
+    color: "primary",
+    size: "md",
+    to: "/settings/extensions/create",
+    permission: {
+      and: [
+        {
+          route: "/extension_definition",
+          actions: ["create"],
+        },
+      ],
+    },
+  },
+]);
+
+// Helper functions
+function getExtensionIcon(extension: ExtensionDefinition) {
+  switch (extension.type) {
+    case "page":
+      return "i-lucide-file-text";
+    case "component":
+      return "i-lucide-puzzle-piece";
+    case "widget":
+      return "i-lucide-layout-dashboard";
+    default:
+      return "i-lucide-puzzle";
+  }
+}
+
+function getExtensionTypeLabel(type: string) {
+  switch (type) {
+    case "page":
+      return "Page";
+    case "component":
+      return "Component";
+    case "widget":
+      return "Widget";
+    default:
+      return "Unknown";
+  }
+}
+
+function navigateToDetail(extension: ExtensionDefinition) {
+  navigateTo(`/settings/extensions/${extension.id}`);
+}
 
 function getExtensionLoader(extensionId: string) {
   if (!extensionLoaders.value[extensionId]) {
@@ -347,5 +346,6 @@ const deleteExtension = async (extension: ExtensionDefinition) => {
 
 onMounted(async () => {
   await fetchExtensions();
+  isMounted.value = true;
 });
 </script>

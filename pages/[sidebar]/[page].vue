@@ -1,12 +1,12 @@
 <template>
-  <div>
-    <!-- Loading state -->
+  <Transition name="loading-fade" mode="out-in">
+    <!-- Loading State: khi chưa mounted hoặc đang loading -->
     <CommonLoadingState
-      v-if="loading"
+      v-if="!isMounted || loading"
       title="Loading extension..."
       description="Fetching extension component"
       size="md"
-      type="dots"
+      type="table"
       context="page"
     />
 
@@ -42,14 +42,15 @@
 
     <!-- Extension component -->
     <PermissionGate
-      :condition="menuResponse?.data[0]?.permission ?? { allowAll: true }"
       v-else-if="extensionComponent"
+      :condition="menuResponse?.data[0]?.permission ?? { allowAll: true }"
     >
       <component
         :is="extensionComponent"
         :components="extensionComponent.components"
       />
     </PermissionGate>
+
     <!-- 404 state -->
     <CommonEmptyState
       v-else
@@ -65,13 +66,16 @@
         icon: 'i-heroicons-cog-6-tooth',
       }"
     />
-  </div>
+  </Transition>
 </template>
 
 <script setup lang="ts">
 const route = useRoute();
 const sidebarParam = route.params.sidebar;
 const pageParam = route.params.page;
+
+// Mounted state để đánh dấu first render
+const isMounted = ref(false);
 
 // Use the new dynamic component composable
 const { loadDynamicComponent } = useDynamicComponent();
@@ -158,8 +162,9 @@ const retry = () => {
 };
 
 // Load extension on mount and when route changes
-onMounted(() => {
-  loadMatchingExtension();
+onMounted(async () => {
+  await loadMatchingExtension();
+  isMounted.value = true;
 });
 
 // Watch route changes

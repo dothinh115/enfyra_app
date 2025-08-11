@@ -5,9 +5,9 @@ const toast = useToast();
 const { confirm } = useConfirm();
 
 const tableName = "menu_definition";
-const detail = ref<Record<string, any> | null>(null);
-const form = ref<Record<string, any>>({});
-const errors = ref<Record<string, string>>({});
+
+// Mounted state để đánh dấu first render
+const isMounted = ref(false);
 
 const { validate, getIncludeFields } = useSchema(tableName);
 
@@ -20,14 +20,14 @@ const { tables } = useGlobalState();
 // API composable for fetching menu detail
 const {
   data: menuData,
-  error: fetchError,
+  pending: loading,
   execute: executeFetchMenu,
-  pending: fetchPending,
-} = useApiLazy(() => "/menu_definition", {
+} = useApiLazy(() => `/${tableName}`, {
   query: {
     fields: getIncludeFields(),
     filter: { id: { _eq: Number(route.params.id) } },
   },
+  errorContext: "Fetch Menu",
 });
 
 // API composable for updating menu
@@ -35,16 +35,38 @@ const {
   execute: executeUpdateMenu,
   pending: updateLoading,
   error: updateError,
-} = useApiLazy(() => `/menu_definition`, {
+} = useApiLazy(() => `/${tableName}`, {
   method: "patch",
+  errorContext: "Update Menu",
 });
 
 // API composable for deleting menu
 const { execute: executeDeleteMenu, pending: deleteLoading } = useApiLazy(
-  () => `/menu_definition`,
+  () => `/${tableName}`,
   {
     method: "delete",
+    errorContext: "Delete Menu",
   }
+);
+
+// Computed menu detail
+const detail = computed(() => menuData.value?.data?.[0]);
+
+// Form data as ref
+const form = ref<Record<string, any>>({});
+
+// Form errors
+const errors = ref<Record<string, string>>({});
+
+// Watch API data and update form
+watch(
+  menuData,
+  (newData) => {
+    if (newData?.data?.[0]) {
+      form.value = { ...newData.data[0] };
+    }
+  },
+  { immediate: true }
 );
 
 // Register header actions
@@ -89,137 +111,117 @@ useHeaderActionRegistry([
   },
 ]);
 
-async function fetchMenuDetail(menuId: number) {
-  await executeFetchMenu();
-
-  if (!menuData.value?.data?.[0]) {
-    await navigateTo("/settings/menus");
-    return;
-  }
-
-  detail.value = menuData.value.data[0];
-  form.value = { ...detail.value };
-  errors.value = {};
-}
-
 async function updateMenuDetail() {
-  const { isValid, errors: validationErrors } = validate(form.value);
+  if (!form.value) return;
 
+  const { isValid, errors: validationErrors } = validate(form.value);
   if (!isValid) {
     errors.value = validationErrors;
+    toast.add({
+      title: "Missing information",
+      description: "Please fill in all required fields.",
+      color: "error",
+    });
     return;
   }
 
-  await executeUpdateMenu({ id: detail.value?.id, body: form.value });
+  try {
+    await executeUpdateMenu({ id: Number(route.params.id), body: form.value });
 
-  if (updateError.value) {
-    return;
+    // Reregister menus after update
+    await fetchMenuDefinitions();
+    await reregisterAllMenus(fetchMenuDefinitions as any);
+
+    toast.add({
+      title: "Success",
+      color: "success",
+      description: "Menu updated!",
+    });
+    errors.value = {};
+  } catch (error) {
+    // Error already handled by useApiLazy
   }
-
-  // Reregister all menus after update
-  await reregisterAllMenus(fetchMenuDefinitions as any);
-
-  // Also reregister table menus to ensure consistency
-  if (tables.value.length > 0) {
-    await registerTableMenusWithSidebarIds(tables.value);
-  }
-
-  toast.add({
-    title: "Success",
-    description: "Menu updated successfully",
-    color: "success",
-  });
 }
 
 async function deleteMenuDetail() {
-  const ok = await confirm({ title: "Are you sure?" });
-  if (!ok || detail.value?.isSystem) return;
+  const ok = await confirm({
+    title: "Are you sure?",
+    content: "This action cannot be undone.",
+  });
+  if (!ok) return;
 
-  await executeDeleteMenu({ id: detail.value?.id });
+  try {
+    await executeDeleteMenu({ id: Number(route.params.id) });
 
-  // Reregister all menus after delete
-  await reregisterAllMenus(fetchMenuDefinitions as any);
+    // Reregister menus after delete
+    await fetchMenuDefinitions();
+    await reregisterAllMenus(fetchMenuDefinitions as any);
 
-  // Also reregister table menus to ensure consistency
-  if (tables.value.length > 0) {
-    await registerTableMenusWithSidebarIds(tables.value);
+    toast.add({ title: "Menu deleted", color: "success" });
+    await navigateTo("/settings/menus");
+  } catch (error) {
+    // Error already handled by useApiLazy
   }
-
-  await navigateTo("/settings/menus");
 }
 
-onMounted(() => fetchMenuDetail(Number(route.params.id)));
-watch(
-  () => route.params.id,
-  (newVal) => fetchMenuDetail(Number(newVal))
-);
+onMounted(async () => {
+  await executeFetchMenu();
+  isMounted.value = true;
+});
 </script>
 
 <template>
-  <!-- Loading state -->
-  <CommonLoadingState
-    v-if="fetchPending"
-    title="Loading menu..."
-    description="Fetching menu details"
-    size="sm"
-    type="form"
-    context="page"
-  />
+  <Transition name="loading-fade" mode="out-in">
+    <!-- Loading State: khi chưa mounted hoặc đang loading -->
+    <CommonLoadingState
+      v-if="!isMounted || loading"
+      title="Loading menu..."
+      description="Fetching menu details"
+      size="sm"
+      type="form"
+      context="page"
+    />
 
-  <!-- Form content -->
-  <UForm
-    v-else-if="detail"
-    :state="form"
-    @submit="updateMenuDetail"
-    class="space-y-6"
-  >
-    <div class="flex items-center justify-between">
+    <!-- Form Content: khi có data -->
+    <div v-else-if="detail" class="space-y-6">
       <div class="flex items-center gap-3">
         <Icon
-          :name="detail.icon || 'lucide:menu'"
+          :name="detail.icon || 'lucide:circle'"
           class="text-2xl text-primary"
         />
         <div class="text-xl font-bold text-primary">
-          Menu: {{ detail.label }}
+          Menu: {{ detail.name }}
         </div>
       </div>
+
+      <UCard>
+        <template #header>
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-3">
+              <UBadge color="primary" v-if="detail.isSystem"
+                >System Menu</UBadge
+              >
+              <UBadge color="secondary" v-if="detail.isEnabled">Enabled</UBadge>
+            </div>
+          </div>
+        </template>
+
+        <FormEditor
+          v-model="form"
+          v-model:errors="errors"
+          :table-name="tableName"
+          :excluded="['isSystem', 'createdAt', 'updatedAt']"
+        />
+      </UCard>
     </div>
 
-    <UCard>
-      <template #header>
-        <div class="flex justify-between items-center">
-          <div class="flex items-center gap-3">
-            <UBadge color="primary" v-if="form.isSystem">System Menu</UBadge>
-            <UBadge color="secondary" v-if="form.isEnabled">Enabled</UBadge>
-            <UBadge
-              :color="form.type === 'mini' ? 'primary' : 'secondary'"
-              v-if="form.type"
-            >
-              {{ form.type === "mini" ? "Sidebar" : "Menu Item" }}
-            </UBadge>
-          </div>
-        </div>
-      </template>
-
-      <FormEditor
-        v-model="form"
-        v-model:errors="errors"
-        :table-name="tableName"
-        :excluded="['isSystem']"
-        :type-map="{
-          order: {
-            componentProps: {
-              min: 0,
-              step: 1,
-            },
-          },
-          permission: {
-            height: '100px',
-          },
-          path: { disabled: detail?.isSystem },
-          isEnabled: { disabled: detail?.isSystem },
-        }"
-      />
-    </UCard>
-  </UForm>
+    <!-- Empty State: khi đã mounted, không loading và không có data -->
+    <CommonEmptyState
+      v-else
+      title="Menu not found"
+      description="The requested menu could not be loaded"
+      icon="lucide:menu"
+      size="sm"
+    />
+  </Transition>
 </template>

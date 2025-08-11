@@ -16,3 +16,32 @@
   }
 }
 
+@layer components {
+  /* Loading state transitions */
+  .loading-fade-enter-active,
+  .loading-fade-leave-active {
+    transition: opacity 0.3s ease-in-out;
+  }
+
+  .loading-fade-enter-from,
+  .loading-fade-leave-to {
+    opacity: 0;
+  }
+
+  /* Smooth content transitions */
+  .content-fade-enter-active,
+  .content-fade-leave-active {
+    transition: all 0.3s ease-in-out;
+  }
+
+  .content-fade-enter-from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  .content-fade-leave-to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+

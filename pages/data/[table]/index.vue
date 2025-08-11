@@ -15,6 +15,9 @@ const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
 const { createLoader } = useLoader();
 const { checkPermissionCondition } = usePermissions();
 
+// Mounted state để đánh dấu first render
+const isMounted = ref(false);
+
 // Filter state (move up before use)
 const showFilterDrawer = ref(false);
 const currentFilter = ref(createEmptyFilter());
@@ -98,7 +101,7 @@ const {
       ...(Object.keys(filterQuery).length > 0 && { filter: filterQuery }),
     };
   }),
-  errorContext: `Loading ${tableName} data`,
+  errorContext: "Fetch Data",
 });
 
 // Delete single record composable
@@ -110,6 +113,24 @@ const { execute: executeSingleDelete } = useApiLazy(
     errorContext: "Delete Record",
   }
 );
+
+// Column visibility dropdown items
+const columnDropdownItems = computed(() => {
+  const schema = schemas.value[tableName];
+  if (!schema?.definition) return [];
+
+  return schema.definition
+    .filter((field: any) => field.fieldType === "column")
+    .map((field: any) => ({
+      label: field.label || field.name,
+      type: "checkbox" as const,
+      checked: true, // All columns visible by default
+      onSelect: (e: Event) => {
+        e.preventDefault();
+        // Column visibility logic can be added here if needed
+      },
+    }));
+});
 
 // Build columns from schema
 const columns = computed<ColumnDef<any>[]>(() => {
@@ -308,6 +329,7 @@ async function handleBulkDelete(selectedRows: any[]) {
 
 onMounted(async () => {
   await fetchData();
+  isMounted.value = true;
 });
 
 // Remove auto-watch - FilterDrawer handles apply/clear events
@@ -315,19 +337,35 @@ onMounted(async () => {
 
 <template>
   <div class="space-y-4">
-    <UCard variant="subtle">
-      <template #header>
-        <div class="text-xl font-semibold capitalize">
-          <span>{{ table?.name || "Records" }}</span>
-        </div>
-      </template>
+    <!-- Page Header -->
+    <div class="flex items-center justify-between">
+      <div class="text-xl font-semibold capitalize">
+        <span>{{ table?.name || "Records" }}</span>
+      </div>
 
-      <!-- Data Table -->
+      <!-- Column Picker -->
+      <DataTableColumnSelector :items="columnDropdownItems" />
+    </div>
 
+    <!-- Data Table -->
+    <Transition name="loading-fade" mode="out-in">
+      <!-- Loading State: khi chưa mounted (first render) hoặc đang loading -->
+      <div v-if="!isMounted || loading" class="w-full py-8">
+        <CommonLoadingState
+          type="table"
+          size="md"
+          context="page"
+          :title="`Loading ${table?.name || 'data'}...`"
+          description="Fetching records"
+        />
+      </div>
+
+      <!-- Data Table: khi có data -->
       <DataTable
+        v-else-if="data && data.length > 0"
         :data="data"
         :columns="columns"
-        :loading="loading"
+        :loading="false"
         :page-size="pageLimit"
         :selectable="true"
         :on-bulk-delete="
@@ -364,15 +402,25 @@ onMounted(async () => {
         </template>
       </DataTable>
 
-      <!-- Pagination - only show when more than 1 page -->
-      <UPagination
-        v-if="!loading && Math.ceil(total / pageLimit) > 1"
-        v-model="page"
-        :page-count="pageLimit"
-        :total="total"
-        @update:model-value="fetchData"
-      />
-    </UCard>
+      <!-- Empty State: khi đã mounted, không loading và không có data -->
+      <div v-else class="w-full py-8">
+        <CommonEmptyState
+          title="No data available"
+          description="There are no records to display"
+          icon="lucide:database"
+          size="lg"
+        />
+      </div>
+    </Transition>
+
+    <!-- Pagination - only show when more than 1 page -->
+    <UPagination
+      v-if="!loading && Math.ceil(total / pageLimit) > 1"
+      v-model="page"
+      :page-count="pageLimit"
+      :total="total"
+      @update:model-value="fetchData"
+    />
 
     <!-- Filter Drawer - use existing component -->
     <FilterDrawer

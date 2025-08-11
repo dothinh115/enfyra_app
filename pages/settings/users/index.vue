@@ -1,76 +1,82 @@
 <template>
   <div class="space-y-4">
-    <CommonLoadingState
-      v-if="loading"
-      title="Loading users..."
-      description="Fetching user accounts"
-      size="sm"
-      type="card"
-      context="page"
-    />
+    <Transition name="loading-fade" mode="out-in">
+      <!-- Loading State: khi chưa mounted hoặc đang loading -->
+      <CommonLoadingState
+        v-if="!isMounted || loading"
+        title="Loading users..."
+        description="Fetching user accounts"
+        size="sm"
+        type="card"
+        context="page"
+      />
 
-    <div
-      v-else-if="users.length > 0"
-      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
-    >
-      <UCard v-for="user in users" :key="user.id" class="relative group">
-        <template #header>
-          <div class="flex items-center gap-3">
-            <UAvatar
-              v-if="user.avatar"
-              :src="user.avatar"
-              :alt="user.name"
-              size="sm"
-            />
-            <UAvatar v-else :alt="user.name" size="sm">
-              {{ user.email?.charAt(0)?.toUpperCase() || "?" }}
-            </UAvatar>
+      <!-- Users Grid: khi có data -->
+      <div
+        v-else-if="users.length > 0"
+        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+      >
+        <UCard v-for="user in users" :key="user.id" class="relative group">
+          <template #header>
+            <div class="flex items-center gap-3">
+              <UAvatar
+                v-if="user.avatar"
+                :src="user.avatar"
+                :alt="user.name"
+                size="sm"
+              />
+              <UAvatar v-else :alt="user.name" size="sm">
+                {{ user.email?.charAt(0)?.toUpperCase() || "?" }}
+              </UAvatar>
 
-            <div>
-              <div class="font-medium truncate">{{ user.name }}</div>
-              <div class="text-xs text-muted-foreground truncate">
-                {{ user.email }}
+              <div>
+                <div class="font-medium truncate">{{ user.name }}</div>
+                <div class="text-xs text-muted-foreground truncate">
+                  {{ user.email }}
+                </div>
               </div>
             </div>
+          </template>
+
+          <div class="text-sm text-muted-foreground">
+            <div class="flex items-center justify-between">
+              <div>Role:</div>
+              <UBadge variant="soft" color="primary" v-if="user.role">{{
+                user.role.name
+              }}</UBadge>
+            </div>
+            <div class="flex items-center justify-between mt-1">
+              <div>Joined:</div>
+              <div>{{ new Date(user.createdAt).toLocaleDateString() }}</div>
+            </div>
           </div>
-        </template>
 
-        <div class="text-sm text-muted-foreground">
-          <div class="flex items-center justify-between">
-            <div>Role:</div>
-            <UBadge variant="soft" color="primary" v-if="user.role">{{
-              user.role.name
-            }}</UBadge>
-          </div>
-          <div class="flex items-center justify-between mt-1">
-            <div>Joined:</div>
-            <div>{{ new Date(user.createdAt).toLocaleDateString() }}</div>
-          </div>
-        </div>
+          <template #footer>
+            <UButton
+              icon="lucide:eye"
+              variant="outline"
+              size="sm"
+              block
+              :to="`/settings/users/${user.id}`"
+            >
+              View Details
+            </UButton>
+          </template>
+        </UCard>
+      </div>
 
-        <template #footer>
-          <UButton
-            icon="lucide:eye"
-            variant="outline"
-            size="sm"
-            block
-            :to="`/settings/users/${user.id}`"
-          >
-            View Details
-          </UButton>
-        </template>
-      </UCard>
-    </div>
+      <!-- Empty State: khi đã mounted, không loading và không có data -->
+      <CommonEmptyState
+        v-else
+        title="No users found"
+        description="No user accounts have been created yet"
+        icon="lucide:users"
+        size="sm"
+      />
+    </Transition>
 
-    <CommonEmptyState
-      v-else
-      title="No users found"
-      description="No user accounts have been created yet"
-      icon="lucide:users"
-      size="sm"
-    />
-
-    <div class="flex justify-center mt-4" v-if="!loading">
+    <!-- Pagination - chỉ hiển thị khi có data -->
+    <div class="flex justify-center mt-4" v-if="!loading && users.length > 0">
       <UPagination
         v-model="page"
         :page-count="limit"
@@ -79,16 +85,16 @@
         v-if="total > limit"
       />
     </div>
-  </div>
 
-  <!-- Filter Drawer -->
-  <FilterDrawer
-    v-model="showFilterDrawer"
-    v-model:filter-value="currentFilter"
-    :table-name="tableName"
-    @apply="applyFilters"
-    @clear="clearFilters"
-  />
+    <!-- Filter Drawer -->
+    <FilterDrawer
+      v-model="showFilterDrawer"
+      v-model:filter-value="currentFilter"
+      :table-name="tableName"
+      @apply="applyFilters"
+      @clear="clearFilters"
+    />
+  </div>
 </template>
 <script setup lang="ts">
 const page = ref(1);
@@ -97,11 +103,40 @@ const tableName = "user_definition";
 const { getIncludeFields } = useSchema(tableName);
 const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
 
+// Mounted state để đánh dấu first render
+const isMounted = ref(false);
+
 // Filter state
 const showFilterDrawer = ref(false);
 const currentFilter = ref(createEmptyFilter());
 
-// Filter button computed values
+// API composable
+const {
+  data: apiData,
+  pending: loading,
+  execute: fetchUsers,
+} = useApiLazy(() => `/${tableName}`, {
+  query: computed(() => {
+    const filterQuery = hasActiveFilters(currentFilter.value)
+      ? buildQuery(currentFilter.value)
+      : {};
+
+    return {
+      limit,
+      page: page.value,
+      fields: getIncludeFields(),
+      meta: "*",
+      ...(Object.keys(filterQuery).length > 0 && { filter: filterQuery }),
+    };
+  }),
+  errorContext: "Fetch Users",
+});
+
+// Computed users data
+const users = computed(() => apiData.value?.data || []);
+const total = computed(() => apiData.value?.meta?.totalCount || 0);
+
+// Filter functions
 const filterLabel = computed(() => {
   const activeCount = currentFilter.value.conditions.length;
   return activeCount > 0 ? `Filters (${activeCount})` : "Filter";
@@ -115,47 +150,14 @@ const filterColor = computed(() => {
   return hasActiveFilters(currentFilter.value) ? "secondary" : "neutral";
 });
 
-// API composable
-const {
-  data: apiData,
-  pending: loading,
-  execute: fetchUsers,
-} = useApiLazy(() => "/user_definition", {
-  query: computed(() => {
-    const filterQuery = hasActiveFilters(currentFilter.value)
-      ? buildQuery(currentFilter.value)
-      : {};
-
-    return {
-      fields: getIncludeFields(),
-      page: page.value,
-      limit,
-      sort: "-createdAt",
-      meta: "totalCount,filterCount",
-      ...(Object.keys(filterQuery).length > 0 && { filter: filterQuery }),
-    };
-  }),
-  errorContext: "Fetch Users",
-});
-
-// Computed values from API data
-const users = computed(() => apiData.value?.data || []);
-const total = computed(() => {
-  // Use filterCount when there are active filters, otherwise use totalCount
-  const hasFilters = hasActiveFilters(currentFilter.value);
-  return hasFilters
-    ? apiData.value?.meta?.filterCount || apiData.value?.meta?.totalCount || 0
-    : apiData.value?.meta?.totalCount || 0;
-});
-
-// Register header actions
+// Header actions
 useHeaderActionRegistry([
   {
     id: "filter-users",
-    icon: "lucide:filter",
     get label() {
       return filterLabel.value;
     },
+    icon: "lucide:filter",
     get variant() {
       return filterVariant.value;
     },
@@ -169,7 +171,7 @@ useHeaderActionRegistry([
     permission: {
       and: [
         {
-          route: "/user_definition",
+          route: `/${tableName}`,
           actions: ["read"],
         },
       ],
@@ -186,7 +188,7 @@ useHeaderActionRegistry([
     permission: {
       and: [
         {
-          route: "/user_definition",
+          route: `/${tableName}`,
           actions: ["create"],
         },
       ],
@@ -194,7 +196,7 @@ useHeaderActionRegistry([
   },
 ]);
 
-// Apply filters - called by FilterDrawer
+// Apply filters
 async function applyFilters() {
   page.value = 1;
   await fetchUsers();
@@ -205,5 +207,19 @@ function clearFilters() {
   applyFilters();
 }
 
-watch(page, () => fetchUsers(), { immediate: true });
+// Watch for API data changes
+watch(
+  apiData,
+  (newData) => {
+    if (newData?.data) {
+      // Data updated
+    }
+  },
+  { immediate: true }
+);
+
+onMounted(async () => {
+  await fetchUsers();
+  isMounted.value = true;
+});
 </script>

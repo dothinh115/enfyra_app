@@ -6,6 +6,9 @@ const route = useRoute();
 const tableName = "hook_definition";
 const { getIncludeFields } = useSchema(tableName);
 
+// Mounted state để đánh dấu first render
+const isMounted = ref(false);
+
 // API composable for fetching hooks
 const {
   data: apiData,
@@ -84,100 +87,83 @@ async function toggleEnabled(hook: any) {
     hook.isEnabled = originalEnabled;
   }
 }
+
+onMounted(async () => {
+  isMounted.value = true;
+});
 </script>
 
 <template>
   <div class="space-y-6">
-    <CommonLoadingState
-      v-if="loading"
-      title="Loading hooks..."
-      description="Fetching webhook configurations"
-      size="sm"
-      type="card"
-      context="page"
-    />
-    <div class="space-y-3 flex flex-col" v-else-if="hooks.length">
-      <ULink
-        :to="`/settings/hooks/${hook.id}`"
-        v-for="hook in hooks"
-        :key="hook.id"
-        class="cursor-pointer relative z-10"
-      >
-        <UCard
-          class="hover:bg-gray-50 dark:hover:bg-gray-800 transition"
-          variant="subtle"
+    <Transition name="loading-fade" mode="out-in">
+      <!-- Loading State: khi chưa mounted hoặc đang loading -->
+      <CommonLoadingState
+        v-if="!isMounted || loading"
+        title="Loading hooks..."
+        description="Fetching webhook configurations"
+        size="sm"
+        type="card"
+        context="page"
+      />
+
+      <!-- Hooks List: khi có data -->
+      <div v-else-if="hooks.length" class="space-y-3 flex flex-col">
+        <ULink
+          v-for="hook in hooks"
+          :key="hook.id"
+          :to="`/settings/hooks/${hook.id}`"
         >
-          <div class="flex items-center justify-between gap-4">
-            <div class="space-y-1">
-              <div class="flex items-center space-x-1">
-                <span class="text-xs text-gray-400">Hook name:</span>
-                <span class="text-sm font-semibold text-primary">{{
-                  hook.name
-                }}</span>
-              </div>
-
-              <div class="flex items-center space-x-1">
-                <span class="text-xs text-gray-400">Route:</span>
-                <span class="text-sm text-gray-300">{{
-                  hook.route?.path ?? "All path"
-                }}</span>
-              </div>
-
-              <div class="flex items-center space-x-1 flex-wrap">
-                <span class="text-xs text-gray-400">Methods:</span>
-                <UBadge
-                  color="primary"
-                  size="xs"
-                  variant="solid"
-                  v-for="(item, index) in hook.methods"
-                  :key="index"
-                  v-if="hook.methods.length"
+          <UCard
+            class="hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+            variant="subtle"
+          >
+            <div class="flex justify-between items-start gap-4">
+              <div class="space-y-1 flex-1">
+                <div class="text-base font-semibold text-primary">
+                  {{ hook.name || "Unnamed" }}
+                </div>
+                <div class="text-sm text-gray-400">
+                  Route: <code>{{ hook.route?.path || "N/A" }}</code>
+                </div>
+                <div
+                  class="text-sm text-muted-foreground"
+                  v-if="hook.description"
                 >
-                  {{ item?.method }}
-                </UBadge>
-                <UBadge color="primary" size="xs" variant="solid" v-else>
-                  All methods
-                </UBadge>
+                  {{ hook.description }}
+                </div>
+              </div>
+
+              <!-- Toggle button -->
+              <div class="shrink-0">
+                <USwitch
+                  v-model="hook.isEnabled"
+                  @update:model-value="toggleEnabled(hook)"
+                  :disabled="hook.isSystem"
+                />
               </div>
             </div>
+          </UCard>
+        </ULink>
+      </div>
 
-            <div class="flex items-end">
-              <USwitch
-                :model-value="hook.isEnabled"
-                @update:model-value="toggleEnabled(hook)"
-                label="Is enabled"
-                @click.prevent
-                v-if="!hook.isSystem"
-              />
-            </div>
-          </div>
-        </UCard>
-      </ULink>
-    </div>
-    <CommonEmptyState
-      v-else-if="!loading"
-      title="No hooks found"
-      description="No webhook configurations have been created yet"
-      icon="lucide:webhook"
-      size="sm"
-    />
+      <!-- Empty State: khi đã mounted, không loading và không có data -->
+      <CommonEmptyState
+        v-else
+        title="No hooks found"
+        description="No webhook configurations have been created yet"
+        icon="lucide:link"
+        size="sm"
+      />
+    </Transition>
 
-    <div class="flex justify-center mt-6">
+    <!-- Pagination - chỉ hiển thị khi có data -->
+    <div class="flex justify-center" v-if="!loading && hooks.length > 0">
       <UPagination
-        v-model:page="page"
-        :items-per-page="pageLimit"
-        v-if="page > 1 && !loading"
+        v-model="page"
+        :page-count="pageLimit"
         :total="total"
-        show-edges
-        :sibling-count="1"
-        :to="
-          (p) => ({
-            path: route.path,
-            query: { ...route.query, page: p },
-          })
-        "
-        color="secondary"
-        active-color="secondary"
+        size="sm"
+        v-if="total > pageLimit"
       />
     </div>
   </div>

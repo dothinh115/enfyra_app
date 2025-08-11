@@ -1,10 +1,7 @@
 export const useLoader = () => {
   const createLoader = () => {
-    // Tạo UUID duy nhất cho mỗi loader
-    const loaderId = crypto.randomUUID();
-
-    // Sử dụng useState trực tiếp thay vì useGlobalState để tránh circular dependency
-    const loadingState = useState<boolean>(`loader:${loaderId}`, () => false);
+    // Sử dụng local ref thay vì useState để tránh circular dependency
+    const loadingState = ref(false);
 
     const isLoading = computed(() => loadingState.value);
 
