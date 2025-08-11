@@ -56,9 +56,9 @@ async function deleteRecord(id: any) {
   try {
     await removeSpecificRecord();
     selected.value = selected.value.filter((item) => item.id !== id);
-    await fetchData();
+    await fetchDataWithValidation();
   } catch (e) {
-    
+    console.error("Error deleting record:", e);
   }
 }
 
@@ -74,27 +74,47 @@ const {
   data: apiData,
   pending: loading,
   execute: fetchData,
+  error: apiError,
 } = useApiLazy(() => `/${targetTable?.name}`, {
   query: computed(() => {
     const filterQuery = hasActiveFilters(currentFilter.value)
       ? buildQuery(currentFilter.value)
       : {};
 
-    return {
+    const query = {
       fields: "*",
       page: page.value,
       limit,
-      meta: "totalCount",
+      meta: "totalCount,filterCount",
       sort: "-createdAt",
       ...(Object.keys(filterQuery).length > 0 && { filter: filterQuery }),
     };
+
+    return query;
   }),
   errorContext: "Fetch Relation Data",
 });
 
 // Computed values from API data
-const data = computed(() => apiData.value?.data || []);
-const total = computed(() => apiData.value?.meta?.totalCount || 0);
+const data = computed(() => {
+  return apiData.value?.data || [];
+});
+
+const total = computed(() => {
+  // Use filterCount when there are active filters, otherwise use totalCount
+  const hasFilters = hasActiveFilters(currentFilter.value);
+  return hasFilters
+    ? apiData.value?.meta?.filterCount || apiData.value?.meta?.totalCount || 0
+    : apiData.value?.meta?.totalCount || 0;
+});
+
+// Ensure page is valid when total changes
+watch(total, (newTotal) => {
+  const maxPage = Math.ceil(newTotal / limit);
+  if (page.value > maxPage && maxPage > 0) {
+    page.value = maxPage;
+  }
+});
 
 function toggle(id: any) {
   if (props.disabled) return;
@@ -122,20 +142,45 @@ function viewDetails(item: any) {
 
 async function applyFilter() {
   page.value = 1; // Reset to first page when filter changes
-  await fetchData();
+  await fetchDataWithValidation();
 }
 
 async function clearFilter() {
   currentFilter.value = createEmptyFilter();
-  await applyFilter();
+  page.value = 1; // Reset to first page when clearing filters
+  await fetchDataWithValidation();
 }
 
 function openFilterDrawer() {
   showFilterDrawer.value = true;
 }
 
-onMounted(() => fetchData());
-watch(page, () => fetchData());
+async function fetchDataWithValidation() {
+  try {
+    await fetchData();
+
+    // Validate page after fetch
+    const maxPage = Math.ceil(total.value / limit);
+    if (page.value > maxPage && maxPage > 0) {
+      page.value = maxPage;
+    }
+  } catch (error) {
+    // Reset to page 1 on error
+    if (page.value > 1) {
+      page.value = 1;
+    }
+  }
+}
+
+onMounted(() => {
+  fetchDataWithValidation();
+});
+
+watch(page, (newPage) => {
+  if (newPage >= 1) {
+    fetchDataWithValidation();
+  }
+});
 </script>
 
 <template>

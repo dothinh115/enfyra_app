@@ -34,7 +34,11 @@ const { execute: removeHandler } = useApiLazy(
 
 // Computed values from API data
 const routeHandlers = computed(() => apiData.value?.data || []);
-const total = computed(() => apiData.value?.meta?.totalCount || 0);
+const total = computed(() => {
+  // Use filterCount when there are active filters, otherwise use totalCount
+  // Note: This page doesn't have filters yet, but keeping the logic consistent
+  return apiData.value?.meta?.totalCount || 0;
+});
 
 // Register header actions
 useHeaderActionRegistry({

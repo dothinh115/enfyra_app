@@ -215,7 +215,11 @@ watch(
   (newData) => {
     if (newData?.data) {
       data.value = newData.data;
-      total.value = newData.meta?.total_count || 0;
+      // Use filterCount when there are active filters, otherwise use totalCount
+      const hasFilters = hasActiveFilters(currentFilter.value);
+      total.value = hasFilters
+        ? newData.meta?.filterCount || newData.meta?.totalCount || 0
+        : newData.meta?.totalCount || 0;
     }
   },
   { immediate: true }

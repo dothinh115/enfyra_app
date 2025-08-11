@@ -131,7 +131,7 @@ const {
       page: page.value,
       limit,
       sort: "-createdAt",
-      meta: "totalCount",
+      meta: "totalCount,filterCount",
       ...(Object.keys(filterQuery).length > 0 && { filter: filterQuery }),
     };
   }),
@@ -140,7 +140,13 @@ const {
 
 // Computed values from API data
 const users = computed(() => apiData.value?.data || []);
-const total = computed(() => apiData.value?.meta?.totalCount || 0);
+const total = computed(() => {
+  // Use filterCount when there are active filters, otherwise use totalCount
+  const hasFilters = hasActiveFilters(currentFilter.value);
+  return hasFilters
+    ? apiData.value?.meta?.filterCount || apiData.value?.meta?.totalCount || 0
+    : apiData.value?.meta?.totalCount || 0;
+});
 
 // Register header actions
 useHeaderActionRegistry([
