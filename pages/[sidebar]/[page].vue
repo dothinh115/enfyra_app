@@ -66,11 +66,6 @@
 </template>
 
 <script setup lang="ts">
-// Imports
-import { useDynamicComponent } from "~/composables/useDynamicComponent";
-import { useApiLazy } from "~/composables/useApi";
-
-// Get route params
 const route = useRoute();
 const sidebarParam = route.params.sidebar;
 const pageParam = route.params.page;
@@ -91,11 +86,19 @@ const {
   execute: executeFetchMenu,
 } = useApiLazy(() => "/menu_definition", {
   query: computed(() => {
-    const fullRoute = `/${sidebarParam}/${pageParam}`;
+    const fullRoute = `${sidebarParam}/${pageParam}`;
     return {
       fields: "*,extension.*",
       filter: {
-        _and: [{ path: { _eq: fullRoute } }, { isEnabled: { _eq: true } }],
+        _and: [
+          {
+            _or: [
+              { path: { _eq: fullRoute } },
+              { path: { _eq: `/${fullRoute}` } },
+            ],
+          },
+          { isEnabled: { _eq: true } },
+        ],
       },
     };
   }),
