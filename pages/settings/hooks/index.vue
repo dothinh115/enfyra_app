@@ -64,7 +64,7 @@ async function toggleEnabled(hook: any) {
   const originalEnabled = hook.isEnabled;
   hook.isEnabled = !hook.isEnabled;
 
-  const { execute: updateSpecificHook } = useApiLazy(
+  const { execute: updateSpecificHook, error: updateError } = useApiLazy(
     () => `/hook_definition/${hook.id}`,
     {
       method: "patch",
@@ -72,15 +72,14 @@ async function toggleEnabled(hook: any) {
     }
   );
 
-  try {
-    await updateSpecificHook({ body: { isEnabled: hook.isEnabled } });
-  } catch (error) {
+  await updateSpecificHook({ body: { isEnabled: hook.isEnabled } });
+
+  if (updateError.value) {
     hook.isEnabled = originalEnabled;
   }
 }
 
-onMounted(async () => {
-});
+onMounted(async () => {});
 </script>
 
 <template>

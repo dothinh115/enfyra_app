@@ -11,8 +11,7 @@ const { isMounted } = useMounted();
 const { validate, getIncludeFields } = useSchema(tableName);
 
 const { fetchMenuDefinitions } = useMenuApi();
-const { reregisterAllMenus, registerTableMenusWithSidebarIds } =
-  useMenuRegistry();
+const { reregisterAllMenus } = useMenuRegistry();
 const { tables } = useGlobalState();
 
 const {
@@ -36,13 +35,14 @@ const {
   errorContext: "Update Menu",
 });
 
-const { execute: executeDeleteMenu, pending: deleteLoading } = useApiLazy(
-  () => `/${tableName}`,
-  {
-    method: "delete",
-    errorContext: "Delete Menu",
-  }
-);
+const {
+  execute: executeDeleteMenu,
+  pending: deleteLoading,
+  error: deleteError,
+} = useApiLazy(() => `/${tableName}`, {
+  method: "delete",
+  errorContext: "Delete Menu",
+});
 
 const detail = computed(() => menuData.value?.data?.[0]);
 
@@ -69,7 +69,6 @@ useHeaderActionRegistry([
     color: "primary",
     size: "md",
     loading: updateLoading,
-    disabled: computed(() => detail.value?.isSystem || false),
     onClick: updateMenuDetail,
     permission: {
       and: [
@@ -102,9 +101,8 @@ useHeaderActionRegistry([
 ]);
 
 async function updateMenuDetail() {
-  if (!form.value) return;
-
   const { isValid, errors: validationErrors } = validate(form.value);
+
   if (!isValid) {
     errors.value = validationErrors;
     toast.add({
@@ -115,20 +113,23 @@ async function updateMenuDetail() {
     return;
   }
 
-  try {
-    await executeUpdateMenu({ id: Number(route.params.id), body: form.value });
+  await executeUpdateMenu({ id: Number(route.params.id), body: form.value });
 
-    await fetchMenuDefinitions();
-    await reregisterAllMenus(fetchMenuDefinitions as any);
-
-    toast.add({
-      title: "Success",
-      color: "success",
-      description: "Menu updated!",
-    });
-    errors.value = {};
-  } catch (error) {
+  // Check if there was an error
+  if (updateError.value) {
+    // Error already handled by useApiLazy
+    return;
   }
+
+  await fetchMenuDefinitions();
+  await reregisterAllMenus(fetchMenuDefinitions as any);
+
+  toast.add({
+    title: "Success",
+    color: "success",
+    description: "Menu updated!",
+  });
+  errors.value = {};
 }
 
 async function deleteMenuDetail() {
@@ -138,16 +139,19 @@ async function deleteMenuDetail() {
   });
   if (!ok) return;
 
-  try {
-    await executeDeleteMenu({ id: Number(route.params.id) });
+  await executeDeleteMenu({ id: Number(route.params.id) });
 
-    await fetchMenuDefinitions();
-    await reregisterAllMenus(fetchMenuDefinitions as any);
-
-    toast.add({ title: "Menu deleted", color: "success" });
-    await navigateTo("/settings/menus");
-  } catch (error) {
+  // Check if there was an error
+  if (deleteError.value) {
+    // Error already handled by useApiLazy
+    return;
   }
+
+  await fetchMenuDefinitions();
+  await reregisterAllMenus(fetchMenuDefinitions as any);
+
+  toast.add({ title: "Menu deleted", color: "success" });
+  await navigateTo("/settings/menus");
 }
 
 onMounted(async () => {

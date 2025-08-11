@@ -10,7 +10,7 @@
 
 <script setup lang="ts">
 const toast = useToast();
-const router = useRouter();
+
 
 const tableName = "user_definition";
 
@@ -24,6 +24,7 @@ const {
   data: createData,
   pending: createLoading,
   execute: createUser,
+  error: createError,
 } = useApiLazy(() => `/${tableName}`, {
   method: "post",
   errorContext: "Create User",
@@ -65,16 +66,19 @@ async function handleCreate() {
     return;
   }
 
-  try {
-    await createUser({ body: form.value });
+  await createUser({ body: form.value });
 
-    toast.add({
-      title: "User created successfully",
-      color: "success",
-    });
-
-    await router.push(`/settings/users/${createData.value?.data[0]?.id}`);
-  } finally {
+  // Check if there was an error
+  if (createError.value) {
+    // Error already handled by useApiLazy
+    return;
   }
+
+  toast.add({
+    title: "User created successfully",
+    color: "success",
+  });
+
+      await navigateTo(`/settings/users/${createData.value?.data[0]?.id}`);
 }
 </script>

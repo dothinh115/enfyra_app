@@ -162,16 +162,20 @@ async function updateHook() {
     return;
   }
 
-  try {
-    await executeUpdateHook({ id, body: form.value });
-    toast.add({
-      title: "Success",
-      color: "success",
-      description: "Hook updated!",
-    });
-    errors.value = {};
-  } catch (error) {
+  await executeUpdateHook({ id, body: form.value });
+
+  // Check if there was an error
+  if (updateError.value) {
+    // Error already handled by useApiLazy
+    return;
   }
+
+  toast.add({
+    title: "Success",
+    color: "success",
+    description: "Hook updated!",
+  });
+  errors.value = {};
 }
 
 async function deleteHook() {
@@ -181,12 +185,16 @@ async function deleteHook() {
   });
   if (!ok) return;
 
-  try {
-    await executeDeleteHook({ id });
-    toast.add({ title: "Hook deleted", color: "success" });
-    await navigateTo("/settings/hooks");
-  } catch (error) {
+  await executeDeleteHook({ id });
+
+  // Check if there was an error
+  if (deleteError.value) {
+    // Error already handled by useApiLazy
+    return;
   }
+
+  toast.add({ title: "Hook deleted", color: "success" });
+  await navigateTo("/settings/hooks");
 }
 
 onMounted(async () => {

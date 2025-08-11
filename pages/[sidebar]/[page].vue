@@ -106,33 +106,34 @@ const {
 const loadMatchingExtension = async () => {
   error.value = null;
 
+  await executeFetchMenu();
+
+  // Check if there was an error
+  if (menuError.value) {
+    error.value = `API Error: ${menuError.value}`;
+    return;
+  }
+
+  if (!menuResponse.value?.data || menuResponse.value.data.length === 0) {
+    error.value = `No menu found for route: /${sidebarParam}/${pageParam}`;
+    return;
+  }
+
+  const menuItem = menuResponse.value.data[0];
+
+  if (!menuItem.extension || menuItem.extension.length === 0) {
+    error.value = `No extension found for route: /${sidebarParam}/${pageParam}`;
+    return;
+  }
+
+  const extension = menuItem.extension;
+
+  if (!extension.isEnabled) {
+    error.value = `Extension "${extension.name}" is currently disabled. Please contact an administrator to enable this extension.`;
+    return;
+  }
+
   try {
-    await executeFetchMenu();
-
-    if (menuError.value) {
-      error.value = `API Error: ${menuError.value}`;
-      return;
-    }
-
-    if (!menuResponse.value?.data || menuResponse.value.data.length === 0) {
-      error.value = `No menu found for route: /${sidebarParam}/${pageParam}`;
-      return;
-    }
-
-    const menuItem = menuResponse.value.data[0];
-
-    if (!menuItem.extension || menuItem.extension.length === 0) {
-      error.value = `No extension found for route: /${sidebarParam}/${pageParam}`;
-      return;
-    }
-
-    const extension = menuItem.extension;
-
-    if (!extension.isEnabled) {
-      error.value = `Extension "${extension.name}" is currently disabled. Please contact an administrator to enable this extension.`;
-      return;
-    }
-
     const component = await loadDynamicComponent(
       extension.code,
       extension.extensionId

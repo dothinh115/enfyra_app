@@ -50,13 +50,14 @@ watch(
   { immediate: true }
 );
 
-const { execute: saveSetting, pending: saveLoading } = useApiLazy(
-  () => `/setting_definition/${setting.value.id}`,
-  {
-    method: "patch",
-    errorContext: "Save Settings",
-  }
-);
+const {
+  execute: saveSetting,
+  pending: saveLoading,
+  error: saveError,
+} = useApiLazy(() => `/setting_definition/${setting.value.id}`, {
+  method: "patch",
+  errorContext: "Save Settings",
+});
 
 async function handleSaveSetting() {
   if (!setting.value) return;
@@ -72,12 +73,16 @@ async function handleSaveSetting() {
     return;
   }
 
-  try {
-    await saveSetting({ body: setting.value });
-    toast.add({ title: "Configuration saved", color: "primary" });
-    errors.value = {};
-  } finally {
+  await saveSetting({ body: setting.value });
+
+  // Check if there was an error
+  if (saveError.value) {
+    // Error already handled by useApiLazy
+    return;
   }
+
+  toast.add({ title: "Configuration saved", color: "primary" });
+  errors.value = {};
 }
 
 onMounted(async () => {

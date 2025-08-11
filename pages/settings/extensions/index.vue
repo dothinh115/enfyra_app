@@ -184,10 +184,13 @@ const extensions = computed(() => apiData.value?.data || []);
 
 const extensionLoaders = ref<Record<string, any>>({});
 
-const { execute: updateExtension } = useApiLazy(() => `/extension_definition`, {
-  method: "patch",
-  errorContext: "Update Extension",
-});
+const { execute: updateExtension, error: updateError } = useApiLazy(
+  () => `/extension_definition`,
+  {
+    method: "patch",
+    errorContext: "Update Extension",
+  }
+);
 
 useHeaderActionRegistry([
   {
@@ -259,24 +262,19 @@ const toggleExtensionStatus = async (extension: ExtensionDefinition) => {
     }
   }
 
-  try {
-    await loader.withLoading(() =>
-      updateExtension({
-        body: {
-          isEnabled: newStatus,
-        },
-        id: extension.id,
-      })
-    );
+  await loader.withLoading(() =>
+    updateExtension({
+      body: {
+        isEnabled: newStatus,
+      },
+      id: extension.id,
+    })
+  );
 
-    toast.add({
-      title: "Success",
-      description: `Extension "${extension.name}" has been ${
-        newStatus ? "activated" : "deactivated"
-      } successfully!`,
-      color: "success",
-    });
-  } catch (error) {
+  // Check if there was an error
+  if (updateError.value) {
+    // Error already handled by useApiLazy
+    // Revert the optimistic update
     if (apiData.value?.data) {
       const extensionIndex = apiData.value.data.findIndex(
         (e: any) => e.id === extension.id
@@ -285,16 +283,19 @@ const toggleExtensionStatus = async (extension: ExtensionDefinition) => {
         apiData.value.data[extensionIndex].isEnabled = !newStatus;
       }
     }
-
-    toast.add({
-      title: "Error",
-      description: "Failed to update extension status",
-      color: "error",
-    });
+    return;
   }
+
+  toast.add({
+    title: "Success",
+    description: `Extension "${extension.name}" has been ${
+      newStatus ? "activated" : "deactivated"
+    } successfully!`,
+    color: "success",
+  });
 };
 
-const { execute: deleteExtensionApi } = useApiLazy(
+const { execute: deleteExtensionApi, error: deleteError } = useApiLazy(
   () => `/extension_definition`,
   {
     method: "delete",
@@ -312,6 +313,12 @@ const deleteExtension = async (extension: ExtensionDefinition) => {
 
   if (isConfirmed) {
     await deleteExtensionApi({ id: extension.id });
+
+    // Check if there was an error
+    if (deleteError.value) {
+      // Error already handled by useApiLazy
+      return;
+    }
 
     await fetchExtensions();
 

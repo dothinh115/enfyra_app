@@ -11,6 +11,7 @@ const {
   data: createData,
   pending: createLoading,
   execute: createRecord,
+  error: createError,
 } = useApiLazy(() => `/${route.params.table}`, {
   method: "post",
   errorContext: "Create Record",
@@ -55,21 +56,23 @@ async function handleCreate() {
     return;
   }
 
-  try {
-    await createRecord({ body: newRecord.value });
+  await createRecord({ body: newRecord.value });
 
-    toast.add({
-      title: "Success",
-      color: "success",
-      description: "New record created!",
-    });
-
-    await navigateTo(
-      `/data/${route.params.table}/${createData.value?.data[0]?.id}`
-    );
-  } catch (error) {
+  // Check if there was an error
+  if (createError.value) {
     // Error already handled by useApiLazy
+    return;
   }
+
+  toast.add({
+    title: "Success",
+    color: "success",
+    description: "New record created!",
+  });
+
+  await navigateTo(
+    `/data/${route.params.table}/${createData.value?.data[0]?.id}`
+  );
 }
 </script>
 

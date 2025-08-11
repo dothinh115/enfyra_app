@@ -58,6 +58,12 @@ async function handleUpdate() {
     body: currentRecord.value,
   });
 
+  // Check if there was an error
+  if (updateError.value) {
+    // Error already handled by useApiLazy
+    return;
+  }
+
   toast.add({
     title: "Success",
     color: "success",
@@ -75,6 +81,7 @@ const {
   data: updateData,
   pending: updateLoading,
   execute: updateRecord,
+  error: updateError,
 } = useApiLazy(() => `/${route.params.table}`, {
   method: "patch",
   errorContext: "Update Record",
@@ -99,12 +106,9 @@ async function deleteRecord() {
 
   await executeDeleteRecord({ id: route.params.id as string });
 
+  // Check if there was an error
   if (deleteError.value) {
-    toast.add({
-      title: "Error deleting",
-      description: deleteError.value.message,
-      color: "error",
-    });
+    // Error already handled by useApiLazy
     return;
   }
 

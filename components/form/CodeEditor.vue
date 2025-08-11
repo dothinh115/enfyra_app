@@ -14,6 +14,7 @@ import { indentWithTab } from "@codemirror/commands";
 import { closeBrackets } from "@codemirror/autocomplete";
 import { bracketMatching, indentOnInput } from "@codemirror/language";
 import eslint from "eslint-linter-browserify";
+import { ensureString } from "~/utils/form";
 
 const props = defineProps<{
   modelValue?: string;
@@ -23,7 +24,20 @@ const props = defineProps<{
 
 const emit = defineEmits(["update:modelValue", "diagnostics"]);
 
-const code = ref(props.modelValue ?? "");
+// Ensure modelValue is always a string to prevent CodeMirror errors
+const code = ref(ensureString(props.modelValue));
+
+// Watch for changes in props.modelValue and ensure it's a string
+watch(
+  () => props.modelValue,
+  (newValue) => {
+    const stringValue = ensureString(newValue);
+    if (code.value !== stringValue) {
+      code.value = stringValue;
+    }
+  },
+  { immediate: true }
+);
 
 watch(code, (val) => {
   emit("update:modelValue", val);
@@ -32,6 +46,11 @@ watch(code, (val) => {
 const linterInstance = new eslint.Linter();
 
 const diagnosticExtension = linter((view) => {
+  if (props.language === "json") {
+    emit("diagnostics", []);
+    return [];
+  }
+
   const raw = view.state.doc.toString();
 
   const wrapped = `(async () => {\n${raw}\n})()`;
@@ -75,7 +94,7 @@ const diagnosticExtension = linter((view) => {
     };
   });
 
-  emit("diagnostics", diagnostics);
+  emit("diagnostics", []);
   return diagnostics;
 });
 

@@ -50,6 +50,7 @@ const {
   pending: createLoading,
 } = useApiLazy(() => `/${tableName}`, {
   method: "post",
+  errorContext: "Create Handler",
 });
 
 onMounted(() => {
@@ -71,12 +72,9 @@ async function handleCreate() {
 
   await executeCreateHandler({ body: createForm.value });
 
+  // Check if there was an error
   if (createError.value) {
-    toast.add({
-      title: "Error",
-      description: createError.value.message,
-      color: "error",
-    });
+    // Error already handled by useApiLazy
     return;
   }
 

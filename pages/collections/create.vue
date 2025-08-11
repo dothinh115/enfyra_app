@@ -1,5 +1,6 @@
 <script setup lang="ts">
-const router = useRouter();
+const route = useRoute();
+const { $api } = useNuxtApp();
 const { tables, globalLoading, fetchSchema } = useGlobalState();
 const { confirm } = useConfirm();
 const toast = useToast();
@@ -118,6 +119,7 @@ const {
   data: createData,
   pending: createLoading,
   execute: createTable,
+  error: createError,
 } = useApiLazy(() => "/table_definition", {
   method: "post",
   errorContext: "Create Table",
@@ -160,6 +162,12 @@ async function save() {
   const payload = getCleanTablePayload();
   await createTable({ body: payload });
 
+  // Check if there was an error
+  if (createError.value) {
+    // Error already handled by useApiLazy
+    return;
+  }
+
   // Fetch schema first to get updated tables
   await fetchSchema();
 
@@ -178,9 +186,9 @@ async function save() {
   // Get the newly created table name from response
   const newTableName = createData.value?.data?.[0]?.name;
   if (newTableName) {
-    router.push(`/collections/${newTableName}`);
+    await navigateTo(`/collections/${newTableName}`);
   } else {
-    router.push("/collections");
+    await navigateTo("/collections");
   }
 }
 </script>

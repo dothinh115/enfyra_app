@@ -81,7 +81,7 @@
               icon="lucide:arrow-left"
               variant="soft"
               color="primary"
-              @click="$router.back()"
+              @click="goBack"
               :label="isMobile ? undefined : 'Back'"
               :disabled="disableBack"
               :size="isMobile ? 'sm' : 'md'"
@@ -137,6 +137,7 @@
 
 <script setup lang="ts">
 const route = useRoute();
+const router = useRouter();
 const {
   globalLoading,
   sidebarVisible,
@@ -160,6 +161,11 @@ const segments = computed(() => {
 
 // Disable back button if only 1 segment (root)
 const disableBack = computed(() => segments.value.length <= 1);
+
+// Handle back navigation
+function goBack() {
+  router.back();
+}
 
 // Auto hide sidebar on mobile/tablet
 watch(

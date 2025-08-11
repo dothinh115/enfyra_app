@@ -167,31 +167,22 @@ async function toggleEnabled(menuItem: any) {
     }
   }
 
-  try {
-    // Create a specific instance for this menu update
-    const { execute: updateSpecificMenu } = useApiLazy(
-      () => `/menu_definition/${menuItem.id}`,
-      {
-        method: "patch",
-        errorContext: "Toggle Menu",
-      }
-    );
+  // Create a specific instance for this menu update
+  const { execute: updateSpecificMenu, error: updateError } = useApiLazy(
+    () => `/menu_definition/${menuItem.id}`,
+    {
+      method: "patch",
+      errorContext: "Toggle Menu",
+    }
+  );
 
-    await loader.withLoading(() =>
-      updateSpecificMenu({ body: { isEnabled: newEnabled } })
-    );
+  await loader.withLoading(() =>
+    updateSpecificMenu({ body: { isEnabled: newEnabled } })
+  );
 
-    // Reregister all menus after successful update
-    const { reregisterAllMenus } = useMenuRegistry();
-    const { fetchMenuDefinitions } = useMenuApi();
-    await reregisterAllMenus(fetchMenuDefinitions as any);
-
-    toast.add({
-      title: "Success",
-      description: `Menu ${newEnabled ? "enabled" : "disabled"} successfully`,
-      color: "success",
-    });
-  } catch (error) {
+  // Check if there was an error
+  if (updateError.value) {
+    // Error already handled by useApiLazy
     // Revert optimistic update on error
     if (apiData.value?.data) {
       const menuIndex = apiData.value.data.findIndex(
@@ -201,13 +192,19 @@ async function toggleEnabled(menuItem: any) {
         apiData.value.data[menuIndex].isEnabled = !newEnabled;
       }
     }
-
-    toast.add({
-      title: "Error",
-      description: "Failed to update menu status",
-      color: "error",
-    });
+    return;
   }
+
+  // Reregister all menus after successful update
+  const { reregisterAllMenus } = useMenuRegistry();
+  const { fetchMenuDefinitions } = useMenuApi();
+  await reregisterAllMenus(fetchMenuDefinitions as any);
+
+  toast.add({
+    title: "Success",
+    description: `Menu ${newEnabled ? "enabled" : "disabled"} successfully`,
+    color: "success",
+  });
 }
 </script>
 

@@ -86,7 +86,6 @@ definePageMeta({
 });
 
 const route = useRoute();
-const router = useRouter();
 const toast = useToast();
 const { confirm } = useConfirm();
 
@@ -215,19 +214,23 @@ async function updateExtension() {
     return;
   }
 
-  try {
-    await executeUpdateExtension({
-      id: route.params.id as string,
-      body: form.value,
-    });
-    toast.add({
-      title: "Success",
-      color: "success",
-      description: "Extension updated!",
-    });
-    errors.value = {};
-  } catch (error) {
+  await executeUpdateExtension({
+    id: route.params.id as string,
+    body: form.value,
+  });
+
+  // Check if there was an error
+  if (updateError.value) {
+    // Error already handled by useApiLazy
+    return;
   }
+
+  toast.add({
+    title: "Success",
+    color: "success",
+    description: "Extension updated!",
+  });
+  errors.value = {};
 }
 
 async function deleteExtension() {
@@ -237,12 +240,16 @@ async function deleteExtension() {
   });
   if (!ok) return;
 
-  try {
-    await executeDeleteExtension({ id: route.params.id as string });
-    toast.add({ title: "Extension deleted", color: "success" });
-    await navigateTo("/settings/extensions");
-  } catch (error) {
+  await executeDeleteExtension({ id: route.params.id as string });
+
+  // Check if there was an error
+  if (deleteError.value) {
+    // Error already handled by useApiLazy
+    return;
   }
+
+  toast.add({ title: "Extension deleted", color: "success" });
+  await navigateTo("/settings/extensions");
 }
 
 async function handleUpload(files: File | File[]) {

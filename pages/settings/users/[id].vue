@@ -1,6 +1,5 @@
 <script setup lang="ts">
 const route = useRoute();
-const router = useRouter();
 const toast = useToast();
 const { confirm } = useConfirm();
 const { validate } = useSchema("user_definition");
@@ -39,21 +38,23 @@ watch(
   { immediate: true }
 );
 
-const { execute: updateUser, pending: updateLoading } = useApiLazy(
-  () => `/user_definition/${route.params.id}`,
-  {
-    method: "patch",
-    errorContext: "Update User",
-  }
-);
+const {
+  execute: updateUser,
+  pending: updateLoading,
+  error: updateError,
+} = useApiLazy(() => `/user_definition/${route.params.id}`, {
+  method: "patch",
+  errorContext: "Update User",
+});
 
-const { execute: removeUser, pending: deleteLoading } = useApiLazy(
-  () => `/user_definition/${route.params.id}`,
-  {
-    method: "delete",
-    errorContext: "Delete User",
-  }
-);
+const {
+  execute: removeUser,
+  pending: deleteLoading,
+  error: deleteError,
+} = useApiLazy(() => `/user_definition/${route.params.id}`, {
+  method: "delete",
+  errorContext: "Delete User",
+});
 
 useHeaderActionRegistry([
   {
@@ -108,16 +109,20 @@ async function saveUser() {
     return;
   }
 
-  try {
-    await updateUser({ body: form.value });
-    toast.add({
-      title: "Success",
-      color: "success",
-      description: "User updated!",
-    });
-    errors.value = {};
-  } catch (error) {
+  await updateUser({ body: form.value });
+
+  // Check if there was an error
+  if (updateError.value) {
+    // Error already handled by useApiLazy
+    return;
   }
+
+  toast.add({
+    title: "Success",
+    color: "success",
+    description: "User updated!",
+  });
+  errors.value = {};
 }
 
 async function deleteUser() {
@@ -126,30 +131,37 @@ async function deleteUser() {
   });
   if (!ok) return;
 
-  try {
-    await removeUser();
-    toast.add({
-      title: "User deleted",
-      color: "success",
-    });
-    await navigateTo("/settings/users");
-  } catch (error) {
+  await removeUser();
+
+  // Check if there was an error
+  if (deleteError.value) {
+    // Error already handled by useApiLazy
+    return;
   }
+
+  toast.add({
+    title: "User deleted",
+    color: "success",
+  });
+  await navigateTo("/settings/users");
 }
 
 async function fetchUserDetail(userId: string) {
-  try {
-    await fetchUser();
+  await fetchUser();
 
-    if (!apiData.value?.data?.[0]) {
-      toast.add({
-        title: "User not found",
-        description: "Invalid ID",
-        color: "error",
-      });
-      router.push("/settings/users");
-    }
-  } catch (error) {
+  // Check if there was an error
+  if (apiData.value?.error) {
+    // Error already handled by useApiLazy
+    return;
+  }
+
+  if (!apiData.value?.data?.[0]) {
+    toast.add({
+      title: "User not found",
+      description: "Invalid ID",
+      color: "error",
+    });
+    await navigateTo("/settings/users");
   }
 }
 

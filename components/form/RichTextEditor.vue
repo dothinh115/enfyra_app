@@ -4,6 +4,8 @@ declare global {
     tinymce: any;
   }
 }
+import { ensureString } from "~/utils/form";
+
 const props = defineProps<{
   modelValue: string | null;
   disabled?: boolean;
@@ -70,7 +72,7 @@ onMounted(async () => {
         editorRef.value = editor;
 
         editor.on("init", () => {
-          editor.setContent(props.modelValue || "");
+          editor.setContent(ensureString(props.modelValue));
         });
 
         editor.on("Change KeyUp Undo Redo", () => {
@@ -85,7 +87,7 @@ watch(
   () => props.modelValue,
   (v) => {
     if (editorRef.value && v !== editorRef.value.getContent()) {
-      editorRef.value.setContent(v || "");
+      editorRef.value.setContent(ensureString(v));
     }
   }
 );

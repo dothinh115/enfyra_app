@@ -1,34 +1,23 @@
 <script setup lang="ts">
 // Vue functions are auto-imported
+import {
+  ensureString,
+  ensureArray,
+  ensureBoolean,
+  ensureNumber,
+  ensureNotNull,
+} from "~/utils/form";
 import { UInput, UTextarea, USwitch, USelect, UCalendar } from "#components";
 import { CalendarDate } from "@internationalized/date";
 
-const props = withDefaults(
-  defineProps<{
-    keyName: string;
-    formData: Record<string, any>;
-    columnMap: Map<string, any>;
-    typeMap?: Record<
-      string,
-      | string
-      | {
-          type?: string;
-          disabled?: boolean;
-          placeholder?: string;
-          componentProps?: {
-            allowDelete?: boolean;
-            [key: string]: any;
-          };
-          fieldProps?: Record<string, any>;
-          [key: string]: any;
-        }
-    >;
-    errors: Record<string, string>;
-  }>(),
-  {
-    errors: () => ({}),
-  }
-);
+const props = defineProps<{
+  keyName: string;
+  formData: Record<string, any>;
+  columnMap: Map<string, any>;
+  typeMap?: Record<string, any>;
+  errors: Record<string, string>;
+  readonly?: boolean;
+}>();
 
 const emit = defineEmits<{
   "update:formData": [key: string, value: any];
@@ -42,6 +31,31 @@ function updateFormData(key: string, value: any) {
 function updateErrors(errors: Record<string, string>) {
   emit("update:errors", errors);
 }
+
+const column = computed(() => props.columnMap.get(props.keyName));
+
+const fieldProps = computed(() => {
+  const manualConfig = props.typeMap?.[props.keyName];
+  const config =
+    typeof manualConfig === "string"
+      ? { type: manualConfig }
+      : manualConfig || {};
+
+  // Get field type from schema
+  const field = props.columnMap.get(props.keyName);
+  const fieldType = config.type || field?.type;
+
+  // Add col-span-2 for specific field types
+  const baseProps = config.fieldProps || {};
+  if (["richtext", "code", "simple-json", "text"].includes(fieldType)) {
+    return {
+      ...baseProps,
+      class: `${baseProps.class || ""} col-span-2`.trim(),
+    };
+  }
+
+  return baseProps;
+});
 
 function getComponentConfigByKey(key: string) {
   const column = props.columnMap.get(key);
@@ -74,7 +88,7 @@ function getComponentConfigByKey(key: string) {
       componentProps: {
         ...componentPropsBase,
         relationMeta: column,
-        modelValue: props.formData[key] ?? null,
+        modelValue: ensureNotNull(props.formData[key]),
         "onUpdate:modelValue": (val: any) => {
           updateFormData(key, val);
         },
@@ -88,7 +102,7 @@ function getComponentConfigByKey(key: string) {
       component: USwitch,
       componentProps: {
         ...componentPropsBase,
-        modelValue: props.formData[key] ?? false,
+        modelValue: ensureBoolean(props.formData[key]),
         "onUpdate:modelValue": (val: boolean) => {
           updateFormData(key, val);
         },
@@ -117,7 +131,7 @@ function getComponentConfigByKey(key: string) {
       componentProps: {
         ...componentPropsBase,
         items: items,
-        modelValue: props.formData[key] ?? null,
+        modelValue: ensureNotNull(props.formData[key]),
         "onUpdate:modelValue": (val: any) => {
           updateFormData(key, val);
         },
@@ -131,7 +145,7 @@ function getComponentConfigByKey(key: string) {
       component: resolveComponent("SimpleArrayEditor"),
       componentProps: {
         ...componentPropsBase,
-        modelValue: props.formData[key] ?? [],
+        modelValue: ensureArray(props.formData[key]),
         "onUpdate:modelValue": (val: string[]) => {
           updateFormData(key, val);
         },
@@ -148,7 +162,7 @@ function getComponentConfigByKey(key: string) {
         componentProps: {
           ...componentPropsBase,
           type: "text",
-          modelValue: props.formData[key] ?? "",
+          modelValue: ensureString(props.formData[key]),
           "onUpdate:modelValue": (val: string) => {
             updateFormData(key, val);
           },
@@ -164,7 +178,7 @@ function getComponentConfigByKey(key: string) {
       component: resolveComponent("FormCodeEditorLazy"),
       componentProps: {
         ...componentPropsBase,
-        modelValue: props.formData[key] ?? "",
+        modelValue: ensureString(props.formData[key]),
         language: "json",
         height: config.height || "300px", // Default height for JSON fields
         "onUpdate:modelValue": (val: string) => {
@@ -196,7 +210,7 @@ function getComponentConfigByKey(key: string) {
         variant: "subtle",
         autoresize: true,
         class: "w-full font-mono text-xs",
-        modelValue: props.formData[key],
+        modelValue: ensureString(props.formData[key]),
         "onUpdate:modelValue": (val: string) => {
           updateFormData(key, val);
         },
@@ -214,7 +228,7 @@ function getComponentConfigByKey(key: string) {
       componentProps: {
         ...componentPropsBase,
         rows: 3,
-        modelValue: props.formData[key] ?? "",
+        modelValue: ensureString(props.formData[key]),
         "onUpdate:modelValue": (val: string) => {
           updateFormData(key, val);
         },
@@ -229,7 +243,7 @@ function getComponentConfigByKey(key: string) {
       componentProps: {
         ...componentPropsBase,
         type: "number",
-        modelValue: props.formData[key] ?? 0,
+        modelValue: ensureNumber(props.formData[key]),
         "onUpdate:modelValue": (val: string | number) => {
           updateFormData(key, val);
         },
@@ -246,13 +260,14 @@ function getComponentConfigByKey(key: string) {
         componentProps: {
           ...componentPropsBase,
           type: "text",
-          modelValue: props.formData[key] ?? "",
+          modelValue: ensureString(props.formData[key]),
           "onUpdate:modelValue": (val: string) => {
             updateFormData(key, val);
           },
         },
         fieldProps: {
           ...fieldProps,
+          class: "col-span-2",
         },
       };
     }
@@ -261,16 +276,16 @@ function getComponentConfigByKey(key: string) {
       component: resolveComponent("FormCodeEditorLazy"),
       componentProps: {
         ...componentPropsBase,
-        modelValue: props.formData[key] ?? "",
-        language: config.language ?? "javascript",
-        height: config.height || "400px", // Default height for code fields
+        modelValue: ensureString(props.formData[key]),
+        language: config.language || "javascript",
+        height: config.height || "300px",
         "onUpdate:modelValue": (val: string) => {
           updateFormData(key, val);
         },
         onDiagnostics: (diags: any[]) => {
           const updated = { ...props.errors };
           if (diags?.length > 0) {
-            updated[key] = "Code error";
+            updated[key] = "Code syntax error";
           } else {
             delete updated[key];
           }
@@ -290,7 +305,7 @@ function getComponentConfigByKey(key: string) {
       componentProps: {
         ...componentPropsBase,
         options: config.options ?? [],
-        modelValue: props.formData[key] ?? [],
+        modelValue: ensureArray(props.formData[key]),
         "onUpdate:modelValue": (val: string[]) => {
           updateFormData(key, val);
         },
@@ -308,7 +323,7 @@ function getComponentConfigByKey(key: string) {
           ...componentPropsBase,
           type: "text",
           class: "w-full bg-gray-100",
-          modelValue: props.formData[key] ?? "",
+          modelValue: ensureString(props.formData[key]),
           "onUpdate:modelValue": (val: string) => {
             updateFormData(key, val);
           },
@@ -323,7 +338,7 @@ function getComponentConfigByKey(key: string) {
     return {
       component: resolveComponent("FormRichTextEditorLazy"),
       componentProps: {
-        modelValue: props.formData[key] ?? "",
+        modelValue: ensureString(props.formData[key]),
         disabled: disabled,
         "onUpdate:modelValue": (val: string) => {
           updateFormData(key, val);
@@ -341,7 +356,7 @@ function getComponentConfigByKey(key: string) {
     return {
       component: resolveComponent("FormUuidField"),
       componentProps: {
-        modelValue: props.formData[key] ?? "",
+        modelValue: ensureString(props.formData[key]),
         disabled: disabled,
         "onUpdate:modelValue": (val: string) => {
           updateFormData(key, val);
@@ -425,7 +440,7 @@ function getComponentConfigByKey(key: string) {
     componentProps: {
       ...componentPropsBase,
       type: finalType === "int" ? "number" : "text",
-      modelValue: props.formData[key] ?? "",
+      modelValue: ensureString(props.formData[key]),
       "onUpdate:modelValue": (val: string) => {
         updateFormData(key, val);
       },

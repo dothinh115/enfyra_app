@@ -120,21 +120,23 @@ watch(
   { immediate: true }
 );
 
-const { execute: updateRole, pending: updateLoading } = useApiLazy(
-  () => `/${tableName}/${id}`,
-  {
-    method: "patch",
-    errorContext: "Update Role",
-  }
-);
+const {
+  execute: updateRole,
+  pending: updateLoading,
+  error: updateError,
+} = useApiLazy(() => `/${tableName}/${id}`, {
+  method: "patch",
+  errorContext: "Update Role",
+});
 
-const { execute: deleteRoleApi, pending: deleteLoading } = useApiLazy(
-  () => `/${tableName}/${id}`,
-  {
-    method: "delete",
-    errorContext: "Delete Role",
-  }
-);
+const {
+  execute: deleteRoleApi,
+  pending: deleteLoading,
+  error: deleteError,
+} = useApiLazy(() => `/${tableName}/${id}`, {
+  method: "delete",
+  errorContext: "Delete Role",
+});
 
 async function save() {
   if (!form.value) return;
@@ -150,16 +152,20 @@ async function save() {
     return;
   }
 
-  try {
-    await updateRole({ body: form.value });
-    toast.add({
-      title: "Success",
-      color: "success",
-      description: "Role updated!",
-    });
-    errors.value = {};
-  } catch (error) {
+  await updateRole({ body: form.value });
+
+  // Check if there was an error
+  if (updateError.value) {
+    // Error already handled by useApiLazy
+    return;
   }
+
+  toast.add({
+    title: "Success",
+    color: "success",
+    description: "Role updated!",
+  });
+  errors.value = {};
 }
 
 async function deleteRole() {
@@ -169,12 +175,16 @@ async function deleteRole() {
   });
   if (!ok) return;
 
-  try {
-    await deleteRoleApi();
-    toast.add({ title: "Role deleted", color: "success" });
-    await navigateTo("/settings/roles");
-  } catch (error) {
+  await deleteRoleApi();
+
+  // Check if there was an error
+  if (deleteError.value) {
+    // Error already handled by useApiLazy
+    return;
   }
+
+  toast.add({ title: "Role deleted", color: "success" });
+  await navigateTo("/settings/roles");
 }
 
 onMounted(async () => {

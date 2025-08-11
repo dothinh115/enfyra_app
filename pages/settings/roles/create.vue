@@ -32,6 +32,7 @@ const {
   data: createData,
   pending: createLoading,
   execute: createRole,
+  error: createError,
 } = useApiLazy(() => `/${tableName}`, {
   method: "post",
   errorContext: "Create Role",
@@ -74,6 +75,12 @@ async function handleCreate() {
   }
 
   await createRole({ body: createForm.value });
+
+  // Check if there was an error
+  if (createError.value) {
+    // Error already handled by useApiLazy
+    return;
+  }
 
   toast.add({
     title: "Role created successfully",

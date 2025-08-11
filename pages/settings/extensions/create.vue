@@ -97,6 +97,7 @@ const {
   pending: createLoading,
 } = useApiLazy(() => `/${tableName}`, {
   method: "post",
+  errorContext: "Create Extension",
 });
 
 onMounted(() => {
@@ -116,27 +117,20 @@ async function handleCreate() {
     return;
   }
 
-  try {
-    await executeCreateExtension({ body: createForm.value });
+  await executeCreateExtension({ body: createForm.value });
 
-    if (createError.value) {
-      toast.add({
-        title: "Error",
-        description: createError.value.message,
-        color: "error",
-      });
-      return;
-    }
-
-    toast.add({
-      title: "Extension created successfully",
-      color: "success",
-    });
-
-    await navigateTo(`/settings/extensions/${createData.value.data[0].id}`);
-  } catch (error) {
+  // Check if there was an error
+  if (createError.value) {
     // Error already handled by useApiLazy
+    return;
   }
+
+  toast.add({
+    title: "Extension created successfully",
+    color: "success",
+  });
+
+  await navigateTo(`/settings/extensions/${createData.value.data[0].id}`);
 }
 
 async function handleUpload(files: File | File[]) {

@@ -46,6 +46,7 @@ const {
   pending: createLoading,
 } = useApiLazy(() => `/${tableName}`, {
   method: "post",
+  errorContext: "Create Hook",
 });
 
 onMounted(() => {
@@ -65,26 +66,19 @@ async function handleCreate() {
     return;
   }
 
-  try {
-    await executeCreateHook({ body: createForm.value });
+  await executeCreateHook({ body: createForm.value });
 
-    if (createError.value) {
-      toast.add({
-        title: "Error",
-        description: createError.value.message,
-        color: "error",
-      });
-      return;
-    }
-
-    toast.add({
-      title: "Hook created successfully",
-      color: "success",
-    });
-
-    await navigateTo(`/settings/hooks/${createData.value.data[0].id}`);
-  } catch (error) {
+  // Check if there was an error
+  if (createError.value) {
     // Error already handled by useApiLazy
+    return;
   }
+
+  toast.add({
+    title: "Hook created successfully",
+    color: "success",
+  });
+
+  await navigateTo(`/settings/hooks/${createData.value.data[0].id}`);
 }
 </script>

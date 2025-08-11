@@ -61,7 +61,6 @@
 
 <script setup lang="ts">
 const route = useRoute();
-const router = useRouter();
 const toast = useToast();
 const { confirm } = useConfirm();
 
@@ -170,19 +169,23 @@ async function updateRoute() {
     return;
   }
 
-  try {
-    await executeUpdateRoute({
-      id: route.params.id as string,
-      body: form.value,
-    });
-    toast.add({
-      title: "Success",
-      color: "success",
-      description: "Route updated!",
-    });
-    errors.value = {};
-  } catch (error) {
+  await executeUpdateRoute({
+    id: route.params.id as string,
+    body: form.value,
+  });
+
+  // Check if there was an error
+  if (updateError.value) {
+    // Error already handled by useApiLazy
+    return;
   }
+
+  toast.add({
+    title: "Success",
+    color: "success",
+    description: "Route updated!",
+  });
+  errors.value = {};
 }
 
 async function deleteRoute() {
@@ -192,12 +195,16 @@ async function deleteRoute() {
   });
   if (!ok) return;
 
-  try {
-    await executeDeleteRoute({ id: route.params.id as string });
-    toast.add({ title: "Route deleted", color: "success" });
-    await navigateTo("/settings/routings");
-  } catch (error) {
+  await executeDeleteRoute({ id: route.params.id as string });
+
+  // Check if there was an error
+  if (deleteError.value) {
+    // Error already handled by useApiLazy
+    return;
   }
+
+  toast.add({ title: "Route deleted", color: "success" });
+  await navigateTo("/settings/routings");
 }
 
 onMounted(async () => {

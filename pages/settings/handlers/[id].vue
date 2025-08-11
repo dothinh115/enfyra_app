@@ -31,7 +31,6 @@
 
 <script setup lang="ts">
 const route = useRoute();
-const router = useRouter();
 const toast = useToast();
 const { confirm } = useConfirm();
 
@@ -138,16 +137,20 @@ async function save() {
     return;
   }
 
-  try {
-    await executeSaveHandler({ id, body: form.value });
-    toast.add({
-      title: "Success",
-      color: "success",
-      description: "Handler updated!",
-    });
-    errors.value = {};
-  } catch (error) {
+  await executeSaveHandler({ id, body: form.value });
+
+  // Check if there was an error
+  if (saveError.value) {
+    // Error already handled by useApiLazy
+    return;
   }
+
+  toast.add({
+    title: "Success",
+    color: "success",
+    description: "Handler updated!",
+  });
+  errors.value = {};
 }
 
 async function deleteHandler() {
@@ -157,12 +160,16 @@ async function deleteHandler() {
   });
   if (!ok) return;
 
-  try {
-    await executeDeleteHandler({ id });
-    toast.add({ title: "Handler deleted", color: "success" });
-    await navigateTo("/settings/handlers");
-  } catch (error) {
+  await executeDeleteHandler({ id });
+
+  // Check if there was an error
+  if (deleteError.value) {
+    // Error already handled by useApiLazy
+    return;
   }
+
+  toast.add({ title: "Handler deleted", color: "success" });
+  await navigateTo("/settings/handlers");
 }
 
 onMounted(async () => {

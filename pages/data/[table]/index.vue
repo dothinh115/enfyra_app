@@ -106,8 +106,8 @@ const {
 
 // Delete single record composable
 const deleteId = ref<string>("");
-const { execute: executeSingleDelete } = useApiLazy(
-  () => `/${tableName}/${deleteId.value}`,
+const { execute: executeDelete, error: deleteError } = useApiLazy(
+  () => `/${tableName}`,
   {
     method: "delete",
     errorContext: "Delete Record",
@@ -272,7 +272,13 @@ async function handleDelete(id: string) {
   await deleteLoader.withLoading(async () => {
     // Set the id and execute pre-defined composable
     deleteId.value = id;
-    await executeSingleDelete();
+    await executeDelete({ id });
+
+    // Check if there was an error
+    if (deleteError.value) {
+      // Error already handled by useApiLazy
+      return;
+    }
 
     toast.add({
       title: "Success",
@@ -296,32 +302,23 @@ async function handleBulkDelete(selectedRows: any[]) {
   const deleteLoader = createLoader();
 
   await deleteLoader.withLoading(async () => {
-    let successCount = 0;
-    let failCount = 0;
+    // Extract IDs from selected rows
+    const ids = selectedRows.map((row) => row.id);
 
-    for (const row of selectedRows) {
-      try {
-        deleteId.value = row.id;
-        await executeSingleDelete();
-        successCount++;
-      } catch (error) {
-        failCount++;
-      }
+    // Use batch delete with ids parameter
+    await executeDelete({ ids });
+
+    // Check if there was an error
+    if (deleteError.value) {
+      // Error already handled by useApiLazy
+      return;
     }
 
-    if (failCount === 0) {
-      toast.add({
-        title: "Success",
-        description: `${successCount} record(s) deleted successfully`,
-        color: "success",
-      });
-    } else {
-      toast.add({
-        title: "Partial Success",
-        description: `${successCount} deleted, ${failCount} failed`,
-        color: "warning",
-      });
-    }
+    toast.add({
+      title: "Success",
+      description: `${selectedRows.length} record(s) deleted successfully`,
+      color: "success",
+    });
 
     await fetchData();
   });
