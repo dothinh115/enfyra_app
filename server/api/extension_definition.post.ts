@@ -1,6 +1,9 @@
 import {
   autoAssignExtensionName,
   buildExtensionWithVite,
+  isProbablyVueSFC,
+  assertValidVueSFC,
+  assertValidJsBundleSyntax,
 } from "~/utils/extension";
 
 export default defineEventHandler(async (event) => {
@@ -20,36 +23,38 @@ export default defineEventHandler(async (event) => {
 
       rawBody = await readRawBody(event, false);
 
-      // Check if body contains 'code' field that needs compilation
-      if (body && body.code && typeof body.code === "string") {
-        // Get extension ID from body
+      // Check if body contains 'code' field that needs compilation or validation
+      if (body && typeof body.code === "string") {
+        const code: string = body.code;
         const extensionId = body.id || body.name || "extension_" + Date.now();
 
-        try {
-          // Compile Vue SFC to JavaScript with Vite
-          compiledCode = await buildExtensionWithVite(
-            body.code,
-            body.extensionId
-          );
+        if (isProbablyVueSFC(code)) {
+          // Validate SFC syntax before building
+          assertValidVueSFC(code);
 
-          // Replace the code field with compiled JavaScript
+          // Build; if build fails, throw 400, do NOT proxy
+          try {
+            compiledCode = await buildExtensionWithVite(code, body.extensionId);
+          } catch (compileError: any) {
+            throw createError({
+              statusCode: 400,
+              statusMessage:
+                compileError?.statusMessage ||
+                `Failed to build Vue SFC for ${extensionId}: ${
+                  compileError?.message || "Unknown error"
+                }`,
+            });
+          }
+
           body.code = compiledCode;
-
-          // Update rawBody with new compiled body
           rawBody = JSON.stringify(body);
-        } catch (compileError: any) {
-          // If compilation fails, silently skip and keep the original code
-          // This handles cases where code was already compiled before
-          console.warn(
-            `Extension compilation failed for ${extensionId}, keeping original code:`,
-            compileError.message
-          );
-
-          // Keep the original body unchanged
+        } else {
+          // Treat as compiled bundle; validate syntax first
+          assertValidJsBundleSyntax(code);
+          // Pass-through unchanged
           rawBody = JSON.stringify(body);
         }
       } else if (body) {
-        // If no compilation needed, use original body as rawBody
         rawBody = JSON.stringify(body);
       }
     }

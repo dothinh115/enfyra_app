@@ -95,3 +95,112 @@ export default ExtensionComponent
     } catch (cleanupError) {}
   }
 }
+
+/**
+ * Heuristic check to guess if a string is a Vue SFC.
+ */
+export function isProbablyVueSFC(content: string): boolean {
+  if (typeof content !== "string") return false;
+  const trimmed = content.trim();
+  if (!trimmed) return false;
+
+  // Quick tags presence check
+  const hasSfcTags = /<template[\s>]|<script[\s>]|<style[\s>]/i.test(trimmed);
+  const hasClosing = /<\/template>|<\/script>|<\/style>/i.test(trimmed);
+
+  return hasSfcTags && hasClosing;
+}
+
+/**
+ * Basic SFC syntax validation - check for balanced tags and basic structure
+ */
+export function assertValidVueSFC(content: string): void {
+  // Check balanced tags
+  const templateOpen = (content.match(/<template[^>]*>/g) || []).length;
+  const templateClose = (content.match(/<\/template>/g) || []).length;
+  const scriptOpen = (content.match(/<script[^>]*>/g) || []).length;
+  const scriptClose = (content.match(/<\/script>/g) || []).length;
+  const styleOpen = (content.match(/<style[^>]*>/g) || []).length;
+  const styleClose = (content.match(/<\/style>/g) || []).length;
+
+  if (
+    templateOpen !== templateClose ||
+    scriptOpen !== scriptClose ||
+    styleOpen !== styleClose
+  ) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "Invalid Vue SFC: unbalanced tags",
+    });
+  }
+
+  // Check if has at least template or script
+  if (templateOpen === 0 && scriptOpen === 0) {
+    throw createError({
+      statusCode: 400,
+      statusMessage:
+        "Invalid Vue SFC: must have at least <template> or <script>",
+    });
+  }
+
+  // Check for basic Vue syntax patterns
+  if (scriptOpen > 0) {
+    const scriptContent = content.match(/<script[^>]*>([\s\S]*?)<\/script>/i);
+    if (scriptContent && scriptContent[1]) {
+      const script = scriptContent[1];
+      // Check for basic JS syntax issues
+      if (script.includes("export default") && !script.includes("{")) {
+        throw createError({
+          statusCode: 400,
+          statusMessage:
+            "Invalid Vue SFC: script must have proper export default syntax",
+        });
+      }
+    }
+  }
+}
+
+/**
+ * Basic JS syntax validation - check for balanced brackets and basic structure
+ */
+export function assertValidJsBundleSyntax(code: string): void {
+  const brackets = { "(": 0, ")": 0, "{": 0, "}": 0, "[": 0, "]": 0 };
+
+  for (const char of code) {
+    if (char in brackets) {
+      brackets[char as keyof typeof brackets]++;
+    }
+  }
+
+  if (
+    brackets["("] !== brackets[")"] ||
+    brackets["{"] !== brackets["}"] ||
+    brackets["["] !== brackets["]"]
+  ) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "Invalid JS syntax: unbalanced brackets",
+    });
+  }
+
+  // Check for basic JS structure
+  if (
+    !code.includes("export") &&
+    !code.includes("module.exports") &&
+    !code.includes("window.")
+  ) {
+    throw createError({
+      statusCode: 400,
+      statusMessage:
+        "Invalid JS bundle: must have export statement or module.exports",
+    });
+  }
+
+  // Check for obvious syntax errors
+  if (code.includes("function(") && !code.includes(")")) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "Invalid JS syntax: incomplete function declaration",
+    });
+  }
+}
