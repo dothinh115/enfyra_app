@@ -46,7 +46,7 @@
         v-model="form"
         v-model:errors="errors"
         :table-name="tableName"
-        :excluded="['id', 'createdAt', 'updatedAt', 'isSystem']"
+        :excluded="['id', 'createdAt', 'updatedAt', 'isSystem', 'code']"
       />
     </UCard>
   </UForm>
