@@ -12,36 +12,36 @@ const props = defineProps<{
 }>();
 
 const defaultTitle = "No data available";
-const defaultDescription = "There are no items to display at the moment";
 const defaultIcon = "lucide:database";
 const defaultSize = "md";
 
+// Hardcode các class để Tailwind có thể generate buildtime
 const iconSize = computed(() => {
   switch (props.size || defaultSize) {
     case "sm":
-      return "w-8 h-8";
+      return "!w-[32px] !h-[32px]";
     case "lg":
-      return "w-16 h-16";
+      return "!w-[64px] !h-[64px]";
     default:
-      return "w-12 h-12";
+      return "!w-[48px] !h-[48px]";
   }
 });
 
 const textSize = computed(() => {
   switch (props.size || defaultSize) {
     case "sm":
-      return "text-sm";
+      return "!text-[14px]";
     case "lg":
-      return "text-lg";
+      return "!text-[18px]";
     default:
-      return "text-base";
+      return "!text-[16px]";
   }
 });
 </script>
 
 <template>
   <div class="flex flex-col items-center justify-center py-8 gap-3">
-    <Icon
+    <UIcon
       :name="props.icon || defaultIcon"
       :class="`${iconSize} text-muted-foreground`"
     />

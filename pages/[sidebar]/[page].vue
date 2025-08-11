@@ -41,12 +41,15 @@
     />
 
     <!-- Extension component -->
-    <component
+    <PermissionGate
+      :condition="menuResponse?.data[0]?.permission ?? { allowAll: true }"
       v-else-if="extensionComponent"
-      :is="extensionComponent"
-      :components="extensionComponent.components"
-    />
-
+    >
+      <component
+        :is="extensionComponent"
+        :components="extensionComponent.components"
+      />
+    </PermissionGate>
     <!-- 404 state -->
     <CommonEmptyState
       v-else
@@ -76,7 +79,6 @@ const { loadDynamicComponent } = useDynamicComponent();
 // Reactive state
 const error = ref<string | null>(null);
 const extensionComponent = ref<any>(null);
-const matchedExtension = ref<Record<string, any> | null>(null);
 
 const {
   data: menuResponse,

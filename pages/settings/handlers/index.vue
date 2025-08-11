@@ -151,7 +151,7 @@ watch(
       title="No handlers found"
       description="No route handlers have been created yet"
       icon="lucide:code"
-      size="sm"
+      size="lg"
     />
     <div class="flex justify-center mt-6">
       <UPagination

@@ -44,8 +44,6 @@
         :table-name="tableName"
         :excluded="['isSystem', 'routePermissions', 'middlewares']"
         :type-map="{
-          path: { disabled: detail?.isSystem },
-          isEnabled: { disabled: detail?.isSystem },
           handlers: {
             componentProps: { allowDelete: true },
           },
@@ -80,7 +78,6 @@ useHeaderActionRegistry([
     size: "md",
     submit: updateRoute,
     loading: computed(() => updateLoading.value),
-    disabled: computed(() => detail.value?.isSystem || false),
     permission: {
       and: [
         {
@@ -99,7 +96,6 @@ useHeaderActionRegistry([
     size: "md",
     onClick: deleteRoute,
     loading: computed(() => deleteLoading.value),
-    disabled: computed(() => detail.value?.isSystem || false),
     permission: {
       and: [
         {
@@ -132,11 +128,10 @@ const {
 });
 
 const {
-  data: deleteData,
   error: deleteError,
   execute: executeDeleteRoute,
   pending: deleteLoading,
-} = useApiLazy(() => `/route_definition/${route.params.id}`, {
+} = useApiLazy(() => `/route_definition`, {
   method: "delete",
 });
 
@@ -194,9 +189,8 @@ async function updateRoute() {
 
 async function deleteRoute() {
   const ok = await confirm({ title: "Are you sure?" });
-  if (!ok || detail.value?.isSystem) return;
-
-  await executeDeleteRoute();
+  if (!ok) return;
+  await executeDeleteRoute({ ids: [Number(route.params.id)] });
 
   if (deleteError.value) {
     return;

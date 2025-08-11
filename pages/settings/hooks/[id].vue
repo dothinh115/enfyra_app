@@ -36,16 +36,6 @@
         v-model:errors="errors"
         :table-name="'hook_definition'"
         :excluded="['isSystem']"
-        :type-map="{
-          isEnabled: {
-            disabled: detail?.isSystem === true,
-          },
-          routeId: {
-            componentProps: {
-              disabled: detail?.isSystem === true,
-            },
-          },
-        }"
       />
     </UCard>
   </UForm>
@@ -78,7 +68,6 @@ useHeaderActionRegistry([
     size: "md",
     submit: updateHook,
     loading: computed(() => updateLoading.value),
-    disabled: computed(() => detail.value?.isSystem || false),
     permission: {
       and: [
         {
@@ -97,7 +86,6 @@ useHeaderActionRegistry([
     size: "md",
     onClick: deleteHook,
     loading: computed(() => deleteLoading.value),
-    disabled: computed(() => detail.value?.isSystem || false),
     permission: {
       and: [
         {

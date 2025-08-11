@@ -3,10 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import type {
-  PermissionRule,
-  PermissionCondition,
-} from "~/composables/usePermissions";
+import type { PermissionCondition } from "~/composables/usePermissions";
 
 interface Props {
   // Legacy props for backward compatibility

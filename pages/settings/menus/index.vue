@@ -298,13 +298,36 @@ async function toggleEnabled(menuItem: any) {
       </div>
     </div>
 
-    <CommonEmptyState
-      v-else-if="!loading"
-      title="No menus found"
-      description="No menu configurations have been created yet"
-      icon="lucide:menu"
-      size="sm"
-    />
+    <div
+      v-else-if="!loading && menus.length === 0"
+      class="flex flex-col items-center justify-center py-16"
+    >
+      <UIcon
+        name="i-heroicons-bars-3"
+        class="text-gray-400 mx-auto text-8xl mb-6"
+      />
+      <div class="text-center">
+        <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3">
+          No menus found
+        </h3>
+        <p
+          class="text-base text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto"
+        >
+          No menu configurations have been created yet. Create your first menu
+          to start building the navigation structure.
+        </p>
+      </div>
+      <UButton
+        icon="i-heroicons-plus"
+        to="/settings/menus/create"
+        size="lg"
+        variant="solid"
+        color="primary"
+        class="shadow-lg hover:shadow-xl transition-all duration-200"
+      >
+        Create First Menu
+      </UButton>
+    </div>
   </div>
 
   <!-- Filter Drawer -->
