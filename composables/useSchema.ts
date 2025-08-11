@@ -54,11 +54,20 @@ export function useSchema(tableName: string) {
     const { excluded = [] } = options || {};
     const result: Record<string, any> = {};
 
+    // Thêm các field cần loại bỏ mặc định
+    const defaultExcluded = [
+      "createdAt",
+      "updatedAt",
+      "id",
+      "isSystem",
+      "isRootAdmin",
+    ];
+    const allExcluded = [...defaultExcluded, ...excluded];
+
     for (const field of editableFields.value) {
       const key = field.name || field.propertyName;
-      if (!key || excluded.includes(key)) continue;
+      if (!key || allExcluded.includes(key)) continue;
 
-      // Prioritize defaultValue if available
       if (field.defaultValue !== undefined) {
         result[key] = field.defaultValue;
         continue;

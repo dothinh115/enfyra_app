@@ -106,7 +106,7 @@ onMounted(() => loadSetting());
         v-model="setting"
         table-name="setting_definition"
         v-model:errors="errors"
-        :excluded="['id', 'isInit', 'isSystem']"
+        :excluded="['isInit', 'isSystem']"
         :type-map="{
           methods: {
             componentProps: {

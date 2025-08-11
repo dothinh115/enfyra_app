@@ -16,17 +16,6 @@
         v-model="form"
         :table-name="tableName"
         v-model:errors="errors"
-        :type-map="{
-          id: {
-            disabled: true,
-          },
-          createdAt: {
-            disabled: true,
-          },
-          updatedAt: {
-            disabled: true,
-          },
-        }"
       />
     </UForm>
   </div>

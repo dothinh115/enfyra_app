@@ -68,7 +68,6 @@
 <script setup lang="ts">
 // Imports
 import { useDynamicComponent } from "~/composables/useDynamicComponent";
-import { useMenuApi } from "~/composables/useMenuApi";
 import { useApiLazy } from "~/composables/useApi";
 
 // Get route params
@@ -80,102 +79,72 @@ const pageParam = route.params.page;
 const { loadDynamicComponent } = useDynamicComponent();
 
 // Reactive state
-const loading = ref(true);
 const error = ref<string | null>(null);
 const extensionComponent = ref<any>(null);
 const matchedExtension = ref<Record<string, any> | null>(null);
 
-// Menu API để lấy menu data
-const { fetchMenuDefinitions, getMenuItems } = useMenuApi();
-
-// Reactive extension ID (có thể là number hoặc string)
-const extensionId = ref<number | string | null>(null);
-
-// Setup useApiLazy composable ở top level
+// Setup useApiLazy composable để fetch menu với extension trong một request
 const {
-  data: extensionResponse,
-  error: extensionError,
-  execute: executeFetchExtension,
-} = useApiLazy(() => "/extension_definition", {
+  data: menuResponse,
+  error: menuError,
+  pending: loading,
+  execute: executeFetchMenu,
+} = useApiLazy(() => "/menu_definition", {
   query: computed(() => {
-    // Tìm extension theo route path thay vì menu ID
-    const query: any = {
-      fields: "*,menu.*,createdBy.*,updatedBy.*",
-      "filter[id][_eq]": extensionId.value,
+    const fullRoute = `/${sidebarParam}/${pageParam}`;
+    return {
+      fields: "*,extension.*",
+      filter: {
+        _and: [{ path: { _eq: fullRoute } }, { isEnabled: { _eq: true } }],
+      },
     };
-
-    return query;
   }),
-  errorContext: "Fetch Extension Definition",
+  errorContext: "Fetch Menu with Extension",
 });
 
 /**
  * Find and load matching extension
  */
 const loadMatchingExtension = async () => {
-  loading.value = true;
   error.value = null;
 
   try {
-    // 1. Fetch menu definitions để tìm menu match với route
-    await fetchMenuDefinitions();
-    const menuDefinitions = getMenuItems.value || [];
-    const fullRoute = `/${sidebarParam}/${pageParam}`;
+    // 1. Fetch menu với extension trong một request
+    await executeFetchMenu();
 
-    // 2. Tìm menu item match với route hiện tại
-    const matchingMenuItem = menuDefinitions.find((menu: any) => {
-      const isMatch = menu.path === fullRoute && menu.isEnabled;
-      return isMatch;
-    });
-
-    if (!matchingMenuItem) {
-      error.value = `No menu found for route: ${fullRoute}`;
-      loading.value = false;
-      return;
-    }
-    if (!matchingMenuItem.extension) {
-      error.value = `No extension found for route: ${fullRoute}`;
-      loading.value = false;
-      return;
-    }
-    extensionId.value = matchingMenuItem.extension.id;
-    await executeFetchExtension();
-
-    if (extensionError.value) {
-      error.value = `API Error: ${extensionError.value}`;
-      loading.value = false;
+    if (menuError.value) {
+      error.value = `API Error: ${menuError.value}`;
       return;
     }
 
-    if (
-      !extensionResponse.value?.data ||
-      extensionResponse.value.data.length === 0
-    ) {
-      error.value = `No page extensions found`;
-      loading.value = false;
+    if (!menuResponse.value?.data || menuResponse.value.data.length === 0) {
+      error.value = `No menu found for route: /${sidebarParam}/${pageParam}`;
       return;
     }
 
-    // Nếu có nhiều extensions, chọn extension đầu tiên
-    // Trong tương lai có thể cải thiện logic này
-    const extensions = extensionResponse.value.data;
-    const extension = extensions[0]; // Chọn extension đầu tiên
+    // 2. Lấy menu item đầu tiên (vì đã filter theo path và isEnabled)
+    const menuItem = menuResponse.value.data[0];
 
-    // 4. Kiểm tra extension có enabled không
+    if (!menuItem.extension || menuItem.extension.length === 0) {
+      error.value = `No extension found for route: /${sidebarParam}/${pageParam}`;
+      return;
+    }
+
+    const extension = menuItem.extension;
+
     if (!extension.isEnabled) {
       error.value = `Extension "${extension.name}" is currently disabled. Please contact an administrator to enable this extension.`;
-      loading.value = false;
       return;
     }
 
-    // 5. Load extension using the new composable
-    const component = await loadDynamicComponent(extension.code, extension.id);
+    const component = await loadDynamicComponent(
+      extension.code,
+      extension.extensionId
+    );
 
     extensionComponent.value = component;
-    loading.value = false;
   } catch (err: any) {
     error.value = `Failed to load extension: ${err?.message || err}`;
-    loading.value = false;
   }
 };
 

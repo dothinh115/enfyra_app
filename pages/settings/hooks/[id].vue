@@ -35,7 +35,7 @@
         v-model="form"
         v-model:errors="errors"
         :table-name="'hook_definition'"
-        :excluded="['id', 'createdAt', 'updatedAt', 'isSystem']"
+        :excluded="['isSystem']"
         :type-map="{
           isEnabled: {
             disabled: detail?.isSystem === true,

@@ -65,10 +65,17 @@ const visibleFields = computed(() => {
     return true;
   });
 
+  // Tự động loại bỏ các field không có trong v-model
+  fields = fields.filter((field: any) => {
+    const key = field.name || field.propertyName;
+    if (!key) return false;
+
+    // Chỉ hiển thị field có trong v-model
+    return key in props.modelValue;
+  });
+
   // Sort fields using helper function from useSchema
   return sortFieldsByOrder(fields);
-
-  return fields;
 });
 
 // Type map with generated fields disabled

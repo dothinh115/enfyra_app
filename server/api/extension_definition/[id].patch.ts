@@ -1,89 +1,7 @@
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
-import { join } from "path";
-import { build } from "vite";
-import vue from "@vitejs/plugin-vue";
-
-async function buildExtensionWithVite(extensionId: string, vueContent: string) {
-  console.log("Building extension with ID:", extensionId);
-  console.log("Vue content preview:", vueContent.substring(0, 200) + "...");
-
-  const tempDir = join(process.cwd(), ".temp-extension-build");
-  const tempExtensionFile = join(tempDir, "extension.vue");
-  const tempEntryFile = join(tempDir, "entry.js");
-
-  try {
-    // Create temp directory
-    if (!existsSync(tempDir)) {
-      mkdirSync(tempDir, { recursive: true });
-    }
-
-    // Write Vue content to temp file
-    writeFileSync(tempExtensionFile, vueContent);
-
-    // Create entry file for UMD build
-    const entryContent = `
-import ExtensionComponent from './extension.vue'
-export default ExtensionComponent
-`;
-    writeFileSync(tempEntryFile, entryContent);
-
-    // Build with Vite to get compiled JavaScript
-    const result = await build({
-      root: tempDir,
-      build: {
-        lib: {
-          entry: tempEntryFile,
-          name: "Extension", // Always use "Extension" for consistency
-          fileName: () => "extension.js",
-          formats: ["umd"],
-        },
-        outDir: join(tempDir, "dist"),
-        emptyOutDir: true,
-        write: true,
-        rollupOptions: {
-          external: ["vue"],
-          output: {
-            globals: {
-              vue: "Vue",
-            },
-          },
-        },
-      },
-      plugins: [vue()],
-    });
-
-    console.log("Vite build name:", "Extension");
-
-    // Read the compiled JavaScript
-    const compiledFile = join(tempDir, "dist", "extension.js");
-    const compiledCode = readFileSync(compiledFile, "utf-8");
-
-    console.log(
-      "Compiled code preview:",
-      compiledCode.substring(0, 300) + "..."
-    );
-    console.log("Compiled code length:", compiledCode.length);
-
-    return compiledCode;
-  } catch (error: any) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: `Failed to build extension: ${
-        error.message || "Unknown error"
-      }`,
-    });
-  } finally {
-    // Clean up temp files
-    try {
-      if (existsSync(tempDir)) {
-        const fs = await import("fs/promises");
-        await fs.rm(tempDir, { recursive: true, force: true });
-      }
-    } catch (cleanupError) {
-      // Ignore cleanup errors
-    }
-  }
-}
+import {
+  autoAssignExtensionName,
+  buildExtensionWithVite,
+} from "~/utils/extension";
 
 export default defineEventHandler(async (event) => {
   const method = event.method;
@@ -95,6 +13,9 @@ export default defineEventHandler(async (event) => {
     // Only read body for POST/PATCH requests
     if (method === "POST" || method === "PATCH") {
       body = await readBody(event);
+
+      // Tự động đặt tên extension nếu chưa có
+      body = autoAssignExtensionName(body);
 
       // Check if body contains 'code' field that needs compilation
       if (body && body.code && typeof body.code === "string") {
@@ -124,7 +45,11 @@ export default defineEventHandler(async (event) => {
 
         try {
           // Compile Vue SFC to JavaScript with Vite
-          compiledCode = await buildExtensionWithVite(componentName, body.code);
+          compiledCode = await buildExtensionWithVite(
+            componentName,
+            body.code,
+            body.extensionId
+          );
 
           // Replace the code field with compiled JavaScript
           body.code = compiledCode;

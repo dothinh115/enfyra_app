@@ -82,15 +82,15 @@ export const useDynamicComponent = () => {
   /**
    * Load component from compiled code string
    * @param code - Compiled JavaScript code string
-   * @param extensionId - Extension ID to match component name
+   * @param extensionName - Tên extension để tìm component (mặc định: "Extension")
    * @returns Promise that resolves to Vue component with injected dependencies
    */
   const loadDynamicComponent = async (
     code: string,
-    extensionId: string | number = 8
+    extensionName: string = "Extension"
   ) => {
     try {
-      console.log(`Loading dynamic component for extension ${extensionId}`);
+      console.log(`Loading dynamic component for extension: ${extensionName}`);
       console.log(`Code length: ${code.length}`);
       console.log(`Code preview:`, code.substring(0, 200) + "...");
 
@@ -205,9 +205,8 @@ export const useDynamicComponent = () => {
       g.onScopeDispose = onScopeDispose;
 
       // 2. Execute the code
-      // For page extensions, use default name "Extension"
-      // All page extensions will have the same component name for consistency
-      const componentName = "Extension";
+      // Sử dụng tên extension được truyền vào để tìm component
+      const componentName = extensionName;
 
       console.log("Expected component name:", componentName);
 
@@ -228,21 +227,18 @@ export const useDynamicComponent = () => {
       // Remove script after execution
       document.head.removeChild(script);
 
-      // Check what's available in window for error reporting
-      const availableExtensions = Object.keys(window as any).filter(
-        (k) => k.startsWith("Extension") || k.startsWith("extension")
-      );
-
       // Check if component was registered
       const component = (window as any)[componentName];
       if (!component) {
         // No fallback allowed - must match exact component name
         const availableExtensions = Object.keys(window as any).filter(
-          (k) => k.startsWith("Extension") || k.startsWith("extension")
+          (k) =>
+            k.startsWith(extensionName) ||
+            k.startsWith(extensionName.toLowerCase())
         );
 
         throw new Error(
-          `Component "${componentName}" not found. Expected exact match for page extension. Available extensions: ${availableExtensions.join(
+          `Component "${componentName}" not found. Expected exact match for extension "${extensionName}". Available extensions: ${availableExtensions.join(
             ", "
           )}`
         );

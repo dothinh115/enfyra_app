@@ -42,14 +42,7 @@
         v-model="form"
         v-model:errors="errors"
         :table-name="tableName"
-        :excluded="[
-          'id',
-          'createdAt',
-          'updatedAt',
-          'isSystem',
-          'routePermissions',
-          'middlewares',
-        ]"
+        :excluded="['isSystem', 'routePermissions', 'middlewares']"
         :type-map="{
           path: { disabled: detail?.isSystem },
           isEnabled: { disabled: detail?.isSystem },

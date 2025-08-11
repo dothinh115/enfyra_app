@@ -208,7 +208,7 @@ watch(
         v-model="form"
         v-model:errors="errors"
         table-name="user_definition"
-        :excluded="['id', 'isRootAdmin', 'isSystem']"
+        :excluded="['isRootAdmin', 'isSystem']"
         class="mt-4"
       />
     </UCard>
