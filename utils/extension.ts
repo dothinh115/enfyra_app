@@ -31,9 +31,8 @@ export function needsAutoName(body: any): boolean {
 }
 
 export async function buildExtensionWithVite(
-  extensionId: string,
   vueContent: string,
-  extensionIdFromBody?: string
+  extensionId: string
 ) {
   const tempDir = join(process.cwd(), ".temp-extension-build");
   const tempExtensionFile = join(tempDir, "extension.vue");
@@ -57,7 +56,7 @@ export default ExtensionComponent
       build: {
         lib: {
           entry: tempEntryFile,
-          name: extensionIdFromBody || "Extension",
+          name: extensionId,
           fileName: () => "extension.js",
           formats: ["umd"],
         },

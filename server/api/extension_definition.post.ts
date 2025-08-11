@@ -28,7 +28,6 @@ export default defineEventHandler(async (event) => {
         try {
           // Compile Vue SFC to JavaScript with Vite
           compiledCode = await buildExtensionWithVite(
-            extensionId,
             body.code,
             body.extensionId
           );
