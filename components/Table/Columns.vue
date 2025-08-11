@@ -24,6 +24,12 @@ function editColumn(col: any, index: number) {
   if (!col) return;
   editingIndex.value = index;
   currentColumn.value = { ...toRaw(col) };
+
+  // Nếu type là uuid, đảm bảo isGenerated = true và không có defaultValue
+  if (currentColumn.value.type === "uuid") {
+    currentColumn.value.isGenerated = true;
+    delete currentColumn.value.defaultValue;
+  }
 }
 
 function saveColumn() {
@@ -32,6 +38,12 @@ function saveColumn() {
   if (Object.keys(errors.value).length > 0) return;
 
   const newCol = { ...currentColumn.value };
+
+  // Đảm bảo uuid type luôn có isGenerated = true và không có defaultValue
+  if (newCol.type === "uuid") {
+    newCol.isGenerated = true;
+    delete newCol.defaultValue;
+  }
 
   if (isNew.value) {
     columns.value.push(newCol);
@@ -53,6 +65,12 @@ function addNewColumn() {
   currentColumn.value.isUpdatable = true;
   editingIndex.value = null;
   delete currentColumn.value.id;
+
+  // Nếu type là uuid, tự động set isGenerated = true
+  if (currentColumn.value.type === "uuid") {
+    currentColumn.value.isGenerated = true;
+    delete currentColumn.value.defaultValue;
+  }
 }
 
 function validate(property?: string) {
@@ -84,18 +102,41 @@ function validate(property?: string) {
 function getDefaultValueType(columnType: string) {
   if (!columnType) return { type: "text" };
 
+  // Boolean type
   if (columnType === "boolean") {
     return { type: "boolean" };
   }
 
-  if (columnType === "int" || columnType === "integer") {
+  // Numeric types
+  if (columnType === "int" || columnType === "float") {
     return { type: "number" };
   }
 
-  if (columnType === "text" || columnType === "varchar") {
+  // Date type
+  if (columnType === "date") {
+    return {
+      type: "date",
+      fieldProps: {
+        class: "col-span-2",
+      },
+    };
+  }
+
+  // Long text types
+  if (columnType === "text" || columnType === "richtext") {
     return { type: "textarea" };
   }
 
+  // Code type
+  if (columnType === "code") {
+    return { type: "code" };
+  }
+
+  if (columnType === "varchar" || columnType === "uuid") {
+    return { type: "text" };
+  }
+
+  // Default fallback
   return { type: "text" };
 }
 
@@ -116,6 +157,19 @@ const typeMap = computed(() => {
       disabled: currentColumn.value?.name === "id",
     },
     defaultValue: getDefaultValueType(currentType),
+    // Xử lý đặc biệt cho uuid type
+    ...(currentType === "uuid" && {
+      defaultValue: {
+        type: "text",
+        disabled: true,
+        placeholder: "Auto-generated UUID",
+      },
+      isGenerated: {
+        type: "boolean",
+        disabled: true,
+        default: true,
+      },
+    }),
   };
 });
 
@@ -129,6 +183,30 @@ onMounted(() => {
   delete primaryColumn.id;
   if (!columns.value.length) columns.value.push(primaryColumn);
 });
+
+// Watcher để xử lý uuid type
+watch(
+  () => currentColumn.value?.type,
+  (newType, oldType) => {
+    if (newType === "uuid" && oldType !== "uuid") {
+      // Khi type thay đổi thành uuid
+      if (currentColumn.value) {
+        currentColumn.value.isGenerated = true;
+        delete currentColumn.value.defaultValue;
+      }
+    } else if (oldType === "uuid" && newType !== "uuid") {
+      // Khi type thay đổi từ uuid sang type khác
+      if (currentColumn.value) {
+        currentColumn.value.isGenerated = false;
+        // Khôi phục lại defaultValue dựa trên type mới
+        const defaultValueType = getDefaultValueType(newType);
+        if (defaultValueType) {
+          currentColumn.value.defaultValue = null;
+        }
+      }
+    }
+  }
+);
 </script>
 
 <template>

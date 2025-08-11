@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // Vue functions are auto-imported
-import { UInput, UTextarea, USwitch, USelect } from "#components";
+import { UInput, UTextarea, USwitch, USelect, UCalendar } from "#components";
+import { CalendarDate } from "@internationalized/date";
 
 const props = withDefaults(
   defineProps<{
@@ -252,7 +253,6 @@ function getComponentConfigByKey(key: string) {
         },
         fieldProps: {
           ...fieldProps,
-          class: "col-span-2",
         },
       };
     }
@@ -324,7 +324,7 @@ function getComponentConfigByKey(key: string) {
       component: resolveComponent("FormRichTextEditorLazy"),
       componentProps: {
         modelValue: props.formData[key] ?? "",
-        editable: !disabled,
+        disabled: disabled,
         "onUpdate:modelValue": (val: string) => {
           updateFormData(key, val);
         },
@@ -333,6 +333,90 @@ function getComponentConfigByKey(key: string) {
         ...fieldProps,
         class: "col-span-2",
       },
+    };
+  }
+
+  // Xử lý đặc biệt cho uuid type
+  if (finalType === "uuid") {
+    return {
+      component: resolveComponent("FormUuidField"),
+      componentProps: {
+        modelValue: props.formData[key] ?? "",
+        disabled: disabled,
+        "onUpdate:modelValue": (val: string) => {
+          updateFormData(key, val);
+        },
+      },
+      fieldProps,
+    };
+  }
+
+  if (finalType === "date") {
+    let modelValue = null;
+
+    if (props.formData[key]) {
+      try {
+        if (props.formData[key] instanceof Date) {
+          const date = props.formData[key];
+          if (!isNaN(date.getTime())) {
+            // Kiểm tra Date hợp lệ
+            modelValue = new CalendarDate(
+              date.getFullYear(),
+              date.getMonth() + 1,
+              date.getDate()
+            );
+          }
+        } else if (typeof props.formData[key] === "string") {
+          const date = new Date(props.formData[key]);
+          if (!isNaN(date.getTime())) {
+            modelValue = new CalendarDate(
+              date.getFullYear(),
+              date.getMonth() + 1,
+              date.getDate()
+            );
+          }
+        } else if (typeof props.formData[key] === "number") {
+          const date = new Date(props.formData[key]);
+          if (!isNaN(date.getTime())) {
+            modelValue = new CalendarDate(
+              date.getFullYear(),
+              date.getMonth() + 1,
+              date.getDate()
+            );
+          }
+        }
+      } catch (error) {
+        console.error("Error converting to CalendarDate:", error);
+        modelValue = null;
+      }
+    }
+
+    return {
+      component: UCalendar,
+      componentProps: {
+        disabled: disabled,
+        class: "w-full",
+        modelValue: modelValue,
+        placeholder: new CalendarDate(
+          new Date().getFullYear(),
+          new Date().getMonth() + 1,
+          new Date().getDate()
+        ),
+        "onUpdate:modelValue": (val: any) => {
+          if (val) {
+            try {
+              const date = new Date(val.year, val.month - 1, val.day);
+              updateFormData(key, date);
+            } catch (error) {
+              console.error("Error creating Date object:", error);
+              updateFormData(key, null);
+            }
+          } else {
+            updateFormData(key, null);
+          }
+        },
+      },
+      fieldProps,
     };
   }
 

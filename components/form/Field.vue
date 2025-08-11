@@ -60,7 +60,13 @@ const fieldProps = computed(() => {
       <span class="flex items-center gap-1">
         {{ keyName }}
         <span
-          v-if="column?.isNullable === false && column?.isGenerated !== true"
+          v-if="
+            column?.isNullable === false &&
+            column?.isGenerated !== true &&
+            column?.type !== 'boolean' &&
+            keyName !== 'createdAt' &&
+            keyName !== 'updatedAt'
+          "
           class="text-red-500"
           >*</span
         >
