@@ -7,7 +7,7 @@ const toast = useToast();
 const { registerTableMenusWithSidebarIds } = useMenuRegistry();
 const tableName = "table_definition";
 const { getIncludeFields } = useSchema(tableName);
-import { isSystemTableModifiable } from "~/utils/constants";
+import { isSystemTableModifiable } from "~/utils/common/constants";
 
 const { isMounted } = useMounted();
 

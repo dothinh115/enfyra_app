@@ -4,7 +4,7 @@ import {
   ACCESS_TOKEN_KEY,
   REFRESH_TOKEN_KEY,
   EXP_TIME_KEY,
-} from "../constants";
+} from "../../common/constants";
 
 export async function refreshToken(event: H3Event): Promise<string | null> {
   const config = useRuntimeConfig();

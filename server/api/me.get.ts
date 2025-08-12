@@ -1,6 +1,6 @@
 import { defineEventHandler, getCookie, H3Event } from "h3";
-import { ACCESS_TOKEN_KEY } from "../../utils/constants";
-import { proxyToAPI } from "../../utils/server/proxy";
+import { ACCESS_TOKEN_KEY } from "~/utils/common/constants";
+import { proxyToAPI } from "~/utils/server/proxy";
 
 export default defineEventHandler(async (event: H3Event) => {
   // ✅ Check access_token in cookie

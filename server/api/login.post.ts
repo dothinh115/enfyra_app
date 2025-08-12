@@ -11,8 +11,8 @@ import {
   ACCESS_TOKEN_KEY,
   REFRESH_TOKEN_KEY,
   EXP_TIME_KEY,
-} from "../../utils/constants";
-import type { AuthResponse } from "../../utils/server/types";
+} from "~/utils/common/constants";
+import type { AuthResponse } from "~/utils/types/server";
 
 export default defineEventHandler(async (event: H3Event) => {
   const config = useRuntimeConfig();

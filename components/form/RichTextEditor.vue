@@ -4,7 +4,7 @@ declare global {
     tinymce: any;
   }
 }
-import { ensureString } from "~/utils/form";
+import { ensureString } from "~/utils/components/form";
 
 const props = defineProps<{
   modelValue: string | null;

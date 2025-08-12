@@ -12,7 +12,7 @@ import {
   REFRESH_TOKEN_KEY,
   ACCESS_TOKEN_KEY,
   EXP_TIME_KEY,
-} from "../../utils/constants";
+} from "~/utils/common/constants";
 
 export default defineEventHandler(async (event: H3Event) => {
   const config = useRuntimeConfig();

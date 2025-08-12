@@ -4,7 +4,7 @@ import {
   isProbablyVueSFC,
   assertValidVueSFC,
   assertValidJsBundleSyntax,
-} from "~/utils/extension";
+} from "~/utils/server/extension";
 
 export default defineEventHandler(async (event) => {
   const method = event.method;

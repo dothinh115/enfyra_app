@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // UInput, USelect, UButton auto-imported by Nuxt
-import type { FilterCondition, FilterGroup } from "~/utils/filter/FilterTypes";
+import type { FilterCondition, FilterGroup } from "~/utils/common/filter/FilterTypes";
 // getOperatorsByType, mapDbTypeToFilterType, needsValue, needsTwoValues auto-imported from utils
 // getCombinedOptionsForContext, getFieldOptions auto-imported from utils
 

@@ -4,7 +4,7 @@ import {
   isProbablyVueSFC,
   assertValidVueSFC,
   assertValidJsBundleSyntax,
-} from "~/utils/extension";
+} from "~/utils/server/extension";
 import { readBody, getHeader } from "h3";
 
 export default defineEventHandler(async (event) => {

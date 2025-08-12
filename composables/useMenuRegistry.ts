@@ -1,5 +1,5 @@
 import type { PermissionCondition } from "./usePermissions";
-import { isSystemTableModifiable } from "~/utils/constants";
+import { isSystemTableModifiable } from "~/utils/common/constants";
 
 // API Response Interface from /menu_definition
 interface MenuDefinition {

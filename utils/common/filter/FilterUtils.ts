@@ -9,11 +9,9 @@ export function getTargetTableNameForGroup(
     return rootTableName;
   }
 
-  // Handle nested relation paths (e.g., "author.profile")
   const relationPath = group.relationContext.split(".");
   let currentTable = rootTableName;
 
-  // Walk through each relation in the path
   for (const relationName of relationPath) {
     const currentSchema = schemas[currentTable];
     const relation = currentSchema?.definition?.find(
@@ -21,10 +19,9 @@ export function getTargetTableNameForGroup(
     );
 
     if (!relation) {
-      return rootTableName; // Fallback if relation not found
+      return rootTableName;
     }
 
-    // Get target table name
     let targetTableName = relation.targetTable?.name;
 
     if (!targetTableName && relation.targetTable?.id) {
@@ -35,7 +32,7 @@ export function getTargetTableNameForGroup(
     }
 
     if (!targetTableName) {
-      return rootTableName; // Fallback if target not found
+      return rootTableName;
     }
 
     currentTable = targetTableName;
@@ -54,13 +51,8 @@ export function getCombinedOptionsForContext(
   const options: FieldOption[] = [];
   const systemFields: FieldOption[] = [];
 
-  // Add columns from the context table (sorted by original order)
   const columns = schema.definition
-    .filter((field: any) => field.fieldType === "column" && !field.isHidden)
-    .sort((a: any, b: any) => {
-      // Maintain original order from schema definition
-      return 0;
-    });
+    .filter((field: any) => field.fieldType === "column" && !field.isHidden);
 
   columns.forEach((field: any) => {
     const option: FieldOption = {
@@ -77,16 +69,10 @@ export function getCombinedOptionsForContext(
     }
   });
 
-  // Always add relations for nested filtering capability (sorted by original order)
   const relations = schema.definition
-    .filter((field: any) => field.fieldType === "relation")
-    .sort((a: any, b: any) => {
-      // Maintain original order from schema definition
-      return 0;
-    });
+    .filter((field: any) => field.fieldType === "relation");
 
   relations.forEach((relation: any) => {
-    // Find target table name by ID
     let targetTableName = relation.targetTable?.name;
     if (!targetTableName && relation.targetTable?.id) {
       const targetTable = Object.values(schemas).find(
@@ -111,7 +97,6 @@ export function getFieldOptions(
   contextTableName: string,
   schemas: Record<string, any>
 ): Array<{ label: string; value: any }> {
-  // For enum fields, get options from schema
   const schema = schemas[contextTableName];
   if (!schema?.definition) return [];
 

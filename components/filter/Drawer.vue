@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FilterGroup } from "~/utils/filter/FilterTypes";
+import type { FilterGroup } from "~/utils/common/filter/FilterTypes";
 
 const props = defineProps<{
   modelValue: boolean;

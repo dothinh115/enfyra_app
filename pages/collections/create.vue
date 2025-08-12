@@ -22,7 +22,7 @@ watch(
   (newVal) => {
     const name = newVal.trim();
     if (name === "") nameError.value = "Cannot be empty!";
-    else if (!tableNameOrFieldRegexCheck.test(name))
+    else if (!TABLE_NAME_FIELD_REGEX.test(name))
       nameError.value =
         "Only letters, numbers, _ allowed. Cannot start with number or _!";
     else if (name === "table") nameError.value = "Table name cannot be `table`";
@@ -44,7 +44,7 @@ watch(
 function validateColumn(col: any) {
   if (!col.name?.trim()) {
     errors.value["name"] = "Column name is required";
-  } else if (!tableNameOrFieldRegexCheck.test(col.name.trim())) {
+  } else if (!TABLE_NAME_FIELD_REGEX.test(col.name.trim())) {
     errors.value["name"] = "Invalid name";
   } else {
     delete errors.value["name"];
@@ -61,7 +61,7 @@ function validateRelation(rel: any) {
   if (!rel.propertyName?.trim()) {
     errors.value.propertyName = "Relation name is required";
     return false;
-  } else if (!tableNameOrFieldRegexCheck.test(rel.propertyName.trim())) {
+  } else if (!TABLE_NAME_FIELD_REGEX.test(rel.propertyName.trim())) {
     errors.value.propertyName = "Invalid name";
     return false;
   }
@@ -89,7 +89,7 @@ function validateAll() {
   const name = table.name.trim();
   if (name === "") {
     errors.value["name"] = "Cannot be empty!";
-  } else if (!tableNameOrFieldRegexCheck.test(name)) {
+  } else if (!TABLE_NAME_FIELD_REGEX.test(name)) {
     errors.value["name"] = "Invalid name";
   } else if (name === "table") {
     errors.value["name"] = "Table name cannot be `table`";

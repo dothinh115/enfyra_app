@@ -3,8 +3,8 @@
 import type {
   FilterGroup as FilterGroupType,
   FilterCondition,
-} from "~/utils/filter/FilterTypes";
-// generateId auto-imported from utils
+} from "~/utils/common/filter/FilterTypes";
+// generateFilterId auto-imported from utils
 // getTargetTableNameForGroup auto-imported from utils
 
 const props = defineProps<{
@@ -25,7 +25,7 @@ function updateGroup() {
 
 function addCondition() {
   const newCondition: FilterCondition = {
-    id: generateId(),
+    id: generateFilterId(),
     field: "",
     operator: "_eq",
     value: null,
@@ -37,7 +37,7 @@ function addCondition() {
 
 function addGroup() {
   const newGroup: FilterGroupType = {
-    id: generateId(),
+    id: generateFilterId(),
     operator: "and",
     conditions: [],
   };

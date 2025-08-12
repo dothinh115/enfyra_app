@@ -1,4 +1,4 @@
-export const operators = {
+export const FILTER_OPERATORS = {
   string: [
     { value: "_eq", label: "Equals" },
     { value: "_neq", label: "Not equals" },
@@ -44,7 +44,7 @@ export const operators = {
 };
 
 export function getOperatorsByType(type: string) {
-  return operators[type as keyof typeof operators] || operators.string;
+  return FILTER_OPERATORS[type as keyof typeof FILTER_OPERATORS] || FILTER_OPERATORS.string;
 }
 
 export function mapDbTypeToFilterType(dbType: string): string {
@@ -76,6 +76,6 @@ export function needsTwoValues(operator: string): boolean {
   return ["_between"].includes(operator);
 }
 
-export function generateId() {
+export function generateFilterId(): string {
   return Math.random().toString(36).substring(2, 9);
 }

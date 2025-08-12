@@ -14,7 +14,7 @@ import { indentWithTab } from "@codemirror/commands";
 import { closeBrackets } from "@codemirror/autocomplete";
 import { bracketMatching, indentOnInput } from "@codemirror/language";
 import eslint from "eslint-linter-browserify";
-import { ensureString } from "~/utils/form";
+import { ensureString } from "~/utils/components/form";
 
 const props = defineProps<{
   modelValue?: string;

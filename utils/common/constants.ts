@@ -4,6 +4,5 @@ export const REFRESH_TOKEN_KEY = "refresh_token";
 
 export const isSystemTableModifiable = (tableName: string): boolean => {
   const modifiableSystemTables = ["user_definition"];
-
   return modifiableSystemTables.includes(tableName);
 };

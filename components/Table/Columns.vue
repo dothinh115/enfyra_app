@@ -77,7 +77,7 @@ function validate(property?: string) {
   if (property === "name") {
     if (!currentColumn.value?.name?.trim()) {
       errors.value.name = "Column name is required";
-    } else if (!tableNameOrFieldRegexCheck.test(currentColumn.value?.name)) {
+    } else if (!TABLE_NAME_FIELD_REGEX.test(currentColumn.value?.name)) {
       errors.value.name =
         "Only letters, numbers, _ allowed and cannot start with number or _!";
     } else {
