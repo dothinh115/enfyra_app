@@ -118,7 +118,24 @@ export function useMenuRegistry() {
 
   // Table menu registration functions (from useMenuRegistry)
   const registerTableMenusWithSidebarIds = async (tables: any[]) => {
-    if (!tables || tables.length === 0) return;
+    if (!tables || tables.length === 0) {
+      // Clear all table menus if no tables provided
+      const tableMenuItems = menuItems.value.filter((item) =>
+        item.id.startsWith("collections-") || item.id.startsWith("data-")
+      );
+      tableMenuItems.forEach((item) => {
+        unregisterMenuItem(item.id);
+      });
+      return;
+    }
+
+    // Clear existing table menu items before registering new ones
+    const tableMenuItems = menuItems.value.filter((item) =>
+      item.id.startsWith("collections-") || item.id.startsWith("data-")
+    );
+    tableMenuItems.forEach((item) => {
+      unregisterMenuItem(item.id);
+    });
 
     // Filter tables that can be modified in collections
     const modifiableTables = tables.filter((table) => {
