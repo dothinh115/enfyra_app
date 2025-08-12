@@ -4,6 +4,7 @@ import { useMenuRegistry } from "~/composables/useMenuRegistry";
 import { useMenuApi } from "~/composables/useMenuApi";
 
 const toast = useToast();
+const { confirm } = useConfirm();
 const page = ref(1);
 const pageLimit = 15;
 const route = useRoute();
@@ -206,6 +207,44 @@ async function toggleEnabled(menuItem: any) {
     color: "success",
   });
 }
+
+async function deleteMenu(menuItem: any) {
+  const isConfirmed = await confirm({
+    title: "Delete Menu",
+    content: `Are you sure you want to delete menu "${menuItem.label}"? This action cannot be undone.`,
+    confirmText: "Delete",
+    cancelText: "Cancel",
+  });
+
+  if (isConfirmed) {
+    const { execute: deleteMenuApi, error: deleteError } = useApiLazy(
+      () => `/menu_definition/${menuItem.id}`,
+      {
+        method: "delete",
+        errorContext: "Delete Menu",
+      }
+    );
+
+    await deleteMenuApi();
+
+    if (deleteError.value) {
+      return;
+    }
+
+    await fetchMenus();
+
+    // Reregister all menus after successful delete
+    const { reregisterAllMenus } = useMenuRegistry();
+    const { fetchMenuDefinitions } = useMenuApi();
+    await reregisterAllMenus(fetchMenuDefinitions as any);
+
+    toast.add({
+      title: "Success",
+      description: `Menu "${menuItem.label}" has been deleted successfully!`,
+      color: "success",
+    });
+  }
+}
 </script>
 
 <template>
@@ -270,9 +309,16 @@ async function toggleEnabled(menuItem: any) {
                 v-if="!menu.isSystem"
                 :model-value="menu.isEnabled"
                 @update:model-value="toggleEnabled(menu)"
-                label="Is enabled"
                 :disabled="getMenuLoader(menu.id).isLoading"
                 @click.stop
+              />
+              <UButton
+                v-if="!menu.isSystem"
+                icon="i-heroicons-trash"
+                variant="outline"
+                size="sm"
+                color="error"
+                @click.stop="deleteMenu(menu)"
               />
             </template>
           </CommonSettingsCard>

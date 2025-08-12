@@ -51,6 +51,14 @@
             <UAvatar v-else :alt="user.name" size="xs">
               {{ user.email?.charAt(0)?.toUpperCase() || "?" }}
             </UAvatar>
+            <UButton
+              v-if="!user.isRootAdmin"
+              icon="i-heroicons-trash"
+              variant="outline"
+              size="sm"
+              color="error"
+              @click.stop="deleteUser(user)"
+            />
           </template>
         </CommonSettingsCard>
       </div>
@@ -87,6 +95,7 @@
 const page = ref(1);
 const limit = 12;
 const tableName = "user_definition";
+const { confirm } = useConfirm();
 const { getIncludeFields } = useSchema(tableName);
 const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
 
@@ -186,6 +195,49 @@ async function applyFilters() {
 function clearFilters() {
   currentFilter.value = createEmptyFilter();
   applyFilters();
+}
+
+async function deleteUser(user: any) {
+  // Protect rootAdmin from deletion
+  if (user.isRootAdmin) {
+    toast.add({
+      title: "Error",
+      description: "Cannot delete root administrator account",
+      color: "error",
+    });
+    return;
+  }
+
+  const isConfirmed = await confirm({
+    title: "Delete User",
+    content: `Are you sure you want to delete user "${user.name || user.email}"? This action cannot be undone.`,
+    confirmText: "Delete",
+    cancelText: "Cancel",
+  });
+
+  if (isConfirmed) {
+    const { execute: deleteUserApi, error: deleteError } = useApiLazy(
+      () => `/${tableName}/${user.id}`,
+      {
+        method: "delete",
+        errorContext: "Delete User",
+      }
+    );
+
+    await deleteUserApi();
+
+    if (deleteError.value) {
+      return;
+    }
+
+    await fetchUsers();
+
+    toast.add({
+      title: "Success",
+      description: `User "${user.name || user.email}" has been deleted successfully!`,
+      color: "success",
+    });
+  }
 }
 
 watch(

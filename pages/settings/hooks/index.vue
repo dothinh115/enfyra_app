@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const toast = useToast();
+const { confirm } = useConfirm();
 const page = ref(1);
 const pageLimit = 7;
 const route = useRoute();
@@ -80,6 +81,39 @@ async function toggleEnabled(hook: any) {
   }
 }
 
+async function deleteHook(hook: any) {
+  const isConfirmed = await confirm({
+    title: "Delete Hook",
+    content: `Are you sure you want to delete hook "${hook.name || 'Unnamed'}"? This action cannot be undone.`,
+    confirmText: "Delete",
+    cancelText: "Cancel",
+  });
+
+  if (isConfirmed) {
+    const { execute: deleteHookApi, error: deleteError } = useApiLazy(
+      () => `/hook_definition/${hook.id}`,
+      {
+        method: "delete",
+        errorContext: "Delete Hook",
+      }
+    );
+
+    await deleteHookApi();
+
+    if (deleteError.value) {
+      return;
+    }
+
+    await fetchHooks();
+
+    toast.add({
+      title: "Success",
+      description: `Hook "${hook.name || 'Unnamed'}" has been deleted successfully!`,
+      color: "success",
+    });
+  }
+}
+
 onMounted(async () => {});
 </script>
 
@@ -130,10 +164,18 @@ onMounted(async () => {});
         >
           <template #headerActions>
             <USwitch
+              v-if="!hook.isSystem"
               v-model="hook.isEnabled"
               @update:model-value="toggleEnabled(hook)"
-              :disabled="hook.isSystem"
               @click.stop
+            />
+            <UButton
+              v-if="!hook.isSystem"
+              icon="i-heroicons-trash"
+              variant="outline"
+              size="sm"
+              color="error"
+              @click.stop="deleteHook(hook)"
             />
           </template>
         </CommonSettingsCard>
