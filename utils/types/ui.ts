@@ -12,8 +12,8 @@ export interface DataTableProps {
   onBulkDelete?: (selectedRows: any[]) => void;
 }
 
-// Mobile Card Component
-export interface MobileCardProps {
+// Tablet Card Component (renamed from MobileCard)
+export interface TabletCardProps {
   row: any;
   cells: any[];
   selectable?: boolean;
@@ -21,6 +21,9 @@ export interface MobileCardProps {
   onToggleSelect?: () => void;
   onClick?: () => void;
 }
+
+// Legacy alias for backward compatibility
+export interface MobileCardProps extends TabletCardProps {}
 
 // Column Selector Component
 export interface ColumnSelectorProps {

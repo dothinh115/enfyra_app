@@ -30,6 +30,7 @@ const {
 
 const createForm = ref(generateEmptyForm());
 const createErrors = ref({});
+const { isTablet } = useScreen();
 
 watch(show, (val) => {
   if (val) {
@@ -56,7 +57,11 @@ async function createNewRecord() {
 
 <template>
   <Teleport to="body">
-    <UDrawer v-model:open="show" direction="right" class="min-w-xl">
+    <UDrawer 
+      v-model:open="show" 
+      direction="right" 
+      :class="isTablet ? 'w-full' : 'min-w-xl'"
+    >
       <template #header>
         <div
           class="flex items-center justify-between border-b border-muted pb-2"

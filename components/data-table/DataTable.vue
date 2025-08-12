@@ -142,16 +142,8 @@ async function handleBulkDelete() {
   }
 }
 
-// Mobile responsive check
-const isMobile = ref(false);
-onMounted(() => {
-  const checkMobile = () => {
-    isMobile.value = window.innerWidth < 768;
-  };
-  checkMobile();
-  window.addEventListener("resize", checkMobile);
-  onUnmounted(() => window.removeEventListener("resize", checkMobile));
-});
+// Responsive check - tablet uses card view, desktop uses table
+const { isTablet } = useScreen();
 </script>
 
 <template>
@@ -177,7 +169,7 @@ onMounted(() => {
 
     <!-- Desktop Table View -->
     <div
-      v-else-if="!isMobile"
+      v-else-if="!isTablet"
       class="overflow-auto rounded-lg border border-gray-200 dark:border-gray-800 transition-all duration-300 ease-in-out"
     >
       <table class="w-full" aria-label="Data table">
@@ -273,13 +265,14 @@ onMounted(() => {
       </table>
     </div>
 
-    <!-- Mobile Card View -->
+    <!-- Tablet Card View -->
     <div
       v-else
-      class="space-y-3 transition-all duration-300 ease-in-out"
-      aria-label="Mobile data view"
+      class="grid gap-4 transition-all duration-300 ease-in-out"
+      :class="isTablet ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'"
+      aria-label="Tablet data view"
     >
-      <DataTableMobileCard
+      <DataTableTabletCard
         v-for="row in table.getRowModel().rows"
         :key="row.id"
         :row="row.original"

@@ -70,6 +70,8 @@ function hasActiveFilters(group: FilterGroup): boolean {
     }
   });
 }
+
+const { isTablet } = useScreen();
 </script>
 
 <template>
@@ -78,6 +80,7 @@ function hasActiveFilters(group: FilterGroup): boolean {
       :open="modelValue"
       @update:open="$emit('update:modelValue', $event)"
       direction="right"
+      :class="isTablet ? 'w-full' : 'min-w-2xl'"
     >
       <template #header>
         <div class="flex items-center justify-between">

@@ -46,8 +46,8 @@
       v-if="sidebarVisible"
       class="bg-gray-700 p-4 flex flex-col transition-all duration-300 border-l border-gray-600 flex-shrink-0"
       :class="
-        isMobile || isTablet
-          ? 'fixed inset-y-0 left-16 w-60 z-50 shadow-xl'
+        isTablet
+          ? 'fixed inset-y-0 left-16 w-80 z-50 shadow-xl'
           : 'w-60'
       "
       aria-label="Secondary navigation"
@@ -56,9 +56,9 @@
       <SidebarMenu />
     </aside>
 
-    <!-- Overlay for mobile -->
+    <!-- Overlay for tablet -->
     <div
-      v-if="sidebarVisible && (isMobile || isTablet)"
+      v-if="sidebarVisible && isTablet"
       class="fixed inset-0 left-16 bg-black bg-opacity-50 z-40"
       @click="setSidebarVisible(false)"
       role="presentation"
@@ -72,7 +72,7 @@
 
       <div
         class="h-12 border-b border-gray-700 flex items-center justify-between bg-background shrink-0"
-        :class="isMobile ? 'px-3' : 'px-6'"
+        :class="isTablet ? 'px-4' : 'px-6'"
       >
         <slot name="subheader">
           <!-- Fallback content if no slot -->
@@ -82,10 +82,9 @@
               variant="soft"
               color="primary"
               @click="goBack"
-              :label="isMobile ? undefined : 'Back'"
+              label="Back"
               :disabled="disableBack"
-              :size="isMobile ? 'sm' : 'md'"
-              :aria-label="isMobile ? 'Go back' : undefined"
+              :size="isTablet ? 'sm' : 'md'"
             />
           </div>
         </slot>
@@ -94,7 +93,7 @@
       <!-- Page Content -->
       <section
         class="flex-1 min-h-0 overflow-auto"
-        :class="isMobile ? 'p-3' : 'p-6'"
+        :class="isTablet ? 'p-4' : 'p-6'"
       >
         <slot />
       </section>
@@ -167,11 +166,11 @@ function goBack() {
   router.back();
 }
 
-// Auto hide sidebar on mobile/tablet
+// Auto hide sidebar on tablet (no mobile support)
 watch(
-  [isMobile, isTablet],
-  ([mobile, tablet]) => {
-    if (mobile || tablet) {
+  isTablet,
+  (tablet) => {
+    if (tablet) {
       setSidebarVisible(false);
     } else {
       setSidebarVisible(true);

@@ -3,11 +3,11 @@
     <template v-for="action in visibleActions" :key="action.id">
       <PermissionGate :condition="action.permission">
         <UButton
-          :label="action.label"
+          :label="isTablet ? undefined : action.label"
           :icon="action.icon"
           :variant="action.variant || 'solid'"
           :color="action.color || 'primary'"
-          :size="action.size || 'md'"
+          :size="isTablet ? 'sm' : (action.size || 'md')"
           :loading="unref(action.loading)"
           :disabled="unref(action.disabled)"
           :to="action.to"
@@ -26,6 +26,7 @@ import type { HeaderAction } from "~/utils/types";
 
 const route = useRoute();
 const { headerActions } = useHeaderActionRegistry();
+const { isTablet } = useScreen();
 
 const visibleActions = computed(() => {
   const filtered = headerActions.value.filter((action) => {

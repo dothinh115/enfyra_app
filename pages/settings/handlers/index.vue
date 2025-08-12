@@ -8,6 +8,7 @@ const { confirm } = useConfirm();
 const { getIncludeFields } = useSchema(tableName);
 
 const { isMounted } = useMounted();
+const { isTablet } = useScreen();
 
 const {
   data: apiData,
@@ -100,67 +101,47 @@ onMounted(async () => {
         context="page"
       />
 
-      <div v-else-if="routeHandlers.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <UCard v-for="handler in routeHandlers" :key="handler.id" class="relative group">
-          <template #header>
-            <div class="flex items-center gap-3">
-              <div class="p-2 bg-primary/10 rounded-lg">
-                <Icon name="lucide:command-line" class="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <div class="font-medium">{{ handler.name }}</div>
-                <div class="text-xs text-muted-foreground">
-                  {{ handler.description || "No description" }}
-                </div>
-              </div>
-            </div>
+      <div v-else-if="routeHandlers.length" class="grid gap-4" :class="isTablet ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'">
+        <CommonSettingsCard
+          v-for="handler in routeHandlers"
+          :key="handler.id"
+          :title="handler.name"
+          :description="handler.description || 'No description'"
+          icon="lucide:command"
+          icon-color="primary"
+          :card-class="'cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all'"
+          @click="navigateTo(`/settings/handlers/${handler.id}`)"
+          :stats="[
+            {
+              label: 'Type',
+              component: 'UBadge',
+              props: { variant: 'soft', color: 'primary' },
+              value: handler.type || 'Unknown'
+            },
+            {
+              label: 'Created',
+              value: new Date(handler.createdAt).toLocaleDateString()
+            }
+          ]"
+          :actions="[]"
+        >
+          <template #headerActions v-if="!handler.isSystem">
+            <UButton
+              icon="i-heroicons-trash"
+              variant="outline"
+              size="sm"
+              color="error"
+              @click.stop="deleteHandler(handler.id)"
+            />
           </template>
-
-          <div class="text-sm text-muted-foreground space-y-2">
-            <div class="flex items-center justify-between">
-              <span>Type:</span>
-              <UBadge variant="soft" color="primary">
-                {{ handler.type || "Unknown" }}
-              </UBadge>
-            </div>
-            <div class="flex items-center justify-between">
-              <span>Created:</span>
-              <span>{{ new Date(handler.createdAt).toLocaleDateString() }}</span>
-            </div>
-          </div>
-
-          <template #footer>
-            <div class="flex gap-2">
-              <UButton
-                icon="lucide:eye"
-                variant="outline"
-                size="sm"
-                :to="`/settings/handlers/${handler.id}`"
-                block
-              >
-                View Details
-              </UButton>
-              <UButton
-                v-if="!handler.isSystem"
-                icon="lucide:trash"
-                variant="outline"
-                size="sm"
-                color="error"
-                @click="deleteHandler(handler.id)"
-                block
-              >
-                Delete
-              </UButton>
-            </div>
-          </template>
-        </UCard>
+        </CommonSettingsCard>
       </div>
 
       <CommonEmptyState
         v-else
         title="No handlers found"
         description="No route handlers have been created yet"
-        icon="lucide:command-line"
+        icon="lucide:terminal"
         size="sm"
       />
     </Transition>

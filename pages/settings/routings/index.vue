@@ -7,6 +7,7 @@ const tableName = "route_definition";
 const { getIncludeFields } = useSchema(tableName);
 const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
 const { createLoader } = useLoader();
+const { isTablet } = useScreen();
 const routes = ref<any[]>([]);
 
 // Filter state
@@ -213,81 +214,55 @@ async function toggleEnabled(routeItem: any) {
 
       <div v-else class="space-y-6">
         <div v-if="routes.length" class="space-y-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <ULink
-              :to="`/settings/routings/${routeItem.id}`"
+          <div class="grid gap-4" :class="isTablet ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'">
+            <CommonSettingsCard
               v-for="routeItem in routes"
               :key="routeItem.id"
-              class="cursor-pointer relative z-10"
+              :title="routeItem.path"
+              :description="routeItem.mainTable.name"
+              :icon="routeItem.icon || 'lucide:circle'"
+              icon-color="primary"
+              :card-class="'cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all'"
+              @click="navigateTo(`/settings/routings/${routeItem.id}`)"
+              :stats="[
+                {
+                  label: 'Status',
+                  component: 'UBadge',
+                  props: { 
+                    variant: 'soft', 
+                    color: routeItem.isEnabled ? 'success' : 'warning',
+                    size: 'xs'
+                  },
+                  value: routeItem.isEnabled ? 'Enabled' : 'Disabled'
+                },
+                ...(routeItem.isSystem ? [{
+                  label: 'System',
+                  component: 'UBadge',
+                  props: { variant: 'soft', color: 'info', size: 'xs' },
+                  value: 'System'
+                }] : []),
+                ...(routeItem.order ? [{
+                  label: 'Order',
+                  value: routeItem.order
+                }] : []),
+                ...(routeItem.publishedMethods?.length ? [{
+                  label: 'Methods',
+                  value: routeItem.publishedMethods.map((m: any) => m.method).join(', ')
+                }] : [])
+              ]"
+              :actions="[]"
             >
-              <UCard
-                class="h-full hover:bg-gray-50 dark:hover:bg-gray-800 transition hover:shadow-md"
-                variant="subtle"
-              >
-                <div class="flex flex-col h-full gap-3">
-                  <div class="flex items-center gap-3">
-                    <Icon
-                      :name="routeItem.icon || 'lucide:circle'"
-                      class="text-xl text-primary mt-1"
-                    />
-                    <div class="flex-1 min-w-0">
-                      <div class="font-medium text-primary truncate">
-                        {{ routeItem.path }}
-                      </div>
-                      <div class="text-sm text-gray-500 truncate">
-                        {{ routeItem.mainTable.name }}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="flex flex-wrap gap-2">
-                    <UBadge
-                      :color="routeItem.isEnabled ? 'success' : 'warning'"
-                      size="xs"
-                    >
-                      {{ routeItem.isEnabled ? "Enabled" : "Disabled" }}
-                    </UBadge>
-                    <UBadge v-if="routeItem.isSystem" color="info" size="xs">
-                      System
-                    </UBadge>
-                    <UBadge v-if="routeItem.order" color="secondary" size="xs">
-                      Order: {{ routeItem.order }}
-                    </UBadge>
-                  </div>
-
-                  <!-- Published methods inline -->
-                  <div
-                    v-if="routeItem.publishedMethods?.length"
-                    class="flex items-center gap-2"
-                  >
-                    <span class="text-xs text-gray-400"
-                      >Published Methods:</span
-                    >
-                    <div class="flex flex-wrap gap-1">
-                      <UBadge
-                        v-for="method in routeItem.publishedMethods"
-                        :key="method.method"
-                        size="xs"
-                        color="secondary"
-                      >
-                        {{ method.method }}
-                      </UBadge>
-                    </div>
-                  </div>
-
-                  <div class="flex items-center justify-end mt-auto">
-                    <USwitch
-                      :model-value="routeItem.isEnabled"
-                      @update:model-value="toggleEnabled(routeItem)"
-                      label="Is enabled"
-                      @click.prevent
-                      :disabled="getRouteLoader(routeItem.id).isLoading"
-                      v-if="!routeItem.isSystem"
-                    />
-                  </div>
-                </div>
-              </UCard>
-            </ULink>
+              <template #headerActions>
+                <USwitch
+                  v-if="!routeItem.isSystem"
+                  :model-value="routeItem.isEnabled"
+                  @update:model-value="toggleEnabled(routeItem)"
+                  label="Is enabled"
+                  :disabled="getRouteLoader(routeItem.id).isLoading"
+                  @click.stop
+                />
+              </template>
+            </CommonSettingsCard>
           </div>
         </div>
 

@@ -8,6 +8,7 @@ const { confirm } = useConfirm();
 const { getIncludeFields } = useSchema(tableName);
 
 const { isMounted } = useMounted();
+const { isTablet } = useScreen();
 
 const {
   data: apiData,
@@ -99,55 +100,36 @@ onMounted(async () => {
 
       <div
         v-else-if="roles.length"
-        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+        class="grid gap-4"
+        :class="isTablet ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'"
       >
-        <UCard v-for="role in roles" :key="role.id" class="relative group">
-          <template #header>
-            <div class="flex items-center gap-3">
-              <div class="p-2 bg-primary/10 rounded-lg">
-                <Icon name="lucide:shield-check" class="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <div class="font-medium">{{ role.name }}</div>
-                <div class="text-xs text-muted-foreground">
-                  {{ role.description || "No description" }}
-                </div>
-              </div>
-            </div>
+        <CommonSettingsCard
+          v-for="role in roles"
+          :key="role.id"
+          :title="role.name"
+          :description="role.description || 'No description'"
+          icon="lucide:shield-check"
+          icon-color="primary"
+          :card-class="'cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all'"
+          @click="navigateTo(`/settings/roles/${role.id}`)"
+          :stats="[
+            { 
+              label: 'Created', 
+              value: new Date(role.createdAt).toLocaleDateString() 
+            }
+          ]"
+          :actions="[]"
+        >
+          <template #headerActions v-if="!role.isSystem">
+            <UButton
+              icon="i-heroicons-trash"
+              variant="outline"
+              size="sm"
+              color="error"
+              @click.stop="deleteRole(role.id)"
+            />
           </template>
-
-          <div class="text-sm text-muted-foreground space-y-2">
-            <div class="flex items-center justify-between">
-              <span>Created:</span>
-              <span>{{ new Date(role.createdAt).toLocaleDateString() }}</span>
-            </div>
-          </div>
-
-          <template #footer>
-            <div class="flex gap-2">
-              <UButton
-                icon="lucide:eye"
-                variant="outline"
-                size="sm"
-                :to="`/settings/roles/${role.id}`"
-                block
-              >
-                View Details
-              </UButton>
-              <UButton
-                v-if="!role.isSystem"
-                icon="lucide:trash"
-                variant="outline"
-                size="sm"
-                color="error"
-                @click="deleteRole(role.id)"
-                block
-              >
-                Delete
-              </UButton>
-            </div>
-          </template>
-        </UCard>
+        </CommonSettingsCard>
       </div>
 
       <CommonEmptyState

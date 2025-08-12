@@ -13,6 +13,8 @@ const open = computed({
   get: () => props.modelValue,
   set: (val) => emit("update:modelValue", val),
 });
+
+const { isTablet } = useScreen();
 </script>
 
 <template>
@@ -20,7 +22,7 @@ const open = computed({
     <UDrawer
       v-model:open="open"
       direction="right"
-      class="min-w-xl"
+      :class="isTablet ? 'w-full' : 'min-w-xl'"
       :ui="{
         header:
           'border-b border-muted text-muted pb-2 flex items-center justify-between',

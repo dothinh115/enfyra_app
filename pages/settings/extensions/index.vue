@@ -17,106 +17,72 @@
 
       <div
         v-else-if="extensions.length > 0"
-        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+        class="grid gap-4"
+        :class="isTablet ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'"
       >
-        <UCard
+        <CommonSettingsCard
           v-for="extension in extensions"
           :key="extension.id"
-          class="relative group cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all"
+          :title="extension.name"
+          :description="extension.description"
+          :icon="getExtensionIcon(extension)"
+          icon-color="primary"
+          :card-class="'cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all'"
+          :stats="[
+            {
+              label: 'Type',
+              component: 'UBadge',
+              props: { variant: 'soft', color: 'primary' },
+              value: getExtensionTypeLabel(extension.type)
+            },
+            ...(extension.menu?.path ? [{
+              label: 'Route',
+              value: extension.menu.path
+            }] : []),
+            {
+              label: 'Status',
+              component: 'UBadge',
+              props: { 
+                variant: 'soft', 
+                color: extension.isEnabled ? 'success' : 'neutral' 
+              },
+              value: extension.isEnabled ? 'Active' : 'Inactive'
+            }
+          ]"
           @click="navigateToDetail(extension)"
         >
-          <template #header>
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <UAvatar
-                  :icon="getExtensionIcon(extension)"
-                  size="sm"
-                  color="primary"
-                  variant="soft"
-                />
-                <div>
-                  <div class="font-medium truncate">{{ extension.name }}</div>
-                </div>
-              </div>
-              <PermissionGate
-                :condition="{
-                  or: [{ route: '/extension_definition', actions: ['delete'] }],
-                }"
-              >
-                <UButton
-                  icon="i-heroicons-trash"
-                  variant="outline"
-                  size="md"
-                  color="error"
-                  @click.stop="deleteExtension(extension)"
-                />
-              </PermissionGate>
-            </div>
+          <template #headerActions>
+            <PermissionGate
+              :condition="{
+                or: [
+                  { route: '/extension_definition', actions: ['update'] },
+                ],
+              }"
+            >
+              <USwitch
+                :model-value="extension.isEnabled"
+                @update:model-value="toggleExtensionStatus(extension)"
+                :disabled="
+                  getExtensionLoader(extension.id.toString()).isLoading
+                "
+                @click.stop
+              />
+            </PermissionGate>
+            <PermissionGate
+              :condition="{
+                or: [{ route: '/extension_definition', actions: ['delete'] }],
+              }"
+            >
+              <UButton
+                icon="i-heroicons-trash"
+                variant="outline"
+                size="sm"
+                color="error"
+                @click.stop="deleteExtension(extension)"
+              />
+            </PermissionGate>
           </template>
-
-          <div class="space-y-3">
-            <!-- Description -->
-            <div class="text-sm text-gray-300 line-clamp-2 leading-relaxed">
-              {{ extension.description }}
-            </div>
-
-            <!-- Extension Info -->
-            <div class="text-sm text-muted-foreground">
-              <div class="flex items-center justify-between">
-                <div>Type:</div>
-                <UBadge variant="soft" color="primary">
-                  {{ getExtensionTypeLabel(extension.type) }}
-                </UBadge>
-              </div>
-              <div
-                class="flex items-center justify-between mt-1"
-                v-if="extension.menu?.path"
-              >
-                <div>Route:</div>
-                <NuxtLink
-                  v-if="extension.isEnabled"
-                  :to="extension.menu.path"
-                  class="text-xs font-mono text-primary-500 hover:text-primary-600 hover:underline transition-colors"
-                >
-                  {{ extension.menu.path }}
-                </NuxtLink>
-                <span
-                  v-else
-                  class="text-xs font-mono text-gray-400 cursor-not-allowed"
-                  :title="'Extension is disabled. Enable extension to access this route.'"
-                >
-                  {{ extension.menu.path }}
-                </span>
-              </div>
-              <div class="flex items-center justify-between mt-1">
-                <div>Status:</div>
-                <div class="flex items-center gap-2">
-                  <UBadge
-                    :color="extension.isEnabled ? 'success' : 'neutral'"
-                    variant="soft"
-                  >
-                    {{ extension.isEnabled ? "Active" : "Inactive" }}
-                  </UBadge>
-                  <PermissionGate
-                    :condition="{
-                      or: [
-                        { route: '/extension_definition', actions: ['update'] },
-                      ],
-                    }"
-                  >
-                    <USwitch
-                      :model-value="extension.isEnabled"
-                      @update:model-value="toggleExtensionStatus(extension)"
-                      :disabled="
-                        getExtensionLoader(extension.id.toString()).isLoading
-                      "
-                    />
-                  </PermissionGate>
-                </div>
-              </div>
-            </div>
-          </div>
-        </UCard>
+        </CommonSettingsCard>
       </div>
 
       <CommonEmptyState
@@ -138,6 +104,7 @@ const { confirm } = useConfirm();
 const { createLoader } = useLoader();
 
 const { isMounted } = useMounted();
+const { isTablet } = useScreen();
 
 const {
   data: apiData,

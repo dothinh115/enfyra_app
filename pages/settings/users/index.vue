@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-4">
+  <div class="space-y-6">
     <Transition name="loading-fade" mode="out-in">
       <CommonLoadingState
         v-if="!isMounted || loading"
@@ -12,55 +12,47 @@
 
       <div
         v-else-if="users.length > 0"
-        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+        class="grid gap-4"
+        :class="isTablet ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'"
       >
-        <UCard v-for="user in users" :key="user.id" class="relative group">
-          <template #header>
-            <div class="flex items-center gap-3">
-              <UAvatar
-                v-if="user.avatar"
-                :src="user.avatar"
-                :alt="user.name"
-                size="sm"
-              />
-              <UAvatar v-else :alt="user.name" size="sm">
-                {{ user.email?.charAt(0)?.toUpperCase() || "?" }}
-              </UAvatar>
-
-              <div>
-                <div class="font-medium truncate">{{ user.name }}</div>
-                <div class="text-xs text-muted-foreground truncate">
-                  {{ user.email }}
-                </div>
-              </div>
-            </div>
+        <CommonSettingsCard
+          v-for="user in users" 
+          :key="user.id"
+          :title="user.name || user.email || 'Unnamed User'"
+          :description="user.email || 'No email'"
+          icon="lucide:user"
+          icon-color="primary"
+          :card-class="'cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all'"
+          @click="navigateTo(`/settings/users/${user.id}`)"
+          :stats="[
+            {
+              label: 'Role',
+              component: user.role ? 'UBadge' : null,
+              props: user.role ? { 
+                variant: 'soft', 
+                color: 'primary' 
+              } : undefined,
+              value: user.role?.name || 'No role'
+            },
+            {
+              label: 'Joined',
+              value: new Date(user.createdAt).toLocaleDateString()
+            }
+          ]"
+          :actions="[]"
+        >
+          <template #headerActions>
+            <UAvatar
+              v-if="user.avatar"
+              :src="user.avatar"
+              :alt="user.name"
+              size="xs"
+            />
+            <UAvatar v-else :alt="user.name" size="xs">
+              {{ user.email?.charAt(0)?.toUpperCase() || "?" }}
+            </UAvatar>
           </template>
-
-          <div class="text-sm text-muted-foreground">
-            <div class="flex items-center justify-between">
-              <div>Role:</div>
-              <UBadge variant="soft" color="primary" v-if="user.role">{{
-                user.role.name
-              }}</UBadge>
-            </div>
-            <div class="flex items-center justify-between mt-1">
-              <div>Joined:</div>
-              <div>{{ new Date(user.createdAt).toLocaleDateString() }}</div>
-            </div>
-          </div>
-
-          <template #footer>
-            <UButton
-              icon="lucide:eye"
-              variant="outline"
-              size="sm"
-              block
-              :to="`/settings/users/${user.id}`"
-            >
-              View Details
-            </UButton>
-          </template>
-        </UCard>
+        </CommonSettingsCard>
       </div>
 
       <CommonEmptyState
@@ -99,6 +91,7 @@ const { getIncludeFields } = useSchema(tableName);
 const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
 
 const { isMounted } = useMounted();
+const { isTablet } = useScreen();
 
 const showFilterDrawer = ref(false);
 const currentFilter = ref(createEmptyFilter());

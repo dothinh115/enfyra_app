@@ -7,6 +7,7 @@ const tableName = "hook_definition";
 const { getIncludeFields } = useSchema(tableName);
 
 const { isMounted } = useMounted();
+const { isTablet } = useScreen();
 
 const {
   data: apiData,
@@ -94,43 +95,48 @@ onMounted(async () => {});
         context="page"
       />
 
-      <div v-else-if="hooks.length" class="space-y-3 flex flex-col">
-        <ULink
+      <div v-else-if="hooks.length" class="grid gap-4" :class="isTablet ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'">
+        <CommonSettingsCard
           v-for="hook in hooks"
           :key="hook.id"
-          :to="`/settings/hooks/${hook.id}`"
+          :title="hook.name || 'Unnamed'"
+          :description="hook.description || 'No description'"
+          icon="lucide:link"
+          icon-color="primary"
+          :card-class="'cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all'"
+          @click="navigateTo(`/settings/hooks/${hook.id}`)"
+          :stats="[
+            {
+              label: 'Route',
+              value: hook.route?.path || 'N/A'
+            },
+            {
+              label: 'Status',
+              component: 'UBadge',
+              props: { 
+                variant: 'soft', 
+                color: hook.isEnabled ? 'success' : 'neutral' 
+              },
+              value: hook.isEnabled ? 'Active' : 'Inactive'
+            },
+            ...(hook.isSystem ? [{
+              label: 'System',
+              component: 'UBadge',
+              props: { variant: 'soft', color: 'info' },
+              value: 'System'
+            }] : [])
+          ]"
+          :actions="[]"
         >
-          <UCard
-            class="hover:bg-gray-50 dark:hover:bg-gray-800 transition"
-            variant="subtle"
-          >
-            <div class="flex justify-between items-start gap-4">
-              <div class="space-y-1 flex-1">
-                <div class="text-base font-semibold text-primary">
-                  {{ hook.name || "Unnamed" }}
-                </div>
-                <div class="text-sm text-gray-400">
-                  Route: <code>{{ hook.route?.path || "N/A" }}</code>
-                </div>
-                <div
-                  class="text-sm text-muted-foreground"
-                  v-if="hook.description"
-                >
-                  {{ hook.description }}
-                </div>
-              </div>
-
-              <!-- Toggle button -->
-              <div class="shrink-0">
-                <USwitch
-                  v-model="hook.isEnabled"
-                  @update:model-value="toggleEnabled(hook)"
-                  :disabled="hook.isSystem"
-                />
-              </div>
-            </div>
-          </UCard>
-        </ULink>
+          <template #headerActions>
+            <USwitch
+              v-model="hook.isEnabled"
+              @update:model-value="toggleEnabled(hook)"
+              :disabled="hook.isSystem"
+              @click.stop
+            />
+          </template>
+        </CommonSettingsCard>
       </div>
 
       <CommonEmptyState

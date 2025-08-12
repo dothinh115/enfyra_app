@@ -13,7 +13,7 @@ const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
 const menus = ref<any[]>([]);
 const { schemas } = useGlobalState();
 const { createLoader } = useLoader();
-console.log(schemas.value);
+const { isTablet } = useScreen();
 
 // Filter state
 const showFilterDrawer = ref(false);
@@ -221,67 +221,61 @@ async function toggleEnabled(menuItem: any) {
       />
 
       <div v-else-if="menus.length" class="space-y-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <ULink
-            :to="`/settings/menus/${menu.id}`"
+        <div class="grid gap-4" :class="isTablet ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'">
+          <CommonSettingsCard
             v-for="menu in menus"
             :key="menu.id"
-            class="cursor-pointer relative z-10"
+            :title="menu.label"
+            :description="menu.path"
+            :icon="menu.icon || 'lucide:circle'"
+            icon-color="primary"
+            :card-class="'cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all'"
+            @click="navigateTo(`/settings/menus/${menu.id}`)"
+            :stats="[
+              {
+                label: 'Type',
+                component: 'UBadge',
+                props: { 
+                  variant: 'soft', 
+                  color: menu.type === 'mini' ? 'primary' : 'secondary',
+                  size: 'xs'
+                },
+                value: menu.type === 'mini' ? 'Sidebar' : 'Menu Item'
+              },
+              {
+                label: 'Status',
+                component: 'UBadge',
+                props: { 
+                  variant: 'soft', 
+                  color: menu.isEnabled ? 'success' : 'warning',
+                  size: 'xs'
+                },
+                value: menu.isEnabled ? 'Enabled' : 'Disabled'
+              },
+              ...(menu.isSystem ? [{
+                label: 'System',
+                component: 'UBadge',
+                props: { variant: 'soft', color: 'info', size: 'xs' },
+                value: 'System'
+              }] : []),
+              {
+                label: 'Order',
+                value: menu.order
+              }
+            ]"
+            :actions="[]"
           >
-            <UCard
-              class="h-full hover:bg-gray-50 dark:hover:bg-gray-800 transition hover:shadow-md"
-              variant="subtle"
-            >
-              <div class="flex flex-col h-full gap-3">
-                <div class="flex items-center gap-3">
-                  <Icon
-                    :name="menu.icon || 'lucide:circle'"
-                    class="text-xl text-primary mt-1"
-                  />
-                  <div class="flex-1 min-w-0">
-                    <div class="font-medium text-primary truncate">
-                      {{ menu.path }}
-                    </div>
-                    <div class="text-sm text-gray-500 truncate">
-                      {{ menu.label }}
-                    </div>
-                  </div>
-                </div>
-
-                <div class="flex flex-wrap gap-2">
-                  <UBadge
-                    :color="menu.type === 'mini' ? 'primary' : 'secondary'"
-                    size="xs"
-                  >
-                    {{ menu.type === "mini" ? "Sidebar" : "Menu Item" }}
-                  </UBadge>
-                  <UBadge
-                    :color="menu.isEnabled ? 'success' : 'warning'"
-                    size="xs"
-                  >
-                    {{ menu.isEnabled ? "Enabled" : "Disabled" }}
-                  </UBadge>
-                  <UBadge v-if="menu.isSystem" color="info" size="xs">
-                    System
-                  </UBadge>
-                </div>
-
-                <div class="flex items-center justify-between mt-auto">
-                  <div class="text-xs text-gray-400">
-                    Order: {{ menu.order }}
-                  </div>
-                  <USwitch
-                    :model-value="menu.isEnabled"
-                    @update:model-value="toggleEnabled(menu)"
-                    label="Is enabled"
-                    @click.prevent
-                    :disabled="getMenuLoader(menu.id).isLoading"
-                    v-if="!menu.isSystem"
-                  />
-                </div>
-              </div>
-            </UCard>
-          </ULink>
+            <template #headerActions>
+              <USwitch
+                v-if="!menu.isSystem"
+                :model-value="menu.isEnabled"
+                @update:model-value="toggleEnabled(menu)"
+                label="Is enabled"
+                :disabled="getMenuLoader(menu.id).isLoading"
+                @click.stop
+              />
+            </template>
+          </CommonSettingsCard>
         </div>
 
         <!-- Pagination - chỉ hiện khi có nhiều trang -->
@@ -304,38 +298,13 @@ async function toggleEnabled(menuItem: any) {
         </div>
       </div>
 
-      <div
-        v-else-if="!loading && menus.length === 0"
-        class="flex flex-col items-center justify-center py-16"
-      >
-        <UIcon
-          name="i-heroicons-bars-3"
-          class="text-gray-400 mx-auto text-8xl mb-6"
-        />
-        <div class="text-center">
-          <h3
-            class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3"
-          >
-            No menus found
-          </h3>
-          <p
-            class="text-base text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto"
-          >
-            No menu configurations have been created yet. Create your first menu
-            to start building the navigation structure.
-          </p>
-        </div>
-        <UButton
-          icon="i-heroicons-plus"
-          to="/settings/menus/create"
-          size="lg"
-          variant="solid"
-          color="primary"
-          class="shadow-lg hover:shadow-xl transition-all duration-200"
-        >
-          Create First Menu
-        </UButton>
-      </div>
+      <CommonEmptyState
+        v-else
+        title="No menus found"
+        description="No menu configurations have been created yet"
+        icon="lucide:navigation"
+        size="sm"
+      />
     </Transition>
   </div>
 
