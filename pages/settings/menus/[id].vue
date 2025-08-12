@@ -198,6 +198,11 @@ onMounted(async () => {
           v-model:errors="errors"
           :table-name="tableName"
           :excluded="['isSystem', 'createdAt', 'updatedAt']"
+          :type-map="{
+            permission: {
+              type: 'permission',
+            },
+          }"
         />
       </UCard>
     </div>

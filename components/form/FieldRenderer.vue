@@ -366,6 +366,20 @@ function getComponentConfigByKey(key: string) {
     };
   }
 
+  if (finalType === "permission") {
+    return {
+      component: resolveComponent("PermissionInlineEditor"),
+      componentProps: {
+        modelValue: props.formData[key],
+        disabled: disabled,
+        "onUpdate:modelValue": (val: any) => {
+          updateFormData(key, val);
+        },
+      },
+      fieldProps,
+    };
+  }
+
   if (finalType === "date") {
     let modelValue = null;
 
