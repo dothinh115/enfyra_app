@@ -175,7 +175,7 @@ function getComponentConfigByKey(key: string) {
     }
 
     return {
-      component: resolveComponent("CodeEditorLazy"),
+      component: resolveComponent("FormCodeEditorLazy"),
       componentProps: {
         ...componentPropsBase,
         modelValue: ensureString(props.formData[key]),
@@ -273,7 +273,7 @@ function getComponentConfigByKey(key: string) {
     }
 
     return {
-      component: resolveComponent("CodeEditorLazy"),
+      component: resolveComponent("FormCodeEditorLazy"),
       componentProps: {
         ...componentPropsBase,
         modelValue: ensureString(props.formData[key]),
@@ -336,7 +336,7 @@ function getComponentConfigByKey(key: string) {
     }
 
     return {
-      component: resolveComponent("RichTextEditorLazy"),
+      component: resolveComponent("FormRichTextEditorLazy"),
       componentProps: {
         modelValue: ensureString(props.formData[key]),
         disabled: disabled,
@@ -354,7 +354,7 @@ function getComponentConfigByKey(key: string) {
   // Xử lý đặc biệt cho uuid type
   if (finalType === "uuid") {
     return {
-      component: resolveComponent("UuidField"),
+      component: resolveComponent("FormUuidField"),
       componentProps: {
         modelValue: ensureString(props.formData[key]),
         disabled: disabled,
