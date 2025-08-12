@@ -169,7 +169,7 @@ function applyFormPermissionGroups(data: any) {
     emit("update:modelValue", { allowAll: true });
   } else {
     // Set normal permission groups
-    localFormPermissionGroups.value = Array.isArray(data) ? [...data] : [];
+    localFormPermissionGroups.value = Array.isArray(data) ? [...data] : [data];
     updateModelValue();
   }
   showModal.value = false;
