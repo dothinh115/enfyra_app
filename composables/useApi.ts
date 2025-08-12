@@ -1,22 +1,15 @@
 import { useLoader } from "./useLoader";
+import type { ApiOptions, BackendError } from "~/utils/types";
 
-type HttpMethod = "get" | "post" | "delete" | "patch";
-interface UseApiOptions<T> {
-  method?: HttpMethod;
-  body?: any;
-  query?: Record<string, any> | ComputedRef<Record<string, any>>;
-  server?: boolean;
-  errorContext?: string;
-  default?: () => T | Ref<T>;
-  immediate?: boolean;
+// Extend ApiOptions for useApi-specific features
+interface UseApiOptions<T> extends Omit<ApiOptions<T>, 'lazy' | 'transform' | 'default'> {
   watch?: boolean;
   disableBatch?: boolean;
+  default?: () => T | Ref<T>;
 }
 
-interface BackendError {
+interface BackendErrorExtended extends BackendError {
   success: false;
-  message: string;
-  statusCode: number;
   error: {
     code: string;
     message: string;
@@ -35,7 +28,7 @@ function handleApiError(error: any, context?: string) {
 
   // Handle backend error response format
   if (error?.response?.data) {
-    const responseData = error.response.data as BackendError;
+    const responseData = error.response.data as BackendErrorExtended;
     if (responseData.error) {
       message =
         responseData.error.message || responseData.message || "Request failed";
@@ -45,7 +38,7 @@ function handleApiError(error: any, context?: string) {
       message = responseData.message || "Request failed";
     }
   } else if (error?.data) {
-    const errorData = error.data as BackendError;
+    const errorData = error.data as BackendErrorExtended;
     if (errorData.error) {
       message =
         errorData.error.message || errorData.message || "Request failed";

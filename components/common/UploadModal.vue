@@ -147,26 +147,9 @@
 </template>
 
 <script setup lang="ts">
-interface Props {
-  modelValue: boolean;
-  title?: string;
-  accept?: string | string[];
-  multiple?: boolean;
-  maxSize?: number; // in bytes
-  dragText?: string;
-  acceptText?: string;
-  uploadText?: string;
-  uploadingText?: string;
-  loading?: boolean; // External loading state
-}
+import type { UploadModalProps, UploadModalEmits } from "~/utils/types";
 
-interface Emits {
-  "update:modelValue": [value: boolean];
-  upload: [files: File | File[]];
-  error: [message: string];
-}
-
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<UploadModalProps>(), {
   title: "Upload Files",
   accept: "*/*",
   multiple: false,
@@ -178,7 +161,7 @@ const props = withDefaults(defineProps<Props>(), {
   loading: false,
 });
 
-const emit = defineEmits<Emits>();
+const emit = defineEmits<UploadModalEmits>();
 
 const isOpen = computed({
   get: () => props.modelValue,

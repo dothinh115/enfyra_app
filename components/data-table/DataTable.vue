@@ -11,15 +11,7 @@ import {
 } from "@tanstack/vue-table";
 // Vue functions are auto-imported
 
-export interface DataTableProps {
-  data: any[];
-  columns: ColumnDef<any>[];
-  pageSize?: number;
-  loading?: boolean;
-  onRowClick?: (row: any) => void;
-  selectable?: boolean;
-  onBulkDelete?: (selectedRows: any[]) => void;
-}
+import type { DataTableProps } from "~/utils/types";
 
 const props = withDefaults(defineProps<DataTableProps>(), {
   pageSize: 10,

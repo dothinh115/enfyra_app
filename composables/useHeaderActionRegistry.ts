@@ -1,38 +1,8 @@
-import type { PermissionCondition } from "./usePermissions";
+import type { PermissionCondition, HeaderAction } from "~/utils/types";
 import type { ComputedRef, Ref } from "vue";
 
-export interface HeaderAction {
-  id: string;
-  label?: string;
-  icon: string;
-  variant?: "solid" | "outline" | "ghost" | "soft";
-  color?:
-    | "primary"
-    | "secondary"
-    | "warning"
-    | "success"
-    | "info"
-    | "error"
-    | "neutral";
-  size?: "sm" | "md" | "lg" | "xl";
-  loading?:
-    | boolean
-    | Ref<boolean>
-    | Readonly<Ref<boolean>>
-    | ComputedRef<boolean>;
-  disabled?:
-    | boolean
-    | Ref<boolean>
-    | Readonly<Ref<boolean>>
-    | ComputedRef<boolean>;
-  permission?: PermissionCondition;
-  onClick?: () => void;
-  to?: string;
-  submit?: () => void;
-  showOn?: string[];
-  hideOn?: string[];
-  class?: string;
-}
+// Re-export for backward compatibility
+export type { HeaderAction } from "~/utils/types";
 
 export function useHeaderActionRegistry(
   actions?: HeaderAction | HeaderAction[]

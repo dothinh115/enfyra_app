@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import type { HeaderAction } from "~/composables/useHeaderActionRegistry";
+import type { HeaderAction } from "~/utils/types";
 
 const route = useRoute();
 const { headerActions } = useHeaderActionRegistry();

@@ -59,13 +59,9 @@
 </template>
 
 <script setup lang="ts">
-interface Props {
-  show: boolean;
-  title?: string;
-  description?: string;
-}
+import type { GlobalLoadingProps } from "~/utils/types";
 
-withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<GlobalLoadingProps>(), {
   title: 'Processing...',
   description: 'Please wait while we process your request'
 });

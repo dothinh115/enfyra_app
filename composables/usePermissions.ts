@@ -1,14 +1,4 @@
-// Permission rule types
-export type PermissionRule = {
-  route: string;
-  actions: string[];
-};
-
-export type PermissionCondition = {
-  and?: (PermissionRule | PermissionCondition)[];
-  or?: (PermissionRule | PermissionCondition)[];
-  allowAll?: boolean;
-};
+import type { PermissionRule, PermissionCondition } from "~/utils/types";
 
 export function usePermissions() {
   const { me } = useAuth();

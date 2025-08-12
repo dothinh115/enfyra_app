@@ -1,10 +1,7 @@
 <script setup lang="ts">
-interface Props {
-  selectedCount: number;
-  onDelete?: () => void;
-}
+import type { BulkActionsProps } from "~/utils/types";
 
-const props = defineProps<Props>();
+const props = defineProps<BulkActionsProps>();
 </script>
 
 <template>

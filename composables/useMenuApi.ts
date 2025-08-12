@@ -1,32 +1,13 @@
 import { computed } from "vue";
 import { useApiLazy } from "./useApi";
-
-export interface MenuItem {
-  id: number;
-  description: string;
-  icon: string;
-  isEnabled: boolean;
-  isSystem: boolean;
-  label: string;
-  order: number;
-  path: string;
-  permission: any;
-  type: "mini" | "menu";
-  parent: number | null;
-  sidebar: { id: number } | null;
-  children: any[];
-  menus: any[];
-  extension: any;
-  createdAt: string;
-  updatedAt: string;
-}
+import type { MenuApiItem } from "~/utils/types";
 
 export const useMenuApi = () => {
   const {
     data: menuDefinitions,
     pending: menuDefinitionsPending,
     execute: fetchMenuDefinitions,
-  } = useApiLazy<{ data: MenuItem[] }>(() => "/menu_definition", {
+  } = useApiLazy<{ data: MenuApiItem[] }>(() => "/menu_definition", {
     query: computed(() => ({ limit: 0 })),
     errorContext: "Fetch Menu Definitions",
   });

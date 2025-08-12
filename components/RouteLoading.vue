@@ -29,12 +29,9 @@
 </template>
 
 <script setup lang="ts">
-interface Props {
-  show?: boolean;
-  message?: string;
-}
+import type { RouteLoadingProps } from "~/utils/types";
 
-withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<RouteLoadingProps>(), {
   show: false,
   message: "Loading...",
 });

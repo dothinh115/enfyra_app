@@ -1,14 +1,7 @@
 <script setup lang="ts">
-interface Props {
-  items: Array<{
-    label: string;
-    type: "checkbox";
-    checked: boolean;
-    onSelect: (e: Event) => void;
-  }>;
-}
+import type { ColumnSelectorProps } from "~/utils/types";
 
-const props = defineProps<Props>();
+const props = defineProps<ColumnSelectorProps>();
 </script>
 
 <template>

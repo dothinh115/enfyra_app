@@ -1,14 +1,7 @@
 <script setup lang="ts">
-interface Props {
-  row: any;
-  cells: any[];
-  selectable?: boolean;
-  selected?: boolean;
-  onToggleSelect?: () => void;
-  onClick?: () => void;
-}
+import type { MobileCardProps } from "~/utils/types";
 
-const props = defineProps<Props>();
+const props = defineProps<MobileCardProps>();
 </script>
 
 <template>

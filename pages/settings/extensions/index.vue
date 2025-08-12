@@ -131,35 +131,7 @@
 </template>
 
 <script setup lang="ts">
-interface ExtensionDefinition {
-  id: number;
-  code: string;
-  description: string | null;
-  isEnabled: boolean;
-  isSystem: boolean;
-  name: string;
-  type: string;
-  version: string;
-  menu?: {
-    id: number;
-    label: string;
-    icon: string;
-    path: string;
-    sidebar: {
-      id: number;
-    };
-  };
-  createdBy?: {
-    id: string;
-    email: string;
-  };
-  updatedBy?: {
-    id: string;
-    email: string;
-  };
-  createdAt: string;
-  updatedAt: string;
-}
+import type { ExtensionDefinition } from "~/utils/types";
 
 const toast = useToast();
 const { confirm } = useConfirm();

@@ -1,44 +1,5 @@
-import type { PermissionCondition } from "./usePermissions";
+import type { PermissionCondition, MenuDefinition, MenuItem, MiniSidebar } from "~/utils/types";
 import { isSystemTableModifiable } from "~/utils/common/constants";
-
-// API Response Interface from /menu_definition
-interface MenuDefinition {
-  id: number;
-  description: string;
-  icon: string;
-  isEnabled: boolean;
-  isSystem: boolean;
-  label: string;
-  order: number;
-  path: string;
-  permission: PermissionCondition | null;
-  type: "mini" | "menu";
-  parent: number | null;
-  sidebar: { id: number } | null;
-  children: any[];
-  menus: any[];
-  createdAt: string;
-  updatedAt: string;
-}
-
-// Internal Interface for Menu Items
-interface MenuItem {
-  id: string;
-  label: string;
-  route: string;
-  icon?: string;
-  sidebarId: number;
-  permission?: PermissionCondition;
-}
-
-// Internal Interface for Mini Sidebars
-interface MiniSidebar {
-  id: string;
-  label: string;
-  icon: string;
-  route: string;
-  permission?: PermissionCondition;
-}
 
 export function useMenuRegistry() {
   const menuItems = useState<MenuItem[]>("menu-items", () => []);

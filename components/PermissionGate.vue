@@ -3,19 +3,9 @@
 </template>
 
 <script setup lang="ts">
-import type { PermissionCondition } from "~/composables/usePermissions";
+import type { PermissionGateProps } from "~/utils/types";
 
-interface Props {
-  // Legacy props for backward compatibility
-  actions?: string[];
-  routes?: string[];
-  mode?: "any" | "all";
-
-  // New flexible permission condition
-  condition?: PermissionCondition;
-}
-
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<PermissionGateProps>(), {
   mode: "any",
 });
 
