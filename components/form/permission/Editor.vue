@@ -95,7 +95,7 @@
     </UDrawer>
 
     <!-- Route Picker -->
-    <PermissionRoutePicker
+    <FormPermissionRoutePicker
       v-model="showRoutePicker"
       @select="onRouteSelect"
     />

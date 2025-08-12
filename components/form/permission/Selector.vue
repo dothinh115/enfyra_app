@@ -13,33 +13,22 @@
       />
     </div>
 
-    <!-- Header with Add Group button -->
-    <div v-if="!isAllowAll" class="flex gap-2 justify-between">
-      <UButton
-        icon="lucide:plus"
-        variant="outline"
-        color="primary"
-        size="sm"
-        @click="addNewGroup"
-        :disabled="props.disabled"
-      >
-        Add Group
-      </UButton>
-    </div>
 
     <!-- Current Permission Structure -->
     <div v-if="!isAllowAll" class="space-y-3">
-      <h3 class="text-sm font-medium text-muted-foreground">
-        Permission Structure
-      </h3>
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-medium text-muted-foreground">
+          Permission Structure
+        </h3>
+      </div>
       <div class="space-y-2">
-        <PermissionGroup
-          v-for="(group, index) in currentGroups"
-          :key="group.id || index"
-          :group="group"
+        <FormPermissionGroup
+          v-if="currentGroups.length > 0"
+          :group="currentGroups[0]"
           :disabled="props.disabled"
-          @update:group="(updatedGroup) => updateGroup(index, updatedGroup)"
-          @remove="() => removeGroup(index)"
+          :isRoot="true"
+          @update:group="(updatedGroup: any) => updateGroup(0, updatedGroup)"
+          @remove="() => removeGroup(0)"
         />
       </div>
     </div>
@@ -70,6 +59,7 @@ const emit = defineEmits(["apply"]);
 
 const currentGroups = ref<any[]>([]);
 const isAllowAll = ref(false);
+const groupsOperator = ref("and");
 
 // Watch for changes in permissionGroups prop
 watch(
@@ -98,15 +88,6 @@ watch(
   { immediate: true }
 );
 
-function addNewGroup() {
-  const newGroup = {
-    id: Math.random().toString(36).substring(2, 9),
-    type: "and", // Default to AND
-    conditions: [], // Support for nested conditions and groups
-  };
-
-  currentGroups.value.push(newGroup);
-}
 
 function updateGroup(groupIndex: number, updatedGroup: any) {
   currentGroups.value[groupIndex] = updatedGroup;
@@ -132,6 +113,11 @@ function handleAllowAllChange(value: boolean) {
 }
 
 function applyGroups() {
-  emit("apply", isAllowAll.value ? { allowAll: true } : currentGroups.value);
+  if (isAllowAll.value) {
+    emit("apply", { allowAll: true });
+  } else if (currentGroups.value.length > 0) {
+    // Return the single root group (which may contain nested groups)
+    emit("apply", currentGroups.value[0]);
+  }
 }
 </script>

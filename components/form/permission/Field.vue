@@ -41,7 +41,7 @@
 
         <template #body>
           <div class="p-4 max-h-[80vh] overflow-y-auto">
-            <PermissionInlineEditor
+            <FormPermissionInlineEditor
               v-model="permissionValue"
               :disabled="disabled"
               @update:model-value="handlePermissionUpdate"

@@ -1,8 +1,6 @@
 import type { PermissionCondition, HeaderAction } from "~/utils/types";
 import type { ComputedRef, Ref } from "vue";
 
-// Re-export for backward compatibility
-export type { HeaderAction } from "~/utils/types";
 
 export function useHeaderActionRegistry(
   actions?: HeaderAction | HeaderAction[]

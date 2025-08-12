@@ -1,39 +1,29 @@
 <template>
-  <div class="space-y-3">
-    <!-- Permission Summary -->
-    <div class="p-3 border border-muted rounded-lg bg-muted/10">
-      <div v-if="isAllowAll" class="flex items-center gap-2 text-success">
-        <Icon name="lucide:shield-check" class="w-4 h-4" />
-        <span class="text-sm font-medium">Allow All - No Restrictions</span>
-      </div>
-      <div v-else-if="getTotalPermissions() > 0" class="flex items-center gap-2">
-        <Icon name="lucide:shield" class="w-4 h-4 text-primary" />
-        <span class="text-sm">
-          {{ getTotalPermissions() }} permission{{ getTotalPermissions() !== 1 ? 's' : '' }} configured
-          <span v-if="localPermissionGroups.length > 0" class="text-muted-foreground">
-            ({{ localPermissionGroups.length }} group{{ localPermissionGroups.length !== 1 ? 's' : '' }})
-          </span>
-        </span>
-      </div>
-      <div v-else class="flex items-center gap-2 text-muted-foreground">
-        <Icon name="lucide:shield-off" class="w-4 h-4" />
-        <span class="text-sm">No permissions configured</span>
-      </div>
-    </div>
+  <div>
+    <!-- Permission Summary (Using UInput for consistency) -->
+    <UInput
+      readonly
+      :disabled="props.disabled"
+      :model-value="displayValue"
+      :placeholder="placeholder"
+      @click="showModal = true"
+      class="w-full"
+      :ui="{
+        root: 'hover:!bg-muted/50 hover:!border-primary/50 transition-colors',
+        base: 'transition-all duration-200 !cursor-pointer',
+      }"
+    >
+      <template #leading>
+        <Icon :name="leadingIcon" :class="iconClass" />
+      </template>
 
-    <!-- Edit Groups Button -->
-    <div class="flex justify-end">
-      <UButton
-        icon="lucide:settings"
-        size="sm"
-        variant="outline"
-        color="primary"
-        @click="showModal = true"
-        :disabled="props.disabled"
-      >
-        Configure Permissions
-      </UButton>
-    </div>
+      <template #trailing>
+        <Icon
+          name="lucide:chevron-right"
+          class="w-4 h-4 text-muted-foreground"
+        />
+      </template>
+    </UInput>
 
     <!-- Permission Configuration Drawer -->
     <Teleport to="body">
@@ -58,16 +48,14 @@
         </template>
 
         <template #body>
-          <PermissionSelector
-            :permission-groups="localPermissionGroups"
+          <FormPermissionSelector
+            :permission-groups="localFormPermissionGroups"
             :allow-all="isAllowAll"
-            @apply="applyPermissionGroups"
-            :disabled="props.disabled"
+            @apply="applyFormPermissionGroups"
           />
         </template>
       </UDrawer>
     </Teleport>
-
   </div>
 </template>
 
@@ -81,7 +69,7 @@ const emit = defineEmits(["update:modelValue"]);
 const showModal = ref(false);
 
 // Local state for permission groups
-const localPermissionGroups = ref<any[]>([]);
+const localFormPermissionGroups = ref<any[]>([]);
 
 // Check if permission is allowAll
 const isAllowAll = computed(() => {
@@ -91,7 +79,7 @@ const isAllowAll = computed(() => {
 // Parse permission groups from modelValue
 const permissionGroups = computed(() => {
   if (!props.modelValue) return [];
-  
+
   // Handle allowAll case
   if (props.modelValue.allowAll === true) {
     return [];
@@ -141,18 +129,22 @@ const permissionGroups = computed(() => {
 });
 
 // Sync local groups with computed groups
-watch(permissionGroups, (newGroups) => {
-  localPermissionGroups.value = [...newGroups];
-}, { immediate: true, deep: true });
+watch(
+  permissionGroups,
+  (newGroups) => {
+    localFormPermissionGroups.value = [...newGroups];
+  },
+  { immediate: true, deep: true }
+);
 
 function updateModelValue() {
   // Convert groups back to PermissionCondition format
   let result;
 
-  if (localPermissionGroups.value.length === 0) {
+  if (localFormPermissionGroups.value.length === 0) {
     result = null;
-  } else if (localPermissionGroups.value.length === 1) {
-    const group = localPermissionGroups.value[0];
+  } else if (localFormPermissionGroups.value.length === 1) {
+    const group = localFormPermissionGroups.value[0];
     const conditions = group.conditions || group.rules || [];
     if (group.type === "and") {
       result = { and: conditions };
@@ -161,7 +153,7 @@ function updateModelValue() {
     }
   } else {
     // Multiple groups - combine with AND
-    const andGroups = localPermissionGroups.value.map((group: any) => ({
+    const andGroups = localFormPermissionGroups.value.map((group: any) => ({
       [group.type]: group.conditions || group.rules || [],
     }));
     result = { and: andGroups };
@@ -170,23 +162,54 @@ function updateModelValue() {
   emit("update:modelValue", result);
 }
 
-function applyPermissionGroups(data: any) {
-  // This will be called from PermissionSelector
+function applyFormPermissionGroups(data: any) {
+  // This will be called from FormPermissionSelector
   if (data?.allowAll === true) {
     // Set allowAll mode
     emit("update:modelValue", { allowAll: true });
   } else {
     // Set normal permission groups
-    localPermissionGroups.value = Array.isArray(data) ? [...data] : [];
+    localFormPermissionGroups.value = Array.isArray(data) ? [...data] : [];
     updateModelValue();
   }
   showModal.value = false;
 }
 
 function getTotalPermissions(): number {
-  return localPermissionGroups.value.reduce((total, group) => {
+  return localFormPermissionGroups.value.reduce((total, group) => {
     const conditions = group.conditions || group.rules || [];
     return total + conditions.length;
   }, 0);
 }
+
+// Computed properties for UInput
+const displayValue = computed(() => {
+  if (isAllowAll.value) {
+    return "Allow All Access";
+  } else if (getTotalPermissions() > 0) {
+    const count = getTotalPermissions();
+    return `${count} permission${count !== 1 ? "s" : ""} configured`;
+  }
+  return "";
+});
+
+const placeholder = computed(() => {
+  if (isAllowAll.value || getTotalPermissions() > 0) {
+    return "";
+  }
+  return "Click to configure permissions";
+});
+
+const leadingIcon = computed(() => {
+  if (isAllowAll.value) return "lucide:shield-check";
+  if (getTotalPermissions() > 0) return "lucide:shield";
+  return "lucide:shield-off";
+});
+
+const iconClass = computed(() => {
+  const baseClass = "w-4 h-4";
+  if (isAllowAll.value) return `${baseClass} text-success`;
+  if (getTotalPermissions() > 0) return `${baseClass} text-primary`;
+  return `${baseClass} text-muted-foreground`;
+});
 </script>

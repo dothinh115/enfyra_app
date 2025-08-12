@@ -128,7 +128,7 @@ function shortenId(id: string | number): string {
         />
       </template>
       <template #body>
-        <RelationSelector
+        <FormRelationSelector
           :relationMeta="relationMeta"
           :selected-ids="selectedIds"
           :multiple="

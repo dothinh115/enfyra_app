@@ -186,7 +186,7 @@ watch(page, (newPage) => {
 <template>
   <div class="space-y-4">
     <!-- Header with Filter and Create buttons -->
-    <RelationActions
+    <FormRelationActions
       :has-active-filters="hasActiveFilters(currentFilter)"
       :filter-count="currentFilter.conditions.length"
       :disabled="props.disabled"
@@ -224,7 +224,7 @@ watch(page, (newPage) => {
     />
 
     <!-- Data List -->
-    <RelationList
+    <FormRelationList
       v-else
       :data="data"
       :selected="selected"
@@ -237,7 +237,7 @@ watch(page, (newPage) => {
       @delete-click="handleDeleteClick"
     />
 
-    <RelationPagination
+    <FormRelationPagination
       :page="page"
       :total="total"
       :limit="limit"
@@ -248,14 +248,14 @@ watch(page, (newPage) => {
     />
   </div>
 
-  <RelationCreateDrawer
+  <FormRelationCreateDrawer
     v-model="showCreateDrawer"
     :relation-meta="props.relationMeta"
     @created="() => fetchData()"
     v-model:selected="selected"
   />
 
-  <RelationDetailDrawer
+  <FormRelationDetailDrawer
     v-model="detailModal"
     :record="detailRecord"
     :table-name="targetTable?.name"

@@ -84,7 +84,7 @@ function getComponentConfigByKey(key: string) {
 
   if (isRelation) {
     return {
-      component: resolveComponent("RelationInlineEditor"),
+      component: resolveComponent("FormRelationInlineEditor"),
       componentProps: {
         ...componentPropsBase,
         relationMeta: column,
@@ -175,7 +175,7 @@ function getComponentConfigByKey(key: string) {
     }
 
     return {
-      component: resolveComponent("FormCodeEditorLazy"),
+      component: resolveComponent("CodeEditorLazy"),
       componentProps: {
         ...componentPropsBase,
         modelValue: ensureString(props.formData[key]),
@@ -273,7 +273,7 @@ function getComponentConfigByKey(key: string) {
     }
 
     return {
-      component: resolveComponent("FormCodeEditorLazy"),
+      component: resolveComponent("CodeEditorLazy"),
       componentProps: {
         ...componentPropsBase,
         modelValue: ensureString(props.formData[key]),
@@ -336,7 +336,7 @@ function getComponentConfigByKey(key: string) {
     }
 
     return {
-      component: resolveComponent("FormRichTextEditorLazy"),
+      component: resolveComponent("RichTextEditorLazy"),
       componentProps: {
         modelValue: ensureString(props.formData[key]),
         disabled: disabled,
@@ -354,7 +354,7 @@ function getComponentConfigByKey(key: string) {
   // Xử lý đặc biệt cho uuid type
   if (finalType === "uuid") {
     return {
-      component: resolveComponent("FormUuidField"),
+      component: resolveComponent("UuidField"),
       componentProps: {
         modelValue: ensureString(props.formData[key]),
         disabled: disabled,
@@ -368,7 +368,7 @@ function getComponentConfigByKey(key: string) {
 
   if (finalType === "permission") {
     return {
-      component: resolveComponent("PermissionInlineEditor"),
+      component: resolveComponent("FormPermissionInlineEditor"),
       componentProps: {
         modelValue: props.formData[key],
         disabled: disabled,

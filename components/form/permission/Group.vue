@@ -60,14 +60,7 @@
         </div>
 
         <!-- Nested Permission Group -->
-        <div v-else class="border border-muted rounded-lg p-3">
-          <PermissionGroup
-            :group="item"
-            :disabled="disabled"
-            @update:group="(g) => onNestedGroupUpdate(g, index)"
-            @remove="() => removeItem(index)"
-          />
-
+        <div v-else class="border border-muted rounded-lg p-3 relative">
           <UButton
             v-if="!disabled"
             @click="removeItem(index)"
@@ -75,10 +68,13 @@
             size="xs"
             color="error"
             variant="ghost"
-            class="mt-2"
-          >
-            Remove Group
-          </UButton>
+            class="absolute top-2 right-2 opacity-60 hover:opacity-100"
+          />
+          <FormPermissionGroup
+            :group="item"
+            :disabled="disabled"
+            @update:group="(g: any) => onNestedGroupUpdate(g, index)"
+          />
         </div>
       </template>
 
@@ -104,7 +100,7 @@
     </div>
 
     <!-- Permission Editor -->
-    <PermissionEditor
+    <FormPermissionEditor
       v-model="showEditModal"
       :permission="editingPermission"
       :disabled="disabled"
@@ -119,6 +115,7 @@
 const props = defineProps<{
   group: any;
   disabled?: boolean;
+  isRoot?: boolean;
 }>();
 
 const emit = defineEmits<{
