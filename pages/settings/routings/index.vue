@@ -4,6 +4,7 @@ const page = ref(1);
 const pageLimit = 15;
 const route = useRoute();
 const tableName = "route_definition";
+const { confirm } = useConfirm();
 const { getIncludeFields } = useSchema(tableName);
 const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
 const { createLoader } = useLoader();
@@ -197,6 +198,39 @@ async function toggleEnabled(routeItem: any) {
     });
   }
 }
+
+async function deleteRoute(routeItem: any) {
+  const isConfirmed = await confirm({
+    title: "Delete Route",
+    content: `Are you sure you want to delete route "${routeItem.path}"? This action cannot be undone.`,
+    confirmText: "Delete",
+    cancelText: "Cancel",
+  });
+
+  if (isConfirmed) {
+    const { execute: deleteRouteApi, error: deleteError } = useApiLazy(
+      () => `/route_definition/${routeItem.id}`,
+      {
+        method: "delete",
+        errorContext: "Delete Route",
+      }
+    );
+
+    await deleteRouteApi();
+
+    if (deleteError.value) {
+      return;
+    }
+
+    await fetchRoutes();
+
+    toast.add({
+      title: "Success",
+      description: `Route "${routeItem.path}" has been deleted successfully!`,
+      color: "success",
+    });
+  }
+}
 </script>
 
 <template>
@@ -257,9 +291,16 @@ async function toggleEnabled(routeItem: any) {
                   v-if="!routeItem.isSystem"
                   :model-value="routeItem.isEnabled"
                   @update:model-value="toggleEnabled(routeItem)"
-                  label="Is enabled"
                   :disabled="getRouteLoader(routeItem.id).isLoading"
                   @click.stop
+                />
+                <UButton
+                  v-if="!routeItem.isSystem"
+                  icon="i-heroicons-trash"
+                  variant="outline"
+                  size="sm"
+                  color="error"
+                  @click.stop="deleteRoute(routeItem)"
                 />
               </template>
             </CommonSettingsCard>
