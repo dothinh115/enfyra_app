@@ -121,16 +121,23 @@ async function save() {
 }
 
 async function patchTable() {
-  await executePatchTable();
-  await fetchSchema();
+  globalLoading.value = true;
+  try {
+    await executePatchTable();
+    globalLoading.value = false;  // Turn off before fetchSchema sets it again
+    await fetchSchema();
 
-  registerTableMenusWithSidebarIds(tables.value);
+    registerTableMenusWithSidebarIds(tables.value);
 
-  toast.add({
-    title: "Success",
-    color: "success",
-    description: "Table structure updated!",
-  });
+    toast.add({
+      title: "Success",
+      color: "success",
+      description: "Table structure updated!",
+    });
+  } catch (error) {
+    globalLoading.value = false;
+    throw error;
+  }
 }
 
 async function handleDelete() {
@@ -145,17 +152,24 @@ async function handleDelete() {
 }
 
 async function deleteTable() {
-  await executeDeleteTable();
-  await fetchSchema();
+  globalLoading.value = true;
+  try {
+    await executeDeleteTable();
+    globalLoading.value = false;  // Turn off before fetchSchema sets it again
+    await fetchSchema();
 
-  registerTableMenusWithSidebarIds(tables.value);
+    registerTableMenusWithSidebarIds(tables.value);
 
-  toast.add({
-    title: "Success",
-    color: "success",
-    description: "Table deleted!",
-  });
-  return navigateTo(`/collections`);
+    toast.add({
+      title: "Success",
+      color: "success",
+      description: "Table deleted!",
+    });
+    return navigateTo(`/collections`);
+  } catch (error) {
+    globalLoading.value = false;
+    throw error;
+  }
 }
 
 onMounted(async () => {
