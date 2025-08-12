@@ -115,6 +115,9 @@ async function saveMenu() {
                 step: 1,
               },
             },
+            permission: {
+              type: 'permission',
+            },
           }"
         />
       </UCard>
