@@ -3,7 +3,7 @@
     <UDrawer
       v-model:open="isOpen"
       direction="right"
-      class="w-full max-w-3xl"
+      class="w-full max-w-2xl"
       :ui="{
         header: 'border-b border-muted text-muted pb-2 flex items-center justify-between',
       }"
@@ -49,10 +49,7 @@
           <!-- Routes List Section -->
           <div class="p-4">
             <!-- Loading State -->
-            <div v-if="loading" class="flex items-center justify-center py-8">
-              <Icon name="lucide:loader-2" class="w-6 h-6 animate-spin text-muted-foreground" />
-              <span class="ml-2 text-sm text-muted-foreground">Loading routes...</span>
-            </div>
+            <CommonLoadingState v-if="loading" type="form" context="inline" size="md" />
 
             <!-- Routes List -->
             <div v-else-if="routes.length > 0" class="space-y-2">
@@ -76,12 +73,15 @@
           </div>
 
             <!-- Empty State -->
-            <div v-else class="flex flex-col items-center justify-center py-12 text-center">
-              <Icon name="lucide:route" class="w-12 h-12 text-muted-foreground mb-4" />
-              <h4 class="font-medium text-muted-foreground">No routes found</h4>
-              <p class="text-sm text-muted-foreground mt-1">
-                {{ hasActiveFilters(currentFilter) ? 'Try adjusting your filters' : 'No routes are available' }}
-              </p>
+            <CommonEmptyState
+              v-else
+              :title="hasActiveFilters(currentFilter) ? 'No routes found' : 'No routes available'"
+              :description="hasActiveFilters(currentFilter) ? 'Try adjusting your filters' : 'No routes are available'"
+              icon="lucide:route"
+              size="md"
+              type="form"
+              context="inline"
+            >
               <UButton
                 v-if="hasActiveFilters(currentFilter)"
                 variant="soft"
@@ -91,7 +91,7 @@
               >
                 Clear Filters
               </UButton>
-            </div>
+            </CommonEmptyState>
           </div>
 
           <!-- Pagination Section -->

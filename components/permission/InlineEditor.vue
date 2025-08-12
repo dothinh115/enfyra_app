@@ -40,7 +40,7 @@
       <UDrawer
         v-model:open="showModal"
         direction="right"
-        class="min-w-xl"
+        class="w-full max-w-3xl"
         :ui="{
           header:
             'border-b border-muted text-muted pb-2 flex items-center justify-between',

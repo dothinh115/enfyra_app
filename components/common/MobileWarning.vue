@@ -1,25 +1,37 @@
 <template>
   <div 
     v-if="isMobile" 
-    class="fixed inset-0 bg-black bg-opacity-90 z-[9999] flex items-center justify-center p-6"
+    class="fixed inset-0 bg-background/95 backdrop-blur-sm z-[9999] flex items-center justify-center p-6"
   >
-    <div class="bg-white rounded-lg p-6 max-w-sm text-center shadow-2xl">
-      <div class="mb-4">
-        <UIcon name="i-lucide-smartphone" class="w-12 h-12 text-orange-500 mx-auto" />
+    <UCard class="max-w-md w-full">
+      <div class="text-center space-y-6">
+        <!-- Icon -->
+        <div class="flex justify-center">
+          <div class="w-16 h-16 bg-warning/10 rounded-full flex items-center justify-center">
+            <Icon name="lucide:smartphone" class="w-8 h-8 text-warning" />
+          </div>
+        </div>
+        
+        <!-- Content -->
+        <div class="space-y-3">
+          <h3 class="text-xl font-semibold">
+            Mobile Not Supported
+          </h3>
+          
+          <p class="text-muted-foreground text-sm leading-relaxed">
+            This admin panel is optimized for desktop and tablet devices. Please use a larger screen for the best experience.
+          </p>
+        </div>
+        
+        <!-- Requirements -->
+        <div class="pt-2 border-t border-muted">
+          <div class="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+            <Icon name="lucide:monitor" class="w-4 h-4" />
+            <span>Minimum screen width: 768px</span>
+          </div>
+        </div>
       </div>
-      
-      <h3 class="text-lg font-semibold text-gray-900 mb-2">
-        Mobile Not Supported
-      </h3>
-      
-      <p class="text-gray-600 text-sm mb-4">
-        This admin panel is optimized for desktop and tablet devices. Please use a larger screen for the best experience.
-      </p>
-      
-      <div class="text-xs text-gray-500">
-        Minimum screen width: 768px
-      </div>
-    </div>
+    </UCard>
   </div>
 </template>
 
