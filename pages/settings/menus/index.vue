@@ -46,7 +46,7 @@ const {
 
     return {
       fields: getIncludeFields(),
-      sort: "order",
+      sort: "-createdAt",
       meta: "*",
       page: page.value,
       limit: pageLimit,
