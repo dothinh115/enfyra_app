@@ -1,83 +1,125 @@
-# useApi and useApiLazy Composables Guide
+# useApiLazy Composable Guide
 
-This guide explains how to use the `useApi` and `useApiLazy` composables for making API requests in the Enfyra CMS application.
+This guide explains how to use the `useApiLazy` composable for making API requests in the Enfyra CMS application.
 
 ## Overview
 
-Both composables provide a consistent interface for API requests with automatic error handling, loading states, and TypeScript support.
+**⚠️ Important: This project is CSR (Client-Side Rendered) only. Always use `useApiLazy` instead of `useApi`.**
 
-### Key Differences
+The `useApiLazy` composable provides a consistent interface for client-side API requests with:
+- ✅ Automatic error handling with toast notifications
+- ✅ Reactive loading states  
+- ✅ Full TypeScript support
+- ✅ Dynamic ID support for CRUD operations
+- ✅ Batch operations for multiple resources
+- ✅ Manual execution control (never auto-executes)
 
-- **`useApi`**: Uses Nuxt's `useFetch` internally, supports SSR, executes immediately by default
-- **`useApiLazy`**: Uses `$fetch`, client-side only, manual execution only (never auto-executes)
+### Why useApiLazy for CSR?
+
+- **Client-Side Only**: Uses `$fetch` internally, perfect for CSR applications
+- **Manual Control**: Never executes automatically, giving you full control over when API calls happen
+- **No SSR Overhead**: Avoids SSR-related complexity and hydration issues
+- **Better Performance**: Lighter than `useApi` for client-side only applications
 
 ## Basic Usage
 
-### useApi
-
 ```typescript
-// Automatic execution on component mount
-const { data, pending, error, execute } = useApi(() => "/users", {
-  query: { limit: 10 },
-  errorContext: "Fetch Users",
-});
-
-// Manual execution with immediate: false
-const { data, pending, error, execute } = useApi(() => "/users", {
-  immediate: false,
-  errorContext: "Fetch Users",
-});
-
-// Execute manually later
-await execute();
-```
-
-### useApiLazy
-
-```typescript
-// Always requires manual execution
+// Basic setup - always requires manual execution
 const { data, pending, error, execute } = useApiLazy(() => "/users", {
-  query: { limit: 10 },
+  method: "get",
+  query: computed(() => ({ 
+    limit: 10,
+    sort: "-createdAt"
+  })),
   errorContext: "Fetch Users",
 });
 
-// Execute when needed
-await execute();
+// Execute when needed (e.g., on component mount)
+onMounted(async () => {
+  await execute();
+});
 
-// Execute with dynamic body
+// Execute with dynamic parameters
 await execute({ body: { name: "John" } });
 
-// Execute with dynamic ID (for patch/delete)
+// Execute with dynamic ID for single resource
 await execute({ id: "123" });
 
-// Execute with dynamic ID and body
+// Execute with dynamic ID and body  
 await execute({ id: "123", body: { name: "Updated Name" } });
 
-// Batch operations (useApiLazy only, patch/delete methods only)
+// Batch operations (patch/delete methods only)
 await execute({ ids: ["1", "2", "3"] }); // Multiple IDs
 await execute({ ids: ["1", "2"], body: { status: "inactive" } }); // Batch update
 ```
 
 ## API Options
 
-Both composables accept similar options:
+useApiLazy accepts the following options:
 
 ```typescript
 interface UseApiOptions<T> {
+  /** HTTP method for the request */
   method?: "get" | "post" | "patch" | "put" | "delete";
+  
+  /** Request body (for POST/PATCH/PUT requests) */
   body?: any | ComputedRef<any>;
+  
+  /** URL query parameters */
   query?: any | ComputedRef<any>;
+  
+  /** Context string for error messages (e.g., "Create User") */
   errorContext?: string;
-  immediate?: boolean; // Only for useApi, defaults to true
-  disableBatch?: boolean; // Only for useApiLazy
-  watch?: boolean; // Only for useApi
-  default?: () => T | Ref<T>; // Only for useApi
+  
+  /** Disable batch operations for multiple IDs */
+  disableBatch?: boolean;
+}
+
+// Execute options for dynamic parameters
+interface ExecuteOptions {
+  /** Request body for this execution */
+  body?: any;
+  
+  /** Single ID for resource operations (appends to URL) */
+  id?: string | number;
+  
+  /** Multiple IDs for batch operations (patch/delete only) */
+  ids?: (string | number)[];
+}
+```
+
+### Available HTTP Methods
+
+| Method | Use Case | Body Support | Query Support |
+|--------|----------|--------------|---------------|
+| `get` | Fetch data | ❌ No | ✅ Yes |
+| `post` | Create new resource | ✅ Yes | ✅ Yes |
+| `patch` | Update existing resource | ✅ Yes | ✅ Yes |
+| `put` | Replace entire resource | ✅ Yes | ✅ Yes |
+| `delete` | Remove resource | ❌ No | ✅ Yes |
+
+### Return Types
+
+```typescript
+// useApiLazy returns the following interface
+interface ApiComposableReturn<T> {
+  /** Reactive data from the API response */
+  data: Ref<T | null>;
+  
+  /** Reactive error state (readonly) */
+  error: Readonly<Ref<any>>;
+  
+  /** Reactive loading state */
+  pending: Ref<boolean>;
+  
+  /** Function to execute the API call */
+  execute: (options?: ExecuteOptions) => Promise<T>;
 }
 ```
 
 ## Error Handling
 
-Both composables provide automatic error handling:
+useApiLazy provides automatic error handling:
 
 1. **Automatic Toast Notifications**: Errors are automatically displayed as toast notifications
 2. **Error Context**: Provide `errorContext` to help users understand where the error occurred
@@ -133,39 +175,102 @@ watch(page, async () => await execute());
 ### CRUD Operations
 
 ```typescript
-// List/Read
+// Define types first
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  isActive: boolean;
+}
+
+interface ApiListResponse<T> {
+  data: T[];
+  meta: { totalCount: number };
+}
+
+interface ApiDetailResponse<T> {
+  data: T;
+}
+
+// 1. READ - Fetch list with pagination
 const {
-  data: users,
+  data: usersData,
   pending,
   execute: fetchUsers,
-} = useApiLazy(() => "/users", { errorContext: "Fetch Users" });
-
-// Create
-const { execute: createUser } = useApiLazy(() => "/users", {
-  method: "post",
-  errorContext: "Create User",
+} = useApiLazy<ApiListResponse<User>>(() => "/users", {
+  method: "get", // Default, but explicit is better
+  query: computed(() => ({
+    page: 1,
+    limit: 10,
+    sort: "-createdAt"
+  })),
+  errorContext: "Fetch Users"
 });
 
-// Update - use dynamic ID
-const { execute: updateUser } = useApiLazy(() => "/users", {
-  method: "patch",
-  errorContext: "Update User",
-});
+// 2. CREATE - Add new user
+const { execute: createUser, error: createError } = useApiLazy<ApiDetailResponse<User>>(
+  () => "/users",
+  {
+    method: "post",
+    errorContext: "Create User",
+  }
+);
 
-// Delete - use dynamic ID
-const { execute: deleteUser } = useApiLazy(() => "/users", {
-  method: "delete",
-  errorContext: "Delete User",
-});
+// 3. UPDATE - Modify existing user
+const { execute: updateUser, error: updateError } = useApiLazy<ApiDetailResponse<User>>(
+  () => "/users",
+  {
+    method: "patch",
+    errorContext: "Update User",
+  }
+);
 
-// Usage with dynamic IDs
-await createUser({ body: { name: "John", email: "john@example.com" } });
-await updateUser({ id: userId, body: { name: "John Doe" } });
-await deleteUser({ id: userId });
+// 4. DELETE - Remove user
+const { execute: deleteUser, error: deleteError } = useApiLazy<{ success: boolean }>(
+  () => "/users",
+  {
+    method: "delete",
+    errorContext: "Delete User",
+  }
+);
 
-// Batch operations (delete/patch only)
-await deleteUser({ ids: ["1", "2", "3"] }); // Delete multiple users
-await updateUser({ ids: ["1", "2"], body: { isActive: false } }); // Update multiple
+// Usage examples with proper types
+async function handleCreateUser() {
+  const newUser = await createUser({
+    body: {
+      name: "John Doe",
+      email: "john@example.com",
+      isActive: true
+    }
+  });
+  
+  if (!createError.value) {
+    console.log("Created user:", newUser.data);
+  }
+}
+
+async function handleUpdateUser(userId: string) {
+  await updateUser({
+    id: userId,
+    body: { name: "Updated Name" }
+  });
+}
+
+async function handleDeleteUser(userId: string) {
+  await deleteUser({ id: userId });
+}
+
+// Batch operations (only for patch/delete)
+async function handleBulkDelete(userIds: string[]) {
+  await deleteUser({ ids: userIds });
+}
+
+async function handleBulkDeactivate(userIds: string[]) {
+  await updateUser({
+    ids: userIds,
+    body: { isActive: false }
+  });
+}
 ```
 
 ### Pagination
@@ -227,12 +332,12 @@ await updateRoles({
 });
 ```
 
-**Lưu ý:**
+**Important Notes:**
 
-- Chỉ hỗ trợ `patch` và `delete` methods
-- Sử dụng `Promise.all` để chạy song song
-- Trả về array responses
-- Không hỗ trợ `get` và `post` methods với batch IDs
+- Only supports `patch` and `delete` methods
+- Uses `Promise.all` for parallel execution
+- Returns array of responses
+- Does not support `get` and `post` methods with batch IDs
 
 ## Best Practices
 
@@ -264,7 +369,7 @@ async function handleDelete(id: string) {
 - **Reactivity**: Proper reactive state management
 - **Memory**: Prevents memory leaks from uncleaned reactive instances
 
-### 2. Never Use Try-Catch with useApiLazy
+### 2. Never Use Try-Catch
 
 **❌ WRONG - Don't do this:**
 
@@ -316,7 +421,7 @@ async function deleteUser(userId: string) {
 
 **Why no try-catch?**
 
-- **Automatic Error Handling**: `useApiLazy` automatically handles errors and shows toast notifications
+- **Automatic Error Handling**: useApiLazy automatically handles errors and shows toast notifications
 - **Error State Management**: Use `error.value` to check if an error occurred
 - **Cleaner Code**: No need for try-catch blocks that don't add value
 - **Consistent UX**: All errors are handled the same way across the application
@@ -370,21 +475,89 @@ onMounted(async () => await execute());
 
 ### 5. Type Safety
 
-Define types for your API responses:
+Define interfaces for your API responses to get full TypeScript support:
 
 ```typescript
+// Define your data models
 interface User {
   id: string;
   name: string;
   email: string;
+  createdAt: string;
+  role?: {
+    id: string;
+    name: string;
+  };
 }
 
-const { data, execute } = useApiLazy<{ data: User[] }>(() => "/users", {
+// Define API response structure
+interface ApiResponse<T> {
+  data: T[];
+  meta?: {
+    totalCount: number;
+    page: number;
+    limit: number;
+  };
+}
+
+// Use with full type safety
+const { data, execute } = useApiLazy<ApiResponse<User>>(() => "/users", {
+  method: "get",
   errorContext: "Fetch Users",
 });
 
-// Now data.value is typed as { data: User[] } | null
+// TypeScript knows data.value is ApiResponse<User> | null
 const users = computed(() => data.value?.data || []);
+const total = computed(() => data.value?.meta?.totalCount || 0);
+
+// For single resource operations
+interface SingleApiResponse<T> {
+  data: T;
+}
+
+const { execute: createUser } = useApiLazy<SingleApiResponse<User>>(() => "/users", {
+  method: "post",
+  errorContext: "Create User",
+});
+
+// TypeScript enforces correct body structure
+await createUser({ 
+  body: { 
+    name: "John Doe", 
+    email: "john@example.com" 
+  } 
+});
+```
+
+### Common API Response Patterns
+
+```typescript
+// List endpoints (GET /users)
+interface ListResponse<T> {
+  data: T[];
+  meta: {
+    totalCount: number;
+    page: number;
+    limit: number;
+  };
+}
+
+// Single resource endpoints (GET /users/123)
+interface DetailResponse<T> {
+  data: T;
+}
+
+// Create/Update endpoints (POST/PATCH /users)
+interface MutationResponse<T> {
+  data: T;
+  message?: string;
+}
+
+// Delete endpoints (DELETE /users/123)
+interface DeleteResponse {
+  success: boolean;
+  message?: string;
+}
 ```
 
 ### 6. Use Batch Operations Wisely
@@ -425,12 +598,12 @@ async function bulkActivate(selectedIds: string[]) {
 - All items get the same body data (for patch)
 - Not suitable for different data per item
 
-## Migration Guide
+## Migration from Direct $fetch
 
 If you're migrating from direct `$fetch` usage:
 
 ```typescript
-// Before
+// ❌ Before - manual $fetch with lots of boilerplate
 async function fetchUsers() {
   try {
     loading.value = true;
@@ -443,21 +616,24 @@ async function fetchUsers() {
   }
 }
 
-// After
-const { data, pending, execute } = useApiLazy(() => "/users", {
+// ✅ After - clean useApiLazy approach
+const { data, pending, execute } = useApiLazy<ApiResponse<User>>(() => "/users", {
   errorContext: "Fetch Users",
 });
 
 const users = computed(() => data.value?.data || []);
-// Error handling and loading states are automatic!
+
+// Execute when needed
+onMounted(() => execute());
 ```
 
-**Key Changes:**
+**Benefits of Migration:**
 
-1. **Remove try-catch blocks** - Error handling is automatic
-2. **Remove manual loading state** - Use `pending` from composable
-3. **Remove manual error handling** - Check `error.value` if needed
-4. **Use reactive data** - `data.value` automatically updates
+1. ✅ **No boilerplate** - Automatic error handling and loading states
+2. ✅ **Type safety** - Full TypeScript support
+3. ✅ **Consistent UX** - Standardized error messages
+4. ✅ **Reactive data** - Automatic reactivity updates
+5. ✅ **Better DX** - Cleaner, more maintainable code
 
 ## Troubleshooting
 
@@ -470,9 +646,9 @@ const users = computed(() => data.value?.data || []);
    - Use computed refs for dynamic query/body
    - Ensure path function accesses reactive values
 
-3. **Multiple executions**
-   - Check `immediate` option (defaults to `true` for useApi)
-   - Avoid calling execute in watchers if using immediate
+3. **Unexpected executions**
+   - useApiLazy never auto-executes, only when you call `execute()`
+   - Check if you're calling execute in multiple places
 
 4. **TypeScript errors**
    - Use `pending` not `loading` in destructuring
@@ -523,8 +699,18 @@ async function goodFunction(id: string) {
 
 ## Summary
 
-- Use `useApi` when you need SSR support or automatic fetching
-- Use `useApiLazy` for manual control and client-side operations
+**For this CSR application, always use `useApiLazy`:**
+
+- ✅ Perfect for client-side only applications
+- ✅ Manual execution control prevents unexpected API calls
+- ✅ Automatic error handling with toast notifications
+- ✅ Full TypeScript support with proper typing
+- ✅ Dynamic ID support for flexible CRUD operations
+- ✅ Batch operations for efficient bulk actions
+
+**Key Rules:**
 - Always provide `errorContext` for better error messages
-- Keep composables at setup level, not inside functions
+- Keep composables at setup level, never inside functions
 - Use computed refs for reactive parameters
+- Check `error.value` instead of using try-catch
+- Use dynamic IDs with `{ id }` parameter for flexibility
