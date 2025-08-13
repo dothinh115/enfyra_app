@@ -42,28 +42,32 @@
     </aside>
 
     <!-- Sidebar -->
-    <aside
-      v-if="sidebarVisible"
-      class="bg-gray-700 p-4 flex flex-col transition-all duration-300 border-l border-gray-600 flex-shrink-0"
-      :class="
-        isTablet
-          ? 'fixed inset-y-0 left-16 w-80 z-50 shadow-xl'
-          : 'w-60'
-      "
-      aria-label="Secondary navigation"
-    >
-      <CommonFull class="mb-9" />
-      <SidebarMenu />
-    </aside>
+    <Transition :name="isTablet ? 'fade-tablet' : ''" mode="out-in">
+      <aside
+        v-if="sidebarVisible"
+        class="bg-gray-700 p-4 flex flex-col border-l border-gray-600 flex-shrink-0"
+        :class="
+          isTablet
+            ? 'fixed inset-y-0 left-16 w-80 z-50 shadow-xl'
+            : 'w-60 transition-all duration-300'
+        "
+        aria-label="Secondary navigation"
+      >
+        <CommonFull class="mb-9" />
+        <SidebarMenu />
+      </aside>
+    </Transition>
 
     <!-- Overlay for tablet -->
-    <div
-      v-if="sidebarVisible && isTablet"
-      class="fixed inset-0 left-16 bg-black bg-opacity-50 z-40"
-      @click="setSidebarVisible(false)"
-      role="presentation"
-      aria-hidden="true"
-    ></div>
+    <Transition name="fade">
+      <div
+        v-if="sidebarVisible && isTablet"
+        class="fixed inset-0 left-16 bg-black/20 backdrop-blur-sm z-40"
+        @click="setSidebarVisible(false)"
+        role="presentation"
+        aria-hidden="true"
+      ></div>
+    </Transition>
 
     <!-- Main Content -->
     <main class="flex-1 flex flex-col min-h-0" id="main-content">
