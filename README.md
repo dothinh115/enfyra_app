@@ -24,13 +24,20 @@ A modern, extensible headless CMS built with Nuxt 3, featuring dynamic table man
 
 For detailed usage instructions, see:
 
+### Architecture & Structure
+- [Project Structure](./docs/project-structure.md) - Complete project structure and architecture overview
 - [API Composables Guide](./docs/api-composables.md) - Complete guide with examples and patterns
 - [FilterQuery Composable](./docs/FilterQuery.md) - Building and managing data filters
 - [FormField System](./docs/FormField.md) - Dynamic form generation, validation, and error handling
+
+### Systems & Features
 - [Permission System](./docs/permission-system.md) - Comprehensive guide to the RBAC permission system
 - [Permission System Quick Reference](./docs/permission-system-quick-reference.md) - Quick reference for common permission patterns
 - [Header Action Registry](./docs/header-action-registry.md) - Dynamic header actions and button management system
 - [Menu Registry](./docs/menu-registry.md) - Dynamic menu system for sidebar navigation
+
+### Development
+- [Plugin Development Guide (Vietnamese)](./docs/plugin-development-guide-vi.md) - Extension development guide
 
 ## Development
 
