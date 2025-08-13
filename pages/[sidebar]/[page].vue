@@ -1,5 +1,5 @@
 <template>
-  <CommonDynamicComponent :full-path="fullPath" />
+  <DynamicPageComponent :path="path" />
 </template>
 
 <script setup lang="ts">
@@ -7,5 +7,5 @@ const route = useRoute();
 const sidebarParam = route.params.sidebar;
 const pageParam = route.params.page;
 
-const fullPath = computed(() => `${sidebarParam}/${pageParam}`);
+const path = computed(() => `${sidebarParam}/${pageParam}`);
 </script>

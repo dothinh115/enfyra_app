@@ -51,7 +51,7 @@
     <CommonEmptyState
       v-else
       title="Extension Not Found"
-      :description="`No extension found for route: ${fullPath}`"
+      :description="`No extension found for route: ${props.path}`"
       icon="i-heroicons-puzzle-piece"
       size="md"
       :action="{
@@ -67,7 +67,7 @@
 
 <script setup lang="ts">
 interface Props {
-  fullPath: string;
+  path: string;
 }
 
 const props = defineProps<Props>();
@@ -90,8 +90,8 @@ const {
       _and: [
         {
           _or: [
-            { path: { _eq: props.fullPath } },
-            { path: { _eq: `/${props.fullPath}` } },
+            { path: { _eq: props.path } },
+            { path: { _eq: `/${props.path}` } },
           ],
         },
         { isEnabled: { _eq: true } },
@@ -113,14 +113,14 @@ const loadMatchingExtension = async () => {
   }
 
   if (!menuResponse.value?.data || menuResponse.value.data.length === 0) {
-    error.value = `No menu found for route: /${props.fullPath}`;
+    error.value = `No menu found for route: /${props.path}`;
     return;
   }
 
   const menuItem = menuResponse.value.data[0];
 
   if (!menuItem.extension || menuItem.extension.length === 0) {
-    error.value = `No extension found for route: /${props.fullPath}`;
+    error.value = `No extension found for route: /${props.path}`;
     return;
   }
 
@@ -147,9 +147,9 @@ const retry = () => {
   loadMatchingExtension();
 };
 
-// Watch for fullPath changes
+// Watch for path changes
 watch(
-  () => props.fullPath,
+  () => props.path,
   () => {
     loadMatchingExtension();
   },

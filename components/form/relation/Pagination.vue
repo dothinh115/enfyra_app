@@ -31,8 +31,8 @@ function apply() {
 </script>
 
 <template>
-  <div v-if="shouldShowPagination" class="flex justify-between pt-2">
-    <div class="text-xs text-muted-foreground flex gap-2 items-center">
+  <div class="flex justify-between pt-2">
+    <div v-if="shouldShowPagination" class="text-xs text-muted-foreground flex gap-2 items-center">
       <span>Page {{ page }} / {{ totalPages }}</span>
       <span v-if="!isValidPage" class="text-red-500">(Invalid page)</span>
       <UButton
@@ -50,6 +50,7 @@ function apply() {
         :title="`Go to page ${page + 1}`"
       />
     </div>
+    <div v-else></div>
     <UButton
       icon="lucide:check"
       @click="apply"

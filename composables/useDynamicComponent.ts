@@ -26,6 +26,7 @@ import {
   PermissionGate,
   FormEditor,
   CommonUploadModal,
+  DynamicWidgetComponent,
 } from "#components";
 
 // Import Enfyra composables
@@ -75,6 +76,9 @@ export const useDynamicComponent = () => {
     CommonLoadingState: markRaw(CommonLoadingState),
     CommonEmptyState: markRaw(CommonEmptyState),
     CommonUploadModal: markRaw(CommonUploadModal),
+    
+    // Dynamic Components
+    DynamicWidgetComponent: markRaw(DynamicWidgetComponent),
   };
 
   const loadDynamicComponent = async (code: string, extensionName: string) => {
