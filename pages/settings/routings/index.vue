@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const toast = useToast();
 const page = ref(1);
-const pageLimit = 15;
+const pageLimit = 9;
 const route = useRoute();
 const tableName = "route_definition";
 const { confirm } = useConfirm();
@@ -141,7 +141,7 @@ watch(
 const { execute: updateRouteApi, error: updateError } = useApiLazy(
   () => `/route_definition`,
   {
-    method: "patch", 
+    method: "patch",
     errorContext: "Toggle Route",
   }
 );
