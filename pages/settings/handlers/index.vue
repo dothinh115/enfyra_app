@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const toast = useToast();
 const page = ref(1);
-const pageLimit = 10;
+const pageLimit = 9;
 const route = useRoute();
 const tableName = "route_handler_definition";
 const { confirm } = useConfirm();
@@ -85,8 +85,7 @@ watch(
   { immediate: true }
 );
 
-onMounted(async () => {
-});
+onMounted(async () => {});
 </script>
 
 <template>
@@ -101,7 +100,15 @@ onMounted(async () => {
         context="page"
       />
 
-      <div v-else-if="routeHandlers.length" class="grid gap-4" :class="isTablet ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'">
+      <div
+        v-else-if="routeHandlers.length"
+        class="grid gap-4"
+        :class="
+          isTablet
+            ? 'grid-cols-1 lg:grid-cols-2'
+            : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+        "
+      >
         <CommonSettingsCard
           v-for="handler in routeHandlers"
           :key="handler.id"
@@ -116,25 +123,27 @@ onMounted(async () => {
               label: 'Type',
               component: 'UBadge',
               props: { variant: 'soft', color: 'primary' },
-              value: handler.type || 'Unknown'
+              value: handler.type || 'Unknown',
             },
             {
               label: 'Created',
-              value: new Date(handler.createdAt).toLocaleDateString()
-            }
+              value: new Date(handler.createdAt).toLocaleDateString(),
+            },
           ]"
           :actions="[]"
-        >
-          <template #headerActions v-if="!handler.isSystem">
-            <UButton
-              icon="i-heroicons-trash"
-              variant="outline"
-              size="sm"
-              color="error"
-              @click.stop="deleteHandler(handler.id)"
-            />
-          </template>
-        </CommonSettingsCard>
+          :header-actions="!handler.isSystem ? [{
+            component: 'UButton',
+            props: {
+              icon: 'i-heroicons-trash',
+              variant: 'outline',
+              color: 'error'
+            },
+            onClick: (e?: Event) => {
+              e?.stopPropagation();
+              deleteHandler(handler.id);
+            }
+          }] : []"
+        />
       </div>
 
       <CommonEmptyState
@@ -146,7 +155,10 @@ onMounted(async () => {
       />
     </Transition>
 
-    <div class="flex justify-center" v-if="!loading && routeHandlers.length > 0">
+    <div
+      class="flex justify-center"
+      v-if="!loading && routeHandlers.length > 0"
+    >
       <UPagination
         v-model="page"
         :page-count="pageLimit"

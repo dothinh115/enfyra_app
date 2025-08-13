@@ -8,11 +8,12 @@ const { isTablet } = useScreen();
 <template>
   <div
     :class="[
-      'p-4 rounded-lg border border-gray-200 dark:border-gray-800',
-      'hover:border-gray-300 dark:hover:border-gray-700 transition-all duration-200',
-      'hover:shadow-md hover:scale-[1.02]',
+      'p-4 rounded-xl bg-white dark:bg-gray-800 shadow-md',
+      'border border-gray-200 dark:border-gray-700',
+      'hover:border-primary-300 dark:hover:border-primary-600 transition-all duration-200',
+      'hover:shadow-xl hover:scale-[1.01] hover:bg-gray-50 dark:hover:bg-gray-750',
       onClick && !selectable && 'cursor-pointer',
-      selectable && selected && 'border-primary-300 bg-primary-50 dark:border-primary-700 dark:bg-primary-950',
+      selectable && selected && 'ring-2 ring-primary-400 border-primary-400 bg-primary-50 dark:ring-primary-600 dark:border-primary-600 dark:bg-primary-950/30',
       isTablet ? 'min-h-[140px] h-full' : '',
     ]"
     @click="!selectable && onClick?.()"

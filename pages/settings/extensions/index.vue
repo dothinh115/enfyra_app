@@ -18,7 +18,11 @@
       <div
         v-else-if="extensions.length > 0"
         class="grid gap-4"
-        :class="isTablet ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'"
+        :class="
+          isTablet
+            ? 'grid-cols-1 lg:grid-cols-2'
+            : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+        "
       >
         <CommonSettingsCard
           v-for="extension in extensions"
@@ -33,30 +37,32 @@
               label: 'Type',
               component: 'UBadge',
               props: { variant: 'soft', color: 'primary' },
-              value: getExtensionTypeLabel(extension.type)
+              value: getExtensionTypeLabel(extension.type),
             },
-            ...(extension.menu?.path ? [{
-              label: 'Route',
-              value: extension.menu.path
-            }] : []),
+            ...(extension.menu?.path
+              ? [
+                  {
+                    label: 'Route',
+                    value: extension.menu.path,
+                  },
+                ]
+              : []),
             {
               label: 'Status',
               component: 'UBadge',
-              props: { 
-                variant: 'soft', 
-                color: extension.isEnabled ? 'success' : 'neutral' 
+              props: {
+                variant: 'soft',
+                color: extension.isEnabled ? 'success' : 'neutral',
               },
-              value: extension.isEnabled ? 'Active' : 'Inactive'
-            }
+              value: extension.isEnabled ? 'Active' : 'Inactive',
+            },
           ]"
           @click="navigateToDetail(extension)"
         >
-          <template #headerActions>
+          <template #cardHeaderActions>
             <PermissionGate
               :condition="{
-                or: [
-                  { route: '/extension_definition', actions: ['update'] },
-                ],
+                or: [{ route: '/extension_definition', actions: ['update'] }],
               }"
             >
               <USwitch
@@ -76,7 +82,6 @@
               <UButton
                 icon="i-heroicons-trash"
                 variant="outline"
-                size="sm"
                 color="error"
                 @click.stop="deleteExtension(extension)"
               />
@@ -93,11 +98,24 @@
         size="lg"
       />
     </Transition>
+
+    <div class="flex justify-center mt-4" v-if="!loading && extensions.length > 0">
+      <UPagination
+        v-model="page"
+        :page-count="limit"
+        :total="total"
+        size="sm"
+        v-if="total > limit"
+      />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { ExtensionDefinition } from "~/utils/types";
+
+const page = ref(1);
+const limit = 9;
 
 const toast = useToast();
 const { confirm } = useConfirm();
@@ -111,15 +129,18 @@ const {
   pending: loading,
   execute: fetchExtensions,
 } = useApiLazy(() => "/extension_definition", {
-  query: {
+  query: computed(() => ({
     fields: ["*", "menu.*"].join(","),
-    limit: 0,
+    limit,
+    page: page.value,
+    meta: "*",
     sort: ["id"].join(","),
-  },
+  })),
   errorContext: "Fetch Extensions",
 });
 
 const extensions = computed(() => apiData.value?.data || []);
+const total = computed(() => apiData.value?.meta?.totalCount || 0);
 
 const extensionLoaders = ref<Record<string, any>>({});
 
@@ -210,10 +231,7 @@ const toggleExtensionStatus = async (extension: ExtensionDefinition) => {
     })
   );
 
-  // Check if there was an error
   if (updateError.value) {
-    // Error already handled by useApiLazy
-    // Revert the optimistic update
     if (apiData.value?.data) {
       const extensionIndex = apiData.value.data.findIndex(
         (e: any) => e.id === extension.id

@@ -148,8 +148,6 @@ function getRouteLoader(routeId: string) {
 }
 
 async function toggleEnabled(routeItem: any) {
-  const loader = getRouteLoader(routeItem.id);
-
   // Optimistic update - change UI immediately
   const newEnabled = !routeItem.isEnabled;
 
@@ -248,7 +246,14 @@ async function deleteRoute(routeItem: any) {
 
       <div v-else class="space-y-6">
         <div v-if="routes.length" class="space-y-6">
-          <div class="grid gap-4" :class="isTablet ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'">
+          <div
+            class="grid gap-4"
+            :class="
+              isTablet
+                ? 'grid-cols-1 lg:grid-cols-2'
+                : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+            "
+          >
             <CommonSettingsCard
               v-for="routeItem in routes"
               :key="routeItem.id"
@@ -265,14 +270,13 @@ async function deleteRoute(routeItem: any) {
                   props: { 
                     variant: 'soft', 
                     color: routeItem.isEnabled ? 'success' : 'warning',
-                    size: 'xs'
                   },
                   value: routeItem.isEnabled ? 'Enabled' : 'Disabled'
                 },
                 ...(routeItem.isSystem ? [{
                   label: 'System',
                   component: 'UBadge',
-                  props: { variant: 'soft', color: 'info', size: 'xs' },
+                  props: { variant: 'soft', color: 'info', },
                   value: 'System'
                 }] : []),
                 ...(routeItem.order ? [{
@@ -286,7 +290,7 @@ async function deleteRoute(routeItem: any) {
               ]"
               :actions="[]"
             >
-              <template #headerActions>
+              <template #cardHeaderActions>
                 <USwitch
                   v-if="!routeItem.isSystem"
                   :model-value="routeItem.isEnabled"
@@ -298,7 +302,6 @@ async function deleteRoute(routeItem: any) {
                   v-if="!routeItem.isSystem"
                   icon="i-heroicons-trash"
                   variant="outline"
-                  size="sm"
                   color="error"
                   @click.stop="deleteRoute(routeItem)"
                 />

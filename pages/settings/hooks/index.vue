@@ -2,7 +2,7 @@
 const toast = useToast();
 const { confirm } = useConfirm();
 const page = ref(1);
-const pageLimit = 7;
+const pageLimit = 9;
 const route = useRoute();
 const tableName = "hook_definition";
 const { getIncludeFields } = useSchema(tableName);
@@ -62,9 +62,9 @@ watch(
   { immediate: true }
 );
 
-async function toggleEnabled(hook: any) {
+async function toggleEnabled(hook: any, value?: boolean) {
   const originalEnabled = hook.isEnabled;
-  hook.isEnabled = !hook.isEnabled;
+  hook.isEnabled = value !== undefined ? value : !hook.isEnabled;
 
   const { execute: updateSpecificHook, error: updateError } = useApiLazy(
     () => `/hook_definition/${hook.id}`,
@@ -84,7 +84,9 @@ async function toggleEnabled(hook: any) {
 async function deleteHook(hook: any) {
   const isConfirmed = await confirm({
     title: "Delete Hook",
-    content: `Are you sure you want to delete hook "${hook.name || 'Unnamed'}"? This action cannot be undone.`,
+    content: `Are you sure you want to delete hook "${
+      hook.name || "Unnamed"
+    }"? This action cannot be undone.`,
     confirmText: "Delete",
     cancelText: "Cancel",
   });
@@ -108,7 +110,9 @@ async function deleteHook(hook: any) {
 
     toast.add({
       title: "Success",
-      description: `Hook "${hook.name || 'Unnamed'}" has been deleted successfully!`,
+      description: `Hook "${
+        hook.name || "Unnamed"
+      }" has been deleted successfully!`,
       color: "success",
     });
   }
@@ -129,7 +133,15 @@ onMounted(async () => {});
         context="page"
       />
 
-      <div v-else-if="hooks.length" class="grid gap-4" :class="isTablet ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'">
+      <div
+        v-else-if="hooks.length"
+        class="grid gap-4"
+        :class="
+          isTablet
+            ? 'grid-cols-1 lg:grid-cols-2'
+            : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+        "
+      >
         <CommonSettingsCard
           v-for="hook in hooks"
           :key="hook.id"
@@ -142,43 +154,52 @@ onMounted(async () => {});
           :stats="[
             {
               label: 'Route',
-              value: hook.route?.path || 'N/A'
+              value: hook.route?.path || 'N/A',
             },
             {
               label: 'Status',
               component: 'UBadge',
-              props: { 
-                variant: 'soft', 
-                color: hook.isEnabled ? 'success' : 'neutral' 
+              props: {
+                variant: 'soft',
+                color: hook.isEnabled ? 'success' : 'neutral',
               },
-              value: hook.isEnabled ? 'Active' : 'Inactive'
+              value: hook.isEnabled ? 'Active' : 'Inactive',
             },
-            ...(hook.isSystem ? [{
-              label: 'System',
-              component: 'UBadge',
-              props: { variant: 'soft', color: 'info' },
-              value: 'System'
-            }] : [])
+            ...(hook.isSystem
+              ? [
+                  {
+                    label: 'System',
+                    component: 'UBadge',
+                    props: { variant: 'soft', color: 'info' },
+                    value: 'System',
+                  },
+                ]
+              : []),
           ]"
           :actions="[]"
-        >
-          <template #headerActions>
-            <USwitch
-              v-if="!hook.isSystem"
-              v-model="hook.isEnabled"
-              @update:model-value="toggleEnabled(hook)"
-              @click.stop
-            />
-            <UButton
-              v-if="!hook.isSystem"
-              icon="i-heroicons-trash"
-              variant="outline"
-              size="sm"
-              color="error"
-              @click.stop="deleteHook(hook)"
-            />
-          </template>
-        </CommonSettingsCard>
+          :header-actions="!hook.isSystem ? [
+            {
+              component: 'USwitch',
+              props: {
+                modelValue: hook.isEnabled,
+                onClick: (e: Event) => e.stopPropagation()
+              },
+              onUpdate: (value: boolean) => toggleEnabled(hook, value)
+            },
+            {
+              component: 'UButton',
+              props: {
+                icon: 'i-heroicons-trash',
+                variant: 'outline',
+                color: 'error'
+              },
+              onClick: (e?: Event) => {
+                e?.stopPropagation();
+                deleteHook(hook);
+              }
+            }
+          ] : []"
+        />
       </div>
 
       <CommonEmptyState

@@ -6,13 +6,12 @@ import { useMenuApi } from "~/composables/useMenuApi";
 const toast = useToast();
 const { confirm } = useConfirm();
 const page = ref(1);
-const pageLimit = 15;
+const pageLimit = 9;
 const route = useRoute();
 const tableName = "menu_definition";
 const { getIncludeFields } = useSchema(tableName);
 const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
 const menus = ref<any[]>([]);
-const { schemas } = useGlobalState();
 const { createLoader } = useLoader();
 const { isTablet } = useScreen();
 
@@ -153,9 +152,9 @@ function clearFilters() {
   applyFilters();
 }
 
-async function toggleEnabled(menuItem: any) {
+async function toggleEnabled(menuItem: any, value?: boolean) {
   const loader = getMenuLoader(menuItem.id);
-  const newEnabled = !menuItem.isEnabled;
+  const newEnabled = value !== undefined ? value : !menuItem.isEnabled;
 
   // Optimistic update - change UI immediately
   // Update directly in apiData to trigger reactivity
@@ -260,7 +259,14 @@ async function deleteMenu(menuItem: any) {
       />
 
       <div v-else-if="menus.length" class="space-y-6">
-        <div class="grid gap-4" :class="isTablet ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'">
+        <div
+          class="grid gap-4"
+          :class="
+            isTablet
+              ? 'grid-cols-1 lg:grid-cols-2'
+              : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+          "
+        >
           <CommonSettingsCard
             v-for="menu in menus"
             :key="menu.id"
@@ -274,54 +280,57 @@ async function deleteMenu(menuItem: any) {
               {
                 label: 'Type',
                 component: 'UBadge',
-                props: { 
-                  variant: 'soft', 
+                props: {
+                  variant: 'soft',
                   color: menu.type === 'mini' ? 'primary' : 'secondary',
-                  size: 'xs'
                 },
-                value: menu.type === 'mini' ? 'Sidebar' : 'Menu Item'
+                value: menu.type === 'mini' ? 'Sidebar' : 'Menu Item',
               },
               {
                 label: 'Status',
                 component: 'UBadge',
-                props: { 
-                  variant: 'soft', 
+                props: {
+                  variant: 'soft',
                   color: menu.isEnabled ? 'success' : 'warning',
-                  size: 'xs'
                 },
-                value: menu.isEnabled ? 'Enabled' : 'Disabled'
+                value: menu.isEnabled ? 'Enabled' : 'Disabled',
               },
-              ...(menu.isSystem ? [{
-                label: 'System',
-                component: 'UBadge',
-                props: { variant: 'soft', color: 'info', size: 'xs' },
-                value: 'System'
-              }] : []),
-              {
-                label: 'Order',
-                value: menu.order
-              }
+              ...(menu.isSystem
+                ? [
+                    {
+                      label: 'System',
+                      component: 'UBadge',
+                      props: { variant: 'soft', color: 'info' },
+                      value: 'System',
+                    },
+                  ]
+                : []),
             ]"
             :actions="[]"
-          >
-            <template #headerActions>
-              <USwitch
-                v-if="!menu.isSystem"
-                :model-value="menu.isEnabled"
-                @update:model-value="toggleEnabled(menu)"
-                :disabled="getMenuLoader(menu.id).isLoading"
-                @click.stop
-              />
-              <UButton
-                v-if="!menu.isSystem"
-                icon="i-heroicons-trash"
-                variant="outline"
-                size="sm"
-                color="error"
-                @click.stop="deleteMenu(menu)"
-              />
-            </template>
-          </CommonSettingsCard>
+            :header-actions="[
+              ...(menu.isSystem ? [] : [{
+                component: 'USwitch',
+                props: {
+                  'model-value': menu.isEnabled,
+                  disabled: getMenuLoader(menu.id).isLoading
+                },
+                onClick: (e?: Event) => e?.stopPropagation(),
+                onUpdate: (value: boolean) => toggleEnabled(menu, value)
+              }]),
+              ...(menu.isSystem ? [] : [{
+                component: 'UButton',
+                props: {
+                  icon: 'i-heroicons-trash',
+                  variant: 'outline',
+                  color: 'error'
+                },
+                onClick: (e?: Event) => {
+                  e?.stopPropagation();
+                  deleteMenu(menu);
+                }
+              }])
+            ]"
+          />
         </div>
 
         <!-- Pagination - chỉ hiện khi có nhiều trang -->

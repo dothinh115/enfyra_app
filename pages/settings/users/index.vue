@@ -13,10 +13,14 @@
       <div
         v-else-if="users.length > 0"
         class="grid gap-4"
-        :class="isTablet ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'"
+        :class="
+          isTablet
+            ? 'grid-cols-1 lg:grid-cols-2'
+            : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+        "
       >
         <CommonSettingsCard
-          v-for="user in users" 
+          v-for="user in users"
           :key="user.id"
           :title="user.name || user.email || 'Unnamed User'"
           :description="user.email || 'No email'"
@@ -28,39 +32,22 @@
             {
               label: 'Role',
               component: user.role ? 'UBadge' : null,
-              props: user.role ? { 
-                variant: 'soft', 
-                color: 'primary' 
-              } : undefined,
-              value: user.role?.name || 'No role'
+              props: user.role
+                ? {
+                    variant: 'soft',
+                    color: 'primary',
+                  }
+                : undefined,
+              value: user.role?.name || 'No role',
             },
             {
               label: 'Joined',
-              value: new Date(user.createdAt).toLocaleDateString()
-            }
+              value: new Date(user.createdAt).toLocaleDateString(),
+            },
           ]"
           :actions="[]"
-        >
-          <template #headerActions>
-            <UAvatar
-              v-if="user.avatar"
-              :src="user.avatar"
-              :alt="user.name"
-              size="xs"
-            />
-            <UAvatar v-else :alt="user.name" size="xs">
-              {{ user.email?.charAt(0)?.toUpperCase() || "?" }}
-            </UAvatar>
-            <UButton
-              v-if="!user.isRootAdmin"
-              icon="i-heroicons-trash"
-              variant="outline"
-              size="sm"
-              color="error"
-              @click.stop="deleteUser(user)"
-            />
-          </template>
-        </CommonSettingsCard>
+          :header-actions="getHeaderActions(user)"
+        />
       </div>
 
       <CommonEmptyState
@@ -93,7 +80,7 @@
 </template>
 <script setup lang="ts">
 const page = ref(1);
-const limit = 12;
+const limit = 9;
 const tableName = "user_definition";
 const { confirm } = useConfirm();
 const { getIncludeFields } = useSchema(tableName);
@@ -104,6 +91,7 @@ const { isTablet } = useScreen();
 
 const showFilterDrawer = ref(false);
 const currentFilter = ref(createEmptyFilter());
+const toast = useToast();
 
 const {
   data: apiData,
@@ -197,6 +185,49 @@ function clearFilters() {
   applyFilters();
 }
 
+function getHeaderActions(user: any) {
+  const actions = [];
+
+  // Avatar
+  if (user.avatar) {
+    actions.push({
+      component: "UAvatar",
+      props: {
+        src: user.avatar,
+        alt: user.name,
+        size: "xs",
+      },
+    });
+  } else {
+    actions.push({
+      component: "UAvatar",
+      props: {
+        alt: user.name,
+        size: "xs",
+      },
+      label: user.email?.charAt(0)?.toUpperCase() || "?",
+    });
+  }
+
+  // Delete button
+  if (!user.isRootAdmin) {
+    actions.push({
+      component: "UButton",
+      props: {
+        icon: "i-heroicons-trash",
+        variant: "outline",
+        color: "error",
+      },
+      onClick: (e?: Event) => {
+        e?.stopPropagation();
+        deleteUser(user);
+      },
+    });
+  }
+
+  return actions;
+}
+
 async function deleteUser(user: any) {
   // Protect rootAdmin from deletion
   if (user.isRootAdmin) {
@@ -210,7 +241,9 @@ async function deleteUser(user: any) {
 
   const isConfirmed = await confirm({
     title: "Delete User",
-    content: `Are you sure you want to delete user "${user.name || user.email}"? This action cannot be undone.`,
+    content: `Are you sure you want to delete user "${
+      user.name || user.email
+    }"? This action cannot be undone.`,
     confirmText: "Delete",
     cancelText: "Cancel",
   });
@@ -234,7 +267,9 @@ async function deleteUser(user: any) {
 
     toast.add({
       title: "Success",
-      description: `User "${user.name || user.email}" has been deleted successfully!`,
+      description: `User "${
+        user.name || user.email
+      }" has been deleted successfully!`,
       color: "success",
     });
   }

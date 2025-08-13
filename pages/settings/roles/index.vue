@@ -119,17 +119,19 @@ onMounted(async () => {
             }
           ]"
           :actions="[]"
-        >
-          <template #headerActions v-if="!role.isSystem">
-            <UButton
-              icon="i-heroicons-trash"
-              variant="outline"
-              size="sm"
-              color="error"
-              @click.stop="deleteRole(role.id)"
-            />
-          </template>
-        </CommonSettingsCard>
+          :header-actions="!role.isSystem ? [{
+            component: 'UButton',
+            props: {
+              icon: 'i-heroicons-trash',
+              variant: 'outline',
+              color: 'error'
+            },
+            onClick: (e?: Event) => {
+              e?.stopPropagation();
+              deleteRole(role.id);
+            }
+          }] : []"
+        />
       </div>
 
       <CommonEmptyState

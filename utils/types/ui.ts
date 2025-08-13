@@ -123,3 +123,40 @@ export interface HeaderAction {
   hideOn?: string[];
   class?: string;
 }
+
+// Settings Card Component
+export interface SettingsCardStat {
+  label: string;
+  value?: string | number;
+  component?: any;
+  props?: Record<string, any>;
+}
+
+export interface SettingsCardAction {
+  label: string;
+  props?: Record<string, any>;
+  to?: string;
+  onClick?: () => void;
+  loading?: boolean;
+  disabled?: boolean;
+  block?: boolean;
+}
+
+export interface SettingsCardHeaderAction {
+  component?: string; // Component name like 'UButton', 'USwitch', 'UAvatar'
+  props?: Record<string, any>; // Props to pass to the component
+  label?: string; // Text label for buttons
+  onClick?: (e?: Event) => void; // Click handler
+  onUpdate?: (value: any) => void; // For v-model components like USwitch
+}
+
+export interface SettingsCardProps {
+  title: string;
+  description?: string;
+  icon: string;
+  iconColor?: 'primary' | 'success' | 'warning' | 'error' | 'neutral';
+  stats?: SettingsCardStat[];
+  actions?: SettingsCardAction[];
+  headerActions?: SettingsCardHeaderAction[];
+  cardClass?: string;
+}
