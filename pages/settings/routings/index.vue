@@ -137,6 +137,24 @@ watch(
   { immediate: true }
 );
 
+// Update API at setup level
+const { execute: updateRouteApi, error: updateError } = useApiLazy(
+  () => `/route_definition`,
+  {
+    method: "patch", 
+    errorContext: "Toggle Route",
+  }
+);
+
+// Delete API at setup level
+const { execute: deleteRouteApi, error: deleteError } = useApiLazy(
+  () => `/route_definition`,
+  {
+    method: "delete",
+    errorContext: "Delete Route",
+  }
+);
+
 // Create loaders for each route toggle button
 const routeLoaders = ref<Record<string, any>>({});
 
@@ -161,24 +179,9 @@ async function toggleEnabled(routeItem: any) {
     }
   }
 
-  try {
-    // Create a specific instance for this route update
-    const { execute: updateSpecificRoute } = useApiLazy(
-      () => `/route_definition/${routeItem.id}`,
-      {
-        method: "patch",
-        errorContext: "Toggle Route",
-      }
-    );
+  await updateRouteApi({ id: routeItem.id, body: { isEnabled: newEnabled } });
 
-    await updateSpecificRoute({ body: { isEnabled: newEnabled } });
-
-    toast.add({
-      title: "Success",
-      description: `Route ${newEnabled ? "enabled" : "disabled"} successfully`,
-      color: "success",
-    });
-  } catch (error) {
+  if (updateError.value) {
     // Revert optimistic update on error
     if (apiData.value?.data) {
       const routeIndex = apiData.value.data.findIndex(
@@ -188,13 +191,14 @@ async function toggleEnabled(routeItem: any) {
         apiData.value.data[routeIndex].isEnabled = !newEnabled;
       }
     }
-
-    toast.add({
-      title: "Error",
-      description: "Failed to update route status",
-      color: "error",
-    });
+    return;
   }
+
+  toast.add({
+    title: "Success",
+    description: `Route ${newEnabled ? "enabled" : "disabled"} successfully`,
+    color: "success",
+  });
 }
 
 async function deleteRoute(routeItem: any) {
@@ -206,15 +210,7 @@ async function deleteRoute(routeItem: any) {
   });
 
   if (isConfirmed) {
-    const { execute: deleteRouteApi, error: deleteError } = useApiLazy(
-      () => `/route_definition/${routeItem.id}`,
-      {
-        method: "delete",
-        errorContext: "Delete Route",
-      }
-    );
-
-    await deleteRouteApi();
+    await deleteRouteApi({ id: routeItem.id });
 
     if (deleteError.value) {
       return;

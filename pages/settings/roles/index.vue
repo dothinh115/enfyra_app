@@ -55,15 +55,7 @@ async function deleteRole(id: string) {
   });
   if (!ok) return;
 
-  const { execute: removeSpecificRole, error: deleteError } = useApiLazy(
-    () => `/role_definition/${id}`,
-    {
-      method: "delete",
-      errorContext: "Delete Role",
-    }
-  );
-
-  await removeSpecificRole();
+  await deleteRoleApi({ id });
 
   if (deleteError.value) {
     return;

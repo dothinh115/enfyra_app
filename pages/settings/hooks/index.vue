@@ -30,6 +30,24 @@ const { execute: updateHook } = useApiLazy(() => `/hook_definition/0`, {
   errorContext: "Toggle Hook",
 });
 
+// Update API at setup level
+const { execute: updateHookApi, error: updateError } = useApiLazy(
+  () => `/hook_definition`,
+  {
+    method: "patch",
+    errorContext: "Toggle Hook",
+  }
+);
+
+// Delete API at setup level
+const { execute: deleteHookApi, error: deleteError } = useApiLazy(
+  () => `/hook_definition`,
+  {
+    method: "delete",
+    errorContext: "Delete Hook",
+  }
+);
+
 const hooks = computed(() => apiData.value?.data || []);
 const total = computed(() => {
   return apiData.value?.meta?.totalCount || 0;
@@ -66,15 +84,7 @@ async function toggleEnabled(hook: any, value?: boolean) {
   const originalEnabled = hook.isEnabled;
   hook.isEnabled = value !== undefined ? value : !hook.isEnabled;
 
-  const { execute: updateSpecificHook, error: updateError } = useApiLazy(
-    () => `/hook_definition/${hook.id}`,
-    {
-      method: "patch",
-      errorContext: "Toggle Hook",
-    }
-  );
-
-  await updateSpecificHook({ body: { isEnabled: hook.isEnabled } });
+  await updateHookApi({ id: hook.id, body: { isEnabled: hook.isEnabled } });
 
   if (updateError.value) {
     hook.isEnabled = originalEnabled;
@@ -92,15 +102,7 @@ async function deleteHook(hook: any) {
   });
 
   if (isConfirmed) {
-    const { execute: deleteHookApi, error: deleteError } = useApiLazy(
-      () => `/hook_definition/${hook.id}`,
-      {
-        method: "delete",
-        errorContext: "Delete Hook",
-      }
-    );
-
-    await deleteHookApi();
+    await deleteHookApi({ id: hook.id });
 
     if (deleteError.value) {
       return;

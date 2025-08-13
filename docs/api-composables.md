@@ -46,11 +46,21 @@ await execute();
 
 // Execute with dynamic body
 await execute({ body: { name: "John" } });
+
+// Execute with dynamic ID (for patch/delete)
+await execute({ id: "123" });
+
+// Execute with dynamic ID and body
+await execute({ id: "123", body: { name: "Updated Name" } });
+
+// Batch operations (useApiLazy only, patch/delete methods only)
+await execute({ ids: ["1", "2", "3"] }); // Multiple IDs
+await execute({ ids: ["1", "2"], body: { status: "inactive" } }); // Batch update
 ```
 
 ## API Options
 
-Both composables accept the same options:
+Both composables accept similar options:
 
 ```typescript
 interface UseApiOptions<T> {
@@ -59,6 +69,9 @@ interface UseApiOptions<T> {
   query?: any | ComputedRef<any>;
   errorContext?: string;
   immediate?: boolean; // Only for useApi, defaults to true
+  disableBatch?: boolean; // Only for useApiLazy
+  watch?: boolean; // Only for useApi
+  default?: () => T | Ref<T>; // Only for useApi
 }
 ```
 
@@ -113,8 +126,8 @@ const { data, execute } = useApiLazy(() => "/users", {
   })),
 });
 
-// When page changes, just re-execute
-watch(page, () => execute());
+// When page changes, just re-execute  
+watch(page, async () => await execute());
 ```
 
 ### CRUD Operations
@@ -133,22 +146,26 @@ const { execute: createUser } = useApiLazy(() => "/users", {
   errorContext: "Create User",
 });
 
-// Update
-const { execute: updateUser } = useApiLazy(() => `/users/${userId.value}`, {
+// Update - use dynamic ID
+const { execute: updateUser } = useApiLazy(() => "/users", {
   method: "patch",
   errorContext: "Update User",
 });
 
-// Delete
-const { execute: deleteUser } = useApiLazy(() => `/users/${userId.value}`, {
+// Delete - use dynamic ID
+const { execute: deleteUser } = useApiLazy(() => "/users", {
   method: "delete",
   errorContext: "Delete User",
 });
 
-// Usage
+// Usage with dynamic IDs
 await createUser({ body: { name: "John", email: "john@example.com" } });
-await updateUser({ body: { name: "John Doe" } });
-await deleteUser();
+await updateUser({ id: userId, body: { name: "John Doe" } });
+await deleteUser({ id: userId });
+
+// Batch operations (delete/patch only)
+await deleteUser({ ids: ["1", "2", "3"] }); // Delete multiple users
+await updateUser({ ids: ["1", "2"], body: { isActive: false } }); // Update multiple
 ```
 
 ### Pagination
@@ -175,10 +192,10 @@ const users = computed(() => apiData.value?.data || []);
 const total = computed(() => apiData.value?.meta?.totalCount || 0);
 
 // Watch page changes
-watch(page, () => execute());
+watch(page, async () => await execute());
 
 // Initial fetch
-onMounted(() => execute());
+onMounted(async () => await execute());
 ```
 
 ## Batch Operations
@@ -222,16 +239,17 @@ await updateRoles({
 ### 1. Always Use at Setup Level
 
 ```typescript
-// ✅ Correct - at setup level
-const { execute: deleteItem } = useApiLazy(() => `/items/${id}`, {
+// ✅ Correct - at setup level with dynamic ID support
+const { execute: deleteItem } = useApiLazy(() => `/items`, {
   method: "delete",
+  errorContext: "Delete Item",
 });
 
 async function handleDelete(id: string) {
-  await deleteItem();
+  await deleteItem({ id });
 }
 
-// ❌ Wrong - inside function
+// ❌ Wrong - inside function (violates Composition API rules)
 async function handleDelete(id: string) {
   const { execute } = useApiLazy(() => `/items/${id}`, {
     method: "delete",
@@ -239,6 +257,12 @@ async function handleDelete(id: string) {
   await execute();
 }
 ```
+
+**Why this matters:**
+- **Composition API Rules**: Composables must be called at setup level
+- **Performance**: Avoids creating new reactive instances on every call
+- **Reactivity**: Proper reactive state management
+- **Memory**: Prevents memory leaks from uncleaned reactive instances
 
 ### 2. Never Use Try-Catch with useApiLazy
 
@@ -265,6 +289,25 @@ async function deleteUser() {
   // Check error state if needed
   if (deleteError.value) {
     return; // Error already handled by useApiLazy
+  }
+
+  toast.add({ title: "Success", color: "success" });
+}
+```
+
+**✅ EVEN BETTER - With dynamic ID:**
+
+```typescript
+const { execute: deleteUserApi, error: deleteError } = useApiLazy(() => "/users", {
+  method: "delete",
+  errorContext: "Delete User",
+});
+
+async function deleteUser(userId: string) {
+  await deleteUserApi({ id: userId });
+
+  if (deleteError.value) {
+    return; // Error toast already shown
   }
 
   toast.add({ title: "Success", color: "success" });
@@ -308,13 +351,21 @@ const { execute } = useApiLazy(() => "/users", {
 
 ### 4. Handle Loading States
 
-```typescript
+```vue
 <template>
   <CommonLoadingState v-if="pending" />
   <div v-else>
     <!-- Content -->
   </div>
 </template>
+
+<script setup>
+const { data, pending, execute } = useApiLazy(() => "/users", {
+  errorContext: "Fetch Users",
+});
+
+onMounted(async () => await execute());
+</script>
 ```
 
 ### 5. Type Safety
@@ -335,6 +386,44 @@ const { data, execute } = useApiLazy<{ data: User[] }>(() => "/users", {
 // Now data.value is typed as { data: User[] } | null
 const users = computed(() => data.value?.data || []);
 ```
+
+### 6. Use Batch Operations Wisely
+
+```typescript
+// ✅ Good - batch delete multiple items
+const { execute: deleteItems } = useApiLazy(() => "/items", {
+  method: "delete",
+  errorContext: "Delete Items",
+});
+
+async function bulkDelete(selectedIds: string[]) {
+  await deleteItems({ ids: selectedIds });
+  
+  if (deleteError.value) {
+    return;
+  }
+  
+  toast.add({ title: `${selectedIds.length} items deleted`, color: "success" });
+}
+
+// ✅ Good - batch update with same data
+const { execute: updateItems } = useApiLazy(() => "/items", {
+  method: "patch", 
+  errorContext: "Update Items",
+});
+
+async function bulkActivate(selectedIds: string[]) {
+  await updateItems({ 
+    ids: selectedIds, 
+    body: { isActive: true } 
+  });
+}
+```
+
+**Batch Limitations:**
+- Only works with `patch` and `delete` methods
+- All items get the same body data (for patch)
+- Not suitable for different data per item
 
 ## Migration Guide
 
@@ -375,22 +464,62 @@ const users = computed(() => data.value?.data || []);
 ### Common Issues
 
 1. **"path is not a function" error**
-
    - Always pass a function: `() => "/endpoint"`, not `"/endpoint"`
 
 2. **Changes not reactive**
-
    - Use computed refs for dynamic query/body
    - Ensure path function accesses reactive values
 
 3. **Multiple executions**
-
    - Check `immediate` option (defaults to `true` for useApi)
    - Avoid calling execute in watchers if using immediate
 
 4. **TypeScript errors**
    - Use `pending` not `loading` in destructuring
    - Ensure composables are at setup level
+
+5. **Composable called inside function**
+   - Move all composables to setup level
+   - Use dynamic IDs with `{ id }` parameter instead
+
+6. **Error handling not working**
+   - Don't use try-catch blocks
+   - Check `error.value` instead of catching exceptions
+
+### Common Anti-Patterns
+
+```typescript
+// ❌ Don't do these:
+async function badFunction(id: string) {
+  // Anti-pattern 1: Composable inside function
+  const { execute } = useApiLazy(() => `/items/${id}`, {...});
+  
+  try {
+    // Anti-pattern 2: Unnecessary try-catch
+    await execute();
+  } catch (err) {
+    // Anti-pattern 3: Manual error handling
+    toast.add({ title: "Error", description: err.message });
+  }
+}
+
+// ✅ Do this instead:
+const { execute: deleteItem, error } = useApiLazy(() => "/items", {
+  method: "delete",
+  errorContext: "Delete Item",
+});
+
+async function goodFunction(id: string) {
+  await deleteItem({ id });
+  
+  if (error.value) {
+    return; // Error already handled automatically
+  }
+  
+  // Success handling only
+  toast.add({ title: "Success" });
+}
+```
 
 ## Summary
 
