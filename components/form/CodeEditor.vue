@@ -85,11 +85,11 @@ const diagnosticExtension = linter((view) => {
   const result = linterInstance.verify(
     wrapped,
     {
-      parserOptions: {
+      languageOptions: {
         ecmaVersion: 2020,
         sourceType: "module",
+        globals: EXTENSION_GLOBALS,
       },
-      globals: EXTENSION_GLOBALS,
       rules: lintRules as any,
     }
   );
