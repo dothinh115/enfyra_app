@@ -1,40 +1,35 @@
 <template>
-  <Transition name="loading-fade" mode="out-in">
-    <CommonLoadingState
+  <div>
+    <div
       v-if="!isMounted || loading"
-      title="Loading widget..."
-      description="Fetching widget component"
-      size="md"
-      type="table"
-      context="inline"
-    />
+      class="flex items-center gap-2 text-sm text-gray-400"
+    >
+      <UIcon 
+        name="i-heroicons-arrow-path-20-solid" 
+        class="animate-spin" 
+        size="16"
+      />
+      <span>Loading widget...</span>
+    </div>
 
-    <CommonEmptyState
+    <div
       v-else-if="error"
-      :title="error.includes('disabled') ? 'Widget Disabled' : 'Widget Error'"
-      :description="error"
-      :icon="
-        error.includes('disabled')
-          ? 'i-heroicons-lock-closed'
-          : 'i-heroicons-exclamation-triangle'
-      "
-      size="md"
-      :action="
-        error.includes('disabled')
-          ? {
-              label: 'Go to Extension Settings',
-              onClick: async () => {
-                await navigateTo('/settings/extensions');
-              },
-              icon: 'i-heroicons-cog-6-tooth',
-            }
-          : {
-              label: 'Retry',
-              onClick: retry,
-              icon: 'i-heroicons-arrow-path',
-            }
-      "
-    />
+      class="flex items-center gap-2 text-sm text-red-500"
+    >
+      <UIcon 
+        :name="error.includes('disabled') ? 'i-heroicons-lock-closed' : 'i-heroicons-exclamation-triangle'"
+        size="16"
+      />
+      <span>Widget error</span>
+      <UButton
+        v-if="!error.includes('disabled')"
+        size="xs"
+        variant="ghost"
+        icon="i-heroicons-arrow-path"
+        @click="retry"
+        class="ml-1"
+      />
+    </div>
 
     <component
       v-else-if="widgetComponent"
@@ -43,21 +38,13 @@
       v-bind="$attrs"
     />
 
-    <CommonEmptyState
+    <div
       v-else
-      title="Widget Not Found"
-      :description="`No widget found with ID: ${props.id}`"
-      icon="i-heroicons-puzzle-piece"
-      size="md"
-      :action="{
-        label: 'Browse Extensions',
-        onClick: async () => {
-          await navigateTo('/settings/extensions');
-        },
-        icon: 'i-heroicons-cog-6-tooth',
-      }"
-    />
-  </Transition>
+      class="text-sm text-gray-400"
+    >
+      Widget #{{ props.id }} not found
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
