@@ -128,7 +128,7 @@ const customTheme = EditorView.baseTheme({
   },
 
   ".cm-content": {
-    padding: "12px",
+    padding: "0",
     lineHeight: "1.6",
   },
 
