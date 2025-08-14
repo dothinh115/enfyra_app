@@ -136,6 +136,17 @@ export const EXTENSION_COMPOSABLES = {
   useSeoMeta: 'useSeoMeta',
 } as const;
 
+// Helper function to create composable mapping from imports
+export const createComposableMap = (imports: any) => {
+  const map: Record<string, any> = {};
+  Object.keys(EXTENSION_COMPOSABLES).forEach(key => {
+    if (imports[key]) {
+      map[key] = imports[key];
+    }
+  });
+  return map;
+};
+
 // Vue functions to inject into extension runtime
 export const EXTENSION_VUE_FUNCTIONS = [
   'ref',

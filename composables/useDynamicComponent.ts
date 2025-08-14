@@ -59,6 +59,7 @@ import {
 import {
   EXTENSION_COMPOSABLES,
   EXTENSION_VUE_FUNCTIONS,
+  createComposableMap,
 } from "~/utils/extension/globals";
 
 /**
@@ -108,6 +109,11 @@ export const useDynamicComponent = () => {
     extensionName: string
   ) => {
     try {
+      // Only run on client-side
+      if (typeof window === 'undefined') {
+        throw new Error('Extensions can only be loaded on client-side');
+      }
+      
       // 1. Setup globals if not already done
       if (!(window as any).Vue) {
         (window as any).Vue = await import("vue");
@@ -116,18 +122,37 @@ export const useDynamicComponent = () => {
       // Inject composables globally
       const g = globalThis as any;
 
-      // Inject composables directly using eval of imported names
-      Object.keys(EXTENSION_COMPOSABLES).forEach((key) => {
-        try {
-          // Use eval to get the imported composable
-          const composable = eval(key);
-          if (typeof composable === "function") {
-            g[key] = composable;
-          } else {
-            console.warn(`Extension composable ${key} is not a function`);
-          }
-        } catch (error) {
-          console.warn(`Extension composable ${key} not found:`, error);
+      // Create composables mapping from imports using helper
+      const composableMap = createComposableMap({
+        useApi,
+        useApiLazy,
+        useHeaderActionRegistry,
+        useSchema,
+        useScreen,
+        useGlobalState,
+        useConfirm,
+        useAuth,
+        usePermissions,
+        useToast,
+        useState,
+        useRoute,
+        useRouter,
+        useCookie,
+        useNuxtApp,
+        navigateTo,
+        useFetch,
+        useAsyncData,
+        useLazyFetch,
+        useHead,
+        useSeoMeta,
+      });
+      
+      // Inject available composables
+      Object.entries(composableMap).forEach(([key, composable]) => {
+        if (typeof composable === 'function') {
+          g[key] = composable;
+        } else {
+          console.warn(`Extension composable ${key} is not a function`);
         }
       });
 
