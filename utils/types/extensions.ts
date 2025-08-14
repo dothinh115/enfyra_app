@@ -1,6 +1,7 @@
 export interface ExtensionDefinition {
   id: number;
   code: string;
+  compiledCode?: string;
   description: string | null;
   isEnabled: boolean;
   isSystem: boolean;

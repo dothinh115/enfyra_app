@@ -46,7 +46,7 @@ export default defineEventHandler(async (event) => {
             });
           }
 
-          body.code = compiledCode;
+          body.compiledCode = compiledCode;
           rawBody = JSON.stringify(body);
         } else {
           // Treat as compiled bundle; validate syntax first

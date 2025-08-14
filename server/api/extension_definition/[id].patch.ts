@@ -40,7 +40,7 @@ export default defineEventHandler(async (event) => {
                 }`,
             });
           }
-          body.code = compiledCode;
+          body.compiledCode = compiledCode;
         } else {
           // Validate compiled bundle syntax
           await assertValidJsBundleSyntax(code);

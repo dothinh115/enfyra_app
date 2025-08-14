@@ -15,10 +15,11 @@ import { closeBrackets } from "@codemirror/autocomplete";
 import { bracketMatching, indentOnInput } from "@codemirror/language";
 import eslint from "eslint-linter-browserify";
 import { ensureString } from "~/utils/components/form";
+import { EXTENSION_GLOBALS } from "~/utils/extension/globals";
 
 const props = defineProps<{
   modelValue?: string;
-  language?: string;
+  language?: "javascript" | "vue" | "json" | "typescript";
   height?: string;
 }>();
 
@@ -53,7 +54,21 @@ const diagnosticExtension = linter((view) => {
 
   const raw = view.state.doc.toString();
 
-  const wrapped = `(async () => {\n${raw}\n})()`;
+  let codeToLint = raw;
+  let lineOffset = 0;
+
+  // Extract script content from Vue SFC if it's a Vue file
+  if (props.language === "vue") {
+    const scriptMatch = raw.match(/<script(?:\s+[^>]*)?>\s*([\s\S]*?)\s*<\/script>/);
+    if (scriptMatch) {
+      codeToLint = scriptMatch[1];
+      // Calculate line offset where script starts
+      const beforeScript = raw.substring(0, scriptMatch.index);
+      lineOffset = beforeScript.split('\n').length - 1;
+    }
+  }
+
+  const wrapped = `(async () => {\n${codeToLint}\n})()`;
 
   const result = linterInstance.verify(
     wrapped,
@@ -63,13 +78,11 @@ const diagnosticExtension = linter((view) => {
         languageOptions: {
           ecmaVersion: 2020,
           sourceType: "module",
-          globals: {
-            $ctx: true,
-          },
+          globals: EXTENSION_GLOBALS,
         },
         rules: {
           "no-undef": "error",
-          "no-unused-vars": "warn",
+          "no-unused-vars": "off",
           "no-empty-function": "off",
         },
       },
@@ -80,7 +93,12 @@ const diagnosticExtension = linter((view) => {
   const adjustment = 1;
 
   const diagnostics: Diagnostic[] = result.map((msg) => {
-    const userLine = Math.max(1, msg.line - adjustment);
+    // For Vue files, adjust line numbers to account for template/script structure
+    let actualLine = msg.line - adjustment;
+    if (props.language === "vue" && lineOffset > 0) {
+      actualLine += lineOffset;
+    }
+    const userLine = Math.max(1, actualLine);
     const line = view.state.doc.line(userLine);
 
     const from = msg.column ? line.from + msg.column - 1 : line.from;
@@ -181,8 +199,21 @@ const customTheme = EditorView.baseTheme({
   },
 });
 
-const extensions = [
-  javascript({ jsx: true, typescript: true }),
+const getLanguageExtension = () => {
+  switch (props.language) {
+    case "vue":
+      // Use JavaScript with JSX for now until vue lang is properly set up
+      return javascript({ jsx: true, typescript: true });
+    case "typescript":
+      return javascript({ jsx: true, typescript: true });
+    case "javascript":
+    default:
+      return javascript({ jsx: true });
+  }
+};
+
+const extensions = computed(() => [
+  getLanguageExtension(),
   closeBrackets(),
   bracketMatching(),
   highlightActiveLine(),
@@ -193,7 +224,7 @@ const extensions = [
   drawSelection(),
   diagnosticExtension,
   customTheme,
-];
+]);
 </script>
 
 <template>

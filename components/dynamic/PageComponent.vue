@@ -133,7 +133,7 @@ const loadMatchingExtension = async () => {
 
   try {
     const component = await loadDynamicComponent(
-      extension.code,
+      extension.compiledCode || extension.code,
       extension.extensionId
     );
 

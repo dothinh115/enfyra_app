@@ -5,7 +5,8 @@
         v-model="createForm"
         :table-name="tableName"
         :errors="createErrors"
-        :excluded="['code']"
+        :excluded="['compiledCode']"
+        :type-map="{ code: { type: 'code', language: 'vue', height: '400px' } }"
       />
     </UForm>
 
