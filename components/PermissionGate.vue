@@ -1,5 +1,7 @@
 <template>
-  <slot v-if="hasPermission" />
+  <div v-if="hasPermission">
+    <slot />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -14,12 +16,10 @@ const { hasAnyPermission, hasAllPermissions, checkPermissionCondition } =
 const { me } = useAuth();
 
 const hasPermission = computed(() => {
-  // Root admin always has access
   if (me.value?.isRootAdmin) {
     return true;
   }
 
-  // Use new condition-based approach if provided
   if (props.condition) {
     return checkPermissionCondition(props.condition);
   }
@@ -33,7 +33,6 @@ const hasPermission = computed(() => {
     }
   }
 
-  // If no permission is specified, show by default (for items like extensions that don't need specific permissions)
   return true;
 });
 </script>
