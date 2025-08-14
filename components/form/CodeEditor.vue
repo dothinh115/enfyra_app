@@ -70,24 +70,28 @@ const diagnosticExtension = linter((view) => {
 
   const wrapped = `(async () => {\n${codeToLint}\n})()`;
 
+  const lintRules = props.language === "vue" 
+    ? {
+        "no-undef": ["off"], // Disable undefined variable checks for Vue files
+        "no-unused-vars": ["off"],
+        "no-empty-function": ["off"],
+      }
+    : {
+        "no-undef": ["error"],
+        "no-unused-vars": ["off"], 
+        "no-empty-function": ["off"],
+      };
+
   const result = linterInstance.verify(
     wrapped,
-    [
-      {
-        files: ["**/*.js"],
-        languageOptions: {
-          ecmaVersion: 2020,
-          sourceType: "module",
-          globals: EXTENSION_GLOBALS,
-        },
-        rules: {
-          "no-undef": "error",
-          "no-unused-vars": "off",
-          "no-empty-function": "off",
-        },
+    {
+      parserOptions: {
+        ecmaVersion: 2020,
+        sourceType: "module",
       },
-    ],
-    { filename: "file.js" }
+      globals: EXTENSION_GLOBALS,
+      rules: lintRules as any,
+    }
   );
 
   const adjustment = 1;

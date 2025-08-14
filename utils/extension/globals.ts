@@ -104,6 +104,12 @@ export const EXTENSION_GLOBALS = {
   ...NUXT_GLOBALS,
   ...ENFYRA_GLOBALS,
   
+  // Browser APIs
+  fetch: true,
+  console: true,
+  window: true,
+  document: true,
+  
   // Legacy/misc
   $ctx: true,
 };
