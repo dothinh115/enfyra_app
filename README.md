@@ -20,24 +20,30 @@ A modern, extensible headless CMS built with Nuxt 3, featuring dynamic table man
 - **Menu Registry** - Dynamic sidebar and menu management
 - **Header Actions** - Configurable header button system
 
-## Documentation
+## 📚 Documentation
 
-For detailed usage instructions, see:
+### 🏗️ Architecture & Structure
+- **[Project Structure](./docs/project-structure.md)** - Complete project structure and architecture overview
+- **[API Composables Guide](./docs/api-composables.md)** - Complete guide with examples and patterns  
+- **[Filter Query](./docs/filter-query.md)** - Building and managing data filters with usage examples
+- **[Form Field System](./docs/form-field.md)** - Dynamic form generation, validation, and error handling
 
-### Architecture & Structure
-- [Project Structure](./docs/project-structure.md) - Complete project structure and architecture overview
-- [API Composables Guide](./docs/api-composables.md) - Complete guide with examples and patterns
-- [FilterQuery Composable](./docs/FilterQuery.md) - Building and managing data filters
-- [FormField System](./docs/FormField.md) - Dynamic form generation, validation, and error handling
+### ⚙️ Systems & Features
+- **[Permission System](./docs/permission-system.md)** - Complete usage guide for RBAC with PermissionGate component and usePermissions composable
+- **[Header Action Registry](./docs/header-action-registry.md)** - Dynamic header actions and button management system
 
-### Systems & Features
-- [Permission System](./docs/permission-system.md) - Comprehensive guide to the RBAC permission system
-- [Permission System Quick Reference](./docs/permission-system-quick-reference.md) - Quick reference for common permission patterns
-- [Header Action Registry](./docs/header-action-registry.md) - Dynamic header actions and button management system
-- [Menu Registry](./docs/menu-registry.md) - Dynamic menu system for sidebar navigation
+### 🧩 Components
+- **[Settings Card](./docs/settings-card.md)** - Reusable settings card component documentation and usage guide
 
-### Development
-- [Plugin Development Guide (Vietnamese)](./docs/plugin-development-guide-vi.md) - Extension development guide
+### 🔧 Development & Extensions
+- **[Extension Development Guide](./docs/extension-development-guide.md)** - Complete guide to creating custom extensions with Vue 3, widgets, and API integration
+
+### 📋 Quick Start
+For new developers, start with:
+1. [Project Structure](./docs/project-structure.md) - Understand the codebase organization
+2. [API Composables](./docs/api-composables.md) - Learn data fetching patterns
+3. [Permission System](./docs/permission-system.md) - Understand access control
+4. [Header Actions](./docs/header-action-registry.md) - Add interactive buttons to pages
 
 ## Development
 

@@ -1,13 +1,13 @@
 # Enfyra CMS - Project Structure Documentation
 
 ## Overview
-Enfyra CMS là một hệ thống quản lý nội dung được xây dựng trên Nuxt 3 với Vue 3 Composition API và TypeScript. Dự án sử dụng Nuxt UI và Tailwind CSS cho giao diện người dùng.
+Enfyra CMS is a content management system built on Nuxt 3 with Vue 3 Composition API and TypeScript. The project uses Nuxt UI and Tailwind CSS for the user interface.
 
 ## Root Level Files
-- `nuxt.config.ts` - Cấu hình Nuxt 3 
-- `app.vue` - Root component của application
-- `app.config.ts` - App configuration
-- `package.json` - Dependencies và scripts
+- `nuxt.config.ts` - Nuxt 3 configuration
+- `app.vue` - Root application component
+- `app.config.ts` - Application configuration
+- `package.json` - Dependencies and scripts
 - `tailwind.config.js` - Tailwind CSS configuration
 - `tsconfig.json` - TypeScript configuration
 
@@ -27,12 +27,28 @@ Tổ chức theo chức năng và tầng (layers):
 ```
 components/
 ├── common/                    # Shared components
-│   ├── DynamicComponent.vue   # Dynamic extension loading
-│   ├── SettingsCard.vue      # Card component cho settings pages
+│   ├── BreadCrumbs.vue       # Breadcrumb navigation
+│   ├── SettingsCard.vue      # Card component for settings pages
 │   ├── EmptyState.vue        # Empty state display
 │   ├── LoadingState.vue      # Loading states
 │   ├── MobileWarning.vue     # Mobile device warning
+│   ├── GlobalConfirm.vue     # Global confirmation dialog
+│   ├── GlobalLoading.vue     # Global loading indicator
+│   ├── LoadingWireframe.vue  # Wireframe loading state
+│   ├── UploadModal.vue       # File upload modal
+│   ├── Full.vue              # Full layout component
+│   ├── Mini.vue              # Mini layout component
 │   └── loading/              # Loading animations
+│       ├── Bars.vue          # Bar loading animation
+│       ├── Dots.vue          # Dots loading animation
+│       ├── Progress.vue      # Progress bar
+│       ├── Pulse.vue         # Pulse loading animation
+│       ├── Skeleton.vue      # Skeleton loading
+│       └── Spinner.vue       # Spinner loading
+│
+├── dynamic/                  # Dynamic components
+│   ├── PageComponent.vue     # Dynamic page extension loading
+│   └── WidgetComponent.vue   # Dynamic widget extension loading
 │
 ├── data-table/               # Table components
 │   ├── DataTable.vue         # Main data table
@@ -47,33 +63,59 @@ components/
 │   └── Group.vue            # Filter groups
 │
 ├── form/                     # Form components
+│   ├── Field.vue            # Base form field
 │   ├── FieldRenderer.vue     # Dynamic field rendering
 │   ├── Editor.vue           # Rich text editor wrapper
 │   ├── CodeEditor.vue       # Code editor component
+│   ├── CodeEditorLazy.vue   # Lazy-loaded code editor
+│   ├── RichTextEditor.vue   # Rich text editor
+│   ├── RichTextEditorLazy.vue # Lazy-loaded rich text editor
+│   ├── UuidField.vue        # UUID field component
+│   ├── ValueRenderer.vue    # Value display renderer
 │   ├── permission/          # Permission-specific forms
-│   │   ├── InlineEditor.vue  # Inline permission editor
-│   │   ├── Selector.vue     # Permission selector
-│   │   └── ...
+│   │   ├── Editor.vue       # Permission editor
+│   │   ├── Field.vue        # Permission field
+│   │   ├── Group.vue        # Permission group
+│   │   ├── InlineEditor.vue # Inline permission editor
+│   │   ├── RoutePicker.vue  # Route picker
+│   │   └── Selector.vue     # Permission selector
 │   └── relation/            # Relational field components
-│       ├── Selector.vue     # Relation picker
+│       ├── Actions.vue      # Relation actions
+│       ├── CreateDrawer.vue # Create relation drawer
+│       ├── DetailDrawer.vue # Detail drawer
 │       ├── InlineEditor.vue # Inline relation editor
-│       └── ...
+│       ├── List.vue         # Relation list
+│       ├── Pagination.vue   # Relation pagination
+│       └── Selector.vue     # Relation selector
 │
 ├── layout/                   # Layout components
 │   ├── Header.vue           # Main header
 │   └── HeaderActions.vue    # Header action buttons
 │
-└── sidebar/                  # Sidebar navigation
-    ├── Menu.vue             # Full sidebar menu
-    └── MiniMenu.vue         # Collapsed sidebar
+├── sidebar/                  # Sidebar navigation
+│   ├── Menu.vue             # Full sidebar menu
+│   └── MiniMenu.vue         # Collapsed sidebar
+│
+├── table/                    # Table management components
+│   ├── Columns.vue          # Column management
+│   ├── Constraints.vue      # Table constraints
+│   ├── Form.vue            # Table form
+│   └── Relations.vue        # Table relations
+│
+├── ArraySelectEditor.vue     # Array select editor
+├── PermissionGate.vue       # Permission gate component
+├── RouteLoading.vue         # Route loading indicator
+└── SimpleArrayEditor.vue    # Simple array editor
 ```
 
 ### `/composables/` - Vue Composables
-Business logic và state management:
+Business logic and state management:
 
 ```
 composables/
-├── useApi.ts                    # API calls và error handling
+├── useApi.ts                    # API calls and error handling
+├── useApiLazy.ts                # Lazy API calls
+├── useDynamicComponent.ts       # Dynamic component loading
 ├── useAuth.ts                   # Authentication state
 ├── useMenuRegistry.ts           # Dynamic menu system
 ├── useHeaderActionRegistry.ts   # Header actions management
@@ -88,7 +130,7 @@ composables/
 ```
 
 ### `/pages/` - Route Pages
-File-based routing theo Nuxt conventions:
+File-based routing following Nuxt conventions:
 
 ```
 pages/
@@ -187,14 +229,16 @@ utils/
 ### `/docs/` - Documentation
 ```
 docs/
-├── project-structure.md         # This file
-├── permission-system.md         # Permission system guide
-├── menu-registry-system.md      # Menu system documentation
-├── header-action-registry.md    # Header actions guide
-├── FilterQuery.md               # Filter system guide
-├── FormField.md                 # Form field documentation
-├── api-composables.md           # API composables guide
-└── plugin-development-guide-vi.md # Plugin development (Vietnamese)
+├── project-structure.md             # This file
+├── permission-system.md             # Permission system guide
+├── permission-system-quick-reference.md # Permission quick reference
+├── menu-registry-system.md          # Menu system documentation
+├── header-action-registry.md        # Header actions guide
+├── filter-query.md                  # Filter system guide
+├── form-field.md                    # Form field documentation
+├── settings-card.md                 # SettingsCard component guide
+├── api-composables.md               # API composables guide
+└── plugin-development-guide-vi.md   # Plugin development (Vietnamese)
 ```
 
 ## Key Architecture Patterns

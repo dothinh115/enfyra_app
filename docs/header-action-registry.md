@@ -214,17 +214,19 @@ useHeaderActionRegistry({
   class: "rounded-full"
 });
 
-// Conditionally register bulk actions
-if (selectedRows.value.length > 0) {
-  useHeaderActionRegistry({
-    id: "bulk-delete",
-    label: `Delete ${selectedRows.value.length} items`,
-    icon: "lucide:trash",
-    variant: "soft",
-    color: "error",
-    onClick: () => bulkDelete(selectedRows.value)
-  });
-}
+// Conditionally register bulk actions with watcher
+watch(selectedRows, (rows) => {
+  if (rows.length > 0) {
+    useHeaderActionRegistry({
+      id: "bulk-delete-data-entries", // Specific ID to avoid conflicts
+      label: `Delete ${rows.length} items`,
+      icon: "lucide:trash",
+      variant: "soft",
+      color: "error",
+      onClick: () => bulkDelete(rows)
+    });
+  }
+}, { immediate: true });
 </script>
 ```
 
@@ -293,19 +295,27 @@ export default defineNuxtPlugin(() => {
 
 ### 1. Unique IDs
 
-Always use unique, descriptive IDs for actions:
+Always use unique, descriptive IDs for actions. **Duplicate IDs will overwrite existing actions**:
 
 ```typescript
-// Good
+// Good - descriptive and unique
 id: "create-user"
 id: "save-post-draft"
 id: "export-csv-data"
+id: "users-index-filter"
+id: "settings-extensions-upload"
 
-// Bad
+// Bad - generic and likely to conflict
 id: "button1"
 id: "action"
 id: "btn"
+id: "save"  // Too generic, will conflict across pages
 ```
+
+**ID Naming Convention:**
+- Use kebab-case
+- Include context: `{page}-{action}` or `{feature}-{action}`
+- Be specific: `save-user` not just `save`
 
 ### 2. Consistent Styling
 
@@ -385,6 +395,67 @@ useHeaderActionRegistry({
   },
   onClick: performAdminAction
 });
+```
+
+## Common Pitfalls
+
+### 1. Duplicate IDs
+❌ **Wrong:** Multiple actions with same ID
+```typescript
+// Page A
+useHeaderActionRegistry({ id: "save", ... });
+
+// Page B  
+useHeaderActionRegistry({ id: "save", ... }); // Overwrites Page A's action!
+```
+
+✅ **Correct:** Unique IDs per context
+```typescript
+// Page A
+useHeaderActionRegistry({ id: "save-user-profile", ... });
+
+// Page B
+useHeaderActionRegistry({ id: "save-settings-config", ... });
+```
+
+### 2. Missing Reactive Loading States
+❌ **Wrong:** Static loading value
+```typescript
+const loading = ref(false);
+useHeaderActionRegistry({
+  loading: loading.value, // Not reactive!
+  submit: async () => { loading.value = true; }
+});
+```
+
+✅ **Correct:** Reactive loading
+```typescript
+const loading = ref(false);
+useHeaderActionRegistry({
+  loading: computed(() => loading.value), // Reactive!
+  submit: async () => { loading.value = true; }
+});
+```
+
+### 3. Missing Cleanup
+Actions are automatically cleaned up on route change, but for conditional actions:
+
+❌ **Wrong:** No cleanup for conditional actions
+```typescript
+if (someCondition) {
+  useHeaderActionRegistry({ id: "conditional-action", ... });
+}
+// Action remains if condition becomes false
+```
+
+✅ **Correct:** Use watchers for conditional logic
+```typescript
+watch(someCondition, (condition) => {
+  if (condition) {
+    useHeaderActionRegistry({ id: "conditional-action", ... });
+  }
+  // Auto-cleanup happens on route change
+}, { immediate: true });
 ```
 
 ## Migration Guide

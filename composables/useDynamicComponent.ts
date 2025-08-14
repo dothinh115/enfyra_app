@@ -23,10 +23,12 @@ import {
   UForm,
   CommonLoadingState,
   CommonEmptyState,
+  CommonSettingsCard,
   PermissionGate,
   FormEditor,
   CommonUploadModal,
   DynamicWidgetComponent,
+  FilterDrawer,
 } from "#components";
 
 import {
@@ -40,6 +42,7 @@ import {
   useConfirm,
   useAuth,
   usePermissions,
+  useFilterQuery,
 
   // Nuxt composables
   useToast,
@@ -95,13 +98,17 @@ export const useDynamicComponent = () => {
     PermissionGate: markRaw(PermissionGate),
     FormEditor: markRaw(FormEditor),
 
+    // Filter Components
+    FilterDrawer: markRaw(FilterDrawer),
+
     // Common Components
     CommonLoadingState: markRaw(CommonLoadingState),
     CommonEmptyState: markRaw(CommonEmptyState),
+    CommonSettingsCard: markRaw(CommonSettingsCard),
     CommonUploadModal: markRaw(CommonUploadModal),
 
     // Dynamic Components
-    DynamicWidgetComponent: markRaw(DynamicWidgetComponent),
+    Widget: markRaw(DynamicWidgetComponent),
   };
 
   const loadDynamicComponent = async (
@@ -110,10 +117,10 @@ export const useDynamicComponent = () => {
   ) => {
     try {
       // Only run on client-side
-      if (typeof window === 'undefined') {
-        throw new Error('Extensions can only be loaded on client-side');
+      if (typeof window === "undefined") {
+        throw new Error("Extensions can only be loaded on client-side");
       }
-      
+
       // 1. Setup globals if not already done
       if (!(window as any).Vue) {
         (window as any).Vue = await import("vue");
@@ -133,6 +140,7 @@ export const useDynamicComponent = () => {
         useConfirm,
         useAuth,
         usePermissions,
+        useFilterQuery,
         useToast,
         useState,
         useRoute,
@@ -146,10 +154,10 @@ export const useDynamicComponent = () => {
         useHead,
         useSeoMeta,
       });
-      
+
       // Inject available composables
       Object.entries(composableMap).forEach(([key, composable]) => {
-        if (typeof composable === 'function') {
+        if (typeof composable === "function") {
           g[key] = composable;
         } else {
           console.warn(`Extension composable ${key} is not a function`);

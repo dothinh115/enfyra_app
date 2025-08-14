@@ -1,502 +1,582 @@
-# Permission System Documentation
+# Permission System - Usage Guide
 
-## Overview
-
-The Enfyra CMS permission system is a comprehensive role-based access control (RBAC) system that provides fine-grained control over user access to different parts of the application. The system is built around the concept of roles, routes, and permissions, allowing administrators to define what users can see and do within the CMS.
+The Enfyra CMS permission system provides comprehensive role-based access control (RBAC) for fine-grained control over user access. This system uses roles, routes, and actions to determine what users can see and do within the CMS.
 
 ## Core Concepts
 
-### 1. Users
-
-- Users are the individuals who access the CMS
-- Each user is assigned a role that determines their permissions
-- Users can be root administrators (have all permissions) or regular users with specific role-based permissions
-
-### 2. Roles
-
-- Roles are collections of permissions that can be assigned to users
-- Each role has a name, description, and a set of route permissions
-- Roles can be created, updated, and deleted by administrators
-
-### 3. Routes
-
-- Routes represent API endpoints or pages in the application
-- Each route has a path (e.g., `/users`, `/posts`) and associated HTTP methods
-- Routes can be enabled or disabled
-
-### 4. Route Permissions
-
-- Route permissions define what actions a role can perform on a specific route
-- Each route permission is associated with a route and has a set of allowed methods
-- Methods correspond to HTTP verbs: GET (read), POST (create), PATCH (update), DELETE (delete)
-
-### 5. Permission Conditions
-
-- Permission conditions allow for complex permission logic using AND/OR operators
-- Conditions can be nested to create sophisticated permission rules
-- This enables flexible permission checking for different scenarios
-
-## System Architecture
-
-### Data Structure
-
-```typescript
-// User structure
-interface User {
-  id: string;
-  email: string;
-  role: Role;
-  isRootAdmin: boolean;
-}
-
-// Role structure
-interface Role {
-  id: string;
-  name: string;
-  description?: string;
-  routePermissions: RoutePermission[];
-}
-
-// Route permission structure
-interface RoutePermission {
-  id: string;
-  route: Route;
-  methods: Method[];
-  isEnabled: boolean;
-}
-
-// Route structure
-interface Route {
-  id: string;
-  path: string;
-  mainTable?: Table;
-  isEnabled: boolean;
-  isSystem: boolean;
-}
-
-// Method structure
-interface Method {
-  id: string;
-  method: "GET" | "POST" | "PATCH" | "DELETE";
-}
-```
-
 ### Permission Types
 
-The system supports four main permission types:
+| Action   | HTTP Method | Description             |
+|----------|-------------|-------------------------|
+| `read`   | GET         | View data               |
+| `create` | POST        | Create new records      |
+| `update` | PATCH       | Modify existing records |
+| `delete` | DELETE      | Remove records          |
 
-1. **Read (GET)** - Ability to view data
-2. **Create (POST)** - Ability to create new records
-3. **Update (PATCH)** - Ability to modify existing records
-4. **Delete (DELETE)** - Ability to remove records
-
-## Implementation
-
-### 1. Authentication Flow
-
-The authentication system works as follows:
-
-1. **Login**: Users authenticate with email and password
-2. **Token Management**: Access and refresh tokens are managed via cookies
-3. **User Profile**: User data including role and permissions are fetched on login
-4. **Permission Checking**: Permissions are checked on each request and UI interaction
-
-### 2. Permission Checking
-
-#### usePermissions Composable
-
-The `usePermissions` composable provides the core permission checking functionality:
+### Permission Structure
 
 ```typescript
-export function usePermissions() {
-  const { me } = useAuth();
-
-  // Check if user has permission for a specific route and method
-  const hasPermission = (routePath: string, method: string): boolean => {
-    if (!me.value) return false;
-
-    // Root admin has all permissions
-    if (me.value.isRootAdmin) return true;
-
-    // Check route permissions
-    if (!me.value.role?.routePermissions) return false;
-
-    const normalizedRoutePath = routePath.startsWith("/")
-      ? routePath
-      : `/${routePath}`;
-
-    const routePermission = me.value.role.routePermissions.find(
-      (permission: any) =>
-        permission.route?.path === normalizedRoutePath && permission.isEnabled
-    );
-
-    if (!routePermission) return false;
-
-    return routePermission.methods.some(
-      (methodObj: any) => methodObj.method === method
-    );
-  };
-
-  // Check permission condition (AND/OR logic)
-  const checkPermissionCondition = (
-    condition: PermissionCondition
-  ): boolean => {
-    if (condition.and) {
-      return condition.and.every((item) => {
-        if ("route" in item) {
-          return checkPermissionRule(item as PermissionRule);
-        } else {
-          return checkPermissionCondition(item as PermissionCondition);
-        }
-      });
-    }
-
-    if (condition.or) {
-      return condition.or.some((item) => {
-        if ("route" in item) {
-          return checkPermissionRule(item as PermissionRule);
-        } else {
-          return checkPermissionCondition(item as PermissionCondition);
-        }
-      });
-    }
-
-    return false;
-  };
-
-  return {
-    hasPermission,
-    hasAnyPermission,
-    hasAllPermissions,
-    checkPermissionCondition,
-  };
-}
-```
-
-#### PermissionGate Component
-
-The `PermissionGate` component provides a declarative way to conditionally render content based on permissions:
-
-```vue
-<template>
-  <div v-if="hasPermission" class="w-full">
-    <slot />
-  </div>
-</template>
-
-<script setup lang="ts">
-interface Props {
-  // Legacy props for backward compatibility
-  actions?: ("read" | "create" | "update" | "delete")[];
-  routes?: string[];
-  mode?: "any" | "all";
-
-  // New flexible permission condition
-  condition?: PermissionCondition;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  mode: "any",
-});
-
-const { hasAnyPermission, hasAllPermissions, checkPermissionCondition } =
-  usePermissions();
-
-const hasPermission = computed(() => {
-  // Use new condition-based approach if provided
-  if (props.condition) {
-    return checkPermissionCondition(props.condition);
-  }
-
-  // Fallback to legacy approach
-  if (props.routes && props.actions) {
-    if (props.mode === "all") {
-      return hasAllPermissions(props.routes, props.actions);
-    } else {
-      return hasAnyPermission(props.routes, props.actions);
-    }
-  }
-
-  return false;
-});
-</script>
-```
-
-### 3. Menu System Integration
-
-The permission system is integrated with the menu system to show/hide menu items based on user permissions:
-
-```typescript
-// Menu item registration with permissions
-registerMenuItem({
-  id: "roles",
-  label: "Roles",
-  route: "/settings/roles",
-  sidebarId: "settings",
-  permission: { or: [{ route: "/role_definition", actions: ["read"] }] },
-  order: 5,
-});
-
-// Menu filtering based on permissions
-const visibleMenuItems = computed(() => {
-  if (!currentSidebar.value) return [];
-
-  const items = getMenuItemsBySidebar(currentSidebar.value);
-  return items.filter((item) => {
-    if (!item.permission) return true;
-    return checkPermissionCondition(item.permission);
-  });
-});
-```
-
-## Usage Examples
-
-### 1. Basic Permission Checking
-
-```vue
-<template>
-  <!-- Check if user can read users -->
-  <PermissionGate :condition="{ or: [{ route: '/users', actions: ['read'] }] }">
-    <div>User list content</div>
-  </PermissionGate>
-
-  <!-- Check if user can create and update users -->
-  <PermissionGate
-    :condition="{
-      and: [
-        { route: '/users', actions: ['create'] },
-        { route: '/users', actions: ['update'] },
-      ],
-    }"
-  >
-    <div>User management content</div>
-  </PermissionGate>
-</template>
-```
-
-### 2. Complex Permission Conditions
-
-```vue
-<template>
-  <!-- User can either read posts OR is a root admin -->
-  <PermissionGate
-    :condition="{
-      or: [
-        { route: '/posts', actions: ['read'] },
-        { route: '/admin', actions: ['read'] },
-      ],
-    }"
-  >
-    <div>Posts content</div>
-  </PermissionGate>
-
-  <!-- User must have both read and write permissions -->
-  <PermissionGate
-    :condition="{
-      and: [
-        { route: '/articles', actions: ['read'] },
-        { route: '/articles', actions: ['create', 'update'] },
-      ],
-    }"
-  >
-    <div>Article management</div>
-  </PermissionGate>
-</template>
-```
-
-### 3. Programmatic Permission Checking
-
-```typescript
-<script setup lang="ts">
-const { hasPermission, checkPermissionCondition } = usePermissions();
-
-// Check specific permission
-const canCreateUsers = computed(() => {
-  return hasPermission('/users', 'POST');
-});
-
-// Check complex condition
-const canManageContent = computed(() => {
-  return checkPermissionCondition({
-    and: [
-      { route: '/posts', actions: ['read', 'create'] },
-      { route: '/categories', actions: ['read'] }
-    ]
-  });
-});
-
-// Conditional rendering
-const showAdminPanel = computed(() => {
-  return checkPermissionCondition({
-    or: [
-      { route: '/admin', actions: ['read'] },
-      { route: '/settings', actions: ['read'] }
-    ]
-  });
-});
-</script>
-```
-
-### 4. API Integration
-
-```typescript
-// API calls with permission checking
-const { execute: fetchUsers } = useApiLazy(() => "/users", {
-  errorContext: "Fetch Users",
-});
-
-// Permission check before API call
-async function loadUsers() {
-  if (hasPermission("/users", "GET")) {
-    await fetchUsers();
-  } else {
-    toast.add({
-      title: "Access Denied",
-      description: "You do not have permission to view users",
-      color: "error",
-    });
-  }
-}
-```
-
-## Configuration
-
-### 1. Role Management
-
-Roles can be managed through the admin interface:
-
-1. **Create Role**: Navigate to Settings > Roles > Create
-2. **Edit Role**: Click on an existing role to modify permissions
-3. **Delete Role**: Use the delete button (only for non-system roles)
-
-### 2. Route Permissions
-
-Route permissions are configured when creating or editing roles:
-
-1. **Select Routes**: Choose which routes the role can access
-2. **Set Methods**: Specify which HTTP methods are allowed (GET, POST, PATCH, DELETE)
-3. **Enable/Disable**: Toggle individual route permissions
-
-### 3. User Assignment
-
-Users are assigned roles through the user management interface:
-
-1. **Create User**: Navigate to Settings > Users > Create
-2. **Assign Role**: Select the appropriate role for the user
-3. **Update Role**: Modify user roles as needed
-
-## Best Practices
-
-### 1. Permission Design
-
-- **Principle of Least Privilege**: Only grant the minimum permissions necessary
-- **Role-Based Design**: Design roles around job functions rather than individual permissions
-- **Regular Review**: Periodically review and update permissions
-
-### 2. Security Considerations
-
-- **Root Admin**: Limit root admin accounts to essential personnel only
-- **System Routes**: Be cautious when modifying permissions for system routes
-- **Audit Trail**: Monitor permission changes and user access
-
-### 3. Performance
-
-- **Caching**: Permission checks are cached during the user session
-- **Efficient Queries**: Use specific permission conditions rather than broad checks
-- **Lazy Loading**: Load permissions only when needed
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Permission Not Working**
-
-   - Check if the user has the correct role assigned
-   - Verify that the route permission is enabled
-   - Ensure the route path matches exactly
-
-2. **Menu Items Not Showing**
-
-   - Check if the menu item has the correct permission condition
-   - Verify that the user has the required permissions
-   - Check the browser console for errors
-
-3. **API Access Denied**
-   - Verify that the route permission includes the correct HTTP method
-   - Check if the route is enabled
-   - Ensure the user's role is active
-
-### Debugging
-
-```typescript
-// Debug permission checking
-const { me } = useAuth();
-const { hasPermission } = usePermissions();
-
-// Log user permissions
-console.log("User:", me.value);
-console.log("User role:", me.value?.role);
-console.log("Route permissions:", me.value?.role?.routePermissions);
-
-// Test specific permission
-const canReadUsers = hasPermission("/users", "GET");
-console.log("Can read users:", canReadUsers);
-```
-
-## API Reference
-
-### usePermissions Composable
-
-#### Methods
-
-- `hasPermission(routePath: string, method: string): boolean`
-
-  - Check if user has permission for a specific route and method
-
-- `checkPermissionCondition(condition: PermissionCondition): boolean`
-
-  - Check if user satisfies a complex permission condition
-
-- `hasAnyPermission(routes: string[], actions: string[]): boolean`
-
-  - Check if user has any of the specified permissions (legacy)
-
-- `hasAllPermissions(routes: string[], actions: string[]): boolean`
-  - Check if user has all of the specified permissions (legacy)
-
-#### Types
-
-```typescript
+// Simple permission rule
 type PermissionRule = {
   route: string;
   actions: string[];
 };
 
+// Complex permission condition
 type PermissionCondition = {
   and?: (PermissionRule | PermissionCondition)[];
   or?: (PermissionRule | PermissionCondition)[];
+  allowAll?: boolean;
 };
 ```
 
+### Common Routes
+
+| Route                    | Description           | Common Actions                       |
+|--------------------------|-----------------------|--------------------------------------|
+| `/user_definition`       | User management       | `read`, `create`, `update`, `delete` |
+| `/role_definition`       | Role management       | `read`, `create`, `update`, `delete` |
+| `/extension_definition`  | Extension management  | `read`, `create`, `update`, `delete` |
+| `/hook_definition`       | Hook management       | `read`, `create`, `update`, `delete` |
+| `/menu_definition`       | Menu management       | `read`, `create`, `update`, `delete` |
+
+## Components & Composables
+
 ### PermissionGate Component
+
+The `PermissionGate` component provides declarative permission-based rendering:
+
+```vue
+<template>
+  <!-- Simple permission check -->
+  <PermissionGate :condition="{ or: [{ route: '/user_definition', actions: ['read'] }] }">
+    <div>User content visible to users with read permission</div>
+  </PermissionGate>
+
+  <!-- Complex permission condition -->
+  <PermissionGate :condition="{
+    and: [
+      { route: '/user_definition', actions: ['read'] },
+      { route: '/role_definition', actions: ['read'] }
+    ]
+  }">
+    <div>Content requiring both user and role read permissions</div>
+  </PermissionGate>
+
+  <!-- Multiple actions on same route -->
+  <PermissionGate :condition="{ or: [{ route: '/user_definition', actions: ['create', 'update'] }] }">
+    <UButton>Edit User</UButton>
+  </PermissionGate>
+</template>
+```
 
 #### Props
 
-- `condition?: PermissionCondition` - Complex permission condition
+- `condition?: PermissionCondition` - Modern permission condition (recommended)
 - `actions?: string[]` - Legacy: array of actions to check
-- `routes?: string[]` - Legacy: array of routes to check
+- `routes?: string[]` - Legacy: array of routes to check  
 - `mode?: "any" | "all"` - Legacy: permission checking mode
 
-#### Usage
+### usePermissions Composable
+
+The `usePermissions` composable provides programmatic permission checking:
 
 ```vue
-<PermissionGate :condition="{ or: [{ route: '/users', actions: ['read'] }] }">
-  <div>Protected content</div>
+<script setup lang="ts">
+const { hasPermission, checkPermissionCondition } = usePermissions();
+
+// Check specific permission
+const canCreateUsers = computed(() => {
+  return hasPermission('/user_definition', 'POST');
+});
+
+// Check complex condition
+const canManageUsers = computed(() => {
+  return checkPermissionCondition({
+    and: [
+      { route: '/user_definition', actions: ['read', 'create'] },
+      { route: '/role_definition', actions: ['read'] }
+    ]
+  });
+});
+
+// Use in functions
+async function deleteUser(userId: string) {
+  if (!hasPermission('/user_definition', 'DELETE')) {
+    toast.add({
+      title: 'Access Denied',
+      description: 'You do not have permission to delete users',
+      color: 'error'
+    });
+    return;
+  }
+
+  await deleteUserAPI(userId);
+}
+</script>
+```
+
+#### Methods
+
+- `hasPermission(route: string, method: string): boolean` - Check specific route/method permission
+- `checkPermissionCondition(condition: PermissionCondition): boolean` - Check complex condition
+- `hasAnyPermission(routes: string[], actions: string[]): boolean` - Legacy method
+- `hasAllPermissions(routes: string[], actions: string[]): boolean` - Legacy method
+
+## Usage Patterns
+
+### 1. Menu Registration
+
+```typescript
+// Register menu item with permission
+registerMenuItem({
+  id: 'users',
+  label: 'Users',
+  route: '/settings/users',
+  sidebarId: 'settings',
+  permission: { or: [{ route: '/user_definition', actions: ['read'] }] },
+  order: 1
+});
+```
+
+### 2. Header Actions
+
+```vue
+<script setup lang="ts">
+// Register header action with permission check
+useHeaderActionRegistry({
+  id: 'create-user',
+  label: 'Create User',
+  icon: 'lucide:plus',
+  variant: 'solid',
+  color: 'primary',
+  to: '/settings/users/create',
+  permission: {
+    and: [
+      { route: '/user_definition', actions: ['create'] }
+    ]
+  }
+});
+</script>
+```
+
+### 3. Conditional UI Elements
+
+```vue
+<template>
+  <!-- Show/hide buttons based on permissions -->
+  <div class="flex gap-2">
+    <PermissionGate :condition="{ or: [{ route: '/user_definition', actions: ['create'] }] }">
+      <UButton @click="createUser">Create User</UButton>
+    </PermissionGate>
+    
+    <PermissionGate :condition="{ or: [{ route: '/user_definition', actions: ['delete'] }] }">
+      <UButton color="red" @click="deleteUsers">Delete Selected</UButton>
+    </PermissionGate>
+  </div>
+
+  <!-- Conditional rendering in table actions -->
+  <template v-for="user in users" :key="user.id">
+    <div class="user-row">
+      <span>{{ user.name }}</span>
+      <div class="actions">
+        <PermissionGate :condition="{ or: [{ route: '/user_definition', actions: ['update'] }] }">
+          <UButton @click="editUser(user.id)">Edit</UButton>
+        </PermissionGate>
+        <PermissionGate :condition="{ or: [{ route: '/user_definition', actions: ['delete'] }] }">
+          <UButton color="red" @click="deleteUser(user.id)">Delete</UButton>
+        </PermissionGate>
+      </div>
+    </div>
+  </template>
+</template>
+```
+
+### 4. Form Validation
+
+```vue
+<script setup lang="ts">
+const { validate } = useSchema(tableName);
+const { hasPermission } = usePermissions();
+
+async function handleSubmit() {
+  // Check permission before processing
+  if (!hasPermission(`/${tableName}`, 'POST')) {
+    toast.add({
+      title: 'Access Denied',
+      description: 'You do not have permission to create records',
+      color: 'error'
+    });
+    return;
+  }
+
+  const { isValid, errors } = validate(formData.value);
+  
+  if (!isValid) {
+    formErrors.value = errors;
+    return;
+  }
+
+  await executeCreate({ body: formData.value });
+}
+</script>
+```
+
+### 5. Complex Permission Scenarios
+
+```vue
+<script setup lang="ts">
+// Admin panel access - must have admin permissions OR be root admin
+const showAdminPanel = computed(() => {
+  return checkPermissionCondition({
+    or: [
+      { route: '/admin', actions: ['read'] },
+      { allowAll: true } // For root admin
+    ]
+  });
+});
+
+// Content management - must have both read and write permissions
+const canManageContent = computed(() => {
+  return checkPermissionCondition({
+    and: [
+      { route: '/extension_definition', actions: ['read'] },
+      { route: '/extension_definition', actions: ['create', 'update'] }
+    ]
+  });
+});
+
+// Multiple route access - user can access if they have permission for ANY of these routes
+const canAccessSettings = computed(() => {
+  return checkPermissionCondition({
+    or: [
+      { route: '/user_definition', actions: ['read'] },
+      { route: '/role_definition', actions: ['read'] },
+      { route: '/menu_definition', actions: ['read'] },
+      { route: '/extension_definition', actions: ['read'] }
+    ]
+  });
+});
+</script>
+```
+
+## Permission Examples by Feature
+
+### User Management
+
+```vue
+<template>
+  <!-- User list page -->
+  <PermissionGate :condition="{ or: [{ route: '/user_definition', actions: ['read'] }] }">
+    <DataTable :data="users" :columns="userColumns" />
+  </PermissionGate>
+
+  <!-- Create button -->  
+  <PermissionGate :condition="{ or: [{ route: '/user_definition', actions: ['create'] }] }">
+    <UButton to="/settings/users/create">Create User</UButton>
+  </PermissionGate>
+</template>
+```
+
+### Role Management
+
+```vue
+<template>
+  <!-- Role assignment -->
+  <PermissionGate :condition="{ or: [{ route: '/role_definition', actions: ['update'] }] }">
+    <USelect v-model="selectedRole" :options="roleOptions" />
+  </PermissionGate>
+</template>
+```
+
+### Extension System
+
+```vue
+<template>
+  <!-- Extension list -->
+  <PermissionGate :condition="{ or: [{ route: '/extension_definition', actions: ['read'] }] }">
+    <div v-for="extension in extensions" :key="extension.id">
+      {{ extension.name }}
+      
+      <!-- Enable/disable extension -->
+      <PermissionGate :condition="{ or: [{ route: '/extension_definition', actions: ['update'] }] }">
+        <UToggle v-model="extension.enabled" @update:model-value="toggleExtension" />
+      </PermissionGate>
+      
+      <!-- Delete extension -->
+      <PermissionGate :condition="{ or: [{ route: '/extension_definition', actions: ['delete'] }] }">
+        <UButton color="red" @click="deleteExtension(extension.id)">Delete</UButton>
+      </PermissionGate>
+    </div>
+  </PermissionGate>
+</template>
+```
+
+## Best Practices
+
+### 1. Permission Design
+
+✅ **Use specific route names that match your API endpoints**
+```typescript
+// Good - matches actual API routes
+{ route: '/user_definition', actions: ['read'] }
+{ route: '/role_definition', actions: ['create'] }
+
+// Bad - generic or non-existent routes
+{ route: '/users', actions: ['read'] }
+{ route: '/admin', actions: ['all'] }
+```
+
+✅ **Combine related permissions logically**
+```typescript
+// Good - logical grouping
+{
+  and: [
+    { route: '/user_definition', actions: ['read'] },
+    { route: '/role_definition', actions: ['read'] }
+  ]
+}
+
+// Bad - unrelated permissions
+{
+  and: [
+    { route: '/user_definition', actions: ['create'] },
+    { route: '/extension_definition', actions: ['delete'] }
+  ]
+}
+```
+
+### 2. Component Usage
+
+✅ **Use PermissionGate for UI elements**
+```vue
+<!-- Good - wrap UI elements -->
+<PermissionGate :condition="{ or: [{ route: '/user_definition', actions: ['create'] }] }">
+  <UButton>Create User</UButton>
 </PermissionGate>
 ```
 
-## Conclusion
+✅ **Use usePermissions for business logic**
+```typescript
+// Good - programmatic checks
+if (hasPermission('/user_definition', 'DELETE')) {
+  await deleteUser(userId);
+}
+```
 
-The Enfyra CMS permission system provides a robust, flexible, and secure way to manage user access throughout the application. By understanding the core concepts, implementation details, and best practices outlined in this documentation, administrators can effectively configure and maintain the permission system to meet their organization's security and access control requirements.
+### 3. Performance
 
-For additional support or questions, please refer to the API documentation or contact the development team.
+✅ **Cache permission results in computed properties**
+```vue
+<script setup lang="ts">
+const canManageUsers = computed(() => {
+  return checkPermissionCondition({
+    and: [
+      { route: '/user_definition', actions: ['read', 'update'] }
+    ]
+  });
+});
+</script>
+```
+
+✅ **Use specific permissions rather than broad checks**
+```typescript
+// Good - specific permission
+hasPermission('/user_definition', 'POST')
+
+// Avoid - checking multiple permissions unnecessarily
+hasAnyPermission(['/user_definition', '/role_definition'], ['create'])
+```
+
+### 4. Security
+
+✅ **Always check permissions on both client and server side**
+```vue
+<script setup lang="ts">
+// Client-side check for UI
+const canDelete = hasPermission('/user_definition', 'DELETE');
+
+// Server-side validation happens automatically in API calls
+async function deleteUser(id: string) {
+  if (!canDelete) return;
+  
+  // API will also validate permissions server-side
+  await $fetch(`/api/user_definition/${id}`, { method: 'DELETE' });
+}
+</script>
+```
+
+✅ **Use allowAll sparingly and only for special cases**
+```typescript
+// Good - specific use case
+{ allowAll: true } // Only for root admin bypass
+
+// Bad - overuse
+{ allowAll: true } // Don't use as default fallback
+```
+
+## Common Pitfalls
+
+### 1. Wrong Route Names
+❌ **Wrong:** Using display names instead of API routes
+```typescript
+// Wrong - these don't match actual API routes
+{ route: '/users', actions: ['read'] }
+{ route: '/settings', actions: ['read'] }
+```
+
+✅ **Correct:** Use actual API endpoint routes
+```typescript
+// Correct - matches API endpoints
+{ route: '/user_definition', actions: ['read'] }
+{ route: '/extension_definition', actions: ['read'] }
+```
+
+### 2. Missing Permission Checks
+❌ **Wrong:** No permission validation before actions
+```vue
+<UButton @click="deleteUser">Delete</UButton>
+```
+
+✅ **Correct:** Always wrap actions with permission checks
+```vue
+<PermissionGate :condition="{ or: [{ route: '/user_definition', actions: ['delete'] }] }">
+  <UButton @click="deleteUser">Delete</UButton>
+</PermissionGate>
+```
+
+### 3. Overly Complex Conditions
+❌ **Wrong:** Unnecessary complexity
+```typescript
+// Overly complex
+{
+  and: [
+    {
+      or: [
+        { route: '/user_definition', actions: ['read'] },
+        { route: '/user_definition', actions: ['create'] }
+      ]
+    },
+    {
+      or: [
+        { route: '/role_definition', actions: ['read'] }
+      ]
+    }
+  ]
+}
+```
+
+✅ **Correct:** Simplify conditions
+```typescript
+// Simplified
+{
+  and: [
+    { route: '/user_definition', actions: ['read', 'create'] },
+    { route: '/role_definition', actions: ['read'] }
+  ]
+}
+```
+
+## Debugging
+
+### Check Current User Permissions
+
+```vue
+<script setup lang="ts">
+const { me } = useAuth();
+const { hasPermission } = usePermissions();
+
+// Debug current user
+console.log('Current user:', me.value);
+console.log('Is root admin:', me.value?.isRootAdmin);
+console.log('User role:', me.value?.role);
+console.log('Route permissions:', me.value?.role?.routePermissions);
+
+// Test specific permission
+console.log('Can read users:', hasPermission('/user_definition', 'GET'));
+console.log('Can create users:', hasPermission('/user_definition', 'POST'));
+console.log('Can update users:', hasPermission('/user_definition', 'PATCH'));
+console.log('Can delete users:', hasPermission('/user_definition', 'DELETE'));
+</script>
+```
+
+### Debug Permission Conditions
+
+```vue
+<script setup lang="ts">
+const { checkPermissionCondition } = usePermissions();
+
+// Test complex condition
+const condition = {
+  and: [
+    { route: '/user_definition', actions: ['read'] },
+    { route: '/role_definition', actions: ['read'] }
+  ]
+};
+
+const hasAccess = checkPermissionCondition(condition);
+console.log('Has access to condition:', hasAccess);
+
+// Break down condition testing
+console.log('User read permission:', hasPermission('/user_definition', 'GET'));
+console.log('Role read permission:', hasPermission('/role_definition', 'GET'));
+</script>
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Permission not working**
+   - Check if user has correct role assigned
+   - Verify route permission is enabled in role settings
+   - Ensure route path matches exactly (check API endpoint)
+   - Verify user role is active
+
+2. **Menu items not showing**
+   - Check permission condition syntax
+   - Verify user has required permissions
+   - Check browser console for JavaScript errors
+   - Ensure menu item route matches permission route
+
+3. **API access denied**
+   - Verify HTTP method is included in role permissions
+   - Check if route is enabled in system settings
+   - Ensure user session is valid
+   - Check server logs for detailed error messages
+
+### Quick Fixes
+
+```vue
+<script setup lang="ts">
+const { me, fetchUser } = useAuth();
+
+// Force refresh user permissions
+async function refreshPermissions() {
+  await fetchUser();
+  console.log('Permissions refreshed');
+}
+
+// Check if user is logged in
+if (!me.value) {
+  console.log('User not logged in');
+}
+
+// Check if user is root admin
+if (me.value?.isRootAdmin) {
+  console.log('User is root admin - has all permissions');
+}
+</script>
+```
+
+## Summary
+
+The Enfyra CMS permission system provides:
+
+1. **PermissionGate Component** - Declarative permission-based rendering
+2. **usePermissions Composable** - Programmatic permission checking  
+3. **Flexible Conditions** - AND/OR logic for complex scenarios
+4. **Type Safety** - Full TypeScript support
+5. **Integration** - Works with menu system, header actions, and API calls
+
+Use `PermissionGate` for UI elements and `usePermissions` for business logic. Always match route names to actual API endpoints and follow the principle of least privilege when designing roles.
