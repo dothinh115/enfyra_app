@@ -261,7 +261,7 @@ export function useApiLazy<T = any>(
     } catch (err) {
       error.value = err;
       handleApiError(err, errorContext);
-      throw err;
+      return null;
     } finally {
       loader.stopLoading();
     }
