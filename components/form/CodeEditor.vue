@@ -93,10 +93,13 @@ const diagnosticExtension = linter((view) => {
     }
   }
 
-  // Wrap in async function to allow top-level await
-  const wrapped = `(async () => {\n${codeToLint}\n})()`;
+  // Only wrap JavaScript in async function for top-level await
+  // Vue SFC already has <script setup> context
+  const wrapped = props.language === "javascript" 
+    ? `(async () => {\n${codeToLint}\n})()`
+    : codeToLint;
   
-  // Also check unwrapped code for certain rules that need direct scope
+  // Always check unwrapped code for scope-sensitive rules
   const unwrapped = codeToLint;
 
   // Comprehensive ESLint rules configuration for Vue and JavaScript
@@ -218,10 +221,10 @@ const diagnosticExtension = linter((view) => {
     }
   );
 
-  // Adjust line numbers for wrapped results (subtract 1 for wrapper function)
+  // Adjust line numbers for wrapped results (only for JavaScript)
   const adjustedWrappedResult = wrappedResult.map(msg => ({
     ...msg,
-    line: Math.max(1, msg.line - 1)
+    line: props.language === "javascript" ? Math.max(1, msg.line - 1) : msg.line
   }));
 
   // Combine and deduplicate results
