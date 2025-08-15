@@ -9,17 +9,18 @@ Welcome to Enfyra CMS! This guide will teach you to **build custom features WITH
 ```
 🌟 No-Code Approach
 ├── Create extensions via Settings UI
-├── Code in built-in browser editor  
+├── Code in built-in browser editor
 ├── Create custom menus automatically
 ├── Instant deployment & testing
 └── Complete feature development
 ```
 
 **Learning Path:**
+
 ```
 🌟 PHASE 1: Platform Mastery (15 minutes)
 ├── Login & Navigation
-├── Understanding the Admin UI  
+├── Understanding the Admin UI
 └── Extension System Overview
 
 🏗️ PHASE 2: First Extension (30 minutes)
@@ -34,7 +35,7 @@ Welcome to Enfyra CMS! This guide will teach you to **build custom features WITH
 
 🚀 PHASE 4: Production Extensions (Half day)
 ├── Complex Business Logic
-├── API Integrations  
+├── API Integrations
 └── Professional Extensions
 ```
 
@@ -46,7 +47,7 @@ Welcome to Enfyra CMS! This guide will teach you to **build custom features WITH
 
 **Goal:** Login and see the admin interface
 
-1. Open your Enfyra CMS URL 
+1. Open your Enfyra CMS URL
 2. Login with your admin credentials
 3. You'll see the main dashboard
 
@@ -57,9 +58,10 @@ Welcome to Enfyra CMS! This guide will teach you to **build custom features WITH
 **Goal:** Understand the main sections and sidebar structure
 
 **Key sections you'll use:**
+
 ```
 📊 Dashboard       → Main overview where your extension will appear
-📋 Data           → View/manage your data tables  
+📋 Data           → View/manage your data tables
 ⚙️  Settings      → Your main workspace
    ├── Extensions → CREATE CUSTOM FEATURES HERE ⭐
    ├── Menus      → CREATE NAVIGATION HERE ⭐
@@ -68,6 +70,7 @@ Welcome to Enfyra CMS! This guide will teach you to **build custom features WITH
 ```
 
 **✅ Quick Navigation Test:**
+
 1. Click "Settings" in the sidebar
 2. Click "Extensions" - this is where you build features!
 3. Click "Menus" - this is where you create navigation
@@ -84,6 +87,7 @@ Welcome to Enfyra CMS! This guide will teach you to **build custom features WITH
 1. Go to **Settings > Menus**
 2. Click **"Create"** button
 3. **Fill the form:**
+
    ```
    Name: my-first-extension
    Label: My First Extension
@@ -94,8 +98,10 @@ Welcome to Enfyra CMS! This guide will teach you to **build custom features WITH
    ```
 
    **📝 Field Explanations:**
+
    - **Path:** `/dashboard/my-first-extension` - When user clicks this menu item, they will navigate to this URL and your extension page will load at this route
    - **Order:** `10` - Controls the position of this menu item in the list. Lower numbers appear higher in the menu (Order 1 = top, Order 10 = lower down)
+
 4. **IMPORTANT - Set Sidebar Field:** In the **"sidebar"** field, you'll see a pen icon (🖊️)
 5. **Click the pen icon** - a drawer will open
 6. **Find and click `/dashboard`** from the list in the drawer
@@ -103,6 +109,7 @@ Welcome to Enfyra CMS! This guide will teach you to **build custom features WITH
 8. **Click "Save"**
 
 **📝 Understanding Menu Configuration:**
+
 - **Path Function:** When user clicks menu → navigates to `/dashboard/my-first-extension` → extension page loads
 - **Sidebar Context:** Menu appears in `/dashboard` sidebar (via tree picker selection)
 - **Order Effect:** Menu item position in list (lower number = higher position)
@@ -115,13 +122,15 @@ Welcome to Enfyra CMS! This guide will teach you to **build custom features WITH
 **Goal:** Understand how extensions will connect to your menu
 
 **The Power of Extensions:**
+
 - ✅ **Vue.js single-file components** - full framework power
 - ✅ **Links to your menu item** - extensions connect to menu items you created
-- ✅ **useApiLazy for data** - CSR-optimized API calls  
+- ✅ **useApiLazy for data** - CSR-optimized API calls
 - ✅ **Instant deployment** - save and test immediately
 - ✅ **Permission-aware** - integrates with role system
 
 **Quick System Tour:**
+
 1. Go to **Settings > Extensions**
 2. Click **"Create"** to see the form (don't create yet)
 3. Notice these key fields:
@@ -131,20 +140,23 @@ Welcome to Enfyra CMS! This guide will teach you to **build custom features WITH
 4. Click "Cancel"
 
 **📝 Extension Types:**
+
 - **Page**: Standalone extension that loads automatically at its path route (like `/dashboard/my-first-extension`)
 - **Widget**: Nested extension that can be called/embedded inside other extensions using `<Widget>` component
 
 ---
 
-## 🎓 Phase 1 Complete - Ready for Your First Extension! 
+## 🎓 Phase 1 Complete - Ready for Your First Extension!
 
 **🏆 What You've Accomplished:**
+
 - ✅ **Menu Item Created** - "My First Extension" appears in Dashboard menu
 - ✅ **Relation Configured** - Menu item properly linked to Dashboard sidebar
 - ✅ **Extension System** - Understanding how extensions connect to menus
 - ✅ **Simple Setup** - Using existing Dashboard instead of creating new mini sidebar
 
 **📋 Checklist Before Phase 2:**
+
 - [ ] You can see "My First Extension" in the Dashboard sidebar menu
 - [ ] The menu item has path `/my-first-extension`
 - [ ] You understand that the extension will connect to this menu item
@@ -165,13 +177,14 @@ Welcome to Enfyra CMS! This guide will teach you to **build custom features WITH
 1. Go to **Settings > Extensions**
 2. Click **"Create"**
 3. **Fill the form:**
+
    ```
    Name: My First Extension
    Description: My first simple extension
-   Type: Page  
+   Type: Page
    Is Enabled: ✅ Checked
    ```
-   
+
    **Note:** Extension ID will be auto-generated - don't worry about it!
 
 4. **In the Code Editor, paste this corrected code:**
@@ -179,15 +192,6 @@ Welcome to Enfyra CMS! This guide will teach you to **build custom features WITH
 ```vue
 <template>
   <div class="p-6">
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900 mb-2">
-        My First Extension! 🚀
-      </h1>
-      <p class="text-gray-600">
-        Built entirely through the web interface - no server code changes!
-      </p>
-    </div>
-
     <UCard class="mb-6">
       <template #header>
         <h3 class="text-xl font-semibold flex items-center gap-2">
@@ -195,26 +199,36 @@ Welcome to Enfyra CMS! This guide will teach you to **build custom features WITH
           Current User Information
         </h3>
       </template>
-      
+
       <div class="space-y-4">
         <div v-if="userLoading" class="text-center py-4">
           <Icon name="lucide:loader" class="animate-spin text-2xl" />
           <p class="mt-2">Loading user data...</p>
         </div>
-        
+
         <div v-else-if="userInfo" class="space-y-2">
-          <p><strong>Name:</strong> {{ userInfo.name || 'Not set' }}</p>
           <p><strong>Email:</strong> {{ userInfo.email }}</p>
-          <p><strong>Role:</strong> {{ userInfo.role?.name || 'No role' }}</p>
-          <p><strong>Account Created:</strong> {{ formatDate(userInfo.createdAt) }}</p>
+          <p><strong>Role:</strong> {{ userInfo.role?.name || "No role" }}</p>
+          <p>
+            <strong>Account Created:</strong>
+            {{ formatDate(userInfo.createdAt) }}
+          </p>
         </div>
-        
+
         <div class="flex gap-3 pt-4">
-          <UButton @click="fetchUser" :loading="userLoading" icon="lucide:refresh-cw">
+          <UButton
+            @click="fetchUser"
+            :loading="userLoading"
+            icon="lucide:refresh-cw"
+          >
             Refresh User Data
           </UButton>
-          
-          <UButton @click="showWelcome" variant="outline" icon="lucide:hand-heart">
+
+          <UButton
+            @click="showWelcome"
+            variant="outline"
+            icon="lucide:hand-heart"
+          >
             Say Hello
           </UButton>
         </div>
@@ -225,31 +239,36 @@ Welcome to Enfyra CMS! This guide will teach you to **build custom features WITH
       <template #header>
         <h3 class="text-xl font-semibold">Extension Demo Features</h3>
       </template>
-      
+
       <div class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="p-4 bg-blue-50 rounded-lg">
             <h4 class="font-medium text-blue-900">✅ API Integration</h4>
-            <p class="text-sm text-blue-700">Successfully calling /me endpoint</p>
+            <p class="text-sm text-blue-700">
+              Successfully calling /me endpoint
+            </p>
           </div>
-          
+
           <div class="p-4 bg-green-50 rounded-lg">
             <h4 class="font-medium text-green-900">✅ UI Components</h4>
             <p class="text-sm text-green-700">Using all Enfyra components</p>
           </div>
-          
+
           <div class="p-4 bg-purple-50 rounded-lg">
             <h4 class="font-medium text-purple-900">✅ Reactive Data</h4>
             <p class="text-sm text-purple-700">Real-time state management</p>
           </div>
-          
+
           <div class="p-4 bg-orange-50 rounded-lg">
             <h4 class="font-medium text-orange-900">✅ Toast Notifications</h4>
             <p class="text-sm text-orange-700">User feedback system</p>
           </div>
         </div>
 
-        <div v-if="message" class="p-4 bg-blue-100 border-l-4 border-blue-500 rounded">
+        <div
+          v-if="message"
+          class="p-4 bg-blue-100 border-l-4 border-blue-500 rounded"
+        >
           <p class="text-blue-800">{{ message }}</p>
         </div>
       </div>
@@ -267,48 +286,54 @@ const props = defineProps({
 
 const { UCard, UButton, Icon } = props.components;
 
-const message = ref('');
+const message = ref("");
 const userInfo = ref(null);
 
 const toast = useToast();
 
-const { data: userData, execute: fetchUser, pending: userLoading, error } = useApiLazy(
-  () => '/me',
-  {
-    query: {
-      fields: '*,role.*'
-    },
-    errorContext: 'Fetch Current User',
-  }
-);
+const {
+  data: userData,
+  execute: fetchUser,
+  pending: userLoading,
+  error,
+} = useApiLazy(() => "/me", {
+  query: {
+    fields: "*,role.*",
+  },
+  errorContext: "Fetch Current User",
+});
 
-watch(userData, (newData) => {
-  if (newData?.data?.[0]) {
-    userInfo.value = newData.data[0];
-  }
-}, { immediate: true });
+watch(
+  userData,
+  (newData) => {
+    if (newData?.data?.[0]) {
+      userInfo.value = newData.data[0];
+    }
+  },
+  { immediate: true }
+);
 
 onMounted(async () => {
   await fetchUser();
-  
+
   if (error.value) {
-    console.log('Failed to load user data:', error.value);
+    console.log("Failed to load user data:", error.value);
   }
 });
 
 function showWelcome() {
-  const userName = userInfo.value?.name || 'there';
+  const userName = userInfo.value?.name || "there";
   message.value = `👋 Hello ${userName}! Your extension is working perfectly. You built this without touching any server code!`;
-  
+
   toast.add({
     title: `Hello ${userName}!`,
-    description: 'Your extension is working perfectly!',
-    color: 'success'
+    description: "Your extension is working perfectly!",
+    color: "success",
   });
 }
 
 function formatDate(dateString: string) {
-  if (!dateString) return 'Unknown';
+  if (!dateString) return "Unknown";
   return new Date(dateString).toLocaleDateString();
 }
 </script>
@@ -325,12 +350,14 @@ function formatDate(dateString: string) {
 **Goal:** Navigate to and test your newly created extension
 
 **Simple Testing Steps:**
+
 1. **Go to Dashboard:** Navigate to the main dashboard page
 2. **Find Your Menu Item:** Look for "My First Extension" in the Dashboard sidebar menu
 3. **Click to Open:** Click on "My First Extension"
 4. **Test the Extension:** Your extension should load at `/dashboard/my-first-extension`
 
 **✅ What Should Happen:**
+
 - ✅ Your extension loads successfully
 - ✅ You see the welcome message and user info card
 - ✅ The "Refresh User Data" button works and shows your user information
@@ -339,6 +366,7 @@ function formatDate(dateString: string) {
 - ✅ All data loads from the `/me` API endpoint successfully
 
 **🎯 If Something's Wrong:**
+
 - **No menu item visible?** → Check your menu creation steps
 - **Extension won't load?** → Check your extension creation steps
 
@@ -349,6 +377,7 @@ function formatDate(dateString: string) {
 **Goal:** Understand the power of what you just accomplished
 
 **🚀 What Enfyra Did For You Automatically:**
+
 - ✅ **Created new route** (`/dashboard/my-first-extension`) with zero server config
 - ✅ **Connected to menu** - extension linked to menu via "menu" relation field
 - ✅ **Injected all UI components** (UCard, UButton, Icon, etc.) via `props.components`
@@ -358,6 +387,7 @@ function formatDate(dateString: string) {
 - ✅ **Handled API calls** - `/me` endpoint worked immediately
 
 **🔧 Technical Achievements:**
+
 - ✅ **Simple setup** - Used existing Dashboard sidebar with drawer selection
 - ✅ **CSR-optimized** - Used `useApiLazy` correctly for client-side rendering
 - ✅ **Reactive Vue.js** - Full framework power with ref, computed, watch
@@ -366,10 +396,12 @@ function formatDate(dateString: string) {
 - ✅ **Toast notifications** - Professional user feedback system
 
 **💡 Quick Experiment - Edit Your Extension:**
+
 1. Go to **Settings > Extensions**
-2. Find your "My First Extension"  
+2. Find your "My First Extension"
 3. Click "Edit"
 4. Add this button in the first button group:
+
 ```vue
 <UButton @click="showCurrentTime" variant="outline" icon="lucide:clock">
   Show Time
@@ -377,14 +409,15 @@ function formatDate(dateString: string) {
 ```
 
 5. Add this function in the script section:
+
 ```typescript
 function showCurrentTime() {
   const now = new Date().toLocaleString();
   message.value = `🕐 Current time: ${now}`;
   toast.add({
-    title: 'Time Update',
+    title: "Time Update",
     description: `It's ${now}`,
-    color: 'info'
+    color: "info",
   });
 }
 ```
@@ -392,6 +425,7 @@ function showCurrentTime() {
 6. **Save and test immediately** - no build process needed!
 
 **✅ Key Insights About Enfyra Extensions:**
+
 - ✅ **Zero server-side changes** - everything through web UI
 - ✅ **Full Vue.js ecosystem** - composables, reactivity, lifecycle hooks
 - ✅ **Professional UI** - all Nuxt UI components available
@@ -410,9 +444,10 @@ function showCurrentTime() {
 
 1. **Settings > Extensions > Create**
 2. **Fill form:**
+
    ```
    Extension ID: task-manager
-   Name: Task Manager  
+   Name: Task Manager
    Description: Manage tasks with full CRUD
    Type: Page
    Is Enabled: ✅ Checked
@@ -425,7 +460,11 @@ function showCurrentTime() {
   <div class="p-6">
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-2xl font-bold">Task Manager</h1>
-      <UButton @click="showCreateForm = true" color="primary" icon="i-lucide-plus">
+      <UButton
+        @click="showCreateForm = true"
+        color="primary"
+        icon="i-lucide-plus"
+      >
         Create Task
       </UButton>
     </div>
@@ -450,27 +489,29 @@ function showCurrentTime() {
             <h3 class="font-semibold text-lg">{{ task.title }}</h3>
             <p class="text-gray-600 mt-1">{{ task.description }}</p>
             <div class="flex gap-2 mt-3">
-              <UBadge :color="task.status === 'completed' ? 'success' : 'warning'">
-                {{ task.status || 'pending' }}
+              <UBadge
+                :color="task.status === 'completed' ? 'success' : 'warning'"
+              >
+                {{ task.status || "pending" }}
               </UBadge>
               <UBadge variant="soft">
-                Priority: {{ task.priority || 'medium' }}
+                Priority: {{ task.priority || "medium" }}
               </UBadge>
             </div>
           </div>
-          
+
           <div class="flex gap-2">
-            <UButton 
+            <UButton
               @click="editTask(task)"
-              variant="outline" 
+              variant="outline"
               size="sm"
               icon="i-lucide-edit"
             >
               Edit
             </UButton>
-            <UButton 
+            <UButton
               @click="deleteTask(task.id)"
-              color="error" 
+              color="error"
               variant="outline"
               size="sm"
               icon="i-lucide-trash"
@@ -483,47 +524,48 @@ function showCurrentTime() {
     </div>
 
     <!-- Create/Edit Modal -->
-    <UModal v-model="showCreateForm" :title="editingTask ? 'Edit Task' : 'Create Task'">
+    <UModal
+      v-model="showCreateForm"
+      :title="editingTask ? 'Edit Task' : 'Create Task'"
+    >
       <div class="p-6">
         <div class="space-y-4">
           <UFormGroup label="Task Title" required>
-            <UInput 
-              v-model="taskForm.title" 
+            <UInput
+              v-model="taskForm.title"
               placeholder="Enter task title..."
             />
           </UFormGroup>
-          
+
           <UFormGroup label="Description">
-            <UTextarea 
-              v-model="taskForm.description" 
+            <UTextarea
+              v-model="taskForm.description"
               placeholder="Task description..."
               rows="3"
             />
           </UFormGroup>
-          
+
           <UFormGroup label="Status">
-            <USelect 
+            <USelect
               v-model="taskForm.status"
               :options="statusOptions"
               placeholder="Select status"
             />
           </UFormGroup>
-          
+
           <UFormGroup label="Priority">
-            <USelect 
+            <USelect
               v-model="taskForm.priority"
               :options="priorityOptions"
               placeholder="Select priority"
             />
           </UFormGroup>
         </div>
-        
+
         <div class="flex justify-end gap-3 mt-6">
-          <UButton @click="closeForm" variant="outline">
-            Cancel
-          </UButton>
+          <UButton @click="closeForm" variant="outline"> Cancel </UButton>
           <UButton @click="saveTask" :loading="saving" color="primary">
-            {{ saving ? 'Saving...' : (editingTask ? 'Update' : 'Create') }}
+            {{ saving ? "Saving..." : editingTask ? "Update" : "Create" }}
           </UButton>
         </div>
       </div>
@@ -534,12 +576,20 @@ function showCurrentTime() {
 <script setup lang="ts">
 // Props (auto-injected by Enfyra)
 const props = defineProps({
-  components: { type: Object, default: () => ({}) }
+  components: { type: Object, default: () => ({}) },
 });
 
-const { 
-  UButton, UCard, UModal, UInput, UTextarea, USelect, UFormGroup,
-  UBadge, CommonLoadingState, CommonEmptyState 
+const {
+  UButton,
+  UCard,
+  UModal,
+  UInput,
+  UTextarea,
+  USelect,
+  UFormGroup,
+  UBadge,
+  CommonLoadingState,
+  CommonEmptyState,
 } = props.components;
 
 // State
@@ -550,23 +600,23 @@ const saving = ref(false);
 const editingTask = ref(null);
 
 const taskForm = ref({
-  title: '',
-  description: '',
-  status: 'pending',
-  priority: 'medium'
+  title: "",
+  description: "",
+  status: "pending",
+  priority: "medium",
 });
 
 // Options
 const statusOptions = [
-  { label: 'Pending', value: 'pending' },
-  { label: 'In Progress', value: 'in-progress' },
-  { label: 'Completed', value: 'completed' }
+  { label: "Pending", value: "pending" },
+  { label: "In Progress", value: "in-progress" },
+  { label: "Completed", value: "completed" },
 ];
 
 const priorityOptions = [
-  { label: 'Low', value: 'low' },
-  { label: 'Medium', value: 'medium' },
-  { label: 'High', value: 'high' }
+  { label: "Low", value: "low" },
+  { label: "Medium", value: "medium" },
+  { label: "High", value: "high" },
 ];
 
 // Auto-available composables
@@ -574,41 +624,48 @@ const toast = useToast();
 const { confirm } = useConfirm();
 
 // API calls (using real or mock data)
-const { data: tasksData, execute: fetchTasks } = useApiLazy(() => '/task_definition', {
-  query: { limit: 50, fields: '*' },
-  errorContext: 'Fetch Tasks'
-});
-
-watch(tasksData, (newData) => {
-  if (newData?.data) {
-    tasks.value = newData.data;
-  } else {
-    // Mock data for demonstration if no task table exists
-    tasks.value = [
-      {
-        id: 1,
-        title: 'Setup Enfyra CMS',
-        description: 'Complete the getting started guide',
-        status: 'completed',
-        priority: 'high'
-      },
-      {
-        id: 2, 
-        title: 'Build first extension',
-        description: 'Create a custom extension using the UI',
-        status: 'in-progress',
-        priority: 'medium'
-      },
-      {
-        id: 3,
-        title: 'Learn advanced features',
-        description: 'Explore filters, forms, and API integration',
-        status: 'pending',
-        priority: 'medium'
-      }
-    ];
+const { data: tasksData, execute: fetchTasks } = useApiLazy(
+  () => "/task_definition",
+  {
+    query: { limit: 50, fields: "*" },
+    errorContext: "Fetch Tasks",
   }
-}, { immediate: true });
+);
+
+watch(
+  tasksData,
+  (newData) => {
+    if (newData?.data) {
+      tasks.value = newData.data;
+    } else {
+      // Mock data for demonstration if no task table exists
+      tasks.value = [
+        {
+          id: 1,
+          title: "Setup Enfyra CMS",
+          description: "Complete the getting started guide",
+          status: "completed",
+          priority: "high",
+        },
+        {
+          id: 2,
+          title: "Build first extension",
+          description: "Create a custom extension using the UI",
+          status: "in-progress",
+          priority: "medium",
+        },
+        {
+          id: 3,
+          title: "Learn advanced features",
+          description: "Explore filters, forms, and API integration",
+          status: "pending",
+          priority: "medium",
+        },
+      ];
+    }
+  },
+  { immediate: true }
+);
 
 // Load data
 onMounted(() => {
@@ -629,51 +686,51 @@ function editTask(task) {
 async function saveTask() {
   if (!taskForm.value.title) {
     toast.add({
-      title: 'Validation Error',
-      description: 'Task title is required',
-      color: 'error'
+      title: "Validation Error",
+      description: "Task title is required",
+      color: "error",
     });
     return;
   }
 
   saving.value = true;
-  
+
   // Simulate save operation
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
   if (editingTask.value) {
     // Update existing
-    const index = tasks.value.findIndex(t => t.id === editingTask.value.id);
+    const index = tasks.value.findIndex((t) => t.id === editingTask.value.id);
     if (index !== -1) {
       tasks.value[index] = { ...editingTask.value, ...taskForm.value };
     }
-    toast.add({ title: 'Task updated successfully', color: 'success' });
+    toast.add({ title: "Task updated successfully", color: "success" });
   } else {
     // Create new
     const newTask = {
       id: Date.now(),
-      ...taskForm.value
+      ...taskForm.value,
     };
     tasks.value.unshift(newTask);
-    toast.add({ title: 'Task created successfully', color: 'success' });
+    toast.add({ title: "Task created successfully", color: "success" });
   }
-  
+
   saving.value = false;
   closeForm();
 }
 
 async function deleteTask(taskId) {
   const confirmed = await confirm({
-    title: 'Delete Task',
-    content: 'Are you sure you want to delete this task?',
-    confirmText: 'Delete'
+    title: "Delete Task",
+    content: "Are you sure you want to delete this task?",
+    confirmText: "Delete",
   });
 
   if (confirmed) {
-    tasks.value = tasks.value.filter(t => t.id !== taskId);
-    toast.add({ 
-      title: 'Task deleted successfully', 
-      color: 'success' 
+    tasks.value = tasks.value.filter((t) => t.id !== taskId);
+    toast.add({
+      title: "Task deleted successfully",
+      color: "success",
     });
   }
 }
@@ -682,21 +739,22 @@ function closeForm() {
   showCreateForm.value = false;
   editingTask.value = null;
   taskForm.value = {
-    title: '',
-    description: '',
-    status: 'pending',
-    priority: 'medium'
+    title: "",
+    description: "",
+    status: "pending",
+    priority: "medium",
   };
 }
 </script>
 ```
 
 4. **Menu Configuration:**
+
 ```json
 {
   "path": "/task-manager",
   "name": "task-manager",
-  "label": "Task Manager", 
+  "label": "Task Manager",
   "icon": "lucide:list-todo",
   "sidebarId": "main",
   "order": 2
@@ -706,6 +764,7 @@ function closeForm() {
 5. **Save and Test**
 
 **✅ Test Your Task Manager:**
+
 1. Click "Task Manager" in the sidebar
 2. See the sample tasks
 3. Click "Create Task" and add a new task
@@ -713,7 +772,8 @@ function closeForm() {
 5. Delete a task (with confirmation)
 
 **🎯 What You Built:**
-- ✅ **Complete CRUD interface** 
+
+- ✅ **Complete CRUD interface**
 - ✅ **Modal forms** with validation
 - ✅ **Confirmation dialogs**
 - ✅ **Loading states** and empty states
@@ -751,6 +811,7 @@ function closeForm() {
 
 1. **Settings > Extensions > Create**
 2. **Fill form:**
+
    ```
    Extension ID: weather-widget
    Name: Weather Widget
@@ -760,9 +821,12 @@ function closeForm() {
    ```
 
 3. **Widget Code:**
+
 ```vue
 <template>
-  <div class="weather-widget p-4 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg text-white">
+  <div
+    class="weather-widget p-4 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg text-white"
+  >
     <div class="flex items-center justify-between">
       <div>
         <h3 class="text-lg font-semibold">{{ city }}</h3>
@@ -773,7 +837,7 @@ function closeForm() {
         <div class="text-sm opacity-90">{{ humidity }}% humidity</div>
       </div>
     </div>
-    
+
     <div class="mt-3 flex justify-between text-xs opacity-75">
       <span>{{ forecast }}</span>
       <span>Updated: {{ updateTime }}</span>
@@ -784,15 +848,15 @@ function closeForm() {
 <script setup lang="ts">
 // Widget props (can be passed when embedding)
 const props = defineProps({
-  city: { type: String, default: 'Ho Chi Minh City' },
-  components: { type: Object, default: () => ({}) }
+  city: { type: String, default: "Ho Chi Minh City" },
+  components: { type: Object, default: () => ({}) },
 });
 
 // Widget state (mock weather data)
 const temperature = ref(28);
-const description = ref('Partly Cloudy');
+const description = ref("Partly Cloudy");
 const humidity = ref(75);
-const forecast = ref('High: 32°C, Low: 24°C');
+const forecast = ref("High: 32°C, Low: 24°C");
 const updateTime = ref(new Date().toLocaleTimeString());
 
 // Update weather every minute (demo)
@@ -810,8 +874,10 @@ onMounted(() => {
 5. **Save**
 
 **Now Use Your Widget:**
-1. Edit your "My Dashboard" extension  
+
+1. Edit your "My Dashboard" extension
 2. Add this to the template (after the stats cards):
+
 ```vue
 <!-- Weather Widget Embed -->
 <div class="mb-8">
@@ -825,7 +891,8 @@ onMounted(() => {
 5. **Save your dashboard extension**
 
 **✅ Test Widget Embedding:**
-- Visit your "My Dashboard" 
+
+- Visit your "My Dashboard"
 - See the weather widget embedded!
 - The widget updates independently
 
@@ -846,7 +913,9 @@ onMounted(() => {
   <div class="p-6">
     <div class="mb-8">
       <h1 class="text-3xl font-bold mb-2">Admin Center</h1>
-      <p class="text-gray-600">Complete administration dashboard with all Enfyra features</p>
+      <p class="text-gray-600">
+        Complete administration dashboard with all Enfyra features
+      </p>
     </div>
 
     <!-- Filter Section -->
@@ -861,9 +930,13 @@ onMounted(() => {
               icon="i-lucide-filter"
               @click="showFilterDrawer = true"
             >
-              {{ hasActiveFilters(currentFilter) ? `Filters (${currentFilter.conditions.length})` : 'Filter' }}
+              {{
+                hasActiveFilters(currentFilter)
+                  ? `Filters (${currentFilter.conditions.length})`
+                  : "Filter"
+              }}
             </UButton>
-            
+
             <UButton
               v-if="hasActiveFilters(currentFilter)"
               variant="ghost"
@@ -877,7 +950,9 @@ onMounted(() => {
       </template>
 
       <!-- Permission-Gated Content -->
-      <PermissionGate :condition="{ or: [{ route: '/user_definition', actions: ['read'] }] }">
+      <PermissionGate
+        :condition="{ or: [{ route: '/user_definition', actions: ['read'] }] }"
+      >
         <!-- User List -->
         <div v-if="loading" class="text-center py-8">
           <CommonLoadingState title="Loading users..." />
@@ -892,14 +967,21 @@ onMounted(() => {
         </div>
 
         <div v-else class="space-y-4">
-          <div v-for="user in users" :key="user.id" 
-               class="flex justify-between items-center p-4 bg-gray-50 rounded">
+          <div
+            v-for="user in users"
+            :key="user.id"
+            class="flex justify-between items-center p-4 bg-gray-50 rounded"
+          >
             <div>
-              <h4 class="font-medium">{{ user.name || 'No Name' }}</h4>
+              <h4 class="font-medium">{{ user.name || "No Name" }}</h4>
               <p class="text-sm text-gray-600">{{ user.email }}</p>
             </div>
             <div class="flex gap-2">
-              <PermissionGate :condition="{ or: [{ route: '/user_definition', actions: ['update'] }] }">
+              <PermissionGate
+                :condition="{
+                  or: [{ route: '/user_definition', actions: ['update'] }],
+                }"
+              >
                 <UButton size="sm" variant="outline" @click="editUser(user)">
                   Edit
                 </UButton>
@@ -938,7 +1020,7 @@ onMounted(() => {
         icon-color="primary"
         :stats="[{ label: 'Active Today', value: activeToday }]"
       />
-      
+
       <CommonSettingsCard
         title="Extensions"
         :description="`${extensionCount} custom extensions`"
@@ -946,7 +1028,7 @@ onMounted(() => {
         icon-color="success"
         :stats="[{ label: 'Enabled', value: enabledExtensions }]"
       />
-      
+
       <CommonSettingsCard
         title="API Calls"
         description="Today's API usage"
@@ -954,7 +1036,7 @@ onMounted(() => {
         icon-color="warning"
         :stats="[{ label: 'Requests', value: apiCalls }]"
       />
-      
+
       <CommonSettingsCard
         title="Storage"
         description="Database usage"
@@ -982,7 +1064,7 @@ onMounted(() => {
           :table-name="'user_definition'"
           :excluded="['id', 'createdAt', 'updatedAt']"
         />
-        
+
         <div class="flex justify-end gap-3 mt-6">
           <UButton @click="showEditForm = false" variant="outline">
             Cancel
@@ -999,13 +1081,21 @@ onMounted(() => {
 <script setup lang="ts">
 // Props (auto-injected)
 const props = defineProps({
-  components: { type: Object, default: () => ({}) }
+  components: { type: Object, default: () => ({}) },
 });
 
 const {
-  UCard, UButton, UAlert, UModal, UPagination,
-  CommonSettingsCard, CommonLoadingState, CommonEmptyState,
-  PermissionGate, FilterDrawer, FormEditor
+  UCard,
+  UButton,
+  UAlert,
+  UModal,
+  UPagination,
+  CommonSettingsCard,
+  CommonLoadingState,
+  CommonEmptyState,
+  PermissionGate,
+  FilterDrawer,
+  FormEditor,
 } = props.components;
 
 // State
@@ -1029,44 +1119,47 @@ const currentFilter = ref(createEmptyFilter());
 const activeToday = ref(12);
 const extensionCount = ref(4);
 const enabledExtensions = ref(3);
-const apiCalls = ref('1.2k');
-const storageUsed = ref('45MB');
+const apiCalls = ref("1.2k");
+const storageUsed = ref("45MB");
 
 // Composables (auto-available)
 const toast = useToast();
 const { hasPermission } = usePermissions();
-const { 
-  createEmptyFilter, 
-  buildQuery, 
-  hasActiveFilters 
-} = useFilterQuery();
+const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
 
 // API integration
-const { data: usersData, execute: fetchUsers } = useApiLazy(() => '/user_definition', {
-  query: computed(() => {
-    const baseQuery = {
-      limit: pageSize,
-      page: currentPage.value,
-      fields: '*',
-      meta: '*'
-    };
+const { data: usersData, execute: fetchUsers } = useApiLazy(
+  () => "/user_definition",
+  {
+    query: computed(() => {
+      const baseQuery = {
+        limit: pageSize,
+        page: currentPage.value,
+        fields: "*",
+        meta: "*",
+      };
 
-    if (hasActiveFilters(currentFilter.value)) {
-      baseQuery.filter = buildQuery(currentFilter.value);
-    }
+      if (hasActiveFilters(currentFilter.value)) {
+        baseQuery.filter = buildQuery(currentFilter.value);
+      }
 
-    return baseQuery;
-  }),
-  errorContext: 'Admin Center - Fetch Users'
-});
+      return baseQuery;
+    }),
+    errorContext: "Admin Center - Fetch Users",
+  }
+);
 
 // Watch for data changes
-watch(usersData, (newData) => {
-  if (newData?.data) {
-    users.value = newData.data;
-    totalUsers.value = newData.meta?.totalCount || 0;
-  }
-}, { immediate: true });
+watch(
+  usersData,
+  (newData) => {
+    if (newData?.data) {
+      users.value = newData.data;
+      totalUsers.value = newData.meta?.totalCount || 0;
+    }
+  },
+  { immediate: true }
+);
 
 const totalPages = computed(() => Math.ceil(totalUsers.value / pageSize));
 
@@ -1087,15 +1180,15 @@ function editUser(user) {
 
 async function saveUser() {
   saving.value = true;
-  
+
   // Simulate save
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
   toast.add({
-    title: 'User updated successfully',
-    color: 'success'
+    title: "User updated successfully",
+    color: "success",
   });
-  
+
   saving.value = false;
   showEditForm.value = false;
   fetchUsers(); // Refresh list
@@ -1117,33 +1210,34 @@ function clearFilters() {
 // Header Actions (registered automatically)
 useHeaderActionRegistry([
   {
-    id: 'admin-refresh',
-    label: 'Refresh',
-    icon: 'lucide:refresh-cw',
-    variant: 'outline',
+    id: "admin-refresh",
+    label: "Refresh",
+    icon: "lucide:refresh-cw",
+    variant: "outline",
     onClick: () => fetchUsers(),
   },
   {
-    id: 'admin-export',
-    label: 'Export',
-    icon: 'lucide:download',
-    variant: 'outline',
+    id: "admin-export",
+    label: "Export",
+    icon: "lucide:download",
+    variant: "outline",
     onClick: () => {
       toast.add({
-        title: 'Export Started',
-        description: 'User data is being exported...',
-        color: 'info'
+        title: "Export Started",
+        description: "User data is being exported...",
+        color: "info",
       });
     },
     permission: {
-      or: [{ route: '/user_definition', actions: ['read'] }]
-    }
-  }
+      or: [{ route: "/user_definition", actions: ["read"] }],
+    },
+  },
 ]);
 </script>
 ```
 
 **Menu Configuration:**
+
 ```json
 {
   "path": "/admin-center",
@@ -1156,6 +1250,7 @@ useHeaderActionRegistry([
 ```
 
 **✅ What This Extension Demonstrates:**
+
 - ✅ **Complete Filter System** - Visual query builder
 - ✅ **Permission-Gated UI** - Different views for different users
 - ✅ **Form System** - Dynamic forms with validation
@@ -1185,7 +1280,7 @@ useHeaderActionRegistry([
 
 ```
 🎨 UI Components    → All Enfyra components available
-🔧 API Integration  → Full backend access via composables  
+🔧 API Integration  → Full backend access via composables
 🛡️ Permissions     → Role-based access control
 🔍 Filters         → Visual query builder
 📝 Forms           → Dynamic, validated forms
@@ -1197,6 +1292,7 @@ useHeaderActionRegistry([
 ### 📋 What's Next?
 
 **For Real Projects:**
+
 1. **Connect to real data** - Use actual database tables
 2. **Configure permissions** - Set up proper user roles
 3. **Build business logic** - Create domain-specific features
@@ -1204,6 +1300,7 @@ useHeaderActionRegistry([
 5. **Deploy widgets** - Embed components across the system
 
 **Advanced Learning:**
+
 - Study the [Extension Development Guide](./extension-development-guide.md) for deeper patterns
 - Read [Filter System Guide](./filter-query.md) for advanced querying
 - Explore [Permission System](./permission-system.md) for security patterns
