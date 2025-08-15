@@ -179,7 +179,6 @@ Welcome to Enfyra CMS! This guide will teach you to **build custom features WITH
 ```vue
 <template>
   <div class="p-6">
-    <!-- Header -->
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-gray-900 mb-2">
         My First Extension! 🚀
@@ -189,7 +188,6 @@ Welcome to Enfyra CMS! This guide will teach you to **build custom features WITH
       </p>
     </div>
 
-    <!-- User Info Card -->
     <UCard class="mb-6">
       <template #header>
         <h3 class="text-xl font-semibold flex items-center gap-2">
@@ -212,7 +210,7 @@ Welcome to Enfyra CMS! This guide will teach you to **build custom features WITH
         </div>
         
         <div class="flex gap-3 pt-4">
-          <UButton @click="fetchUserData" :loading="userLoading" icon="lucide:refresh-cw">
+          <UButton @click="fetchUser" :loading="userLoading" icon="lucide:refresh-cw">
             Refresh User Data
           </UButton>
           
@@ -223,7 +221,6 @@ Welcome to Enfyra CMS! This guide will teach you to **build custom features WITH
       </div>
     </UCard>
 
-    <!-- Interactive Demo Section -->
     <UCard>
       <template #header>
         <h3 class="text-xl font-semibold">Extension Demo Features</h3>
@@ -252,7 +249,6 @@ Welcome to Enfyra CMS! This guide will teach you to **build custom features WITH
           </div>
         </div>
 
-        <!-- Message Display -->
         <div v-if="message" class="p-4 bg-blue-100 border-l-4 border-blue-500 rounded">
           <p class="text-blue-800">{{ message }}</p>
         </div>
@@ -262,7 +258,6 @@ Welcome to Enfyra CMS! This guide will teach you to **build custom features WITH
 </template>
 
 <script setup lang="ts">
-// Props from extension system (auto-injected by Enfyra)
 const props = defineProps({
   components: {
     type: Object,
@@ -270,60 +265,36 @@ const props = defineProps({
   },
 });
 
-// Destructure available components
 const { UCard, UButton, Icon } = props.components;
 
-// Reactive state
 const message = ref('');
 const userInfo = ref(null);
-const userLoading = ref(false);
 
-// Toast notifications (auto-available in extensions)
 const toast = useToast();
 
-// API composable - CORRECT usage for CSR
-const { data: userData, execute: fetchUser, pending: userDataLoading } = useApiLazy(
-  () => '/me',  // ✅ CORRECT: /me endpoint (user has permission)
+const { data: userData, execute: fetchUser, pending: userLoading, error } = useApiLazy(
+  () => '/me',
   {
+    query: {
+      fields: '*,role.*'
+    },
     errorContext: 'Fetch Current User',
   }
 );
 
-// Watch for user data changes
 watch(userData, (newData) => {
-  if (newData) {
-    userInfo.value = newData;
+  if (newData?.data?.[0]) {
+    userInfo.value = newData.data[0];
   }
 }, { immediate: true });
 
-// Computed loading state
-const userLoadingComputed = computed(() => userDataLoading.value || userLoading.value);
-
-// Mount: Fetch user data
 onMounted(async () => {
-  await fetchUserData();
-});
-
-// Functions
-async function fetchUserData() {
-  userLoading.value = true;
-  try {
-    await fetchUser();  // ✅ CORRECT: manual execution with useApiLazy
-    toast.add({
-      title: 'Success',
-      description: 'User data loaded successfully',
-      color: 'success'
-    });
-  } catch (error) {
-    toast.add({
-      title: 'Error',
-      description: 'Failed to load user data',
-      color: 'error'
-    });
-  } finally {
-    userLoading.value = false;
+  await fetchUser();
+  
+  if (error.value) {
+    console.log('Failed to load user data:', error.value);
   }
-}
+});
 
 function showWelcome() {
   const userName = userInfo.value?.name || 'there';
@@ -336,14 +307,10 @@ function showWelcome() {
   });
 }
 
-// Utility function
 function formatDate(dateString: string) {
   if (!dateString) return 'Unknown';
   return new Date(dateString).toLocaleDateString();
 }
-
-// Combine loading states
-const userLoading = computed(() => userLoadingComputed.value);
 </script>
 ```
 
