@@ -58,35 +58,7 @@
             },
           ]"
           @click="navigateToDetail(extension)"
-        >
-          <template #cardHeaderActions>
-            <PermissionGate
-              :condition="{
-                or: [{ route: '/extension_definition', actions: ['update'] }],
-              }"
-            >
-              <USwitch
-                :model-value="extension.isEnabled"
-                @update:model-value="toggleExtensionStatus(extension)"
-                :disabled="
-                  getExtensionLoader(extension.id.toString()).isLoading
-                "
-                @click.stop
-              />
-            </PermissionGate>
-            <PermissionGate
-              :condition="{
-                or: [{ route: '/extension_definition', actions: ['delete'] }],
-              }"
-            >
-              <UButton
-                icon="i-heroicons-trash"
-                variant="outline"
-                color="error"
-                @click.stop="deleteExtension(extension)"
-              />
-            </PermissionGate>
-          </template>
+          :header-actions="getHeaderActions(extension)"
         </CommonSettingsCard>
       </div>
 
@@ -120,6 +92,7 @@ const limit = 9;
 const toast = useToast();
 const { confirm } = useConfirm();
 const { createLoader } = useLoader();
+const { checkPermissionCondition } = usePermissions();
 
 const { isMounted } = useMounted();
 const { isTablet } = useScreen();
@@ -200,6 +173,39 @@ function getExtensionTypeLabel(type: string) {
 
 function navigateToDetail(extension: ExtensionDefinition) {
   navigateTo(`/settings/extensions/${extension.id}`);
+}
+
+function getHeaderActions(extension: ExtensionDefinition) {
+  const actions = [];
+
+  if (checkPermissionCondition({ or: [{ route: '/extension_definition', actions: ['update'] }] })) {
+    actions.push({
+      component: 'USwitch',
+      props: {
+        'model-value': extension.isEnabled,
+        disabled: getExtensionLoader(extension.id.toString()).isLoading
+      },
+      onClick: (e?: Event) => e?.stopPropagation(),
+      onUpdate: () => toggleExtensionStatus(extension)
+    });
+  }
+
+  if (checkPermissionCondition({ or: [{ route: '/extension_definition', actions: ['delete'] }] })) {
+    actions.push({
+      component: 'UButton',
+      props: {
+        icon: 'i-heroicons-trash',
+        variant: 'outline',
+        color: 'error'
+      },
+      onClick: (e?: Event) => {
+        e?.stopPropagation();
+        deleteExtension(extension);
+      }
+    });
+  }
+
+  return actions;
 }
 
 function getExtensionLoader(extensionId: string) {

@@ -7,7 +7,9 @@ Reusable card component for settings pages with consistent styling and flexible 
 - ✅ **Consistent Design**: Unified look across all settings pages
 - ✅ **Tablet Optimized**: Responsive hover effects and proper sizing
 - ✅ **Flexible Props**: Customizable icon, colors, stats, and actions
-- ✅ **Slot Support**: Custom header actions, body content, and footer
+- ✅ **Header Actions**: Support for interactive controls in card header
+- ✅ **Multiple Values**: Display multiple components for a single stat label
+- ✅ **Slot Support**: Custom body content and footer
 - ✅ **TypeScript**: Full type safety with intelligent auto-completion
 
 ## Basic Usage
@@ -32,7 +34,57 @@ Reusable card component for settings pages with consistent styling and flexible 
 />
 ```
 
-## Advanced Usage with Slots
+## Advanced Usage
+
+### With Header Actions
+
+```vue
+<CommonSettingsCard
+  title="Menu Item"
+  description="Dashboard Extension"
+  icon="lucide:navigation"
+  icon-color="primary"
+  :header-actions="[
+    {
+      component: 'USwitch',
+      props: { 'model-value': item.isEnabled },
+      onClick: (e) => e?.stopPropagation(),
+      onUpdate: (value) => toggleEnabled(item, value)
+    },
+    {
+      component: 'UButton',
+      props: { icon: 'i-heroicons-trash', variant: 'outline', color: 'error' },
+      onClick: (e) => {
+        e?.stopPropagation();
+        deleteItem(item);
+      }
+    }
+  ]"
+/>
+```
+
+### With Multiple Values per Stat
+
+```vue
+<CommonSettingsCard
+  title="API Route"
+  description="/api/users"
+  icon="lucide:route"
+  :stats="[
+    {
+      label: 'Methods',
+      component: 'UBadge',
+      values: [
+        { value: 'GET', props: { color: 'info' } },
+        { value: 'POST', props: { color: 'success' } },
+        { value: 'DELETE', props: { color: 'error' } }
+      ]
+    }
+  ]"
+/>
+```
+
+### With Custom Slots
 
 ```vue
 <CommonSettingsCard
@@ -41,13 +93,6 @@ Reusable card component for settings pages with consistent styling and flexible 
   icon="lucide:user"
   icon-color="success"
 >
-  <!-- Custom header actions -->
-  <template #headerActions>
-    <UAvatar :alt="user.name" size="xs">
-      {{ user.email?.charAt(0)?.toUpperCase() }}
-    </UAvatar>
-  </template>
-  
   <!-- Custom body content -->
   <div class="custom-content">
     <!-- Your custom content here -->
@@ -71,7 +116,8 @@ Reusable card component for settings pages with consistent styling and flexible 
 | `icon` | `string` | - | Icon name (lucide format) |
 | `iconColor` | `'primary' \| 'success' \| 'warning' \| 'error' \| 'neutral'` | `'primary'` | Icon color theme |
 | `stats` | `Stat[]` | `[]` | Array of statistics to display |
-| `actions` | `Action[]` | `[]` | Array of action buttons |
+| `actions` | `Action[]` | `[]` | Array of action buttons in footer |
+| `headerActions` | `HeaderAction[]` | `[]` | Array of interactive components in header |
 | `cardClass` | `string` | `''` | Additional CSS classes for card |
 
 ## Stat Interface
@@ -80,10 +126,16 @@ Reusable card component for settings pages with consistent styling and flexible 
 interface Stat {
   label: string;
   value?: string | number;
-  component?: any;        // For custom components like UBadge
-  props?: Record<string, any>; // Props for the component
+  values?: Array<{              // For multiple components with same label
+    value: string | number;
+    props?: Record<string, any>;
+  }>;
+  component?: any;              // Component to render (e.g., 'UBadge')
+  props?: Record<string, any>;  // Default props for all components
 }
 ```
+
+**Note:** Use either `value` for a single item or `values` for multiple items, not both.
 
 ## Action Interface
 
@@ -91,11 +143,23 @@ interface Stat {
 interface Action {
   label: string;
   props?: Record<string, any>; // UButton props
-  to?: string;            // Navigation route
-  onClick?: () => void;   // Click handler
-  loading?: boolean;      // Loading state
-  disabled?: boolean;     // Disabled state
-  block?: boolean;        // Full width button
+  to?: string;                 // Navigation route
+  onClick?: () => void;        // Click handler
+  loading?: boolean;           // Loading state
+  disabled?: boolean;          // Disabled state
+  block?: boolean;             // Full width button
+}
+```
+
+## HeaderAction Interface
+
+```typescript
+interface HeaderAction {
+  component?: string;           // Component name (e.g., 'USwitch', 'UButton')
+  props?: Record<string, any>;  // Component props
+  label?: string;               // Optional label for the component
+  onClick?: (e?: Event) => void;     // Click handler
+  onUpdate?: (value: any) => void;   // Update handler for v-model components
 }
 ```
 
@@ -136,6 +200,36 @@ interface Action {
   ]"
   :actions="[
     { label: 'Configure', props: { variant: 'solid', size: 'sm' }, to: '/configure', block: true }
+  ]"
+/>
+```
+
+### Route Card with Multiple Methods
+```vue
+<CommonSettingsCard
+  title="/api/users"
+  description="User management endpoint"
+  icon="lucide:route"
+  icon-color="primary"
+  :stats="[
+    {
+      label: 'Methods',
+      component: 'UBadge',
+      values: [
+        { value: 'GET', props: { color: 'info' } },
+        { value: 'POST', props: { color: 'success' } },
+        { value: 'PATCH', props: { color: 'warning' } },
+        { value: 'DELETE', props: { color: 'error' } }
+      ]
+    },
+    { label: 'Status', value: 'Enabled' }
+  ]"
+  :header-actions="[
+    {
+      component: 'USwitch',
+      props: { 'model-value': true },
+      onUpdate: (value) => console.log('Toggle:', value)
+    }
   ]"
 />
 ```

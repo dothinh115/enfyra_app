@@ -69,8 +69,18 @@
             >{{ stat.label }}</span
           >
           <span class="text-gray-900 dark:text-gray-100 font-medium">
+            <div v-if="stat.values && stat.values.length > 0" class="flex gap-1 flex-wrap">
+              <component
+                v-for="(item, idx) in stat.values"
+                :key="idx"
+                :is="getComponent(stat.component)"
+                v-bind="{ ...getDefaultProps(stat.component, 'stats'), ...(stat.props || {}), ...(item.props || {}) }"
+              >
+                {{ item.value }}
+              </component>
+            </div>
             <component
-              v-if="stat.component"
+              v-else-if="stat.component"
               :is="getComponent(stat.component)"
               v-bind="{ ...getDefaultProps(stat.component, 'stats'), ...(stat.props || {}) }"
             >
@@ -119,6 +129,7 @@ import { UAvatar, UBadge, UButton, USwitch, UChip, UIcon, UKbd, UTooltip } from 
 interface Stat {
   label: string;
   value?: string | number;
+  values?: Array<{ value: string | number; props?: Record<string, any> }>;
   component?: any;
   props?: Record<string, any>;
 }

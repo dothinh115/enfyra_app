@@ -165,6 +165,36 @@ function getRouteLoader(routeId: string) {
   return routeLoaders.value[routeId];
 }
 
+function getRouteHeaderActions(routeItem: any) {
+  if (routeItem.isSystem) {
+    return [];
+  }
+
+  return [
+    {
+      component: 'USwitch',
+      props: {
+        'model-value': routeItem.isEnabled,
+        disabled: getRouteLoader(routeItem.id).isLoading
+      },
+      onClick: (e?: Event) => e?.stopPropagation(),
+      onUpdate: () => toggleEnabled(routeItem)
+    },
+    {
+      component: 'UButton',
+      props: {
+        icon: 'i-heroicons-trash',
+        variant: 'outline',
+        color: 'error'
+      },
+      onClick: (e?: Event) => {
+        e?.stopPropagation();
+        deleteRoute(routeItem);
+      }
+    }
+  ];
+}
+
 async function toggleEnabled(routeItem: any) {
   // Optimistic update - change UI immediately
   const newEnabled = !routeItem.isEnabled;
@@ -281,27 +311,20 @@ async function deleteRoute(routeItem: any) {
                 }] : []),
                 ...(routeItem.publishedMethods?.length ? [{
                   label: 'Methods',
-                  value: routeItem.publishedMethods.map((m: any) => m.method).join(', ')
+                  component: 'UBadge',
+                  values: routeItem.publishedMethods.map((m: any) => ({
+                    value: m.method.toUpperCase(),
+                    props: {
+                      color: m.method === 'GET' ? 'info' : 
+                             m.method === 'POST' ? 'success' : 
+                             m.method === 'PATCH' ? 'warning' : 
+                             m.method === 'DELETE' ? 'error' : undefined
+                    }
+                  }))
                 }] : [])
               ]"
               :actions="[]"
-            >
-              <template #cardHeaderActions>
-                <USwitch
-                  v-if="!routeItem.isSystem"
-                  :model-value="routeItem.isEnabled"
-                  @update:model-value="toggleEnabled(routeItem)"
-                  :disabled="getRouteLoader(routeItem.id).isLoading"
-                  @click.stop
-                />
-                <UButton
-                  v-if="!routeItem.isSystem"
-                  icon="i-heroicons-trash"
-                  variant="outline"
-                  color="error"
-                  @click.stop="deleteRoute(routeItem)"
-                />
-              </template>
+              :header-actions="getRouteHeaderActions(routeItem)"
             </CommonSettingsCard>
           </div>
         </div>
