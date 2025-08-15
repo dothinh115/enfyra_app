@@ -322,7 +322,7 @@ onMounted(async () => {
 });
 
 function showWelcome() {
-  const userName = userInfo.value?.name || "there";
+  const userName = userInfo.value?.name || userInfo.value?.email;
   message.value = `👋 Hello ${userName}! Your extension is working perfectly. You built this without touching any server code!`;
 
   toast.add({
