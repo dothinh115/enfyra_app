@@ -89,19 +89,24 @@ Welcome to Enfyra CMS! This guide will teach you to **build custom features WITH
    Label: My First Extension
    Icon: lucide:rocket
    Type: Menu       ← IMPORTANT: This creates a menu item (not mini sidebar)
-   Path: /dashboard/my-first-extension ← IMPORTANT: Route where extension will load
-   Order: 10
+   Path: /dashboard/my-first-extension ← Where to navigate when clicking menu
+   Order: 10        ← Position in menu list (lower = higher up)
    ```
+
+   **📝 Field Explanations:**
+   - **Path:** `/dashboard/my-first-extension` - When user clicks this menu item, they will navigate to this URL and your extension page will load at this route
+   - **Order:** `10` - Controls the position of this menu item in the list. Lower numbers appear higher in the menu (Order 1 = top, Order 10 = lower down)
 4. **IMPORTANT - Set Sidebar Field:** In the **"sidebar"** field, you'll see a tree picker icon (🖊️)
 5. **Click the tree picker icon**
 6. **Find and select `/dashboard`** from the tree
 7. **Click "Pick" then "Apply"**
 8. **Click "Save"**
 
-**📝 Understanding the Path:**
-- **Menu Path:** `/dashboard/my-first-extension` (where extension loads)
-- **Sidebar Context:** Stays in `/dashboard` sidebar when clicked
-- **Result:** Extension loads at `/dashboard/my-first-extension` while keeping dashboard sidebar active
+**📝 Understanding Menu Configuration:**
+- **Path Function:** When user clicks menu → navigates to `/dashboard/my-first-extension` → extension page loads
+- **Sidebar Context:** Menu appears in `/dashboard` sidebar (via tree picker selection)
+- **Order Effect:** Menu item position in list (lower number = higher position)
+- **Result:** Click menu → navigate to path → extension loads → dashboard sidebar stays active
 
 **✅ Success Check:** Go to Dashboard - you should see "My First Extension" appear in the Dashboard menu items
 
@@ -120,10 +125,14 @@ Welcome to Enfyra CMS! This guide will teach you to **build custom features WITH
 1. Go to **Settings > Extensions**
 2. Click **"Create"** to see the form (don't create yet)
 3. Notice these key fields:
-   - **Extension ID**: Must match your menu item name
-   - **Type**: Page/Widget/Component
+   - **Extension ID**: Auto-generated - don't worry about this
+   - **Type**: Page/Widget - choose the extension type
    - **Code Editor**: Full Vue.js component
 4. Click "Cancel"
+
+**📝 Extension Types:**
+- **Page**: Standalone extension that loads automatically at its path route (like `/dashboard/my-first-extension`)
+- **Widget**: Nested extension that can be called/embedded inside other extensions using `<Widget>` component
 
 ---
 
