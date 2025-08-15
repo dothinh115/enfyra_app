@@ -22,7 +22,9 @@ export async function buildExtensionWithVite(
   vueContent: string,
   extensionId: string
 ) {
-  const tempDir = join(process.cwd(), ".temp-extension-build");
+  // Generate unique temp directory name for each build to avoid conflicts
+  const buildId = `${extensionId}-${Date.now()}-${randomUUID()}`;
+  const tempDir = join(process.cwd(), ".temp-extension-builds", buildId);
   const tempExtensionFile = join(tempDir, "extension.vue");
   const tempEntryFile = join(tempDir, "entry.js");
 

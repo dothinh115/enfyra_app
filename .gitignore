@@ -26,3 +26,6 @@ logs
 # Extension development folder
 enfyra-extension/
 
+# Temp extension builds
+.temp-extension-builds/
+
