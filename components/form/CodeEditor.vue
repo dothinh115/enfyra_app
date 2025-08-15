@@ -75,11 +75,16 @@ const diagnosticExtension = linter((view) => {
         "no-undef": ["off"], // Disable undefined variable checks for Vue files
         "no-unused-vars": ["off"],
         "no-empty-function": ["off"],
+        "no-unexpected-multiline": ["off"], // Disable unexpected token errors
+        "no-unreachable": ["off"],
+        "no-redeclare": ["off"], // Allow prop redeclaration
+        "no-unused-expressions": ["off"], // Allow JSX/template expressions
       }
     : {
         "no-undef": ["error"],
         "no-unused-vars": ["off"], 
         "no-empty-function": ["off"],
+        "no-unexpected-multiline": ["off"],
       };
 
   const result = linterInstance.verify(
@@ -89,6 +94,12 @@ const diagnosticExtension = linter((view) => {
         ecmaVersion: 2020,
         sourceType: "module",
         globals: EXTENSION_GLOBALS,
+        parserOptions: {
+          ecmaFeatures: {
+            jsx: true,
+            modules: true,
+          },
+        },
       },
       rules: lintRules as any,
     }
@@ -96,25 +107,43 @@ const diagnosticExtension = linter((view) => {
 
   const adjustment = 1;
 
-  const diagnostics: Diagnostic[] = result.map((msg) => {
-    // For Vue files, adjust line numbers to account for template/script structure
-    let actualLine = msg.line - adjustment;
-    if (props.language === "vue" && lineOffset > 0) {
-      actualLine += lineOffset;
-    }
-    const userLine = Math.max(1, actualLine);
-    const line = view.state.doc.line(userLine);
+  const diagnostics: Diagnostic[] = result
+    .filter((msg) => {
+      // Filter out common Vue/TypeScript syntax errors that aren't real issues
+      const ignoredErrors = [
+        "Parsing error: Unexpected token :",
+        "Parsing error: Unexpected token {",
+        "Parsing error: Unexpected token }",
+        "Parsing error: Unexpected token ,",
+        "Parsing error: Unexpected token )",
+        "Unexpected token :",
+        "Unexpected token {",
+        "Unexpected token }",
+        "Unexpected token ,",
+        "Unexpected token )",
+      ];
+      
+      return !ignoredErrors.some(ignored => msg.message.includes(ignored));
+    })
+    .map((msg) => {
+      // For Vue files, adjust line numbers to account for template/script structure
+      let actualLine = msg.line - adjustment;
+      if (props.language === "vue" && lineOffset > 0) {
+        actualLine += lineOffset;
+      }
+      const userLine = Math.max(1, actualLine);
+      const line = view.state.doc.line(userLine);
 
-    const from = msg.column ? line.from + msg.column - 1 : line.from;
-    const to = msg.endColumn ? line.from + msg.endColumn - 1 : line.to;
+      const from = msg.column ? line.from + msg.column - 1 : line.from;
+      const to = msg.endColumn ? line.from + msg.endColumn - 1 : line.to;
 
-    return {
-      from,
-      to,
-      message: msg.message,
-      severity: msg.severity === 2 ? "error" : "warning",
-    };
-  });
+      return {
+        from,
+        to,
+        message: msg.message,
+        severity: msg.severity === 2 ? "error" : "warning",
+      };
+    });
 
   emit("diagnostics", []);
   return diagnostics;
