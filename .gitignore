@@ -29,3 +29,7 @@ enfyra-extension/
 # Temp extension builds
 .temp-extension-builds/
 
+# AI Memory Files
+AI_MEMORY_BE.md
+AI_MEMORY_FE.md
+

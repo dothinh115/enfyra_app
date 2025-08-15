@@ -47,7 +47,7 @@
 /* Loading state transitions */
 .loading-fade-enter-active,
 .loading-fade-leave-active {
-  transition: opacity 0.3s ease-in-out;
+  transition: opacity 0.2s ease-in-out;
 }
 
 .loading-fade-enter-from,
@@ -58,7 +58,7 @@
 /* Content transitions */
 .content-fade-enter-active,
 .content-fade-leave-active {
-  transition: all 0.3s ease-in-out;
+  transition: all 0.1s ease-in-out;
 }
 
 .content-fade-enter-from {
