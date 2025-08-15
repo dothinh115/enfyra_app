@@ -96,10 +96,10 @@ Welcome to Enfyra CMS! This guide will teach you to **build custom features WITH
    **📝 Field Explanations:**
    - **Path:** `/dashboard/my-first-extension` - When user clicks this menu item, they will navigate to this URL and your extension page will load at this route
    - **Order:** `10` - Controls the position of this menu item in the list. Lower numbers appear higher in the menu (Order 1 = top, Order 10 = lower down)
-4. **IMPORTANT - Set Sidebar Field:** In the **"sidebar"** field, you'll see a tree picker icon (🖊️)
-5. **Click the tree picker icon**
-6. **Find and select `/dashboard`** from the tree
-7. **Click "Pick" then "Apply"**
+4. **IMPORTANT - Set Sidebar Field:** In the **"sidebar"** field, you'll see a pen icon (🖊️)
+5. **Click the pen icon** - a drawer will open
+6. **Find and click `/dashboard`** from the list in the drawer
+7. **Click "Apply"** to confirm your selection
 8. **Click "Save"**
 
 **📝 Understanding Menu Configuration:**
@@ -348,9 +348,9 @@ const userLoading = computed(() => userLoadingComputed.value);
 ```
 
 5. **IMPORTANT - Link Extension to Menu:** After saving the extension form, you need to connect it to your menu
-6. **Find the "menu" relation field** and click the tree picker icon (🖊️)
-7. **Browse and select your menu** - look for the menu with path `/dashboard/my-first-extension` that you created in Phase 1
-8. **Click "Pick" then "Apply"** to link the extension to your menu
+6. **Find the "menu" relation field** and click the pen icon (🖊️) - a drawer will open
+7. **Find and click your menu** - look for the menu with path `/dashboard/my-first-extension` that you created in Phase 1
+8. **Click "Apply"** to link the extension to your menu
 9. **Click "Save"** to finalize
 
 ### Step 6: Test Your Extension (10 minutes)
@@ -382,8 +382,8 @@ const userLoading = computed(() => userLoadingComputed.value);
 **Goal:** Understand the power of what you just accomplished
 
 **🚀 What Enfyra Did For You Automatically:**
-- ✅ **Created new route** (`/my-first-extension`) with zero server config
-- ✅ **Connected to menu** - extension automatically linked to your Dashboard menu item
+- ✅ **Created new route** (`/dashboard/my-first-extension`) with zero server config
+- ✅ **Connected to menu** - extension linked to menu via "menu" relation field
 - ✅ **Injected all UI components** (UCard, UButton, Icon, etc.) via `props.components`
 - ✅ **Made API composables available** (`useApiLazy`, `useToast`, computed, ref, etc.)
 - ✅ **Hot-deployed instantly** - no build, no server restart
@@ -391,11 +391,11 @@ const userLoading = computed(() => userLoadingComputed.value);
 - ✅ **Handled API calls** - `/me` endpoint worked immediately
 
 **🔧 Technical Achievements:**
-- ✅ **Simple setup** - Used existing Dashboard menu, no complex configuration
+- ✅ **Simple setup** - Used existing Dashboard sidebar with drawer selection
 - ✅ **CSR-optimized** - Used `useApiLazy` correctly for client-side rendering
 - ✅ **Reactive Vue.js** - Full framework power with ref, computed, watch
 - ✅ **API integration** - Real backend data fetching with error handling
-- ✅ **Auto-linking** - Extension ID matched menu name for automatic connection
+- ✅ **Relation linking** - Extension connected to menu via relation field (not auto-matching)
 - ✅ **Toast notifications** - Professional user feedback system
 
 **💡 Quick Experiment - Edit Your Extension:**
