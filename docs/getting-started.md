@@ -347,17 +347,11 @@ const userLoading = computed(() => userLoadingComputed.value);
 </script>
 ```
 
-5. **Menu Configuration:** Add this JSON to connect the extension to your menu:
-```json
-{
-  "path": "/dashboard/my-first-extension",
-  "name": "my-first-extension",
-  "label": "My First Extension", 
-  "icon": "lucide:rocket"
-}
-```
-
-6. **Click "Save"**
+5. **IMPORTANT - Link Extension to Menu:** After saving the extension form, you need to connect it to your menu
+6. **Find the "menu" relation field** and click the tree picker icon (🖊️)
+7. **Browse and select your menu** - look for the menu with path `/dashboard/my-first-extension` that you created in Phase 1
+8. **Click "Pick" then "Apply"** to link the extension to your menu
+9. **Click "Save"** to finalize
 
 ### Step 6: Test Your Extension (10 minutes)
 
@@ -378,10 +372,8 @@ const userLoading = computed(() => userLoadingComputed.value);
 - ✅ All data loads from the `/me` API endpoint successfully
 
 **🎯 If Something's Wrong:**
-- **No menu item visible?** Check that you selected `/dashboard` in the sidebar tree picker
-- **Extension won't load?** Verify: Menu path = `/dashboard/my-first-extension`, Extension menu config path = `/dashboard/my-first-extension`
-- **API errors?** The `/me` endpoint should work for all authenticated users
-- **Components missing?** All UI components are auto-injected via `props.components`
+- **No menu item visible?** → Check your menu creation steps
+- **Extension won't load?** → Check your extension creation steps
 
 **🎉 Success!** You've built your first extension with just the web interface!
 
