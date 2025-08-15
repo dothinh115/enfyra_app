@@ -40,7 +40,7 @@ Welcome to Enfyra CMS! This guide will teach you to **build custom features WITH
 
 ---
 
-## 🌟 Phase 1: Platform Mastery (15 minutes)
+## 🌟 Phase 1: Platform Mastery (20 minutes)
 
 ### Step 1: Access Your Enfyra CMS (2 minutes)
 
@@ -54,11 +54,11 @@ Welcome to Enfyra CMS! This guide will teach you to **build custom features WITH
 
 ### Step 2: Navigate the Admin Interface (5 minutes)
 
-**Goal:** Understand the main sections
+**Goal:** Understand the main sections and sidebar structure
 
 **Key sections you'll use:**
 ```
-📊 Dashboard       → Main overview
+📊 Dashboard       → Main overview where your extension will appear
 📋 Data           → View/manage your data tables  
 ⚙️  Settings      → Your main workspace
    ├── Extensions → CREATE CUSTOM FEATURES HERE ⭐
@@ -73,57 +73,99 @@ Welcome to Enfyra CMS! This guide will teach you to **build custom features WITH
 3. Click "Menus" - this is where you create navigation
 4. Navigate back to Dashboard
 
-### Step 3: Extension System Overview (8 minutes)
+### Step 3: Create a Menu Item in Dashboard (5 minutes)
 
-**Goal:** Understand how Enfyra's no-code extension system works
+**Goal:** Create a simple menu item inside the existing Dashboard section
+
+**IMPORTANT:** We'll add your first extension to the existing Dashboard menu (keeps it simple!)
+
+**Create Dashboard Menu Item:**
+
+1. Go to **Settings > Menus**
+2. Click **"Create"** button
+3. **Fill the form:**
+   ```
+   Name: my-first-extension
+   Label: My First Extension
+   Icon: lucide:rocket
+   Type: Menu       ← IMPORTANT: This creates a menu item (not mini sidebar)
+   Path: /dashboard/my-first-extension ← IMPORTANT: Route where extension will load
+   Order: 10
+   ```
+4. **IMPORTANT - Set Sidebar Field:** In the **"sidebar"** field, you'll see a tree picker icon (🖊️)
+5. **Click the tree picker icon**
+6. **Find and select `/dashboard`** from the tree
+7. **Click "Pick" then "Apply"**
+8. **Click "Save"**
+
+**📝 Understanding the Path:**
+- **Menu Path:** `/dashboard/my-first-extension` (where extension loads)
+- **Sidebar Context:** Stays in `/dashboard` sidebar when clicked
+- **Result:** Extension loads at `/dashboard/my-first-extension` while keeping dashboard sidebar active
+
+**✅ Success Check:** Go to Dashboard - you should see "My First Extension" appear in the Dashboard menu items
+
+### Step 4: Extension System Overview (3 minutes)
+
+**Goal:** Understand how extensions will connect to your menu
 
 **The Power of Extensions:**
-- ✅ **No server file editing needed**
-- ✅ **Code in browser editor** 
-- ✅ **Instant testing** - no build process
-- ✅ **Auto-deployment** - just save and go
-- ✅ **Complete Vue.js power** - full framework features
+- ✅ **Vue.js single-file components** - full framework power
+- ✅ **Links to your menu item** - extensions connect to menu items you created
+- ✅ **useApiLazy for data** - CSR-optimized API calls  
+- ✅ **Instant deployment** - save and test immediately
+- ✅ **Permission-aware** - integrates with role system
 
 **Quick System Tour:**
 1. Go to **Settings > Extensions**
-2. Click **"Create"** button  
-3. Observe the creation form:
-   - **Extension ID**: Unique identifier (like `my-dashboard`)
-   - **Name**: Display name (like `My Dashboard`)  
+2. Click **"Create"** to see the form (don't create yet)
+3. Notice these key fields:
+   - **Extension ID**: Must match your menu item name
    - **Type**: Page/Widget/Component
-   - **Code**: Full Vue.js single-file component
-   - **Menu Configuration**: Auto-create navigation
+   - **Code Editor**: Full Vue.js component
+4. Click "Cancel"
 
-4. **Don't create yet** - just explore the interface
-5. Click "Cancel" 
+---
 
-**✅ Understanding Check:**
-- ✅ Extensions created through web UI only
-- ✅ Built-in code editor with syntax highlighting
-- ✅ Instant deployment without server restart
-- ✅ Menu creation integrated
+## 🎓 Phase 1 Complete - Ready for Your First Extension! 
+
+**🏆 What You've Accomplished:**
+- ✅ **Menu Item Created** - "My First Extension" appears in Dashboard menu
+- ✅ **Relation Configured** - Menu item properly linked to Dashboard sidebar
+- ✅ **Extension System** - Understanding how extensions connect to menus
+- ✅ **Simple Setup** - Using existing Dashboard instead of creating new mini sidebar
+
+**📋 Checklist Before Phase 2:**
+- [ ] You can see "My First Extension" in the Dashboard sidebar menu
+- [ ] The menu item has path `/my-first-extension`
+- [ ] You understand that the extension will connect to this menu item
+- [ ] You're ready to build the actual extension code
+
+**🎯 Next Step:** Phase 2 will create the actual extension that connects to your menu item and uses the `/me` API endpoint correctly!
 
 ---
 
 ## 🏗️ Phase 2: Your First Extension (30 minutes)
 
-### Step 4: Create "My Dashboard" Extension (15 minutes)
+### Step 5: Create Your First Extension (15 minutes)
 
-**Goal:** Build your first custom page using only the UI
+**Goal:** Build the extension code that connects to your menu item
 
-**In Settings > Extensions:**
+**Create the Extension:**
 
-1. **Click "Create"**
-2. **Fill the form:**
+1. Go to **Settings > Extensions**
+2. Click **"Create"**
+3. **Fill the form:**
    ```
-   Extension ID: my-dashboard
-   Name: My Dashboard
-   Description: My first custom dashboard
+   Name: My First Extension
+   Description: My first simple extension
    Type: Page  
    Is Enabled: ✅ Checked
    ```
+   
+   **Note:** Extension ID will be auto-generated - don't worry about it!
 
-3. **In the Code Editor, paste this:**
+4. **In the Code Editor, paste this corrected code:**
 
 ```vue
 <template>
@@ -131,63 +173,78 @@ Welcome to Enfyra CMS! This guide will teach you to **build custom features WITH
     <!-- Header -->
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-gray-900 mb-2">
-        Welcome to My Dashboard! 🎉
+        My First Extension! 🚀
       </h1>
       <p class="text-gray-600">
-        Built with Enfyra CMS Extensions - no codebase changes needed!
+        Built entirely through the web interface - no server code changes!
       </p>
     </div>
 
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      <CommonSettingsCard
-        title="Users Online"
-        description="Current active users"
-        icon="lucide:users"
-        icon-color="success"
-        :stats="[{ label: 'Active Now', value: '24' }]"
-      />
-      
-      <CommonSettingsCard
-        title="Total Posts"
-        description="Content created today"  
-        icon="lucide:file-text"
-        icon-color="primary"
-        :stats="[{ label: 'Today', value: '12' }]"
-      />
-      
-      <CommonSettingsCard
-        title="System Status"
-        description="All systems operational"
-        icon="lucide:check-circle"
-        icon-color="success"
-        :stats="[{ label: 'Status', value: 'Healthy' }]"
-      />
-    </div>
-
-    <!-- Interactive Section -->
-    <UCard>
+    <!-- User Info Card -->
+    <UCard class="mb-6">
       <template #header>
-        <h3 class="text-xl font-semibold">Quick Actions</h3>
+        <h3 class="text-xl font-semibold flex items-center gap-2">
+          <Icon name="lucide:user" />
+          Current User Information
+        </h3>
       </template>
       
       <div class="space-y-4">
-        <div class="flex gap-3">
-          <UButton @click="showMessage" color="primary">
+        <div v-if="userLoading" class="text-center py-4">
+          <Icon name="lucide:loader" class="animate-spin text-2xl" />
+          <p class="mt-2">Loading user data...</p>
+        </div>
+        
+        <div v-else-if="userInfo" class="space-y-2">
+          <p><strong>Name:</strong> {{ userInfo.name || 'Not set' }}</p>
+          <p><strong>Email:</strong> {{ userInfo.email }}</p>
+          <p><strong>Role:</strong> {{ userInfo.role?.name || 'No role' }}</p>
+          <p><strong>Account Created:</strong> {{ formatDate(userInfo.createdAt) }}</p>
+        </div>
+        
+        <div class="flex gap-3 pt-4">
+          <UButton @click="fetchUserData" :loading="userLoading" icon="lucide:refresh-cw">
+            Refresh User Data
+          </UButton>
+          
+          <UButton @click="showWelcome" variant="outline" icon="lucide:hand-heart">
             Say Hello
           </UButton>
+        </div>
+      </div>
+    </UCard>
+
+    <!-- Interactive Demo Section -->
+    <UCard>
+      <template #header>
+        <h3 class="text-xl font-semibold">Extension Demo Features</h3>
+      </template>
+      
+      <div class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-4 bg-blue-50 rounded-lg">
+            <h4 class="font-medium text-blue-900">✅ API Integration</h4>
+            <p class="text-sm text-blue-700">Successfully calling /me endpoint</p>
+          </div>
           
-          <UButton @click="showUserCount" variant="outline">
-            Count Users
-          </UButton>
+          <div class="p-4 bg-green-50 rounded-lg">
+            <h4 class="font-medium text-green-900">✅ UI Components</h4>
+            <p class="text-sm text-green-700">Using all Enfyra components</p>
+          </div>
           
-          <UButton @click="refreshData" variant="outline" :loading="loading">
-            {{ loading ? 'Loading...' : 'Refresh Data' }}
-          </UButton>
+          <div class="p-4 bg-purple-50 rounded-lg">
+            <h4 class="font-medium text-purple-900">✅ Reactive Data</h4>
+            <p class="text-sm text-purple-700">Real-time state management</p>
+          </div>
+          
+          <div class="p-4 bg-orange-50 rounded-lg">
+            <h4 class="font-medium text-orange-900">✅ Toast Notifications</h4>
+            <p class="text-sm text-orange-700">User feedback system</p>
+          </div>
         </div>
 
         <!-- Message Display -->
-        <div v-if="message" class="p-4 bg-blue-50 border border-blue-200 rounded">
+        <div v-if="message" class="p-4 bg-blue-100 border-l-4 border-blue-500 rounded">
           <p class="text-blue-800">{{ message }}</p>
         </div>
       </div>
@@ -196,7 +253,7 @@ Welcome to Enfyra CMS! This guide will teach you to **build custom features WITH
 </template>
 
 <script setup lang="ts">
-// Props from extension system (injected automatically)
+// Props from extension system (auto-injected by Enfyra)
 const props = defineProps({
   components: {
     type: Object,
@@ -205,120 +262,173 @@ const props = defineProps({
 });
 
 // Destructure available components
-const { CommonSettingsCard, UCard, UButton } = props.components;
+const { UCard, UButton, Icon } = props.components;
 
-// Extension state
+// Reactive state
 const message = ref('');
-const loading = ref(false);
+const userInfo = ref(null);
+const userLoading = ref(false);
 
-// Toast notifications (auto-available)
+// Toast notifications (auto-available in extensions)
 const toast = useToast();
 
-// Interactive functions
-function showMessage() {
-  message.value = '👋 Hello from your custom extension! This was built entirely through the UI.';
+// API composable - CORRECT usage for CSR
+const { data: userData, execute: fetchUser, pending: userDataLoading } = useApiLazy(
+  () => '/me',  // ✅ CORRECT: /me endpoint (user has permission)
+  {
+    errorContext: 'Fetch Current User',
+  }
+);
+
+// Watch for user data changes
+watch(userData, (newData) => {
+  if (newData) {
+    userInfo.value = newData;
+  }
+}, { immediate: true });
+
+// Computed loading state
+const userLoadingComputed = computed(() => userDataLoading.value || userLoading.value);
+
+// Mount: Fetch user data
+onMounted(async () => {
+  await fetchUserData();
+});
+
+// Functions
+async function fetchUserData() {
+  userLoading.value = true;
+  try {
+    await fetchUser();  // ✅ CORRECT: manual execution with useApiLazy
+    toast.add({
+      title: 'Success',
+      description: 'User data loaded successfully',
+      color: 'success'
+    });
+  } catch (error) {
+    toast.add({
+      title: 'Error',
+      description: 'Failed to load user data',
+      color: 'error'
+    });
+  } finally {
+    userLoading.value = false;
+  }
+}
+
+function showWelcome() {
+  const userName = userInfo.value?.name || 'there';
+  message.value = `👋 Hello ${userName}! Your extension is working perfectly. You built this without touching any server code!`;
   
   toast.add({
-    title: 'Hello!',
+    title: `Hello ${userName}!`,
     description: 'Your extension is working perfectly!',
     color: 'success'
   });
 }
 
-async function showUserCount() {
-  // Using the auto-available API composable
-  const { data } = await useApiLazy(() => '/user_definition', {
-    query: { limit: 1, meta: '*' }
-  });
-  
-  if (data.value?.meta?.totalCount) {
-    message.value = `📊 Total users in system: ${data.value.meta.totalCount}`;
-  } else {
-    message.value = '📊 Unable to fetch user count';
-  }
+// Utility function
+function formatDate(dateString: string) {
+  if (!dateString) return 'Unknown';
+  return new Date(dateString).toLocaleDateString();
 }
 
-async function refreshData() {
-  loading.value = true;
-  
-  // Simulate data refresh
-  await new Promise(resolve => setTimeout(resolve, 1500));
-  
-  message.value = '🔄 Data refreshed successfully!';
-  loading.value = false;
-  
-  toast.add({
-    title: 'Refresh Complete',
-    color: 'success'
-  });
-}
+// Combine loading states
+const userLoading = computed(() => userLoadingComputed.value);
 </script>
 ```
 
-4. **Menu Configuration section - paste this JSON:**
+5. **Menu Configuration:** Add this JSON to connect the extension to your menu:
 ```json
 {
-  "path": "/my-dashboard",
-  "name": "my-dashboard", 
-  "label": "My Dashboard",
-  "icon": "lucide:layout-dashboard",
-  "sidebarId": "main",
-  "order": 1
+  "path": "/dashboard/my-first-extension",
+  "name": "my-first-extension",
+  "label": "My First Extension", 
+  "icon": "lucide:rocket"
 }
 ```
 
-5. **Click "Save"**
+6. **Click "Save"**
 
-**✅ Test Your Extension:**
-1. After saving, look at the sidebar - you should see "My Dashboard"!
-2. Click on "My Dashboard" in the navigation
-3. You should see your custom page with interactive buttons
-4. Click the buttons and see them work!
+### Step 6: Test Your Extension (10 minutes)
 
-**🎉 Congratulations!** You just built a complete custom feature without touching any server code!
+**Goal:** Navigate to and test your newly created extension
 
-### Step 5: Understanding What Just Happened (15 minutes)
+**Simple Testing Steps:**
+1. **Go to Dashboard:** Navigate to the main dashboard page
+2. **Find Your Menu Item:** Look for "My First Extension" in the Dashboard sidebar menu
+3. **Click to Open:** Click on "My First Extension"
+4. **Test the Extension:** Your extension should load at `/dashboard/my-first-extension`
+
+**✅ What Should Happen:**
+- ✅ Your extension loads successfully
+- ✅ You see the welcome message and user info card
+- ✅ The "Refresh User Data" button works and shows your user information
+- ✅ The "Say Hello" button displays a personalized message
+- ✅ Toast notifications appear when you interact with buttons
+- ✅ All data loads from the `/me` API endpoint successfully
+
+**🎯 If Something's Wrong:**
+- **No menu item visible?** Check that you selected `/dashboard` in the sidebar tree picker
+- **Extension won't load?** Verify: Menu path = `/dashboard/my-first-extension`, Extension menu config path = `/dashboard/my-first-extension`
+- **API errors?** The `/me` endpoint should work for all authenticated users
+- **Components missing?** All UI components are auto-injected via `props.components`
+
+**🎉 Success!** You've built your first extension with just the web interface!
+
+### Step 7: Understanding What You Accomplished (5 minutes)
 
 **Goal:** Understand the power of what you just accomplished
 
-**What Enfyra Did For You:**
-- ✅ **Created a new route** (`/my-dashboard`) automatically
-- ✅ **Added navigation menu** item to sidebar  
-- ✅ **Injected all UI components** (`CommonSettingsCard`, `UButton`, etc.)
-- ✅ **Made API composables available** (`useApiLazy`, `useToast`)
-- ✅ **Hot-deployed your code** without server restart
-- ✅ **Handled all permissions** and security
+**🚀 What Enfyra Did For You Automatically:**
+- ✅ **Created new route** (`/my-first-extension`) with zero server config
+- ✅ **Connected to menu** - extension automatically linked to your Dashboard menu item
+- ✅ **Injected all UI components** (UCard, UButton, Icon, etc.) via `props.components`
+- ✅ **Made API composables available** (`useApiLazy`, `useToast`, computed, ref, etc.)
+- ✅ **Hot-deployed instantly** - no build, no server restart
+- ✅ **Applied security** - automatic authentication and permission checks
+- ✅ **Handled API calls** - `/me` endpoint worked immediately
 
-**Experiment with your extension:**
-1. Go back to **Settings > Extensions**
-2. Find your "My Dashboard" extension
-3. Click "Edit" 
-4. Try changing the title or adding new buttons
-5. Save and immediately see changes on your dashboard page
+**🔧 Technical Achievements:**
+- ✅ **Simple setup** - Used existing Dashboard menu, no complex configuration
+- ✅ **CSR-optimized** - Used `useApiLazy` correctly for client-side rendering
+- ✅ **Reactive Vue.js** - Full framework power with ref, computed, watch
+- ✅ **API integration** - Real backend data fetching with error handling
+- ✅ **Auto-linking** - Extension ID matched menu name for automatic connection
+- ✅ **Toast notifications** - Professional user feedback system
 
-**Try This Quick Modification:**
-Add this button to your extension code (in the `<div class="flex gap-3">` section):
+**💡 Quick Experiment - Edit Your Extension:**
+1. Go to **Settings > Extensions**
+2. Find your "My First Extension"  
+3. Click "Edit"
+4. Add this button in the first button group:
 ```vue
-<UButton @click="showTime" color="secondary">
+<UButton @click="showCurrentTime" variant="outline" icon="lucide:clock">
   Show Time
 </UButton>
 ```
 
-And add this function in the script section:
+5. Add this function in the script section:
 ```typescript
-function showTime() {
-  message.value = `🕐 Current time: ${new Date().toLocaleTimeString()}`;
+function showCurrentTime() {
+  const now = new Date().toLocaleString();
+  message.value = `🕐 Current time: ${now}`;
+  toast.add({
+    title: 'Time Update',
+    description: `It's ${now}`,
+    color: 'info'
+  });
 }
 ```
 
-Save and test immediately!
+6. **Save and test immediately** - no build process needed!
 
-**✅ Key Learning Points:**
-- ✅ Extensions are **full Vue.js components**
-- ✅ All Enfyra components and composables **auto-available**
-- ✅ **Instant deployment** - no build process needed
-- ✅ **Automatic navigation** integration
-- ✅ **Real API access** to your data
+**✅ Key Insights About Enfyra Extensions:**
+- ✅ **Zero server-side changes** - everything through web UI
+- ✅ **Full Vue.js ecosystem** - composables, reactivity, lifecycle hooks
+- ✅ **Professional UI** - all Nuxt UI components available
+- ✅ **Real-time development** - save and see changes instantly
+- ✅ **Production-ready** - proper error handling, loading states, security
 
 ---
 
