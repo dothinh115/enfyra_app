@@ -1,5 +1,5 @@
 import { defineEventHandler, H3Event } from "h3";
-import { refreshToken } from "~/utils/server/auth/refresh-token";
+import { refreshToken } from "../../app/utils/server/auth/refresh-token";
 
 export default defineEventHandler(async (event: H3Event) => {
   // ✅ Build headers manually from raw request

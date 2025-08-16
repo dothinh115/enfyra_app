@@ -1,11 +1,11 @@
 # Enfyra App
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Nuxt](https://img.shields.io/badge/Nuxt-3-green.svg)](https://nuxt.com/)
+[![Nuxt](https://img.shields.io/badge/Nuxt-4-green.svg)](https://nuxt.com/)
 [![Vue](https://img.shields.io/badge/Vue-3-green.svg)](https://vuejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue.svg)](https://www.typescriptlang.org/)
 
-A modern, extensible headless CMS built with Nuxt 3, featuring dynamic table management, extension system, API composables with automatic error handling, and a responsive Vue.js interface.
+A modern, extensible headless CMS built with Nuxt 4, featuring dynamic table management, extension system, API composables with automatic error handling, and a responsive Vue.js interface.
 
 ## Features
 
