@@ -1,6 +1,6 @@
 # Permission System - Usage Guide
 
-The Enfyra CMS permission system provides comprehensive role-based access control (RBAC) for fine-grained control over user access. This system uses roles, routes, and actions to determine what users can see and do within the CMS.
+The Enfyra App permission system provides comprehensive role-based access control (RBAC) for fine-grained control over user access. This system uses roles, routes, and actions to determine what users can see and do within the CMS.
 
 ## Core Concepts
 
@@ -571,7 +571,7 @@ if (me.value?.isRootAdmin) {
 
 ## Summary
 
-The Enfyra CMS permission system provides:
+The Enfyra App permission system provides:
 
 1. **PermissionGate Component** - Declarative permission-based rendering
 2. **usePermissions Composable** - Programmatic permission checking  

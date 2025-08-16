@@ -1,10 +1,10 @@
-# Extension Development Guide - Enfyra CMS
+# Extension Development Guide - Enfyra App
 
-The Enfyra CMS extension system allows you to create custom Vue components that can be uploaded and integrated into the system without rebuilding the entire application. This guide covers everything you need to know to create powerful extensions.
+The Enfyra App extension system allows you to create custom Vue components that can be uploaded and integrated into the system without rebuilding the entire application. This guide covers everything you need to know to create powerful extensions.
 
 ## System Overview
 
-Extensions in Enfyra CMS are dynamically loaded Vue 3 components that can be:
+Extensions in Enfyra App are dynamically loaded Vue 3 components that can be:
 - **Page Extensions**: Full-page components accessible via routes
 - **Widget Extensions**: Reusable components that can be embedded anywhere
 - **Component Extensions**: Shareable components for other extensions
@@ -141,7 +141,7 @@ interface MenuDefinition {
 <script setup lang="ts">
 // Extension metadata
 const extensionName = "My Extension";
-const extensionDescription = "A powerful extension demonstrating Enfyra CMS capabilities";
+const extensionDescription = "A powerful extension demonstrating Enfyra App capabilities";
 
 // Props from the extension system
 const props = defineProps({
@@ -360,7 +360,7 @@ const config = useRuntimeConfig();
 const appConfig = useAppConfig();
 ```
 
-### Enfyra CMS Composables
+### Enfyra App Composables
 
 #### useAuth()
 ```typescript
@@ -1453,7 +1453,7 @@ onMounted(() => {
 
 ## Summary
 
-The Enfyra CMS extension system provides:
+The Enfyra App extension system provides:
 
 1. **Three Extension Types**: Page, Widget, and Component extensions
 2. **Full Vue 3 Support**: Complete access to Composition API and lifecycle hooks

@@ -88,7 +88,7 @@ const refresh = () => window.location.reload();
 
 // Set page title for better SEO and accessibility
 useHead({
-  title: computed(() => `Error ${props.error.statusCode} - Enfyra CMS`),
+  title: computed(() => `Error ${props.error.statusCode} - Enfyra App`),
   meta: [
     {
       name: "description",

@@ -1,6 +1,6 @@
 # useApiLazy Composable Guide
 
-This guide explains how to use the `useApiLazy` composable for making API requests in the Enfyra CMS application.
+This guide explains how to use the `useApiLazy` composable for making API requests in the Enfyra App application.
 
 ## Overview
 

@@ -1,4 +1,4 @@
-# Enfyra CMS
+# Enfyra App
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Nuxt](https://img.shields.io/badge/Nuxt-3-green.svg)](https://nuxt.com/)
@@ -23,7 +23,7 @@ A modern, extensible headless CMS built with Nuxt 3, featuring dynamic table man
 ## 📚 Documentation
 
 ### 🚀 **Quick Start**
-**New to Enfyra CMS? Start here!**
+**New to Enfyra App? Start here!**
 - **[📖 Getting Started Guide](./docs/getting-started.md)** - **Complete step-by-step tutorial from setup to building your first features** (30 min → productivity)
 
 ### 🏗️ **Architecture & Core Systems**
@@ -90,7 +90,7 @@ We welcome contributions! Please feel free to submit a Pull Request. For major c
 ### Development Setup
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/your-username/enfyra-cms.git`
+2. Clone your fork: `git clone https://github.com/your-username/enfyra-app.git`
 3. Install dependencies: `npm install`
 4. Create a feature branch: `git checkout -b feature/amazing-feature`
 5. Make your changes and commit: `git commit -m 'Add amazing feature'`

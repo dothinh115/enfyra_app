@@ -1,6 +1,6 @@
 module.exports = {
   apps: [{
-    name: 'enfyra-cms',
+    name: 'enfyra-app',
     script: '.output/server/index.mjs',
     instances: 1,
     watch: false,

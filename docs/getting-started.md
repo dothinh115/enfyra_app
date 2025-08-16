@@ -1,6 +1,6 @@
-# Getting Started with Enfyra CMS
+# Getting Started with Enfyra App
 
-Welcome to Enfyra CMS! This guide will teach you to **build custom features WITHOUT touching the codebase** - using only the web interface to create extensions, menus, and complete applications.
+Welcome to Enfyra App! This guide will teach you to **build custom features WITHOUT touching the codebase** - using only the web interface to create extensions, menus, and complete applications.
 
 ## 🎯 The Enfyra Way
 
@@ -43,11 +43,11 @@ Welcome to Enfyra CMS! This guide will teach you to **build custom features WITH
 
 ## 🌟 Phase 1: Platform Mastery (20 minutes)
 
-### Step 1: Access Your Enfyra CMS (2 minutes)
+### Step 1: Access Your Enfyra App (2 minutes)
 
 **Goal:** Login and see the admin interface
 
-1. Open your Enfyra CMS URL
+1. Open your Enfyra App URL
 2. Login with your admin credentials
 3. You'll see the main dashboard
 
@@ -642,7 +642,7 @@ watch(
       tasks.value = [
         {
           id: 1,
-          title: "Setup Enfyra CMS",
+          title: "Setup Enfyra App",
           description: "Complete the getting started guide",
           status: "completed",
           priority: "high",
@@ -1262,7 +1262,7 @@ useHeaderActionRegistry([
 
 ---
 
-## 🎓 Congratulations! You've Mastered Enfyra CMS!
+## 🎓 Congratulations! You've Mastered Enfyra App!
 
 ### 🏆 What You've Accomplished
 
@@ -1307,6 +1307,6 @@ useHeaderActionRegistry([
 
 ### 🎉 Welcome to the Enfyra Community!
 
-You're now ready to build **production-ready applications** using Enfyra CMS's powerful extension system. The only limit is your imagination!
+You're now ready to build **production-ready applications** using Enfyra App's powerful extension system. The only limit is your imagination!
 
-**Key Takeaway:** With Enfyra CMS, you can build **complete applications** without ever touching server code - just use the web interface and your creativity! 🚀
+**Key Takeaway:** With Enfyra App, you can build **complete applications** without ever touching server code - just use the web interface and your creativity! 🚀

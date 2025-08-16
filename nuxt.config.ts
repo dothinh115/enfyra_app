@@ -25,7 +25,7 @@ export default defineNuxtConfig({
         { name: "theme-color", content: "#3b82f6" },
         { name: "color-scheme", content: "dark light" },
       ],
-      title: "Enfyra CMS - Content Management System",
+      title: "Enfyra App - Content Management System",
     },
   },
   imports: {

@@ -1,6 +1,6 @@
 # Filter System - Usage Guide
 
-The Enfyra CMS Filter System provides a comprehensive solution for building complex data queries with an intuitive UI. The system includes composables, components, and utilities for creating flexible filter conditions.
+The Enfyra App Filter System provides a comprehensive solution for building complex data queries with an intuitive UI. The system includes composables, components, and utilities for creating flexible filter conditions.
 
 ## System Components
 
@@ -675,4 +675,4 @@ useHeaderActionRegistry([
 ]);
 ```
 
-This filter system provides a complete solution for building sophisticated data filtering interfaces in Enfyra CMS with excellent user experience and developer productivity.
+This filter system provides a complete solution for building sophisticated data filtering interfaces in Enfyra App with excellent user experience and developer productivity.

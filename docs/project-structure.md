@@ -1,7 +1,7 @@
-# Enfyra CMS - Project Structure Documentation
+# Enfyra App - Project Structure Documentation
 
 ## Overview
-Enfyra CMS is a content management system built on Nuxt 3 with Vue 3 Composition API and TypeScript. The project uses Nuxt UI and Tailwind CSS for the user interface.
+Enfyra App is a content management system built on Nuxt 3 with Vue 3 Composition API and TypeScript. The project uses Nuxt UI and Tailwind CSS for the user interface.
 
 ## Root Level Files
 - `nuxt.config.ts` - Nuxt 3 configuration

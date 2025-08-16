@@ -1,6 +1,6 @@
 # Form Field System - Usage Guide
 
-The Enfyra CMS Form Field System provides dynamic form generation, validation, and rendering based on database schema definitions. This system automatically creates forms with proper field types, validation rules, and error handling.
+The Enfyra App Form Field System provides dynamic form generation, validation, and rendering based on database schema definitions. This system automatically creates forms with proper field types, validation rules, and error handling.
 
 ## Core Components & Composables
 
@@ -896,4 +896,4 @@ const typeMap = computed(() => ({
 }));
 ```
 
-This comprehensive form system provides everything needed to create robust, validated, and user-friendly forms in Enfyra CMS with seamless API integration and excellent developer experience.
+This comprehensive form system provides everything needed to create robust, validated, and user-friendly forms in Enfyra App with seamless API integration and excellent developer experience.

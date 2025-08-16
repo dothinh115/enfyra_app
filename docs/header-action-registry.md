@@ -1,6 +1,6 @@
 # Header Action Registry System
 
-The Header Action Registry System provides a flexible, route-specific way to manage header actions (buttons) in the Enfyra CMS. This system allows each page to register its own actions, which are automatically displayed in the header and cleaned up when navigating away.
+The Header Action Registry System provides a flexible, route-specific way to manage header actions (buttons) in the Enfyra App. This system allows each page to register its own actions, which are automatically displayed in the header and cleaned up when navigating away.
 
 ## Overview
 
