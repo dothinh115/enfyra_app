@@ -108,7 +108,7 @@ Welcome to Enfyra App! Build **complete custom features** without touching any s
           <UButton 
             @click="refreshUser" 
             :loading="loading"
-            color="blue"
+            color="primary"
             variant="soft"
             icon="i-lucide-refresh-cw"
             block
@@ -132,16 +132,16 @@ Welcome to Enfyra App! Build **complete custom features** without touching any s
           <div class="space-y-2">
             <p class="text-sm text-gray-600">Try different toast notifications:</p>
             <div class="flex flex-wrap gap-2">
-              <UButton @click="showSuccessToast" color="green" size="sm">
+              <UButton @click="showSuccessToast" color="success" size="sm">
                 ✅ Success
               </UButton>
-              <UButton @click="showWarningToast" color="yellow" size="sm">
+              <UButton @click="showWarningToast" color="warning" size="sm">
                 ⚠️ Warning
               </UButton>
-              <UButton @click="showErrorToast" color="red" size="sm">
+              <UButton @click="showErrorToast" color="error" size="sm">
                 ❌ Error
               </UButton>
-              <UButton @click="showInfoToast" color="blue" size="sm">
+              <UButton @click="showInfoToast" color="info" size="sm">
                 ℹ️ Info
               </UButton>
             </div>
@@ -162,7 +162,7 @@ Welcome to Enfyra App! Build **complete custom features** without touching any s
           <!-- Fun Messages -->
           <UButton 
             @click="showRandomMessage" 
-            color="purple" 
+            color="primary" 
             variant="soft"
             icon="i-lucide-sparkles"
             block
@@ -182,10 +182,6 @@ Welcome to Enfyra App! Build **complete custom features** without touching any s
       </p>
     </div>
 
-    <!-- Current Message Display -->
-    <div v-if="currentMessage" class="mt-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 border-l-4 border-purple-400 rounded-lg">
-      <p class="text-gray-800 font-medium">{{ currentMessage }}</p>
-    </div>
   </div>
 </template>
 
@@ -194,7 +190,6 @@ Welcome to Enfyra App! Build **complete custom features** without touching any s
 const user = ref(null)
 const loading = ref(false)
 const counter = ref(0)
-const currentMessage = ref('')
 
 // Enfyra composables (auto-available)
 const toast = useToast()
@@ -226,7 +221,7 @@ async function refreshUser() {
   toast.add({
     title: 'Data Refreshed!',
     description: 'User information updated successfully',
-    color: 'green'
+    color: 'success'
   })
 }
 
@@ -234,36 +229,32 @@ function showSuccessToast() {
   toast.add({
     title: '🎉 Success!',
     description: 'This is a success notification',
-    color: 'green'
+    color: 'success'
   })
-  currentMessage.value = '✅ Success toast displayed!'
 }
 
 function showWarningToast() {
   toast.add({
     title: '⚠️ Warning!',
     description: 'This is a warning notification',
-    color: 'yellow'
+    color: 'warning'
   })
-  currentMessage.value = '⚠️ Warning toast displayed!'
 }
 
 function showErrorToast() {
   toast.add({
     title: '❌ Error!',
     description: 'This is an error notification',
-    color: 'red'
+    color: 'error'
   })
-  currentMessage.value = '❌ Error toast displayed!'
 }
 
 function showInfoToast() {
   toast.add({
     title: 'ℹ️ Information',
     description: 'This is an info notification',
-    color: 'blue'
+    color: 'info'
   })
-  currentMessage.value = 'ℹ️ Info toast displayed!'
 }
 
 function showRandomMessage() {
@@ -278,12 +269,11 @@ function showRandomMessage() {
   ]
   
   const randomMsg = messages[Math.floor(Math.random() * messages.length)]
-  currentMessage.value = randomMsg
   
   toast.add({
     title: 'Random Inspiration!',
     description: randomMsg,
-    color: 'purple'
+    color: 'primary'
   })
 }
 
