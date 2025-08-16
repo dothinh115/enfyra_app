@@ -3,7 +3,7 @@ defineOptions({
   inheritAttrs: false
 });
 
-defineProps<{
+const props = defineProps<{
   modelValue: Record<string, any>;
   errors: Record<string, string>;
   tableName: string;
@@ -13,7 +13,7 @@ defineProps<{
   readonly?: boolean;
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   'update:modelValue': [value: Record<string, any>];
   'update:errors': [errors: Record<string, string>];
 }>();
@@ -25,7 +25,11 @@ const FormEditor = defineAsyncComponent(() =>
 
 <template>
   <Suspense>
-    <FormEditor v-bind="$props" />
+    <FormEditor 
+      v-bind="props" 
+      @update:model-value="(value) => emit('update:modelValue', value)"
+      @update:errors="(errors) => emit('update:errors', errors)"
+    />
     <template #fallback>
       <CommonLoadingState
         title="Loading form editor..."

@@ -19,6 +19,11 @@ const props = withDefaults(defineProps<DataTableProps>(), {
   selectable: false,
 });
 
+const emit = defineEmits<{
+  'row-click': [row: any];
+  'bulk-delete': [selectedRows: any[]];
+}>();
+
 // Table state
 const sorting = ref<SortingState>([]);
 const columnVisibility = ref<VisibilityState>({});
@@ -135,8 +140,8 @@ const selectedRows = computed(() => {
 
 // Bulk actions
 async function handleBulkDelete() {
-  if (props.onBulkDelete && selectedRows.value.length > 0) {
-    await props.onBulkDelete(selectedRows.value);
+  if (selectedRows.value.length > 0) {
+    emit('bulk-delete', selectedRows.value);
     // Clear selection after delete
     rowSelection.value = {};
   }
@@ -157,7 +162,7 @@ const { isTablet } = useScreen();
         <DataTableBulkActions
           v-if="selectable"
           :selected-count="selectedRows.length"
-          :on-delete="onBulkDelete ? handleBulkDelete : undefined"
+          :on-delete="handleBulkDelete"
         />
       </div>
     </div>
@@ -229,9 +234,9 @@ const { isTablet } = useScreen();
             :key="row.id"
             :class="[
               'hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors',
-              onRowClick && 'cursor-pointer',
+              'cursor-pointer',
             ]"
-            @click="onRowClick?.(row.original)"
+            @click="emit('row-click', row.original)"
           >
             <td
               v-for="cell in row.getVisibleCells()"
@@ -280,7 +285,7 @@ const { isTablet } = useScreen();
         :selectable="selectable"
         :selected="row.getIsSelected()"
         :on-toggle-select="() => row.getToggleSelectedHandler()?.($event)"
-        :on-click="() => onRowClick?.(row.original)"
+        :on-click="() => emit('row-click', row.original)"
       />
       <div v-if="!loading && props.data.length === 0" class="py-8">
         <CommonEmptyState

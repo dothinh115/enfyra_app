@@ -48,6 +48,7 @@ const props = defineProps<{
 
 const emit = defineEmits(["update:modelValue", "diagnostics"]);
 
+
 // Ensure modelValue is always a string to prevent CodeMirror errors
 const code = ref(ensureString(props.modelValue));
 
@@ -490,6 +491,9 @@ const extensions = computed(() => [
 
 <template>
   <div class="rounded-md overflow-hidden ring-1 ring-slate-700">
+    <div class="text-xs text-gray-400 p-2 bg-gray-800">
+      Debug: editable=true, readonly=false, modelValue={{ code?.length || 0 }} chars
+    </div>
     <NuxtCodeMirror
       v-model="code"
       :extensions="extensions"
@@ -497,6 +501,7 @@ const extensions = computed(() => [
       :height="props.height || '400px'"
       :editable="true"
       :read-only="false"
+      @update:model-value="(val) => console.log('📝 CodeMirror changed:', val?.length, 'chars')"
     />
   </div>
 </template>

@@ -5,7 +5,7 @@ defineOptions({
   inheritAttrs: false
 });
 
-defineProps<DataTableProps>();
+const props = defineProps<DataTableProps>();
 
 defineEmits<{
   'row-click': [row: any];
@@ -18,16 +18,26 @@ const DataTable = defineAsyncComponent(() =>
 </script>
 
 <template>
-  <Suspense>
-    <DataTable v-bind="$props" />
-    <template #fallback>
-      <CommonLoadingState
-        title="Loading table..."
-        description="Setting up data table components"
-        size="sm"
-        type="card"
-        context="page"
+  <div>
+    <Suspense>
+      <DataTable 
+        :data="props.data"
+        :columns="props.columns"
+        :page-size="props.pageSize"
+        :loading="props.loading"
+        :selectable="props.selectable"
+        @row-click="(row) => $emit('row-click', row)"
+        @bulk-delete="(selectedRows) => $emit('bulk-delete', selectedRows)"
       />
-    </template>
-  </Suspense>
+      <template #fallback>
+        <CommonLoadingState
+          title="Loading table..."
+          description="Setting up data table components"
+          size="sm"
+          type="card"
+          context="page"
+        />
+      </template>
+    </Suspense>
+  </div>
 </template>

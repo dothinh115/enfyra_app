@@ -60,14 +60,37 @@ import {
 } from "#imports";
 
 import {
-  EXTENSION_COMPOSABLES,
   EXTENSION_VUE_FUNCTIONS,
   createComposableMap,
 } from "../utils/extension/globals";
 
-/**
- * Composable for loading dynamic Vue components from code
- */
+// Extension cache with version-based invalidation
+const extensionCache = new Map<string, any>();
+const maxCacheSize = 50;
+const cacheHits = ref(0);
+const cacheMisses = ref(0);
+
+// Extension metadata cache using Nuxt state
+const extensionMetaCache = useState<Map<string, any>>('extension-meta-cache', () => new Map());
+
+const isComponentCached = (
+  extensionName: string,
+  updatedAt?: string | Date
+) => {
+  const cacheKey = `${extensionName}:${
+    updatedAt ? new Date(updatedAt).getTime() : Date.now()
+  }`;
+  return extensionCache.has(cacheKey);
+};
+
+const getCachedExtensionMeta = (path: string) => {
+  return extensionMetaCache.value.get(path);
+};
+
+const setCachedExtensionMeta = (path: string, extensionData: any) => {
+  extensionMetaCache.value.set(path, extensionData);
+};
+
 export const useDynamicComponent = () => {
   // Get components directly imported
   const availableComponents = {
@@ -110,17 +133,92 @@ export const useDynamicComponent = () => {
 
     // Dynamic Components
     Widget: markRaw(DynamicWidgetComponent),
+    DynamicWidgetComponent: markRaw(DynamicWidgetComponent),
   };
+
+  /**
+   * Clear old versions of a specific extension from cache
+   */
+  const clearOldVersions = (extensionId: string) => {
+    for (const [key] of extensionCache) {
+      if (key.startsWith(`${extensionId}:`)) {
+        extensionCache.delete(key);
+      }
+    }
+  };
+
+  /**
+   * Manage cache size with LRU strategy
+   */
+  const manageCacheSize = () => {
+    if (extensionCache.size >= maxCacheSize) {
+      // Remove oldest entry (first in map)
+      const firstKey = extensionCache.keys().next().value;
+      if (firstKey) {
+        extensionCache.delete(firstKey);
+      }
+    }
+  };
+
+  /**
+   * Clear cache for specific extension or all
+   */
+  const clearCache = (extensionId?: string) => {
+    if (extensionId) {
+      clearOldVersions(extensionId);
+    } else {
+      extensionCache.clear();
+    }
+    // Reset stats
+    cacheHits.value = 0;
+    cacheMisses.value = 0;
+  };
+
+  /**
+   * Get cache statistics
+   */
+  const getCacheStats = () => ({
+    size: extensionCache.size,
+    hits: cacheHits.value,
+    misses: cacheMisses.value,
+    hitRate:
+      cacheHits.value + cacheMisses.value > 0
+        ? (
+            (cacheHits.value / (cacheHits.value + cacheMisses.value)) *
+            100
+          ).toFixed(2) + "%"
+        : "0%",
+    keys: Array.from(extensionCache.keys()),
+    memoryEstimate: `~${extensionCache.size * 50}KB`, // Rough estimate
+  });
 
   const loadDynamicComponent = async (
     compiledCode: string,
-    extensionName: string
+    extensionName: string,
+    updatedAt?: string | Date,
+    forceReload = false
   ) => {
     try {
       // Only run on client-side
       if (typeof window === "undefined") {
         throw new Error("Extensions can only be loaded on client-side");
       }
+
+      // Create cache key with updatedAt timestamp
+      const cacheKey = `${extensionName}:${
+        updatedAt ? new Date(updatedAt).getTime() : Date.now()
+      }`;
+
+      // Check cache unless force reload
+      if (!forceReload && extensionCache.has(cacheKey)) {
+        cacheHits.value++;
+        return extensionCache.get(cacheKey);
+      }
+
+      cacheMisses.value++;
+
+      // Clear old versions of this extension
+      clearOldVersions(extensionName);
 
       // 1. Setup globals if not already done
       if (!(window as any).Vue) {
@@ -210,14 +308,18 @@ export const useDynamicComponent = () => {
       }
 
       // 3. Create wrapper component with injected dependencies
-      if (!component || typeof component !== 'object') {
+      if (!component || typeof component !== "object") {
         throw new Error(`Invalid component: ${component}`);
       }
-      
+
       const wrappedComponent = markRaw({
         ...component,
         components: availableComponents,
       });
+
+      // Cache the compiled component
+      manageCacheSize();
+      extensionCache.set(cacheKey, wrappedComponent);
 
       return markRaw(wrappedComponent);
     } catch (error: any) {
@@ -227,5 +329,10 @@ export const useDynamicComponent = () => {
 
   return {
     loadDynamicComponent,
+    clearCache,
+    getCacheStats,
+    isComponentCached,
+    getCachedExtensionMeta,
+    setCachedExtensionMeta,
   };
 };

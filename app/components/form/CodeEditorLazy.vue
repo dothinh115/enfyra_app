@@ -1,6 +1,10 @@
 <template>
   <Suspense>
-    <CodeEditor v-bind="$attrs" />
+    <CodeEditor 
+      v-bind="$attrs" 
+      @update:model-value="(value) => $emit('update:modelValue', value)"
+      @diagnostics="(diags) => $emit('diagnostics', diags)"
+    />
     <template #fallback>
       <div class="flex items-center justify-center p-8 bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700">
         <div class="text-center">
@@ -13,6 +17,11 @@
 </template>
 
 <script setup lang="ts">
+defineEmits<{
+  'update:modelValue': [value: string];
+  'diagnostics': [diags: any[]];
+}>();
+
 const CodeEditor = defineAsyncComponent(() => 
   import('./CodeEditor.vue')
 );
