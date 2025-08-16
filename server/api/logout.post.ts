@@ -1,6 +1,5 @@
 import {
   defineEventHandler,
-  readBody,
   getHeader,
   getCookie,
   deleteCookie,
@@ -39,9 +38,7 @@ export default defineEventHandler(async (event: H3Event) => {
   } catch (err: any) {
     const statusCode = err?.response?.status || err?.statusCode;
     const errorData = err?.response?._data || err?.data;
-    
 
-    
     // don't throw — still delete local cookies
     return { success: false, message: "Logout completed locally" };
   }

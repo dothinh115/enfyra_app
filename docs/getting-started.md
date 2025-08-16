@@ -195,14 +195,14 @@ Welcome to Enfyra App! This guide will teach you to **build custom features WITH
     <UCard class="mb-6">
       <template #header>
         <h3 class="text-xl font-semibold flex items-center gap-2">
-          <Icon name="lucide:user" />
+          <UIcon name="lucide:user" />
           Current User Information
         </h3>
       </template>
 
       <div class="space-y-4">
         <div v-if="userLoading" class="text-center py-4">
-          <Icon name="lucide:loader" class="animate-spin text-2xl" />
+          <UIcon name="lucide:loader" class="animate-spin text-2xl" />
           <p class="mt-2">Loading user data...</p>
         </div>
 
