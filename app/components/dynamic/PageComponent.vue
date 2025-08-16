@@ -1,7 +1,7 @@
 <template>
   <Transition name="loading-fade" mode="out-in">
     <CommonLoadingState
-      v-if="!isMounted || loading"
+      v-if="!isMounted || componentLoading"
       title="Loading extension..."
       description="Fetching extension component"
       size="md"
@@ -73,10 +73,11 @@ interface Props {
 const props = defineProps<Props>();
 
 const { isMounted } = useMounted();
-const { loadDynamicComponent } = useDynamicComponent();
+const { loadDynamicComponent, isComponentCached, getCachedExtensionMeta, setCachedExtensionMeta } = useDynamicComponent();
 
 const error = ref<string | null>(null);
 const extensionComponent = ref<any>(null);
+const componentLoading = ref(false);
 
 const {
   data: menuResponse,
@@ -103,51 +104,94 @@ const {
 
 const loadMatchingExtension = async () => {
   error.value = null;
-
-  await executeFetchMenu();
-
-  // Check if there was an error
-  if (menuError.value) {
-    error.value = `API Error: ${menuError.value}`;
-    return;
+  
+  // Check if we have extension metadata cached
+  const cachedMeta = getCachedExtensionMeta(props.path);
+  if (cachedMeta) {
+    // Check if component is cached
+    const isCached = isComponentCached(cachedMeta.extensionId, cachedMeta.updatedAt);
+    
+    if (isCached) {
+      try {
+        const component = await loadDynamicComponent(
+          cachedMeta.compiledCode || cachedMeta.code,
+          cachedMeta.extensionId,
+          cachedMeta.updatedAt
+        );
+        extensionComponent.value = component;
+        return; // Skip API fetch
+      } catch (err: any) {
+        console.warn('❌ Failed to load cached component:', err);
+      }
+    }
   }
+  
+  // No cache or component not cached - fetch API
+  console.log('📡 Fetching API...');
+  componentLoading.value = true;
+  await fetchAndLoadExtension();
+};
 
-  if (!menuResponse.value?.data || menuResponse.value.data.length === 0) {
-    error.value = `No menu found for route: /${props.path}`;
-    return;
-  }
-
-  const menuItem = menuResponse.value.data[0];
-
-  if (!menuItem.extension || menuItem.extension.length === 0) {
-    error.value = `No extension found for route: /${props.path}`;
-    return;
-  }
-
-  const extension = menuItem.extension;
-
-  if (!extension.isEnabled) {
-    error.value = `Extension "${extension.name}" is currently disabled. Please contact an administrator to enable this extension.`;
-    return;
-  }
-
+const fetchAndLoadExtension = async () => {
   try {
+    await executeFetchMenu();
+
+    // Check if there was an error
+    if (menuError.value) {
+      error.value = `API Error: ${menuError.value}`;
+      componentLoading.value = false;
+      return;
+    }
+
+    if (!menuResponse.value?.data || menuResponse.value.data.length === 0) {
+      error.value = `No menu found for route: /${props.path}`;
+      componentLoading.value = false;
+      return;
+    }
+
+    const menuItem = menuResponse.value.data[0];
+
+    if (!menuItem.extension || menuItem.extension.length === 0) {
+      error.value = `No extension found for route: /${props.path}`;
+      componentLoading.value = false;
+      return;
+    }
+
+    const extension = menuItem.extension;
+
+    if (!extension.isEnabled) {
+      error.value = `Extension "${extension.name}" is currently disabled. Please contact an administrator to enable this extension.`;
+      componentLoading.value = false;
+      return;
+    }
+
+    // Cache extension metadata for next time
+    setCachedExtensionMeta(props.path, extension);
+    
+    // Check if component is cached 
+    const isCached = isComponentCached(extension.extensionId, extension.updatedAt);
+
+    // Load component
     const component = await loadDynamicComponent(
       extension.compiledCode || extension.code,
-      extension.extensionId
+      extension.extensionId,
+      extension.updatedAt
     );
-
     extensionComponent.value = component;
+
   } catch (err: any) {
     error.value = `Failed to load extension: ${err?.message || err}`;
+  } finally {
+    componentLoading.value = false;
   }
 };
+
 
 const retry = () => {
   loadMatchingExtension();
 };
 
-// Watch for path changes
+// Watch for path changes (immediate: true covers both watch and onMounted)
 watch(
   () => props.path,
   () => {
@@ -155,8 +199,4 @@ watch(
   },
   { immediate: true }
 );
-
-onMounted(async () => {
-  await loadMatchingExtension();
-});
 </script>

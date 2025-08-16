@@ -219,6 +219,7 @@ function getComponentConfigByKey(key: string) {
       };
 
     case "code":
+      
       // If field is disabled, show disabled input instead of code editor
       if (disabled) {
         return {

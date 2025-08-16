@@ -1,7 +1,7 @@
 <template>
   <div>
     <div
-      v-if="!isMounted || loading"
+      v-if="(!isMounted || componentLoading) && !error"
       class="flex items-center gap-2 text-sm text-gray-400"
     >
       <UIcon 
@@ -9,7 +9,7 @@
         class="animate-spin" 
         size="16"
       />
-      <span>Loading widget...</span>
+      <span>Loading...</span>
     </div>
 
     <div
@@ -60,10 +60,11 @@ defineOptions({
 });
 
 const { isMounted } = useMounted();
-const { loadDynamicComponent } = useDynamicComponent();
+const { loadDynamicComponent, isComponentCached, getCachedExtensionMeta, setCachedExtensionMeta } = useDynamicComponent();
 
 const error = ref<string | null>(null);
 const widgetComponent = ref<any>(null);
+const componentLoading = ref(false);
 
 const {
   data: extensionResponse,
@@ -86,36 +87,80 @@ const {
 
 const loadMatchingWidget = async () => {
   error.value = null;
-
-  await executeFetchExtension();
-
-  // Check if there was an error
-  if (extensionError.value) {
-    error.value = `API Error: ${extensionError.value}`;
-    return;
+  
+  // Check if we have extension metadata cached (use widget ID as path)
+  const widgetPath = `widget:${props.id}`;
+  const cachedMeta = getCachedExtensionMeta(widgetPath);
+  if (cachedMeta) {
+    // Check if component is cached
+    const isCached = isComponentCached(cachedMeta.extensionId, cachedMeta.updatedAt);
+    
+    if (isCached) {
+      try {
+        const component = await loadDynamicComponent(
+          cachedMeta.compiledCode || cachedMeta.code,
+          cachedMeta.extensionId,
+          cachedMeta.updatedAt
+        );
+        widgetComponent.value = component;
+        return; // Skip API fetch
+      } catch (err: any) {
+        console.warn('❌ Failed to load cached widget component:', err);
+      }
+    }
   }
+  
+  // No cache or component not cached - fetch API
+  console.log('📡 Fetching widget API...');
+  componentLoading.value = true;
+  await fetchAndLoadWidget();
+};
 
-  if (!extensionResponse.value?.data || extensionResponse.value.data.length === 0) {
-    error.value = `No widget found with ID: ${props.id}`;
-    return;
-  }
-
-  const extension = extensionResponse.value.data[0];
-
-  if (!extension.isEnabled) {
-    error.value = `Widget "${extension.name}" is currently disabled. Please contact an administrator to enable this widget.`;
-    return;
-  }
-
+const fetchAndLoadWidget = async () => {
   try {
+    await executeFetchExtension();
+
+    // Check if there was an error
+    if (extensionError.value) {
+      error.value = `API Error: ${extensionError.value}`;
+      componentLoading.value = false;
+      return;
+    }
+
+    if (!extensionResponse.value?.data || extensionResponse.value.data.length === 0) {
+      error.value = `No widget found with ID: ${props.id}`;
+      componentLoading.value = false;
+      return;
+    }
+
+    const extension = extensionResponse.value.data[0];
+
+    if (!extension.isEnabled) {
+      error.value = `Widget "${extension.name}" is currently disabled. Please contact an administrator to enable this widget.`;
+      componentLoading.value = false;
+      return;
+    }
+
+    // Cache extension metadata for next time
+    const widgetPath = `widget:${props.id}`;
+    setCachedExtensionMeta(widgetPath, extension);
+    
+    // Check if component is cached 
+    const isCached = isComponentCached(extension.extensionId, extension.updatedAt);
+
+    // Load component
     const component = await loadDynamicComponent(
       extension.compiledCode || extension.code,
-      extension.extensionId
+      extension.extensionId,
+      extension.updatedAt
     );
 
     widgetComponent.value = component;
+
   } catch (err: any) {
     error.value = `Failed to load widget: ${err?.message || err}`;
+  } finally {
+    componentLoading.value = false;
   }
 };
 

@@ -7,9 +7,7 @@ export interface DataTableProps {
   columns: any[]; // Using any for @tanstack/vue-table ColumnDef compatibility
   pageSize?: number;
   loading?: boolean;
-  onRowClick?: (row: any) => void;
   selectable?: boolean;
-  onBulkDelete?: (selectedRows: any[]) => void;
 }
 
 // Tablet Card Component (renamed from MobileCard)

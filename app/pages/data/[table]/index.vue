@@ -289,6 +289,22 @@ async function handleDelete(id: string) {
   });
 }
 
+async function handleBulkDeleteIfAllowed(selectedRows: any[]) {
+  // Check permission first
+  if (!checkPermissionCondition({
+    and: [
+      {
+        route: `/${route.params.table}`,
+        actions: ['delete'],
+      },
+    ],
+  })) {
+    return;
+  }
+  
+  return handleBulkDelete(selectedRows);
+}
+
 async function handleBulkDelete(selectedRows: any[]) {
   const result = await confirm({
     title: "Delete Records",
@@ -340,7 +356,7 @@ onMounted(async () => {
       </div>
 
       <!-- Column Picker -->
-      <DataTableLazyColumnSelector :items="columnDropdownItems" />
+      <DataTableColumnSelector :items="columnDropdownItems" />
     </div>
 
     <!-- Data Table -->
@@ -364,18 +380,7 @@ onMounted(async () => {
         :loading="false"
         :page-size="pageLimit"
         :selectable="true"
-        :on-bulk-delete="
-          checkPermissionCondition({
-            and: [
-              {
-                route: `/${route.params.table}`,
-                actions: ['delete'],
-              },
-            ],
-          })
-            ? handleBulkDelete
-            : undefined
-        "
+        @bulk-delete="handleBulkDeleteIfAllowed"
         @row-click="(row: any) => navigateTo(`/data/${tableName}/${row.id}`)"
       >
         <template #header-actions>
