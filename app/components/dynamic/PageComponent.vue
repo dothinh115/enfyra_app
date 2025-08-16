@@ -127,7 +127,6 @@ const loadMatchingExtension = async () => {
   }
   
   // No cache or component not cached - fetch API
-  console.log('📡 Fetching API...');
   componentLoading.value = true;
   await fetchAndLoadExtension();
 };

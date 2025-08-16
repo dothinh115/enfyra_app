@@ -143,7 +143,6 @@ export const useDynamicComponent = () => {
     for (const [key] of extensionCache) {
       if (key.startsWith(`${extensionId}:`)) {
         extensionCache.delete(key);
-        console.log(`Cleared old cache for extension ${extensionId}: ${key}`);
       }
     }
   };
@@ -157,7 +156,6 @@ export const useDynamicComponent = () => {
       const firstKey = extensionCache.keys().next().value;
       if (firstKey) {
         extensionCache.delete(firstKey);
-        console.log(`Cache size limit reached, removed: ${firstKey}`);
       }
     }
   };
@@ -170,7 +168,6 @@ export const useDynamicComponent = () => {
       clearOldVersions(extensionId);
     } else {
       extensionCache.clear();
-      console.log("Cleared all extension cache");
     }
     // Reset stats
     cacheHits.value = 0;
@@ -215,16 +212,10 @@ export const useDynamicComponent = () => {
       // Check cache unless force reload
       if (!forceReload && extensionCache.has(cacheKey)) {
         cacheHits.value++;
-        console.log(
-          `🎯 Cache hit for extension ${extensionName} (updated:${updatedAt})`
-        );
         return extensionCache.get(cacheKey);
       }
 
       cacheMisses.value++;
-      console.log(
-        `🔨 Compiling extension ${extensionName} (updated:${updatedAt})`
-      );
 
       // Clear old versions of this extension
       clearOldVersions(extensionName);
@@ -329,7 +320,6 @@ export const useDynamicComponent = () => {
       // Cache the compiled component
       manageCacheSize();
       extensionCache.set(cacheKey, wrappedComponent);
-      console.log(`✅ Cached extension ${extensionName} with key: ${cacheKey}`);
 
       return markRaw(wrappedComponent);
     } catch (error: any) {
