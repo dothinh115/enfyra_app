@@ -76,10 +76,10 @@ Welcome to Enfyra App! Build **complete custom features** without touching any s
   <div class="p-6 max-w-4xl mx-auto">
     <!-- Header -->
     <div class="text-center mb-8">
-      <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+      <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
         🎉 Welcome to Enfyra!
       </h1>
-      <p class="text-lg font-semibold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mt-2">✨ Your first custom extension is working perfectly! ✨</p>
+      <p class="text-lg font-semibold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent mt-2">✨ Your first custom extension is working perfectly! ✨</p>
     </div>
 
     <!-- Interactive Demo Cards -->
@@ -130,7 +130,7 @@ Welcome to Enfyra App! Build **complete custom features** without touching any s
         <div class="space-y-4">
           <!-- Toast Demos -->
           <div class="space-y-2">
-            <p class="text-sm font-medium text-gray-800">Try different toast notifications:</p>
+            <p class="text-sm font-medium text-gray-200">Try different toast notifications:</p>
             <div class="flex flex-wrap gap-2">
               <UButton @click="showSuccessToast" color="success" size="sm">
                 ✅ Success
@@ -148,9 +148,9 @@ Welcome to Enfyra App! Build **complete custom features** without touching any s
           </div>
 
           <!-- Counter Demo -->
-          <div class="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
+          <div class="p-4 bg-gradient-to-r from-gray-800 to-gray-700 rounded-lg border border-gray-600">
             <div class="flex items-center justify-between">
-              <span class="font-semibold text-gray-700">Counter Demo:</span>
+              <span class="font-semibold text-gray-200">Counter Demo:</span>
               <div class="flex items-center gap-2">
                 <UButton @click="counter--" size="sm" variant="outline">-</UButton>
                 <span class="text-xl font-bold text-purple-600 px-3">{{ counter }}</span>
