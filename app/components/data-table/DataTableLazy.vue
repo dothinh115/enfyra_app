@@ -29,11 +29,11 @@ const DataTable = defineAsyncComponent(() => import("./DataTable.vue"));
       />
       <template #fallback>
         <CommonLoadingState
-          title="Loading table..."
-          description="Setting up data table components"
-          size="sm"
-          type="spinner"
+          type="table"
+          size="md"
           context="page"
+          :title="`Loading data...`"
+          description="Fetching records"
         />
       </template>
     </Suspense>

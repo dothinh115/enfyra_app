@@ -291,17 +291,19 @@ async function handleDelete(id: string) {
 
 async function handleBulkDeleteIfAllowed(selectedRows: any[]) {
   // Check permission first
-  if (!checkPermissionCondition({
-    and: [
-      {
-        route: `/${route.params.table}`,
-        actions: ['delete'],
-      },
-    ],
-  })) {
+  if (
+    !checkPermissionCondition({
+      and: [
+        {
+          route: `/${route.params.table}`,
+          actions: ["delete"],
+        },
+      ],
+    })
+  ) {
     return;
   }
-  
+
   return handleBulkDelete(selectedRows);
 }
 
@@ -367,7 +369,7 @@ onMounted(async () => {
           type="table"
           size="md"
           context="page"
-          :title="`Loading ${table?.name || 'data'}...`"
+          :title="`Loading data...`"
           description="Fetching records"
         />
       </div>
