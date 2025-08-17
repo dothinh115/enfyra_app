@@ -348,11 +348,13 @@ onMounted(async () => {
 
 <template>
   <div class="space-y-4">
+    <!-- Header -->
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold text-gray-300">{{ table?.name || "Data Records" }}</h1>
+    </div>
+
     <!-- Page Header -->
     <div class="flex items-center justify-between">
-      <div class="text-xl font-semibold capitalize">
-        <span>{{ table?.name || "Records" }}</span>
-      </div>
 
       <!-- Column Picker -->
       <DataTableColumnSelector :items="columnDropdownItems" />

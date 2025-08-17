@@ -90,7 +90,13 @@ onMounted(async () => {
 </script>
 
 <template>
-  <Transition name="loading-fade" mode="out-in">
+  <div>
+    <!-- Header -->
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold text-gray-300">General Settings</h1>
+    </div>
+
+    <Transition name="loading-fade" mode="out-in">
     <CommonLoadingState
       v-if="!isMounted || loading"
       title="Loading settings..."
@@ -117,4 +123,5 @@ onMounted(async () => {
       </UCard>
     </UForm>
   </Transition>
+  </div>
 </template>

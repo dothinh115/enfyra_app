@@ -39,7 +39,7 @@ const rootIcon = computed(() => props.icon || "lucide:home");
       >
         {{ seg.label }}
       </NuxtLink>
-      <h1 v-else class="text-gray-500">{{ seg.label }}</h1>
+      <span v-else class="text-gray-500">{{ seg.label }}</span>
     </template>
   </nav>
 </template>

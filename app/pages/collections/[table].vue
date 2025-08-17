@@ -178,6 +178,10 @@ onMounted(async () => {
 
 <template>
   <div class="relative">
+    <!-- Header -->
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold text-gray-300">Table Editor</h1>
+    </div>
     <Transition name="loading-fade" mode="out-in">
       <CommonLoadingState
         v-if="!isMounted || loading"
