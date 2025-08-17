@@ -2,25 +2,23 @@
 import type { DataTableProps } from "../../utils/types";
 
 defineOptions({
-  inheritAttrs: false
+  inheritAttrs: false,
 });
 
 const props = defineProps<DataTableProps>();
 
 defineEmits<{
-  'row-click': [row: any];
-  'bulk-delete': [selectedRows: any[]];
+  "row-click": [row: any];
+  "bulk-delete": [selectedRows: any[]];
 }>();
 
-const DataTable = defineAsyncComponent(() => 
-  import('./DataTable.vue')
-);
+const DataTable = defineAsyncComponent(() => import("./DataTable.vue"));
 </script>
 
 <template>
   <div>
     <Suspense>
-      <DataTable 
+      <DataTable
         :data="props.data"
         :columns="props.columns"
         :page-size="props.pageSize"
@@ -34,7 +32,7 @@ const DataTable = defineAsyncComponent(() =>
           title="Loading table..."
           description="Setting up data table components"
           size="sm"
-          type="card"
+          type="spinner"
           context="page"
         />
       </template>
