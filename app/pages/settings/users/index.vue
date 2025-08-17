@@ -69,7 +69,7 @@
       />
     </div>
 
-    <FilterDrawer
+    <FilterDrawerLazy
       v-model="showFilterDrawer"
       v-model:filter-value="currentFilter"
       :table-name="tableName"

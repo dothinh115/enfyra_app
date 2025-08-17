@@ -11,7 +11,7 @@
     </UForm>
 
     <!-- Upload Modal -->
-    <CommonUploadModal
+    <CommonUploadModalLazy
       v-model="showUploadModal"
       title="Upload Extension"
       accept=".vue"

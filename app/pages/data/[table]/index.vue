@@ -423,7 +423,7 @@ onMounted(async () => {
     />
 
     <!-- Filter Drawer - use existing component -->
-    <FilterDrawer
+    <FilterDrawerLazy
       v-model="showFilterDrawer"
       v-model:filter-value="currentFilter"
       :table-name="tableName"

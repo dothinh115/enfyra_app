@@ -356,7 +356,7 @@ async function deleteRoute(routeItem: any) {
   </div>
 
   <!-- Filter Drawer -->
-  <FilterDrawer
+  <FilterDrawerLazy
     v-model="showFilterDrawer"
     v-model:filter-value="currentFilter"
     :table-name="tableName"

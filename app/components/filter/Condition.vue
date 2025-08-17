@@ -85,7 +85,7 @@ function onFieldSelectChange(selectedValue: string) {
             ? 'Select field from ' + parentGroup.relationContext
             : 'Select field or relation'
         "
-        class="min-w-40"
+        class="min-w-40 min-h-8"
       />
     </div>
     <span v-else class="text-sm font-medium min-w-32">{{
@@ -98,7 +98,7 @@ function onFieldSelectChange(selectedValue: string) {
       v-model="condition.operator"
       :items="getOperatorsByType(condition.type || 'string')"
       @update:model-value="updateCondition"
-      class="min-w-32"
+      class="min-w-32 min-h-8"
     />
     <span v-else class="text-sm min-w-32">
       {{
@@ -119,7 +119,7 @@ function onFieldSelectChange(selectedValue: string) {
           { label: 'False', value: false },
         ]"
         @update:model-value="updateCondition"
-        class="min-w-24"
+        class="min-w-24 min-h-8"
       />
 
       <!-- Select with Options -->
@@ -133,7 +133,7 @@ function onFieldSelectChange(selectedValue: string) {
         :items="getFieldOptions(condition.field, tableName, schemas)"
         multiple
         @update:model-value="updateCondition"
-        class="min-w-32"
+        class="min-w-32 min-h-8"
       />
 
       <USelect
@@ -141,7 +141,7 @@ function onFieldSelectChange(selectedValue: string) {
         v-model="condition.value"
         :items="getFieldOptions(condition.field, tableName, schemas)"
         @update:model-value="updateCondition"
-        class="min-w-24"
+        class="min-w-24 min-h-8"
       />
 
       <!-- Between Values -->
@@ -201,7 +201,7 @@ function onFieldSelectChange(selectedValue: string) {
             : 'text'
         "
         size="sm"
-        class="min-w-32"
+        class="min-w-32 min-h-8"
       />
 
       <!-- Readonly Value Display -->
