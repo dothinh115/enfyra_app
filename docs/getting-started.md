@@ -79,7 +79,7 @@ Welcome to Enfyra App! Build **complete custom features** without touching any s
       <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
         🎉 Welcome to Enfyra!
       </h1>
-      <p class="text-gray-600 mt-2">Your first custom extension is working perfectly!</p>
+      <p class="text-lg font-semibold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mt-2">✨ Your first custom extension is working perfectly! ✨</p>
     </div>
 
     <!-- Interactive Demo Cards -->
@@ -130,7 +130,7 @@ Welcome to Enfyra App! Build **complete custom features** without touching any s
         <div class="space-y-4">
           <!-- Toast Demos -->
           <div class="space-y-2">
-            <p class="text-sm text-gray-600">Try different toast notifications:</p>
+            <p class="text-sm font-medium text-gray-800">Try different toast notifications:</p>
             <div class="flex flex-wrap gap-2">
               <UButton @click="showSuccessToast" color="success" size="sm">
                 ✅ Success
