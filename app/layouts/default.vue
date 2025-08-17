@@ -74,25 +74,8 @@
       <!-- Header -->
       <LayoutHeader />
 
-      <div
-        class="h-12 border-b border-gray-700 flex items-center justify-between bg-background shrink-0"
-        :class="isTablet ? 'px-4' : 'px-6'"
-      >
-        <slot name="subheader">
-          <!-- Fallback content if no slot -->
-          <div class="flex items-center gap-3">
-            <UButton
-              icon="lucide:arrow-left"
-              variant="soft"
-              color="primary"
-              @click="goBack"
-              label="Back"
-              :disabled="disableBack"
-              :size="isTablet ? 'sm' : 'md'"
-            />
-          </div>
-        </slot>
-      </div>
+      <!-- Sub Header -->
+      <LayoutSubHeader />
 
       <!-- Page Content -->
       <section
@@ -150,24 +133,7 @@ const {
 } = useGlobalState();
 const { isMobile, isTablet } = useScreen();
 
-// Calculate breadcrumb segments from route
-const segments = computed(() => {
-  const parts = route.path.split("/").filter(Boolean);
-
-  return parts.map((part, i) => {
-    const label = decodeURIComponent(part);
-    const icon = "lucide:chevron-right";
-    const to = "/" + parts.slice(0, i + 1).join("/");
-    return { label, icon, to };
-  });
-});
-
-// Disable back button if only 1 segment (root)
-const disableBack = computed(() => segments.value.length <= 1);
-
-function goBack() {
-  router.back();
-}
+// Layout logic moved to LayoutSubHeader component
 
 // Auto hide sidebar on tablet (no mobile support)
 watch(

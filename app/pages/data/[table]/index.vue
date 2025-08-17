@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import type { ColumnDef } from "@tanstack/vue-table";
+import ColumnSelector from "~/components/data-table/ColumnSelector.vue";
 
 const route = useRoute();
 const tableName = route.params.table as string;
 const { tables, schemas } = useGlobalState();
+const { isTablet } = useScreen();
 const total = ref(1);
 const page = ref(1);
 const pageLimit = 10;
@@ -113,6 +115,23 @@ const { execute: executeDelete, error: deleteError } = useApiLazy(
   }
 );
 
+// Column visibility state
+const visibleColumns = ref<Set<string>>(new Set());
+
+// Initialize visible columns when schema changes
+watch(
+  () => schemas.value[tableName],
+  (schema) => {
+    if (schema?.definition) {
+      const columnFields = schema.definition
+        .filter((field: any) => field.fieldType === "column")
+        .map((field: any) => field.name);
+      visibleColumns.value = new Set(columnFields); // All visible by default
+    }
+  },
+  { immediate: true }
+);
+
 // Column visibility dropdown items
 const columnDropdownItems = computed(() => {
   const schema = schemas.value[tableName];
@@ -123,13 +142,70 @@ const columnDropdownItems = computed(() => {
     .map((field: any) => ({
       label: field.label || field.name,
       type: "checkbox" as const,
-      checked: true, // All columns visible by default
+      checked: visibleColumns.value.has(field.name),
       onSelect: (e: Event) => {
         e.preventDefault();
-        // Column visibility logic can be added here if needed
+        toggleColumnVisibility(field.name);
       },
     }));
 });
+
+// Toggle column visibility
+function toggleColumnVisibility(columnName: string) {
+  if (visibleColumns.value.has(columnName)) {
+    visibleColumns.value.delete(columnName);
+  } else {
+    visibleColumns.value.add(columnName);
+  }
+  // Trigger reactivity
+  visibleColumns.value = new Set(visibleColumns.value);
+}
+
+useSubHeaderActionRegistry([
+  // Right side - Column picker (default side)
+  {
+    id: "column-picker-component",
+    component: ColumnSelector,
+    get props() {
+      return {
+        items: columnDropdownItems.value,
+        size: isTablet.value ? 'sm' : 'md', // Same as back button
+        variant: 'soft'
+      };
+    },
+    get key() {
+      return `column-picker-${Array.from(visibleColumns.value).join("-")}`;
+    },
+    permission: {
+      and: [
+        {
+          route: `/${route.params.table}`,
+          actions: ["read"],
+        },
+      ],
+    },
+  },
+  // Left side - Test action (after back button)
+  {
+    id: "test-left-action",
+    label: "Test Left",
+    icon: "lucide:info",
+    variant: "soft",
+    color: "secondary",
+    side: "left",
+    onClick: () => {
+      alert('Left side action clicked!');
+    },
+    permission: {
+      and: [
+        {
+          route: `/${route.params.table}`,
+          actions: ["read"],
+        },
+      ],
+    },
+  },
+]);
 
 // Build columns from schema
 const columns = computed<ColumnDef<any>[]>(() => {
@@ -137,7 +213,10 @@ const columns = computed<ColumnDef<any>[]>(() => {
   if (!schema?.definition) return [];
 
   const cols: ColumnDef<any>[] = schema.definition
-    .filter((field: any) => field.fieldType === "column")
+    .filter(
+      (field: any) =>
+        field.fieldType === "column" && visibleColumns.value.has(field.name)
+    )
     .map((field: any) => ({
       id: field.name,
       accessorKey: field.name,
@@ -349,15 +428,10 @@ onMounted(async () => {
 <template>
   <div class="space-y-4">
     <!-- Header -->
-    <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-300">{{ table?.name || "Data Records" }}</h1>
-    </div>
-
-    <!-- Page Header -->
-    <div class="flex items-center justify-between">
-
-      <!-- Column Picker -->
-      <DataTableColumnSelector :items="columnDropdownItems" />
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl font-bold text-gray-300">
+        {{ table?.name || "Data Records" }}
+      </h1>
     </div>
 
     <!-- Data Table -->

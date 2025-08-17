@@ -1,7 +1,15 @@
 <script setup lang="ts">
 import type { ColumnSelectorProps } from "../../utils/types";
 
-const props = defineProps<ColumnSelectorProps>();
+interface Props extends ColumnSelectorProps {
+  size?: "sm" | "md" | "lg" | "xl";
+  variant?: "solid" | "outline" | "ghost" | "soft";
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  size: "md",
+  variant: "soft"
+});
 </script>
 
 <template>
@@ -10,7 +18,7 @@ const props = defineProps<ColumnSelectorProps>();
     popper="{ placement: 'bottom-end' }"
   >
     <template #default>
-      <UButton icon="i-lucide-columns" size="sm" variant="soft">
+      <UButton icon="i-lucide-columns" :size="size" :variant="variant">
         Columns
       </UButton>
     </template>

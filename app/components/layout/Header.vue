@@ -8,7 +8,7 @@
       <CommonBreadCrumbs />
     </div>
 
-    <!-- Action Buttons -->
+    <!-- Right Side Action Buttons -->
     <LayoutHeaderActions />
   </header>
 </template>

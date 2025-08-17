@@ -92,7 +92,7 @@ export interface PermissionGateProps {
 export interface HeaderAction {
   id: string;
   label?: string;
-  icon: string;
+  icon?: string;
   variant?: "solid" | "outline" | "ghost" | "soft";
   color?:
     | "primary"
@@ -120,6 +120,11 @@ export interface HeaderAction {
   showOn?: string[];
   hideOn?: string[];
   class?: string;
+  // For custom components
+  component?: string | any; // Can be string name or resolved component
+  props?: Record<string, any>;
+  key?: string; // For forcing component re-render
+  side?: "left" | "right"; // Position in sub-header, default: "right"
 }
 
 // Settings Card Component
