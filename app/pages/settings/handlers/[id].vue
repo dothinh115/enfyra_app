@@ -141,7 +141,6 @@ async function save() {
 
   // Check if there was an error
   if (saveError.value) {
-    // Error already handled by useApiLazy
     return;
   }
 
@@ -164,7 +163,6 @@ async function deleteHandler() {
 
   // Check if there was an error
   if (deleteError.value) {
-    // Error already handled by useApiLazy
     return;
   }
 

@@ -4,7 +4,7 @@ import { useGlobalState } from "~/composables/useGlobalState";
 import { useAuth } from "~/composables/useAuth";
 
 export default defineNuxtPlugin(async () => {
-  const { me, fetchUser } = useAuth();
+  const { me, fetchUser, logout } = useAuth();
 
   if (!me.value) {
     await fetchUser();
@@ -13,9 +13,13 @@ export default defineNuxtPlugin(async () => {
     return;
   }
 
-  const { registerAllMenusFromApi, registerMiniSidebars, registerMenuItem } =
-    useMenuRegistry();
+  const {
+    registerAllMenusFromApi,
+    registerTableMenusWithSidebarIds,
+    registerMiniSidebar,
+  } = useMenuRegistry();
   const { tables, fetchSchema } = useGlobalState();
+  const { confirm } = useConfirm();
 
   const { fetchMenuDefinitions } = useMenuApi();
 
@@ -40,7 +44,19 @@ export default defineNuxtPlugin(async () => {
 
   // Register all table menus using helper function (LAST - after all sidebars are registered)
   if (tables.value.length > 0) {
-    const { registerTableMenusWithSidebarIds } = useMenuRegistry();
     await registerTableMenusWithSidebarIds(tables.value);
   }
+
+  // Register logout button as bottom mini sidebar
+  registerMiniSidebar({
+    id: "logout",
+    label: "Logout",
+    icon: "lucide:log-out",
+    position: "bottom",
+    class: "rotate-180 bg-red-800 hover:bg-red-900",
+    onClick: async () => {
+      const ok = await confirm({ content: "Are you sure you want to logout?" });
+      if (ok) await logout();
+    },
+  });
 });

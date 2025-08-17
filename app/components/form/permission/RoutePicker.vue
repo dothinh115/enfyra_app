@@ -194,7 +194,6 @@ const {
   errorContext: 'Fetch Routes',
 });
 
-// Computed values
 const routes = computed(() => apiData.value?.data || []);
 const total = computed(() => apiData.value?.meta?.totalCount || 0);
 

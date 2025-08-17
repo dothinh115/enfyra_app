@@ -11,11 +11,9 @@ const { createLoader } = useLoader();
 const { isTablet } = useScreen();
 const routes = ref<any[]>([]);
 
-// Filter state
 const showFilterDrawer = ref(false);
 const currentFilter = ref(createEmptyFilter());
 
-// Filter button computed values
 const filterLabel = computed(() => {
   const activeCount = currentFilter.value.conditions.length;
   return activeCount > 0 ? `Filters (${activeCount})` : "Filter";
@@ -52,7 +50,6 @@ const {
   errorContext: "Fetch Routes",
 });
 
-// Computed values from API data
 const routesData = computed(() => apiData.value?.data || []);
 const total = computed(() => {
   // Use filterCount when there are active filters, otherwise use totalCount

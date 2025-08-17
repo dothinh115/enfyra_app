@@ -77,7 +77,6 @@ async function handleSaveSetting() {
 
   // Check if there was an error
   if (saveError.value) {
-    // Error already handled by useApiLazy
     return;
   }
 

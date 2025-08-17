@@ -148,8 +148,6 @@ function getExtensionIcon(extension: ExtensionDefinition) {
   switch (extension.type) {
     case "page":
       return "i-lucide-file-text";
-    case "component":
-      return "i-lucide-puzzle-piece";
     case "widget":
       return "i-lucide-layout-dashboard";
     default:
@@ -161,8 +159,6 @@ function getExtensionTypeLabel(type: string) {
   switch (type) {
     case "page":
       return "Page";
-    case "component":
-      return "Component";
     case "widget":
       return "Widget";
     default:
@@ -278,7 +274,6 @@ const deleteExtension = async (extension: ExtensionDefinition) => {
 
     // Check if there was an error
     if (deleteError.value) {
-      // Error already handled by useApiLazy
       return;
     }
 

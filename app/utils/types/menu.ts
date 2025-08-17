@@ -35,8 +35,11 @@ export interface MiniSidebar {
   id: string;
   label: string;
   icon: string;
-  route: string;
+  route?: string; // Optional for action buttons like logout
+  onClick?: () => void | Promise<void>; // Optional click handler for action buttons
+  class?: string; // Optional custom CSS classes
   permission?: PermissionCondition;
+  position?: "top" | "bottom"; // Position in the mini sidebar
 }
 
 // API Response Interface from useMenuApi (different from MenuDefinition)

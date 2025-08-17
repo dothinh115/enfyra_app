@@ -22,7 +22,6 @@ const { isMounted } = useMounted();
 const showFilterDrawer = ref(false);
 const currentFilter = ref(createEmptyFilter());
 
-// Filter button computed values
 const filterLabel = computed(() => {
   const activeCount = currentFilter.value.conditions.length;
   return activeCount > 0 ? `Filters (${activeCount})` : "Filter";
@@ -276,7 +275,6 @@ async function handleDelete(id: string) {
 
     // Check if there was an error
     if (deleteError.value) {
-      // Error already handled by useApiLazy
       return;
     }
 
@@ -328,7 +326,6 @@ async function handleBulkDelete(selectedRows: any[]) {
 
     // Check if there was an error
     if (deleteError.value) {
-      // Error already handled by useApiLazy
       return;
     }
 

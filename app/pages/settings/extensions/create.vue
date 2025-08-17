@@ -122,7 +122,6 @@ async function handleCreate() {
 
   // Check if there was an error
   if (createError.value) {
-    // Error already handled by useApiLazy
     return;
   }
 

@@ -1,14 +1,7 @@
 <script setup lang="ts">
 const route = useRoute();
-const { confirm } = useConfirm();
-const { logout } = useAuth();
-const { miniSidebars } = useMenuRegistry();
+const { miniSidebars, bottomMiniSidebars } = useMenuRegistry();
 const { checkPermissionCondition } = usePermissions();
-
-async function handleLogout() {
-  const ok = await confirm({ content: "Are you sure you want to logout?" });
-  if (ok) await logout();
-}
 
 const items = computed(() => {
   // Use only registered mini sidebars - Dashboard will be registered in extension
@@ -21,13 +14,38 @@ const items = computed(() => {
       label: sidebar.label,
       icon: sidebar.icon,
       route: sidebar.route,
+      onClick: sidebar.onClick,
+      class: sidebar.class,
       show: true,
+      hasRoute: !!sidebar.route,
     }));
 
   return registeredItems;
 });
 
-const isActive = (path: string) => {
+const bottomItems = computed(() => {
+  // Process bottom mini sidebars
+  const registeredBottomItems = bottomMiniSidebars.value
+    .filter((sidebar) => {
+      if (!sidebar.permission) return true;
+      return checkPermissionCondition(sidebar.permission);
+    })
+    .map((sidebar) => ({
+      label: sidebar.label,
+      icon: sidebar.icon,
+      route: sidebar.route,
+      onClick: sidebar.onClick,
+      class: sidebar.class,
+      show: true,
+      hasRoute: !!sidebar.route,
+    }));
+
+  return registeredBottomItems;
+});
+
+const isActive = (path: string | undefined) => {
+  if (!path) return false;
+  
   // Handle dashboard route specifically
   if (path === "/dashboard") {
     return (
@@ -56,26 +74,41 @@ const isActive = (path: string) => {
         <UButton
           variant="ghost"
           :icon="item.icon"
-          :to="item.route"
+          :to="item.hasRoute ? item.route : undefined"
+          @click="item.onClick"
           class="transition duration-200 ease-in-out w-12 h-12 flex justify-center items-center rounded-lg text-gray-300"
-          :class="
+          :class="[
             isActive(item.route)
               ? 'bg-primary text-gray-800 hover:bg-primary'
-              : ''
-          "
+              : '',
+            item.class || ''
+          ]"
         />
       </UTooltip>
     </div>
 
-    <!-- Bottom Section: Logout -->
+    <!-- Bottom Section: Bottom Items -->
     <div class="mt-auto w-full">
-      <div class="py-2 w-full flex justify-center">
-        <UTooltip text="Logout" placement="right">
+      <div v-if="bottomItems.length > 0" class="flex flex-col items-center w-full py-2 gap-2">
+        <UTooltip
+          v-for="item in bottomItems.filter((item) => item.show)"
+          :key="item.icon"
+          :text="item.label"
+          placement="right"
+          :delay-duration="0"
+        >
           <UButton
             variant="ghost"
-            icon="lucide:log-out"
-            @click="handleLogout"
-            class="transition duration-200 ease-in-out rotate-180 w-12 h-12 flex justify-center items-center rounded-lg text-gray-300 bg-red-800"
+            :icon="item.icon"
+            :to="item.hasRoute ? item.route : undefined"
+            @click="item.onClick"
+            class="transition duration-200 ease-in-out w-12 h-12 flex justify-center items-center rounded-lg text-gray-300"
+            :class="[
+              isActive(item.route)
+                ? 'bg-primary text-gray-800 hover:bg-primary'
+                : '',
+              item.class || ''
+            ]"
           />
         </UTooltip>
       </div>

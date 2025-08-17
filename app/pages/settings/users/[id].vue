@@ -113,7 +113,6 @@ async function saveUser() {
 
   // Check if there was an error
   if (updateError.value) {
-    // Error already handled by useApiLazy
     return;
   }
 
@@ -135,7 +134,6 @@ async function deleteUser() {
 
   // Check if there was an error
   if (deleteError.value) {
-    // Error already handled by useApiLazy
     return;
   }
 
@@ -151,7 +149,6 @@ async function fetchUserDetail(userId: string) {
 
   // Check if there was an error
   if (apiData.value?.error) {
-    // Error already handled by useApiLazy
     return;
   }
 

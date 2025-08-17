@@ -15,11 +15,9 @@ const menus = ref<any[]>([]);
 const { createLoader } = useLoader();
 const { isTablet } = useScreen();
 
-// Filter state
 const showFilterDrawer = ref(false);
 const currentFilter = ref(createEmptyFilter());
 
-// Filter button computed values
 const filterLabel = computed(() => {
   const activeCount = currentFilter.value.conditions.length;
   return activeCount > 0 ? `Filters (${activeCount})` : "Filter";
@@ -56,7 +54,6 @@ const {
   errorContext: "Fetch Menus",
 });
 
-// Computed values from API data
 const menusData = computed(() => apiData.value?.data || []);
 const total = computed(() => {
   // Use filterCount when there are active filters, otherwise use totalCount
@@ -182,7 +179,6 @@ async function toggleEnabled(menuItem: any, value?: boolean) {
 
   // Check if there was an error
   if (updateError.value) {
-    // Error already handled by useApiLazy
     // Revert optimistic update on error
     if (apiData.value?.data) {
       const menuIndex = apiData.value.data.findIndex(

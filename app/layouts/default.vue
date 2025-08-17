@@ -165,7 +165,6 @@ const segments = computed(() => {
 // Disable back button if only 1 segment (root)
 const disableBack = computed(() => segments.value.length <= 1);
 
-// Handle back navigation
 function goBack() {
   router.back();
 }

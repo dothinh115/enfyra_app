@@ -176,7 +176,6 @@ async function updateRoute() {
 
   // Check if there was an error
   if (updateError.value) {
-    // Error already handled by useApiLazy
     return;
   }
 
@@ -199,7 +198,6 @@ async function deleteRoute() {
 
   // Check if there was an error
   if (deleteError.value) {
-    // Error already handled by useApiLazy
     return;
   }
 

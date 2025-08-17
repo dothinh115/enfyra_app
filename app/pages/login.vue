@@ -21,7 +21,11 @@
         <div class="flex flex-col gap-y-5">
           <!-- Email -->
           <div>
-            <UFormField :error="error.email" label="Email" required>
+            <UFormField
+              :error="error.email ?? undefined"
+              label="Email"
+              required
+            >
               <UInput
                 v-model="form.email"
                 placeholder="you@example.com"
@@ -40,7 +44,11 @@
 
           <!-- Password -->
           <div>
-            <UFormField :error="error.password" label="Password" required>
+            <UFormField
+              :error="error.password ?? undefined"
+              label="Password"
+              required
+            >
               <UInput
                 v-model="form.password"
                 type="password"
@@ -84,9 +92,9 @@ const form = reactive({
   password: "1234",
   remember: true,
 });
-const error = reactive({
-  email: "",
-  password: "",
+const error = reactive<{ email: string | null; password: string | null }>({
+  email: null,
+  password: null,
 });
 async function handleLogin() {
   const ok = await login(form);
@@ -108,7 +116,7 @@ watch(
     } else if (!emailPattern.test(newVal)) {
       error.email = "Must be valid format!";
     } else {
-      error.email = "";
+      error.email = null;
     }
   }
 );
@@ -119,7 +127,7 @@ watch(
     if (!newVal) {
       error.password = "Cannot be empty!";
     } else {
-      error.password = "";
+      error.password = null;
     }
   }
 );
