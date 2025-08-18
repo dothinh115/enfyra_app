@@ -66,6 +66,9 @@ const enhancedColumns = computed(() => {
     enableSorting: false,
     enableHiding: false,
     size: 50,
+    enableResizing: false,
+    maxSize: 50,
+    minSize: 50,
   };
 
   return [selectColumn, ...props.columns];
@@ -177,7 +180,7 @@ const { isTablet } = useScreen();
       v-else-if="!isTablet"
       class="overflow-auto rounded-lg border border-gray-200 dark:border-gray-800 transition-all duration-300 ease-in-out"
     >
-      <table class="w-full" aria-label="Data table">
+      <table class="w-full table-fixed" aria-label="Data table">
         <thead class="bg-gray-50 dark:bg-gray-800/50">
           <tr>
             <th
@@ -186,6 +189,7 @@ const { isTablet } = useScreen();
               :class="[
                 'px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100',
                 header.id === '__actions' ? 'text-center' : 'text-left',
+                header.id === 'select' ? 'w-12 min-w-12 max-w-12' : '',
                 header.column.getCanSort() &&
                   'cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-800',
               ]"
@@ -241,7 +245,10 @@ const { isTablet } = useScreen();
             <td
               v-for="cell in row.getVisibleCells()"
               :key="cell.id"
-              class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100"
+              :class="[
+                'px-4 py-3 text-sm text-gray-900 dark:text-gray-100',
+                cell.column.id === 'select' ? 'w-12 min-w-12 max-w-12' : '',
+              ]"
             >
               <span v-if="typeof cell.column.columnDef.cell !== 'function'">
                 {{ cell.getValue() }}
