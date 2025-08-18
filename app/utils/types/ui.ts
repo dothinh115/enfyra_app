@@ -126,6 +126,11 @@ export interface HeaderAction {
   key?: string; // For forcing component re-render
   side?: "left" | "right"; // Position in sub-header, default: "right"
   global?: boolean; // If true, persist across route changes
+  show?:
+    | boolean
+    | Ref<boolean>
+    | Readonly<Ref<boolean>>
+    | ComputedRef<boolean>; // For conditional visibility
 }
 
 // Settings Card Component

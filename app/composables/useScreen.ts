@@ -1,9 +1,19 @@
+import {
+  ref,
+  computed,
+  onMounted,
+  onUnmounted,
+  readonly,
+  nextTick,
+  getCurrentInstance,
+} from "vue";
+
 export function useScreen() {
   const width = ref(0);
   const height = ref(0);
 
   const updateDimensions = () => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       width.value = window.innerWidth;
       height.value = window.innerHeight;
     }
@@ -15,22 +25,29 @@ export function useScreen() {
   const isLargeDesktop = computed(() => width.value >= 1440);
 
   const screenType = computed(() => {
-    if (isMobile.value) return 'mobile';
-    if (isTablet.value) return 'tablet';
-    if (isLargeDesktop.value) return 'large-desktop';
-    return 'desktop';
+    if (isMobile.value) return "mobile";
+    if (isTablet.value) return "tablet";
+    if (isLargeDesktop.value) return "large-desktop";
+    return "desktop";
   });
 
-  onMounted(() => {
-    updateDimensions();
-    window.addEventListener('resize', updateDimensions);
-  });
+  // Chỉ gọi lifecycle hooks khi có component instance
+  const instance = getCurrentInstance();
+  if (instance) {
+    onMounted(async () => {
+      await nextTick();
+      if (typeof window !== "undefined") {
+        updateDimensions();
+        window.addEventListener("resize", updateDimensions);
+      }
+    });
 
-  onUnmounted(() => {
-    if (typeof window !== 'undefined') {
-      window.removeEventListener('resize', updateDimensions);
-    }
-  });
+    onUnmounted(() => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("resize", updateDimensions);
+      }
+    });
+  }
 
   return {
     width: readonly(width),
@@ -39,6 +56,6 @@ export function useScreen() {
     isTablet,
     isDesktop,
     isLargeDesktop,
-    screenType
+    screenType,
   };
 }
