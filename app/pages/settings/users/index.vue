@@ -75,7 +75,7 @@
 
     <FilterDrawerLazy
       v-model="showFilterDrawer"
-      v-model:filter-value="currentFilter"
+      :filter-value="currentFilter"
       :table-name="tableName"
       @apply="applyFilters"
       @clear="clearFilters"

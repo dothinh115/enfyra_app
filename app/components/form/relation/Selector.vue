@@ -263,7 +263,7 @@ watch(page, (newPage) => {
   <!-- Filter Drawer -->
   <FilterDrawerLazy
     v-model="showFilterDrawer"
-    v-model:filter-value="currentFilter"
+    :filter-value="currentFilter"
     :table-name="targetTable?.name || ''"
     @apply="applyFilter"
     @clear="clearFilter"

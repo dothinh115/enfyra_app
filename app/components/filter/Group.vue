@@ -18,12 +18,16 @@ function updateGroup() {
 }
 
 function addCondition() {
+  // Get available fields for this context
+  const availableOptions = getCombinedOptionsForContext(props.tableName, props.schemas);
+  const firstField = availableOptions.find(opt => opt.fieldCategory === "column");
+  
   const newCondition: FilterCondition = {
     id: generateFilterId(),
-    field: "",
+    field: firstField?.value || "",
     operator: "_eq",
     value: null,
-    type: "string",
+    type: firstField?.fieldType ? mapDbTypeToFilterType(firstField.fieldType) : "string",
   };
   props.group.conditions.push(newCondition);
   updateGroup();

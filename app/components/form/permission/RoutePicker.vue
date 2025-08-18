@@ -137,7 +137,7 @@
     <!-- Filter Drawer -->
     <FilterDrawerLazy
       v-model="showFilterDrawer"
-      v-model:filter-value="currentFilter"
+      :filter-value="currentFilter"
       table-name="route_definition"
       @apply="applyFilter"
       @clear="clearFilter"

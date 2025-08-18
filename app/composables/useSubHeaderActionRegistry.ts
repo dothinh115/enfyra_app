@@ -11,8 +11,13 @@ export function useSubHeaderActionRegistry(
   );
 
   const registerSubHeaderAction = (action: HeaderAction) => {
-    // Process component
-    const processedAction = { ...action };
+    // Process component while preserving getters
+    const processedAction = Object.create(Object.getPrototypeOf(action));
+    
+    // Copy all properties including getters
+    for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(action))) {
+      Object.defineProperty(processedAction, key, descriptor);
+    }
     
     // Set default side to "right" if not specified
     if (!processedAction.side) {
@@ -23,7 +28,10 @@ export function useSubHeaderActionRegistry(
       if (typeof processedAction.component === 'string') {
         try {
           const componentName = processedAction.component;
-          processedAction.component = markRaw(resolveComponent(componentName as any));
+          const resolved = resolveComponent(componentName as any);
+          if (resolved && typeof resolved !== 'string') {
+            processedAction.component = markRaw(resolved);
+          }
         } catch (error) {
           console.warn(`Failed to resolve component: ${processedAction.component}`, error);
         }

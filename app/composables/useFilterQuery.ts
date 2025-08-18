@@ -109,7 +109,11 @@ export function useFilterQuery() {
   function hasActiveFilters(filter: FilterGroup): boolean {
     return filter.conditions.some((condition) => {
       if ("field" in condition) {
-        return condition.field && condition.operator;
+        // Only consider active if field, operator AND value are set
+        // Special case: _null and _nnull operators don't need values
+        if (!condition.field || !condition.operator) return false;
+        if (condition.operator === "_null" || condition.operator === "_nnull") return true;
+        return condition.value !== null && condition.value !== undefined && condition.value !== "";
       } else {
         return hasActiveFilters(condition);
       }

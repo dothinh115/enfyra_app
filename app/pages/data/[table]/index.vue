@@ -127,8 +127,6 @@ const columnDropdownItems = computed(() => {
   const schema = schemas.value[tableName];
   if (!schema?.definition) return [];
 
-  // Force reactivity by reading visibleColumns.value
-  const currentVisible = Array.from(visibleColumns.value);
 
   const items = schema.definition
     .filter((field: any) => field.fieldType === "column")
@@ -320,6 +318,8 @@ watch(
 // Apply filters - called by FilterDrawer
 async function applyFilters() {
   page.value = 1;
+
+
   await fetchData();
 }
 
@@ -428,6 +428,9 @@ useHeaderActionRegistry([
     },
     get color() {
       return filterColor.value;
+    },
+    get key() {
+      return `filter-${currentFilter.value.conditions.length}-${hasActiveFilters(currentFilter.value)}`;
     },
     size: "md",
     onClick: () => {
@@ -539,8 +542,9 @@ useHeaderActionRegistry([
 
     <!-- Filter Drawer - use existing component -->
     <FilterDrawerLazy
-      v-model="showFilterDrawer"
-      v-model:filter-value="currentFilter"
+      :model-value="showFilterDrawer"
+      @update:model-value="showFilterDrawer = $event"
+      :filter-value="currentFilter"
       :table-name="tableName"
       @apply="applyFilters"
       @clear="clearFilters"

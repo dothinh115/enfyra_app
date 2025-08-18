@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useFilterHistory } from "~/composables/useFilterHistory";
 
 const props = defineProps<{
   modelValue: boolean;
@@ -7,10 +8,12 @@ const props = defineProps<{
 }>();
 
 const { schemas } = useGlobalState();
+const { addToHistory } = useFilterHistory(props.tableName);
+const { hasActiveFilters } = useFilterQuery();
 
 const emit = defineEmits<{
   "update:modelValue": [value: boolean];
-  "update:filterValue": [value: FilterGroup];
+  "update:filter-value": [value: FilterGroup];
   apply: [];
   clear: [];
 }>();
@@ -26,7 +29,13 @@ watch(
 );
 
 function handleApply() {
-  emit("update:filterValue", { ...localFilter.value });
+  emit("update:filter-value", { ...localFilter.value });
+  
+  // Auto-save to filter history if there are active filters
+  if (hasActiveFilters(localFilter.value)) {
+    addToHistory(localFilter.value);
+  }
+  
   emit("apply");
   emit("update:modelValue", false);
 }
@@ -39,7 +48,7 @@ function handleClear() {
   };
 
   localFilter.value = emptyFilter;
-  emit("update:filterValue", emptyFilter);
+  emit("update:filter-value", emptyFilter);
   emit("clear");
   emit("update:modelValue", false);
 }
@@ -47,6 +56,20 @@ function handleClear() {
 function handleClose() {
   // Reset to original filter if user closes without applying
   localFilter.value = { ...props.filterValue };
+  
+  // If original filter was empty and user made changes but didn't apply,
+  // emit clear to reset parent filter state
+  if (!hasActiveFilters(props.filterValue)) {
+    emit("clear");
+  }
+  
+  emit("update:modelValue", false);
+}
+
+function applySavedFilter(filter: any) {
+  localFilter.value = { ...filter };
+  emit("update:filter-value", { ...filter });
+  emit("apply");
   emit("update:modelValue", false);
 }
 
@@ -55,17 +78,17 @@ const hasActiveConditions = computed(() => {
     if ("field" in condition) {
       return condition.field && condition.operator;
     } else {
-      return hasActiveFilters(condition);
+      return hasActiveFiltersLocal(condition);
     }
   });
 });
 
-function hasActiveFilters(group: FilterGroup): boolean {
+function hasActiveFiltersLocal(group: FilterGroup): boolean {
   return group.conditions.some((condition) => {
     if ("field" in condition) {
       return condition.field && condition.operator;
     } else {
-      return hasActiveFilters(condition);
+      return hasActiveFiltersLocal(condition);
     }
   });
 }
@@ -77,14 +100,14 @@ const { isTablet } = useScreen();
   <Teleport to="body">
     <UDrawer
       :open="modelValue"
-      @update:open="$emit('update:modelValue', $event)"
+      @update:open="(value) => value ? null : handleClose()"
       direction="right"
       :class="isTablet ? 'w-full' : 'min-w-2xl'"
     >
       <template #header>
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <UIcon name="i-lucide-filter" class="w-5 h-5" />
+        <div class="flex items-start justify-between">
+          <div class="flex items-start gap-3">
+            <UIcon name="i-lucide-filter" class="w-8 h-8 mt-1" />
             <div>
               <h3 class="text-lg font-semibold">Filter {{ tableName }}</h3>
               <p class="text-sm text-gray-500 mt-1">
@@ -99,11 +122,13 @@ const { isTablet } = useScreen();
 
           <UButton
             icon="i-lucide-x"
-            size="sm"
-            color="neutral"
-            variant="ghost"
+            size="md"
+            color="error"
+            variant="soft"
             @click="handleClose"
-          />
+          >
+            Close
+          </UButton>
         </div>
       </template>
 
@@ -118,6 +143,14 @@ const { isTablet } = useScreen();
             v-model="localFilter"
             :schemas="schemas"
             :table-name="tableName"
+          />
+
+          <!-- Saved Filters Section -->
+          <FilterSavedFilters
+            :table-name="tableName"
+            :current-filter="localFilter"
+            @apply-filter="applySavedFilter"
+            @clear-filters="handleClear"
           />
         </div>
       </template>

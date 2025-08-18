@@ -48,6 +48,11 @@ function onFieldSelectChange(selectedValue: string) {
       ? `${props.parentGroup.relationContext}.${selectedValue}`
       : selectedValue;
 
+    // Get target table name and its first field
+    const targetTableName = selectedOption.targetTable || props.tableName;
+    const targetOptions = getCombinedOptionsForContext(targetTableName, props.schemas);
+    const firstField = targetOptions.find(opt => opt.fieldCategory === "column");
+
     const newGroup: FilterGroup = {
       id: Math.random().toString(36).substring(2, 9),
       operator: "and",
@@ -55,10 +60,10 @@ function onFieldSelectChange(selectedValue: string) {
       conditions: [
         {
           id: Math.random().toString(36).substring(2, 9),
-          field: "",
+          field: firstField?.value || "",
           operator: "_eq",
           value: null,
-          type: "string",
+          type: firstField?.fieldType ? mapDbTypeToFilterType(firstField.fieldType) : "string",
         },
       ],
     };
