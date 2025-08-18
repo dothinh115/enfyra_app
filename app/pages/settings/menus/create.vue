@@ -62,7 +62,7 @@ const { reregisterAllMenus, registerTableMenusWithSidebarIds } =
 const { tables } = useGlobalState();
 
 // API composable for creating menu
-const { execute: createMenu, pending: creating } = useApiLazy(
+const { execute: createMenu, pending: creating, error: createError } = useApiLazy(
   () => "/menu_definition",
   {
     method: "post",
@@ -155,6 +155,11 @@ async function saveMenu() {
 
   // Create menu
   await createMenu({ body: form.value });
+
+  // Check if there was an error
+  if (createError.value) {
+    return;
+  }
 
   // Reregister all menus after create
   await reregisterAllMenus(fetchMenuDefinitions as any);

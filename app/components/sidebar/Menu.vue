@@ -111,7 +111,6 @@ const visibleMenuItems = computed(() => {
               color="neutral"
               :icon="item.icon"
               class="w-full hover:bg-primary/20 mb-1"
-              :class="isExpanded(item.id) && 'bg-primary/10 text-white shadow'"
               @click="toggleExpanded(item.id)"
             >
               <template #trailing>
