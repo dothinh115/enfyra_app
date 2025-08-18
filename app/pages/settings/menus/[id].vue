@@ -68,9 +68,10 @@ const excludedFields = computed(() => {
   }
   // If type is "menu"
   else if (form.value.type === 'menu') {
-    // If parent is selected, exclude path and sidebar (child inherits parent's sidebar)
+    // If parent is selected, exclude sidebar (child inherits parent's sidebar)
+    // But keep path field visible as it might be required
     if (form.value.parent) {
-      baseExcluded.push('path', 'sidebar');
+      baseExcluded.push('sidebar');
     }
     // If sidebar is selected, exclude parent (direct menu under sidebar)  
     else if (form.value.sidebar) {
@@ -81,26 +82,12 @@ const excludedFields = computed(() => {
   return baseExcluded;
 });
 
-// Dynamic type map based on form state  
-const typeMap = computed(() => {
-  const baseTypeMap: Record<string, any> = {
-    permission: {
-      type: 'permission',
-    },
-  };
-  
-  // If path is already filled, make it read-only for clarity
-  if (form.value.path) {
-    baseTypeMap.path = {
-      componentProps: {
-        readonly: true,
-        placeholder: 'Path auto-generated or inherited from parent'
-      }
-    };
-  }
-  
-  return baseTypeMap;
-});
+// Static type map to avoid reactive interference with inputs
+const typeMap = {
+  permission: {
+    type: 'permission',
+  },
+};
 
 watch(
   menuData,
@@ -134,7 +121,7 @@ watch(() => form.value.type, (newType, oldType) => {
 watch(() => form.value.parent, (newParent) => {
   if (newParent && form.value.type === 'menu') {
     form.value.sidebar = null;
-    form.value.path = null;
+    // Don't clear path - user might want to set custom path for child menu
   }
 });
 

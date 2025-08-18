@@ -9,57 +9,51 @@ const { validate, generateEmptyForm } = useSchema(tableName);
 
 // Dynamic excluded fields based on form state
 const excludedFields = computed(() => {
-  const baseExcluded = ['id', 'createdAt', 'updatedAt', 'isSystem', 'children', 'menus'];
-  
+  const baseExcluded = [
+    "id",
+    "createdAt",
+    "updatedAt",
+    "isSystem",
+    "children",
+    "menus",
+  ];
+
   // If no type selected, hide all relation fields
   if (!form.value.type) {
-    baseExcluded.push('sidebar', 'parent', 'extension');
+    baseExcluded.push("sidebar", "parent", "extension");
   }
   // If type is "mini", exclude sidebar and parent (mini sidebars are independent)
-  else if (form.value.type === 'mini') {
-    baseExcluded.push('sidebar', 'parent');
+  else if (form.value.type === "mini") {
+    baseExcluded.push("sidebar", "parent");
   }
   // If type is "menu"
-  else if (form.value.type === 'menu') {
-    // If parent is selected, exclude path and sidebar (child inherits parent's sidebar)
+  else if (form.value.type === "menu") {
+    // If parent is selected, exclude sidebar (child inherits parent's sidebar)
+    // But keep path field visible as it might be required
     if (form.value.parent) {
-      baseExcluded.push('path', 'sidebar');
+      baseExcluded.push("sidebar");
     }
     // If sidebar is selected, exclude parent (direct menu under sidebar)  
     else if (form.value.sidebar) {
-      baseExcluded.push('parent');
+      baseExcluded.push("parent");
     }
   }
-  
+
   return baseExcluded;
 });
 
-// Dynamic type map based on form state  
-const typeMap = computed(() => {
-  const baseTypeMap: Record<string, any> = {
-    order: {
-      componentProps: {
-        min: 0,
-        step: 1,
-      },
+// Static type map to avoid reactive interference with inputs
+const typeMap = {
+  order: {
+    componentProps: {
+      min: 0,
+      step: 1,
     },
-    permission: {
-      type: 'permission',
-    },
-  };
-  
-  // If path is already filled, make it read-only for clarity
-  if (form.value.path) {
-    baseTypeMap.path = {
-      componentProps: {
-        readonly: true,
-        placeholder: 'Path auto-generated or inherited from parent'
-      }
-    };
-  }
-  
-  return baseTypeMap;
-});
+  },
+  permission: {
+    type: "permission",
+  },
+};
 
 // Menu registry composables for reregistering after changes
 const { fetchMenuDefinitions } = useMenuApi();
@@ -99,36 +93,45 @@ useHeaderActionRegistry([
 ]);
 
 // Watch type changes and clear conflicting fields
-watch(() => form.value.type, (newType, oldType) => {
-  if (oldType && newType !== oldType) {
-    // Clear fields that should be excluded for the new type
-    if (newType === 'mini') {
-      form.value.sidebar = null;
-      form.value.parent = null;
-    } else if (newType === 'menu') {
-      // If switching to menu, don't auto-clear as user might want to keep values
-    } else {
-      // If clearing type, clear all relation fields
-      form.value.sidebar = null;
-      form.value.parent = null;
-      form.value.extension = null;
+watch(
+  () => form.value.type,
+  (newType, oldType) => {
+    if (oldType && newType !== oldType) {
+      // Clear fields that should be excluded for the new type
+      if (newType === "mini") {
+        form.value.sidebar = null;
+        form.value.parent = null;
+      } else if (newType === "menu") {
+        // If switching to menu, don't auto-clear as user might want to keep values
+      } else {
+        // If clearing type, clear all relation fields
+        form.value.sidebar = null;
+        form.value.parent = null;
+        form.value.extension = null;
+      }
     }
   }
-});
+);
 
 // Watch parent/sidebar mutual exclusion for menu type
-watch(() => form.value.parent, (newParent) => {
-  if (newParent && form.value.type === 'menu') {
-    form.value.sidebar = null;
-    form.value.path = null;
+watch(
+  () => form.value.parent,
+  (newParent) => {
+    if (newParent && form.value.type === "menu") {
+      form.value.sidebar = null;
+      // Don't clear path - user might want to set custom path for child menu
+    }
   }
-});
+);
 
-watch(() => form.value.sidebar, (newSidebar) => {
-  if (newSidebar && form.value.type === 'menu') {
-    form.value.parent = null;
+watch(
+  () => form.value.sidebar,
+  (newSidebar) => {
+    if (newSidebar && form.value.type === "menu") {
+      form.value.parent = null;
+    }
   }
-});
+);
 
 onMounted(() => {
   form.value = generateEmptyForm();

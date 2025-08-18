@@ -166,6 +166,7 @@ async function fetchDataWithValidation() {
       page.value = maxPage;
     }
   } catch (error) {
+    console.error('Error fetching relation data:', error);
     // Reset to page 1 on error
     if (page.value > 1) {
       page.value = 1;
@@ -177,9 +178,9 @@ onMounted(() => {
   fetchDataWithValidation();
 });
 
-watch(page, (newPage) => {
-  if (newPage >= 1) {
-    fetchDataWithValidation();
+watch(page, async (newPage, oldPage) => {
+  if (newPage >= 1 && newPage !== oldPage) {
+    await fetchDataWithValidation();
   }
 });
 </script>
@@ -196,12 +197,11 @@ watch(page, (newPage) => {
     />
 
     <!-- Loading State -->
-    <Transition name="loading-fade" mode="out-in">
-      <CommonLoadingState v-if="!isMounted || loading" type="form" context="inline" size="md" />
+    <CommonLoadingState v-if="!isMounted || loading" type="form" context="inline" size="md" />
 
-      <!-- Empty State -->
-      <CommonEmptyState
-        v-else-if="isMounted && !loading && data.length === 0"
+    <!-- Empty State -->
+    <CommonEmptyState
+      v-else-if="isMounted && !loading && data.length === 0"
       :title="
         hasActiveFilters(currentFilter)
           ? 'No relations found'
@@ -225,20 +225,19 @@ watch(page, (newPage) => {
       "
     />
 
-      <!-- Data List -->
-      <FormRelationList
-        v-else-if="isMounted && !loading"
-        :data="data"
-        :selected="selected"
-        :multiple="props.multiple"
-        :disabled="props.disabled"
-        :allow-delete="props.allowDelete"
-        :confirming-delete-id="confirmingDeleteId"
-        @toggle="toggle"
-        @view-details="viewDetails"
-        @delete-click="handleDeleteClick"
-      />
-    </Transition>
+    <!-- Data List -->
+    <FormRelationList
+      v-else
+      :data="data"
+      :selected="selected"
+      :multiple="props.multiple"
+      :disabled="props.disabled"
+      :allow-delete="props.allowDelete"
+      :confirming-delete-id="confirmingDeleteId"
+      @toggle="toggle"
+      @view-details="viewDetails"
+      @delete-click="handleDeleteClick"
+    />
 
     <FormRelationPagination
       :page="page"

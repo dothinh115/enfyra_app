@@ -85,6 +85,13 @@ const visibleMenuItems = computed(() => {
   const items = getMenuItemsBySidebar(currentSidebar.value);
   return items;
 });
+
+// Watch for sidebar changes and fetch menu data
+watch(currentSidebar, async (newSidebar) => {
+  if (newSidebar) {
+    await fetchMenuData();
+  }
+}, { immediate: true });
 </script>
 
 <template>
