@@ -37,7 +37,7 @@ const { pending: saving, execute: executePatchTable } = useApiLazy(
   }
 );
 
-const { pending: deleting, execute: executeDeleteTable } = useApiLazy(
+const { pending: deleting, execute: executeDeleteTable, error: deleteError } = useApiLazy(
   () => `/table_definition/${table.value?.id || "undefined"}`,
   {
     method: "delete",
@@ -152,23 +152,24 @@ async function handleDelete() {
 
 async function deleteTable() {
   globalLoading.value = true;
-  try {
-    await executeDeleteTable();
-    globalLoading.value = false;  // Turn off before fetchSchema sets it again
-    await fetchSchema();
+  await executeDeleteTable();
 
-    registerTableMenusWithSidebarIds(tables.value);
-
-    toast.add({
-      title: "Success",
-      color: "success",
-      description: "Table deleted!",
-    });
-    return navigateTo(`/collections`);
-  } catch (error) {
+  if (deleteError.value) {
     globalLoading.value = false;
-    throw error;
+    return; // Error already handled by useApiLazy
   }
+
+  globalLoading.value = false;  // Turn off before fetchSchema sets it again
+  await fetchSchema();
+
+  registerTableMenusWithSidebarIds(tables.value);
+
+  toast.add({
+    title: "Success",
+    color: "success",
+    description: "Table deleted!",
+  });
+  return navigateTo(`/collections`);
 }
 
 onMounted(async () => {
