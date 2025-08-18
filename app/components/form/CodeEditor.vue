@@ -36,7 +36,7 @@ import {
   defaultHighlightStyle,
 } from "@codemirror/language";
 import { searchKeymap, highlightSelectionMatches } from "@codemirror/search";
-import eslint from "eslint-linter-browserify";
+import { createAcornLinter } from "../../utils/editor/acornLinter";
 import { EXTENSION_GLOBALS } from "../../utils/extension/globals";
 import { ensureString } from "../../utils/components/form";
 
@@ -59,15 +59,15 @@ watch(
     if (code.value !== stringValue) {
       code.value = stringValue;
     }
-  },
-  { immediate: true }
+  }
 );
 
 watch(code, (val) => {
   emit("update:modelValue", val);
 });
 
-const linterInstance = new eslint.Linter();
+// Create Acorn linter instead of ESLint
+const acornLinter = createAcornLinter(EXTENSION_GLOBALS);
 
 const diagnosticExtension = linter((view) => {
   if (props.language === "json" || props.language === "html") {
@@ -76,7 +76,6 @@ const diagnosticExtension = linter((view) => {
   }
 
   const raw = view.state.doc.toString();
-
   let codeToLint = raw;
   let lineOffset = 0;
 
@@ -97,177 +96,73 @@ const diagnosticExtension = linter((view) => {
     }
   }
 
-  const wrapped =
-    props.language === "javascript"
-      ? `(async () => {\n${codeToLint}\n})()`
-      : codeToLint;
-
-  const unwrapped = codeToLint;
-
-  const baseRules = {
-    "no-const-assign": ["error"],
-    "no-func-assign": ["error"],
-    "no-class-assign": ["error"],
-    "no-dupe-keys": ["error"],
-    "no-dupe-args": ["error"],
-    "no-duplicate-case": ["error"],
-    "no-unreachable": ["error"],
-    "no-unsafe-finally": ["error"],
-    "no-invalid-regexp": ["error"],
-    "no-cond-assign": ["error"],
-    "no-constant-condition": ["warn"],
-    "no-self-assign": ["error"],
-    "no-self-compare": ["warn"],
-    "use-isnan": ["error"],
-    "valid-typeof": ["error"],
-    "no-async-promise-executor": ["error"],
-    "no-await-in-loop": ["warn"],
-    "require-atomic-updates": ["error"],
-    "no-unused-vars": ["warn"],
-    "no-empty": ["warn"],
-    "no-empty-function": ["off"],
-    "no-debugger": ["warn"],
-    "no-console": ["off"],
-    "no-unexpected-multiline": ["off"],
-    "no-mixed-spaces-and-tabs": ["off"],
-    semi: ["off"],
-    quotes: ["off"],
-    indent: ["off"],
-  };
-
-  const vueSpecificRules = {
-    ...baseRules,
-    "no-undef": ["off"],
-    "no-unused-expressions": ["off"],
-    "no-redeclare": ["off"],
-    "no-shadow": ["off"],
-    "no-use-before-define": ["off"],
-    "prefer-const": ["warn"],
-    "no-unused-vars": ["off"],
-    "no-empty-pattern": ["off"],
-  };
-
-  const javascriptRules = {
-    ...baseRules,
-    "no-undef": ["error"],
-    "no-redeclare": ["error"],
-    "no-shadow": ["warn"],
-    "no-use-before-define": ["error"],
-    "prefer-const": ["warn"],
-  };
-
-  const lintRules =
-    props.language === "vue" ? vueSpecificRules : javascriptRules;
-
-  const wrappedResult = linterInstance.verify(wrapped, {
-    languageOptions: {
-      ecmaVersion: 2020,
-      sourceType: "module",
-      globals: EXTENSION_GLOBALS,
-      parserOptions: {
-        ecmaFeatures: {
-          jsx: true,
-          modules: true,
-        },
-      },
-    },
-    rules: lintRules as any,
-  });
-
-  const scopeRules = {
-    "no-const-assign": ["error"],
-    "no-func-assign": ["error"],
-    "no-class-assign": ["error"],
-    "no-redeclare": props.language === "vue" ? ["off"] : ["error"],
-    "no-undef": props.language === "vue" ? ["off"] : ["error"],
-  };
-
-  const unwrappedResult = linterInstance.verify(unwrapped, {
-    languageOptions: {
-      ecmaVersion: 2020,
-      sourceType: "module",
-      globals: EXTENSION_GLOBALS,
-      parserOptions: {
-        ecmaFeatures: {
-          jsx: true,
-          modules: true,
-        },
-      },
-    },
-    rules: scopeRules as any,
-  });
-
-  const adjustedWrappedResult = wrappedResult.map((msg) => ({
-    ...msg,
-    line:
-      props.language === "javascript" ? Math.max(1, msg.line - 1) : msg.line,
-  }));
-
-  const seenErrors = new Set();
-  const result = [...unwrappedResult, ...adjustedWrappedResult].filter(
-    (msg) => {
-      const key = `${msg.line}:${msg.column}:${msg.ruleId}`;
-      if (seenErrors.has(key)) return false;
-      seenErrors.add(key);
-      return true;
-    }
-  );
-
-  const combinedResult = [...result];
-
-  const adjustment = 1;
-
-  const diagnostics: Diagnostic[] = combinedResult
-    .filter((msg) => {
-      if (props.language === "vue") {
-        const vueParsingIgnores = [
-          "Parsing error: Unexpected token :",
-          "Parsing error: Unexpected token {",
-          "Parsing error: Unexpected token }",
-          "Parsing error: Unexpected token ,",
-          "Parsing error: Unexpected token )",
-          "Parsing error: Unexpected token ;",
-          "Parsing error: Unexpected token <",
-          "Parsing error: Unexpected token >",
-          "Parsing error: Unexpected token =",
-          "Parsing error: Unexpected token @",
-          "Parsing error: Unexpected token #",
-          "Parsing error: Unexpected token v-",
-        ];
-
-        if (msg.message.startsWith("Parsing error:")) {
-          return !vueParsingIgnores.some((ignored) =>
-            msg.message.includes(ignored.replace("Parsing error: ", ""))
-          );
-        }
-      }
-
-      return true;
-    })
-    .map((msg) => {
-      let actualLine = msg.line - adjustment;
+  try {
+    const diagnostics = acornLinter(codeToLint, props.language || "javascript").map(diagnostic => {
+      // Adjust line numbers for Vue files
       if (props.language === "vue" && lineOffset > 0) {
-        actualLine += lineOffset;
+        return {
+          ...diagnostic,
+          from: diagnostic.from + lineOffset,
+          to: diagnostic.to + lineOffset,
+        };
       }
-      const userLine = Math.max(1, actualLine);
-      const line = view.state.doc.line(userLine);
-
-      const from = msg.column ? line.from + msg.column - 1 : line.from;
-      const to = msg.endColumn ? line.from + msg.endColumn - 1 : line.to;
-
-      return {
-        from,
-        to,
-        message: msg.message,
-        severity: msg.severity === 2 ? "error" : "warning",
-      };
+      return diagnostic;
     });
-
-  emit("diagnostics", []);
-  return diagnostics;
+    
+    emit("diagnostics", diagnostics);
+    return diagnostics;
+  } catch (error) {
+    console.warn("Linting error:", error);
+    emit("diagnostics", []);
+    return [];
+  }
 });
 
-const customTheme = EditorView.baseTheme({
+// Language extension
+const getLanguageExtension = () => {
+  switch (props.language) {
+    case "vue":
+      return vue();
+    case "html":
+      return html();
+    case "typescript":
+      return javascript({ jsx: true, typescript: true });
+    case "javascript":
+    default:
+      return javascript({ jsx: true });
+  }
+};
+
+const languageExtension = computed(() => getLanguageExtension());
+
+// Basic setup with minimal features for better performance
+const basicSetup = [
+  lineNumbers(),
+  highlightActiveLine(),
+  history(),
+  foldGutter(),
+  drawSelection(),
+  dropCursor(),
+  rectangularSelection(),
+  crosshairCursor(),
+  bracketMatching(),
+  closeBrackets(),
+  autocompletion(),
+  highlightSelectionMatches(),
+  syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+  indentUnit.of("  "),
+  keymap.of([
+    indentWithTab,
+    ...defaultKeymap,
+    ...historyKeymap,
+    ...foldKeymap,
+    ...completionKeymap,
+    ...searchKeymap,
+  ]),
+];
+
+// VS Code-style dark theme
+const customTheme = computed(() => EditorView.baseTheme({
   "&": {
     backgroundColor: "#1e1e1e",
     color: "#d4d4d4",
@@ -276,6 +171,7 @@ const customTheme = EditorView.baseTheme({
     borderRadius: "8px",
     border: "1px solid #3c3c3c",
     overflow: "hidden",
+    height: props.height || "400px",
   },
 
   ".cm-content": {
@@ -348,62 +244,78 @@ const customTheme = EditorView.baseTheme({
   ".ͼn": {
     color: "#D16969",
   },
+}));
+
+// Editor extensions
+const extensions = computed(() => [
+  ...basicSetup,
+  languageExtension.value,
+  diagnosticExtension,
+  lintGutter(),
+  customTheme.value,
+  EditorView.updateListener.of((update) => {
+    if (update.docChanged) {
+      code.value = update.state.doc.toString();
+    }
+  }),
+]);
+
+// CodeMirror ref
+const editorRef = ref<HTMLDivElement>();
+const editorView = ref<EditorView>();
+
+onMounted(() => {
+  if (editorRef.value) {
+    editorView.value = new EditorView({
+      doc: code.value,
+      extensions: extensions.value,
+      parent: editorRef.value,
+    });
+  }
 });
 
-const getLanguageExtension = () => {
-  switch (props.language) {
-    case "vue":
-      return vue();
-    case "html":
-      return html();
-    case "typescript":
-      return javascript({ jsx: true, typescript: true });
-    case "javascript":
-    default:
-      return javascript({ jsx: true });
-  }
-};
+onUnmounted(() => {
+  editorView.value?.destroy();
+});
 
-const extensions = computed(() => [
-  getLanguageExtension(),
-  syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
-  lineNumbers(),
-  foldGutter(),
-  dropCursor(),
-  drawSelection(),
-  rectangularSelection(),
-  crosshairCursor(),
-  highlightActiveLine(),
-  highlightSelectionMatches(),
-  closeBrackets(),
-  autocompletion(),
-  bracketMatching(),
-  indentUnit.of("  "),
-  history(),
-  lintGutter(),
-  diagnosticExtension,
-  keymap.of([
-    ...completionKeymap,
-    ...historyKeymap,
-    ...foldKeymap,
-    ...searchKeymap,
-    indentWithTab,
-    { key: "Enter", run: insertNewline },
-    { key: "Enter", run: insertNewline, preventDefault: true },
-  ]),
-  customTheme,
-]);
+// Watch for extension changes
+watch(
+  extensions,
+  (newExtensions) => {
+    if (editorView.value) {
+      editorView.value.dispatch({
+        effects: EditorView.reconfigure.of(newExtensions),
+      });
+    }
+  },
+  { deep: true }
+);
+
+// Watch for external code changes
+watch(code, (newCode) => {
+  if (editorView.value) {
+    const currentCode = editorView.value.state.doc.toString();
+    if (currentCode !== newCode) {
+      editorView.value.dispatch({
+        changes: {
+          from: 0,
+          to: currentCode.length,
+          insert: newCode,
+        },
+      });
+    }
+  }
+});
 </script>
 
 <template>
   <div class="rounded-md overflow-hidden ring-1 ring-slate-700">
-    <NuxtCodeMirror
-      v-model="code"
-      :extensions="extensions"
-      theme="dark"
-      :height="props.height || '400px'"
-      :editable="true"
-      :read-only="false"
-    />
+    <div ref="editorRef" class="codemirror-editor" />
   </div>
 </template>
+
+<style scoped>
+.codemirror-editor {
+  font-family: "Fira Code", "JetBrains Mono", monospace;
+}
+</style>
