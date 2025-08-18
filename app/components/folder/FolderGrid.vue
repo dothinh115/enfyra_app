@@ -32,6 +32,7 @@ const {
 // Inline editing state
 const editingFolderId = ref<string | null>(null);
 const editingName = ref('');
+const editingLoading = ref(false);
 const toast = useToast();
 
 // Refresh folders by emitting event to parent
@@ -123,8 +124,10 @@ function startEditName(folder: any) {
 }
 
 function cancelEdit() {
+  if (editingLoading.value) return; // Prevent cancel during loading
   editingFolderId.value = null;
   editingName.value = '';
+  editingLoading.value = false;
 }
 
 async function saveEdit(folder: any) {
@@ -137,6 +140,8 @@ async function saveEdit(folder: any) {
     return;
   }
 
+  editingLoading.value = true;
+
   const { execute: updateFolder, error: updateError } = useApiLazy(
     () => `folder_definition/${folder.id}`,
     {
@@ -148,6 +153,7 @@ async function saveEdit(folder: any) {
   await updateFolder({ body: { name: editingName.value.trim() } });
 
   if (updateError.value) {
+    editingLoading.value = false;
     return;
   }
 
@@ -159,6 +165,7 @@ async function saveEdit(folder: any) {
 
   editingFolderId.value = null;
   editingName.value = '';
+  editingLoading.value = false;
   refreshFolders();
 }
 </script>
@@ -225,28 +232,37 @@ async function saveEdit(folder: any) {
             <div v-if="editingFolderId === folder.id" class="flex items-center gap-1 justify-center">
               <input
                 v-model="editingName"
-                @keyup.enter="saveEdit(folder)"
-                @keyup.escape="cancelEdit()"
-                class="w-30 text-xs font-medium text-center bg-white dark:bg-gray-800 border border-primary rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-primary text-gray-900 dark:text-gray-100"
+                @keyup.enter="!editingLoading && saveEdit(folder)"
+                @keyup.escape="!editingLoading && cancelEdit()"
+                :disabled="editingLoading"
+                class="w-30 text-xs font-medium text-center bg-white dark:bg-gray-800 border border-primary rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-primary text-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                 @click.stop
                 ref="editInput"
               />
-              <UButton
-                icon="lucide:check"
-                size="xs"
-                color="success"
-                variant="solid"
-                @click.stop="saveEdit(folder)"
-                class="!p-0.5 !min-w-[20px] !w-5 !h-5 flex items-center justify-center"
-              />
-              <UButton
-                icon="lucide:x"
-                size="xs"
-                color="error"
-                variant="solid"
-                @click.stop="cancelEdit()"
-                class="!p-0.5 !min-w-[20px] !w-5 !h-5 flex items-center justify-center"
-              />
+              <div v-if="editingLoading" class="flex items-center gap-1">
+                <UIcon
+                  name="lucide:loader-2"
+                  class="w-4 h-4 animate-spin text-primary"
+                />
+              </div>
+              <div v-else class="flex items-center gap-1">
+                <UButton
+                  icon="lucide:check"
+                  size="xs"
+                  color="success"
+                  variant="solid"
+                  @click.stop="saveEdit(folder)"
+                  class="!p-0.5 !min-w-[20px] !w-5 !h-5 flex items-center justify-center"
+                />
+                <UButton
+                  icon="lucide:x"
+                  size="xs"
+                  color="error"
+                  variant="solid"
+                  @click.stop="cancelEdit()"
+                  class="!p-0.5 !min-w-[20px] !w-5 !h-5 flex items-center justify-center"
+                />
+              </div>
             </div>
             <div
               v-else

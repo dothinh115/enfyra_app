@@ -87,17 +87,23 @@ export default defineNuxtConfig({
       rollupOptions: {
         output: {
           manualChunks: {
-            // Code editor - separate chunk để lazy load
-            codemirror: [
+            // CodeMirror core - essential packages
+            "codemirror-core": [
               "@codemirror/view",
-              "@codemirror/state", 
-              "@codemirror/lang-javascript",
+              "@codemirror/state",
+              "@codemirror/language",
+            ],
+            // CodeMirror languages - separate chunk
+            "codemirror-langs": [
+              "@codemirror/lang-javascript", 
               "@codemirror/lang-vue",
               "@codemirror/lang-html",
+            ],
+            // CodeMirror features - separate chunk
+            "codemirror-features": [
               "@codemirror/lint",
               "@codemirror/commands",
-              "@codemirror/autocomplete",
-              "@codemirror/language",
+              "@codemirror/autocomplete", 
               "@codemirror/search",
             ],
             // Vue table - separate chunk để lazy load
