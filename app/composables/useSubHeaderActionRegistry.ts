@@ -116,7 +116,9 @@ export function useSubHeaderActionRegistry(
   watch(
     () => route.path,
     (newPath, oldPath) => {
-      clearSubHeaderActions();
+      // Keep global actions, clear only route-specific actions
+      const globalActions = subHeaderActions.value.filter(action => action.global);
+      subHeaderActions.value = globalActions;
 
       // Re-register all actions for new route if exist
       const routeActionsForPath = routeActions.value.get(newPath);

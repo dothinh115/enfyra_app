@@ -1,6 +1,17 @@
 <template>
   <div class="flex gap-2">
-    <template v-for="action in visibleActions" :key="action.id">
+    <!-- Component actions -->
+    <template v-for="action in visibleComponentActions" :key="action.key || action.id">
+      <PermissionGate :condition="action.permission">
+        <component
+          :is="action.component"
+          v-bind="action.props"
+        />
+      </PermissionGate>
+    </template>
+
+    <!-- Regular button actions -->
+    <template v-for="action in visibleButtonActions" :key="action.id">
       <PermissionGate :condition="action.permission">
         <UButton
           :label="isTablet ? undefined : action.label"
@@ -48,7 +59,16 @@ const visibleActions = computed(() => {
     return true;
   });
 
-  return filtered;
+  // Filter for right side only (header actions are on the right by default)
+  return filtered.filter(action => action.side === 'right' || !action.side);
+});
+
+const visibleComponentActions = computed(() => {
+  return visibleActions.value.filter(action => action.component);
+});
+
+const visibleButtonActions = computed(() => {
+  return visibleActions.value.filter(action => !action.component);
 });
 
 const handleActionClick = (action: HeaderAction) => {

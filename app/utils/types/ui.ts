@@ -125,6 +125,7 @@ export interface HeaderAction {
   props?: Record<string, any>;
   key?: string; // For forcing component re-render
   side?: "left" | "right"; // Position in sub-header, default: "right"
+  global?: boolean; // If true, persist across route changes
 }
 
 // Settings Card Component

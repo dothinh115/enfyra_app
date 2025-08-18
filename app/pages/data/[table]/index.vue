@@ -37,52 +37,6 @@ const filterColor = computed(() => {
   return hasActiveFilters(currentFilter.value) ? "secondary" : "neutral";
 });
 
-// Register header actions directly
-useHeaderActionRegistry([
-  {
-    id: "filter-data-entries",
-    get label() {
-      return filterLabel.value;
-    },
-    icon: "lucide:filter",
-    get variant() {
-      return filterVariant.value;
-    },
-    get color() {
-      return filterColor.value;
-    },
-    size: "md",
-    onClick: () => {
-      showFilterDrawer.value = true;
-    },
-    permission: {
-      and: [
-        {
-          route: `/${route.params.table}`,
-          actions: ["read"],
-        },
-      ],
-    },
-  },
-  {
-    id: "create-data-entry",
-    label: "Create",
-    icon: "lucide:plus",
-    variant: "solid",
-    color: "primary",
-    size: "md",
-    to: `/data/${route.params.table}/create`,
-    permission: {
-      and: [
-        {
-          route: `/${route.params.table}`,
-          actions: ["create"],
-        },
-      ],
-    },
-  },
-]);
-
 // API composables - all at setup level
 const {
   data: apiData,
@@ -115,8 +69,42 @@ const { execute: executeDelete, error: deleteError } = useApiLazy(
   }
 );
 
-// Column visibility state
+// Column visibility state with localStorage support
 const visibleColumns = ref<Set<string>>(new Set());
+
+// Load saved column visibility from localStorage
+const loadColumnVisibility = (
+  tableName: string,
+  columnFields: string[]
+): Set<string> => {
+  try {
+    const saved = localStorage.getItem(`columnVisibility_${tableName}`);
+    if (saved) {
+      const savedColumns = JSON.parse(saved);
+      // Only include columns that still exist in the schema
+      const validColumns = savedColumns.filter((col: string) =>
+        columnFields.includes(col)
+      );
+      return new Set(validColumns);
+    }
+  } catch (error) {
+    console.warn("Failed to load column visibility from localStorage:", error);
+  }
+  // Default: all columns visible
+  return new Set(columnFields);
+};
+
+// Save column visibility to localStorage
+const saveColumnVisibility = (tableName: string, columns: Set<string>) => {
+  try {
+    localStorage.setItem(
+      `columnVisibility_${tableName}`,
+      JSON.stringify(Array.from(columns))
+    );
+  } catch (error) {
+    console.warn("Failed to save column visibility to localStorage:", error);
+  }
+};
 
 // Initialize visible columns when schema changes
 watch(
@@ -126,7 +114,9 @@ watch(
       const columnFields = schema.definition
         .filter((field: any) => field.fieldType === "column")
         .map((field: any) => field.name);
-      visibleColumns.value = new Set(columnFields); // All visible by default
+
+      // Load from localStorage or default to all visible
+      visibleColumns.value = loadColumnVisibility(tableName, columnFields);
     }
   },
   { immediate: true }
@@ -137,28 +127,51 @@ const columnDropdownItems = computed(() => {
   const schema = schemas.value[tableName];
   if (!schema?.definition) return [];
 
-  return schema.definition
+  // Force reactivity by reading visibleColumns.value
+  const currentVisible = Array.from(visibleColumns.value);
+
+  const items = schema.definition
     .filter((field: any) => field.fieldType === "column")
     .map((field: any) => ({
       label: field.label || field.name,
       type: "checkbox" as const,
-      checked: visibleColumns.value.has(field.name),
-      onSelect: (e: Event) => {
-        e.preventDefault();
+      get checked() {
+        return visibleColumns.value.has(field.name);
+      },
+      onToggle: () => {
         toggleColumnVisibility(field.name);
       },
     }));
+
+  return items;
 });
 
 // Toggle column visibility
 function toggleColumnVisibility(columnName: string) {
+  console.log("🚀 toggleColumnVisibility called:", columnName);
+  console.log(
+    "🔍 Before toggle - visibleColumns:",
+    Array.from(visibleColumns.value)
+  );
+
   if (visibleColumns.value.has(columnName)) {
     visibleColumns.value.delete(columnName);
+    console.log("❌ Removed column:", columnName);
   } else {
     visibleColumns.value.add(columnName);
+    console.log("✅ Added column:", columnName);
   }
+
   // Trigger reactivity
   visibleColumns.value = new Set(visibleColumns.value);
+
+  // Save to localStorage
+  saveColumnVisibility(tableName, visibleColumns.value);
+
+  console.log(
+    "🔍 After toggle - visibleColumns:",
+    Array.from(visibleColumns.value)
+  );
 }
 
 useSubHeaderActionRegistry([
@@ -166,35 +179,15 @@ useSubHeaderActionRegistry([
   {
     id: "column-picker-component",
     component: ColumnSelector,
-    get props() {
-      return {
-        items: columnDropdownItems.value,
-        size: isTablet.value ? 'sm' : 'md', // Same as back button
-        variant: 'soft'
-      };
-    },
     get key() {
       return `column-picker-${Array.from(visibleColumns.value).join("-")}`;
     },
-    permission: {
-      and: [
-        {
-          route: `/${route.params.table}`,
-          actions: ["read"],
-        },
-      ],
-    },
-  },
-  // Left side - Test action (after back button)
-  {
-    id: "test-left-action",
-    label: "Test Left",
-    icon: "lucide:info",
-    variant: "soft",
-    color: "secondary",
-    side: "left",
-    onClick: () => {
-      alert('Left side action clicked!');
+    get props() {
+      return {
+        items: columnDropdownItems.value,
+        size: isTablet.value ? "sm" : "md", // Same as back button
+        variant: "soft",
+      };
     },
     permission: {
       and: [
@@ -421,6 +414,52 @@ async function handleBulkDelete(selectedRows: any[]) {
 onMounted(async () => {
   await fetchData();
 });
+
+// Register header actions with component test (after all variables are defined)
+useHeaderActionRegistry([
+  {
+    id: "filter-data-entries",
+    get label() {
+      return filterLabel.value;
+    },
+    icon: "lucide:filter",
+    get variant() {
+      return filterVariant.value;
+    },
+    get color() {
+      return filterColor.value;
+    },
+    size: "md",
+    onClick: () => {
+      showFilterDrawer.value = true;
+    },
+    permission: {
+      and: [
+        {
+          route: `/${route.params.table}`,
+          actions: ["read"],
+        },
+      ],
+    },
+  },
+  {
+    id: "create-data-entry",
+    label: "Create",
+    icon: "lucide:plus",
+    variant: "solid",
+    color: "primary",
+    size: "md",
+    to: `/data/${route.params.table}/create`,
+    permission: {
+      and: [
+        {
+          route: `/${route.params.table}`,
+          actions: ["create"],
+        },
+      ],
+    },
+  },
+]);
 
 // Remove auto-watch - FilterDrawer handles apply/clear events
 </script>

@@ -1,3 +1,5 @@
+import { resolveComponent, markRaw } from 'vue';
+
 export function useHeaderActionRegistry(
   actions?: HeaderAction | HeaderAction[]
 ) {
@@ -9,15 +11,37 @@ export function useHeaderActionRegistry(
   );
 
   const registerHeaderAction = (action: HeaderAction) => {
+    // Process component
+    const processedAction = { ...action };
+    
+    // Set default side to "right" if not specified
+    if (!processedAction.side) {
+      processedAction.side = "right";
+    }
+    
+    if (processedAction.component) {
+      if (typeof processedAction.component === 'string') {
+        try {
+          const componentName = processedAction.component;
+          processedAction.component = markRaw(resolveComponent(componentName as any));
+        } catch (error) {
+          console.warn(`Failed to resolve component: ${processedAction.component}`, error);
+        }
+      } else {
+        // Already imported component, just markRaw it
+        processedAction.component = markRaw(processedAction.component);
+      }
+    }
+
     const existingIndex = headerActions.value.findIndex(
       (a) => a.id === action.id
     );
     if (existingIndex > -1) {
       // Update existing action
-      headerActions.value[existingIndex] = action;
+      headerActions.value[existingIndex] = processedAction;
     } else {
       // Add new action
-      headerActions.value.push(action);
+      headerActions.value.push(processedAction);
     }
   };
 
@@ -92,7 +116,9 @@ export function useHeaderActionRegistry(
   watch(
     () => route.path,
     (newPath, oldPath) => {
-      clearHeaderActions();
+      // Keep global actions, clear only route-specific actions
+      const globalActions = headerActions.value.filter(action => action.global);
+      headerActions.value = globalActions;
 
       // Re-register all actions for new route if exist
       const routeActionsForPath = routeActions.value.get(newPath);

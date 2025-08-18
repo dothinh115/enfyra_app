@@ -3,9 +3,29 @@
     class="h-16 border-b border-gray-600 flex items-center justify-between bg-background shrink-0"
     :class="isMobile ? 'px-3' : 'px-6'"
   >
-    <!-- Breadcrumbs -->
+    <!-- Left side: Left actions from registry -->
     <div class="flex items-center gap-3 min-w-0 flex-1">
-      <CommonBreadCrumbs />
+      <!-- Component actions -->
+      <component
+        v-for="action in headerActions.filter(a => a.component && a.side === 'left')"
+        :key="action.key || action.id"
+        :is="action.component"
+        v-bind="action.props"
+      />
+
+      <!-- Regular button actions -->
+      <UButton
+        v-for="action in headerActions.filter(a => !a.component && a.side === 'left')"
+        :key="action.id"
+        :icon="action.icon"
+        :label="action.label"
+        :variant="action.variant || 'soft'"
+        :color="action.color || 'neutral'"
+        :size="action.size || (isMobile ? 'sm' : 'md')"
+        :disabled="typeof action.disabled === 'boolean' ? action.disabled : unref(action.disabled)"
+        @click="action.onClick"
+        :class="action.class"
+      />
     </div>
 
     <!-- Right Side Action Buttons -->
@@ -16,4 +36,5 @@
 <script setup lang="ts">
 const route = useRoute();
 const { isMobile } = useScreen();
+const { headerActions } = useHeaderActionRegistry();
 </script>
