@@ -64,11 +64,11 @@ const { data: menuData, execute: fetchMenuData } = useApiLazy(
       filter: JSON.stringify({
         type: { _eq: "menu" },
         isEnabled: { _eq: true },
-        sidebar: { id: { _eq: currentSidebar.value } }
+        sidebar: { id: { _eq: currentSidebar.value } },
       }),
-      sort: "order"
+      sort: "order",
     })),
-    errorContext: "Fetch Menu Items"
+    errorContext: "Fetch Menu Items",
   }
 );
 
@@ -85,13 +85,6 @@ const visibleMenuItems = computed(() => {
   const items = getMenuItemsBySidebar(currentSidebar.value);
   return items;
 });
-
-// Watch for sidebar changes and fetch menu data
-watch(currentSidebar, async (newSidebar) => {
-  if (newSidebar) {
-    await fetchMenuData();
-  }
-}, { immediate: true });
 </script>
 
 <template>
@@ -126,12 +119,12 @@ watch(currentSidebar, async (newSidebar) => {
       >
         <PermissionGate :condition="item.permission as any">
           <!-- Menu item with children (collapsible) -->
-          <div 
-            v-if="hasChildren(item)" 
+          <div
+            v-if="hasChildren(item)"
             :class="[
               'border-gray-600 py-1',
               index !== 0 && 'border-t',
-              index !== visibleMenuItems.length - 1 && 'border-b'
+              index !== visibleMenuItems.length - 1 && 'border-b',
             ]"
           >
             <UButton
@@ -140,16 +133,17 @@ watch(currentSidebar, async (newSidebar) => {
               color="neutral"
               :icon="item.icon"
               class="w-full hover:bg-primary/20 mb-1"
-              :class="
-                isExpanded(item.id) &&
-                'bg-primary/10 text-white shadow'
-              "
+              :class="isExpanded(item.id) && 'bg-primary/10 text-white shadow'"
               @click="toggleExpanded(item.id)"
             >
               <template #trailing>
-                <UIcon 
-                  :name="isExpanded(item.id) ? 'lucide:chevron-down' : 'lucide:chevron-right'" 
-                  class="ml-auto transition-transform duration-200" 
+                <UIcon
+                  :name="
+                    isExpanded(item.id)
+                      ? 'lucide:chevron-down'
+                      : 'lucide:chevron-right'
+                  "
+                  class="ml-auto transition-transform duration-200"
                 />
               </template>
               <span class="truncate">{{ item.label }}</span>
