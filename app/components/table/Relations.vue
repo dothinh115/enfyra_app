@@ -143,7 +143,7 @@ function saveRelation() {
       </template>
 
       <template #body>
-        <FormEditor
+        <FormEditorLazy
           v-model="currentRelation"
           v-model:errors="currentRelationErrors"
           tableName="relation_definition"

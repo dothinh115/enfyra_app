@@ -159,6 +159,32 @@ export function useSchema(tableName: string) {
     return ["*", ...relations].join(",");
   }
 
+  // Form change detection
+  function useFormChanges() {
+    const originalData = ref<Record<string, any>>({});
+    const hasChanges = ref(false);
+
+    function update(newData: Record<string, any>) {
+      originalData.value = JSON.parse(JSON.stringify(newData));
+      hasChanges.value = false;
+    }
+
+    function checkChanges(currentData: Record<string, any>) {
+      // Deep comparison between original and current data
+      const original = JSON.stringify(originalData.value);
+      const current = JSON.stringify(currentData);
+      hasChanges.value = original !== current;
+      return hasChanges.value;
+    }
+
+    return {
+      originalData: readonly(originalData),
+      hasChanges: readonly(hasChanges),
+      update,
+      checkChanges,
+    };
+  }
+
   return {
     definition,
     fieldMap,
@@ -166,5 +192,6 @@ export function useSchema(tableName: string) {
     validate,
     getIncludeFields,
     sortFieldsByOrder, // Export helper function for external use
+    useFormChanges, // Form change tracking
   };
 }

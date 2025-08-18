@@ -34,9 +34,11 @@
           </div>
         </template>
 
-        <FormEditor
+        <FormEditorLazy
+          ref="formEditorRef"
           v-model="form"
           v-model:errors="errors"
+          v-model:has-changes="hasFormChanges"
           :table-name="'hook_definition'"
           :excluded="['isSystem']"
         />
@@ -64,6 +66,10 @@ const id = route.params.id as string;
 
 const { isMounted } = useMounted();
 
+// Form changes tracking via FormEditor
+const hasFormChanges = ref(false);
+const formEditorRef = ref();
+
 const { validate, getIncludeFields } = useSchema(tableName);
 
 useHeaderActionRegistry([
@@ -76,6 +82,7 @@ useHeaderActionRegistry([
     size: "md",
     submit: updateHook,
     loading: computed(() => updateLoading.value),
+    disabled: computed(() => !hasFormChanges.value),
     permission: {
       and: [
         {
@@ -175,6 +182,9 @@ async function updateHook() {
     description: "Hook updated!",
   });
   errors.value = {};
+  
+  // Confirm form changes as new baseline
+  formEditorRef.value?.confirmChanges();
 }
 
 async function deleteHook() {

@@ -1,6 +1,6 @@
 <template>
   <UForm class="mx-auto space-y-6" :state="form" @submit="handleCreate">
-    <FormEditor
+    <FormEditorLazy
       v-model="form"
       v-model:errors="errors"
       :table-name="tableName"

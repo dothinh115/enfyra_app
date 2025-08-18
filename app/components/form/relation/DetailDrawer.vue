@@ -40,7 +40,7 @@ const { isTablet } = useScreen();
 
       <template #body>
         <div class="p-2 max-h-[80vh] overflow-y-auto">
-          <FormEditor
+          <FormEditorLazy
             :table-name="props.tableName"
             :model-value="props.record"
             :errors="{}"

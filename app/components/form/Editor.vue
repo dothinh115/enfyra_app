@@ -37,9 +37,14 @@ const props = withDefaults(
 const emit = defineEmits<{
   "update:modelValue": [value: Record<string, any>];
   "update:errors": [errors: Record<string, string>];
+  "update:hasChanges": [hasChanges: boolean];
 }>();
 
-const { definition, fieldMap, sortFieldsByOrder } = useSchema(props.tableName);
+const { definition, fieldMap, sortFieldsByOrder, useFormChanges } = useSchema(props.tableName);
+
+// Form change tracking
+const formChanges = useFormChanges();
+const originalData = ref<Record<string, any>>({});
 
 const visibleFields = computed(() => {
   let fields = definition.value;
@@ -99,4 +104,31 @@ function updateFormData(key: string, value: any) {
 function updateErrors(errors: Record<string, string>) {
   emit("update:errors", errors);
 }
+
+// Initialize original data when modelValue changes (first load)
+watch(() => props.modelValue, (newValue) => {
+  if (newValue && Object.keys(newValue).length > 0 && Object.keys(originalData.value).length === 0) {
+    originalData.value = JSON.parse(JSON.stringify(newValue));
+    formChanges.update(newValue);
+  }
+}, { immediate: true, deep: true });
+
+// Watch for form changes and emit hasChanges
+watch(() => props.modelValue, (newValue) => {
+  if (newValue && Object.keys(newValue).length > 0 && Object.keys(originalData.value).length > 0) {
+    formChanges.checkChanges(newValue);
+    emit("update:hasChanges", formChanges.hasChanges.value);
+  }
+}, { deep: true });
+
+// Expose method to confirm form changes (call after successful save)
+defineExpose({
+  confirmChanges: () => {
+    if (props.modelValue && Object.keys(props.modelValue).length > 0) {
+      originalData.value = JSON.parse(JSON.stringify(props.modelValue));
+      formChanges.update(props.modelValue);
+      emit("update:hasChanges", false);
+    }
+  }
+});
 </script>

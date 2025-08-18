@@ -17,7 +17,10 @@
     >
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <UIcon name="i-heroicons-puzzle-piece" class="text-2xl text-primary" />
+          <UIcon
+            name="i-heroicons-puzzle-piece"
+            class="text-2xl text-primary"
+          />
           <div class="text-xl font-bold text-primary">
             Extension: {{ detail.name }}
           </div>
@@ -38,8 +41,10 @@
         </template>
 
         <FormEditorLazy
+          ref="formEditorRef"
           v-model="form"
           v-model:errors="errors"
+          v-model:has-changes="hasFormChanges"
           :table-name="tableName"
           :excluded="['createdAt', 'updatedAt', 'isSystem', 'compiledCode']"
           :type-map="{
@@ -101,6 +106,10 @@ const uploadLoading = ref(false);
 
 const { validate, getIncludeFields } = useSchema(tableName);
 
+// Form changes tracking via FormEditor
+const hasFormChanges = ref(false);
+const formEditorRef = ref();
+
 useHeaderActionRegistry([
   {
     id: "save-extension",
@@ -111,6 +120,7 @@ useHeaderActionRegistry([
     size: "md",
     submit: updateExtension,
     loading: computed(() => updateLoading.value),
+    disabled: computed(() => !hasFormChanges.value),
     permission: {
       and: [
         {
@@ -190,18 +200,7 @@ const {
 const detail = computed(() => extensionData.value?.data?.[0]);
 
 const form = ref<Record<string, any>>({});
-
 const errors = ref<Record<string, string>>({});
-
-watch(
-  extensionData,
-  (newData) => {
-    if (newData?.data?.[0]) {
-      form.value = { ...newData.data[0] };
-    }
-  },
-  { immediate: true }
-);
 
 async function updateExtension() {
   if (!form.value) return;
@@ -233,6 +232,7 @@ async function updateExtension() {
     description: "Extension updated!",
   });
   errors.value = {};
+  formEditorRef.value?.confirmChanges();
 }
 
 async function deleteExtension() {
@@ -283,5 +283,10 @@ async function handleUpload(files: File | File[]) {
 
 onMounted(async () => {
   await executeGetExtension();
+
+  // Initialize form after data loads
+  if (extensionData.value?.data?.[0]) {
+    form.value = { ...extensionData.value.data[0] };
+  }
 });
 </script>

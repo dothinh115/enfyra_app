@@ -87,7 +87,7 @@ async function handleCreate() {
       </template>
 
       <template #default>
-        <FormEditor
+        <FormEditorLazy
           :table-name="(route.params.table as string)"
           mode="create"
           v-model="newRecord"

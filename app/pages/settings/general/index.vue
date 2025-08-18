@@ -113,7 +113,7 @@ onMounted(async () => {
         </template>
 
         <template #default>
-          <FormEditor
+          <FormEditorLazy
             table-name="setting_definition"
             mode="edit"
             v-model="setting"

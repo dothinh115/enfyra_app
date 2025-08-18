@@ -11,10 +11,12 @@
       />
 
       <UForm v-else-if="handler" :state="form" @submit="save">
-        <FormEditor
+        <FormEditorLazy
+          ref="formEditorRef"
           v-model="form"
-          :table-name="tableName"
           v-model:errors="errors"
+          v-model:has-changes="hasFormChanges"
+          :table-name="tableName"
         />
       </UForm>
 
@@ -41,6 +43,10 @@ const errors = ref<Record<string, string>>({});
 
 const { isMounted } = useMounted();
 
+// Form changes tracking via FormEditor
+const hasFormChanges = ref(false);
+const formEditorRef = ref();
+
 const { validate, getIncludeFields } = useSchema(tableName);
 
 useHeaderActionRegistry([
@@ -53,7 +59,7 @@ useHeaderActionRegistry([
     size: "md",
     submit: save,
     loading: computed(() => saveLoading.value),
-    disabled: computed(() => form.value?.isSystem || false),
+    disabled: computed(() => form.value?.isSystem || !hasFormChanges.value),
     permission: {
       and: [
         {
@@ -150,6 +156,9 @@ async function save() {
     description: "Handler updated!",
   });
   errors.value = {};
+  
+  // Confirm form changes as new baseline
+  formEditorRef.value?.confirmChanges();
 }
 
 async function deleteHandler() {

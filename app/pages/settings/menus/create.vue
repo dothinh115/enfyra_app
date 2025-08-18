@@ -189,7 +189,7 @@ async function saveMenu() {
           </div>
         </template>
 
-        <FormEditor
+        <FormEditorLazy
           v-model="form"
           v-model:errors="errors"
           :table-name="tableName"

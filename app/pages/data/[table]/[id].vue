@@ -7,6 +7,10 @@ const updateErrors = ref<Record<string, string>>({});
 
 const { confirm } = useConfirm();
 
+// Form changes tracking via FormEditor
+const hasFormChanges = ref(false);
+const formEditorRef = ref();
+
 // API composable for fetching record
 const {
   data: apiData,
@@ -69,6 +73,9 @@ async function handleUpdate() {
     description: "Record updated!",
   });
   updateErrors.value = {};
+  
+  // Confirm form changes as new baseline
+  formEditorRef.value?.confirmChanges();
 
   await navigateTo(
     `/data/${route.params.table}/${updateData.value?.data[0]?.id}`
@@ -127,6 +134,7 @@ useHeaderActionRegistry([
     color: "primary",
     size: "md",
     loading: computed(() => updateLoading.value),
+    disabled: computed(() => !hasFormChanges.value),
     submit: handleUpdate,
     permission: {
       and: [
@@ -180,11 +188,13 @@ useHeaderActionRegistry([
       </template>
 
       <template #default>
-        <FormEditor
+        <FormEditorLazy
+          ref="formEditorRef"
           :table-name="(route.params.table as string)"
           mode="edit"
           v-model="currentRecord"
           v-model:errors="updateErrors"
+          v-model:has-changes="hasFormChanges"
         />
       </template>
     </UCard>

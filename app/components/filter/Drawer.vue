@@ -57,12 +57,8 @@ function handleClose() {
   // Reset to original filter if user closes without applying
   localFilter.value = { ...props.filterValue };
   
-  // If original filter was empty and user made changes but didn't apply,
-  // emit clear to reset parent filter state
-  if (!hasActiveFilters(props.filterValue)) {
-    emit("clear");
-  }
-  
+  // Don't emit any filter changes when closing without applying
+  // Just close the drawer
   emit("update:modelValue", false);
 }
 

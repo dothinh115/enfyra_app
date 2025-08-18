@@ -36,8 +36,10 @@
         </template>
 
         <FormEditorLazy
+          ref="formEditorRef"
           v-model="form"
           v-model:errors="errors"
+          v-model:has-changes="hasFormChanges"
           :table-name="tableName"
           :excluded="['isSystem', 'routePermissions', 'middlewares']"
           :type-map="{
@@ -68,6 +70,10 @@ const tableName = "route_definition";
 
 const { isMounted } = useMounted();
 
+// Form changes tracking via FormEditor
+const hasFormChanges = ref(false);
+const formEditorRef = ref();
+
 const { validate, getIncludeFields } = useSchema(tableName);
 
 useHeaderActionRegistry([
@@ -80,6 +86,7 @@ useHeaderActionRegistry([
     size: "md",
     submit: updateRoute,
     loading: computed(() => updateLoading.value),
+    disabled: computed(() => !hasFormChanges.value),
     permission: {
       and: [
         {
@@ -185,6 +192,9 @@ async function updateRoute() {
     description: "Route updated!",
   });
   errors.value = {};
+  
+  // Confirm form changes as new baseline
+  formEditorRef.value?.confirmChanges();
 }
 
 async function deleteRoute() {

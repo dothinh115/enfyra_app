@@ -286,7 +286,7 @@ watch(
 
       <!-- Modal Body -->
       <template #body>
-        <FormEditor
+        <FormEditorLazy
           v-model="currentColumn"
           tableName="column_definition"
           v-model:errors="errors"

@@ -76,7 +76,7 @@ async function createNewRecord() {
         </div>
       </template>
       <template #body>
-        <FormEditor
+        <FormEditorLazy
           v-model="createForm"
           :table-name="targetTable?.name"
           :errors="createErrors"

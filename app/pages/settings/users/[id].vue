@@ -6,6 +6,10 @@ const { validate } = useSchema("user_definition");
 
 const { isMounted } = useMounted();
 
+// Form changes tracking via FormEditor
+const hasFormChanges = ref(false);
+const formEditorRef = ref();
+
 const {
   data: apiData,
   pending: loading,
@@ -65,6 +69,7 @@ useHeaderActionRegistry([
     color: "primary",
     size: "md",
     loading: computed(() => updateLoading.value),
+    disabled: computed(() => !hasFormChanges.value),
     submit: saveUser,
     permission: {
       and: [
@@ -122,6 +127,9 @@ async function saveUser() {
     description: "User updated!",
   });
   errors.value = {};
+  
+  // Confirm form changes as new baseline
+  formEditorRef.value?.confirmChanges();
 }
 
 async function deleteUser() {
@@ -207,9 +215,11 @@ watch(
           </div>
         </template>
 
-        <FormEditor
+        <FormEditorLazy
+          ref="formEditorRef"
           v-model="form"
           v-model:errors="errors"
+          v-model:has-changes="hasFormChanges"
           table-name="user_definition"
           :excluded="['isRootAdmin', 'isSystem']"
           class="mt-4"

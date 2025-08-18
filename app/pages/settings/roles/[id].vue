@@ -16,10 +16,12 @@
         </div>
 
         <UForm :state="form" @submit="save">
-          <FormEditor
+          <FormEditorLazy
+            ref="formEditorRef"
             v-model="form"
-            :table-name="tableName"
             v-model:errors="errors"
+            v-model:has-changes="hasFormChanges"
+            :table-name="tableName"
             :type-map="{
               routePermissions: {
                 componentProps: {
@@ -53,6 +55,10 @@ const { getIncludeFields } = useSchema(tableName);
 
 const { isMounted } = useMounted();
 
+// Form changes tracking via FormEditor
+const hasFormChanges = ref(false);
+const formEditorRef = ref();
+
 useHeaderActionRegistry([
   {
     id: "save-role",
@@ -62,6 +68,7 @@ useHeaderActionRegistry([
     color: "primary",
     submit: save,
     loading: computed(() => updateLoading.value),
+    disabled: computed(() => !hasFormChanges.value),
     permission: {
       and: [
         {
@@ -165,6 +172,9 @@ async function save() {
     description: "Role updated!",
   });
   errors.value = {};
+  
+  // Confirm form changes as new baseline
+  formEditorRef.value?.confirmChanges();
 }
 
 async function deleteRole() {

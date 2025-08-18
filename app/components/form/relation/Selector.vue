@@ -25,6 +25,8 @@ let confirmTimeout: ReturnType<typeof setTimeout> | null = null;
 const detailModal = ref(false);
 const detailRecord = ref<Record<string, any>>({});
 
+const { isMounted } = useMounted();
+
 function handleDeleteClick(item: any) {
   if (confirmingDeleteId.value === item.id) {
     deleteRecord(item.id);
@@ -194,11 +196,12 @@ watch(page, (newPage) => {
     />
 
     <!-- Loading State -->
-    <CommonLoadingState v-if="loading" type="form" context="inline" size="md" />
+    <Transition name="loading-fade" mode="out-in">
+      <CommonLoadingState v-if="!isMounted || loading" type="form" context="inline" size="md" />
 
-    <!-- Empty State -->
-    <CommonEmptyState
-      v-else-if="!loading && data.length === 0"
+      <!-- Empty State -->
+      <CommonEmptyState
+        v-else-if="isMounted && !loading && data.length === 0"
       :title="
         hasActiveFilters(currentFilter)
           ? 'No relations found'
@@ -222,19 +225,20 @@ watch(page, (newPage) => {
       "
     />
 
-    <!-- Data List -->
-    <FormRelationList
-      v-else
-      :data="data"
-      :selected="selected"
-      :multiple="props.multiple"
-      :disabled="props.disabled"
-      :allow-delete="props.allowDelete"
-      :confirming-delete-id="confirmingDeleteId"
-      @toggle="toggle"
-      @view-details="viewDetails"
-      @delete-click="handleDeleteClick"
-    />
+      <!-- Data List -->
+      <FormRelationList
+        v-else-if="isMounted && !loading"
+        :data="data"
+        :selected="selected"
+        :multiple="props.multiple"
+        :disabled="props.disabled"
+        :allow-delete="props.allowDelete"
+        :confirming-delete-id="confirmingDeleteId"
+        @toggle="toggle"
+        @view-details="viewDetails"
+        @delete-click="handleDeleteClick"
+      />
+    </Transition>
 
     <FormRelationPagination
       :page="page"

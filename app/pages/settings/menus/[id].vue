@@ -8,6 +8,10 @@ const tableName = "menu_definition";
 
 const { isMounted } = useMounted();
 
+// Form changes tracking via FormEditor
+const hasFormChanges = ref(false);
+const formEditorRef = ref();
+
 const { validate, getIncludeFields } = useSchema(tableName);
 
 const { fetchMenuDefinitions } = useMenuApi();
@@ -149,6 +153,7 @@ useHeaderActionRegistry([
     color: "primary",
     size: "md",
     loading: updateLoading,
+    disabled: computed(() => !hasFormChanges.value),
     onClick: updateMenuDetail,
     permission: {
       and: [
@@ -209,6 +214,9 @@ async function updateMenuDetail() {
     description: "Menu updated!",
   });
   errors.value = {};
+  
+  // Confirm form changes as new baseline
+  formEditorRef.value?.confirmChanges();
 }
 
 async function deleteMenuDetail() {
@@ -271,9 +279,11 @@ onMounted(async () => {
           </div>
         </template>
 
-        <FormEditor
+        <FormEditorLazy
+          ref="formEditorRef"
           v-model="form"
           v-model:errors="errors"
+          v-model:has-changes="hasFormChanges"
           :table-name="tableName"
           :excluded="excludedFields"
           :type-map="typeMap"

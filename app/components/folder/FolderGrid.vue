@@ -32,6 +32,7 @@ const {
 // Inline editing state
 const editingFolderId = ref<string | null>(null);
 const editingName = ref('');
+const originalName = ref('');
 const editingLoading = ref(false);
 const toast = useToast();
 
@@ -113,6 +114,7 @@ function startEditName(folder: any) {
   if (isSelectionMode.value) return;
   editingFolderId.value = folder.id;
   editingName.value = folder.name;
+  originalName.value = folder.name;
   
   nextTick(() => {
     const input = document.querySelector(`input[ref="editInput"]`) as HTMLInputElement;
@@ -127,6 +129,7 @@ function cancelEdit() {
   if (editingLoading.value) return; // Prevent cancel during loading
   editingFolderId.value = null;
   editingName.value = '';
+  originalName.value = '';
   editingLoading.value = false;
 }
 
@@ -165,6 +168,7 @@ async function saveEdit(folder: any) {
 
   editingFolderId.value = null;
   editingName.value = '';
+  originalName.value = '';
   editingLoading.value = false;
   refreshFolders();
 }
@@ -247,6 +251,7 @@ async function saveEdit(folder: any) {
               </div>
               <div v-else class="flex items-center gap-1">
                 <UButton
+                  v-if="editingName.trim() !== originalName"
                   icon="lucide:check"
                   size="xs"
                   color="success"
