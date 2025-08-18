@@ -11,7 +11,7 @@ export interface MenuDefinition {
   order: number;
   path: string;
   permission: PermissionCondition | null;
-  type: "mini" | "menu";
+  type: "Mini Sidebar" | "Dropdown Menu" | "Menu";
   parent: number | null;
   sidebar: { id: number } | null;
   children: any[];
@@ -32,7 +32,7 @@ export interface MenuItem {
   path?: string;
   children?: any[];
   order?: number;
-  type?: "mini" | "menu";
+  type?: "Mini Sidebar" | "Dropdown Menu" | "Menu";
   parent?: any;
   sidebar?: any;
   description?: string;
@@ -67,7 +67,7 @@ export interface MenuApiItem {
   order: number;
   path: string;
   permission: any;
-  type: "mini" | "menu";
+  type: "Mini Sidebar" | "Dropdown Menu" | "Menu";
   parent: number | null;
   sidebar: { id: number } | null;
   children: any[];

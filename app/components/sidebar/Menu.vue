@@ -98,7 +98,10 @@ const visibleMenuItems = computed(() => {
         <PermissionGate :condition="item.permission as any">
           <!-- Menu item with children (collapsible) -->
           <div
-            v-if="hasChildren(item)"
+            v-if="
+              item.type === 'Dropdown Menu' ||
+              (item.type === 'Menu' && hasChildren(item))
+            "
             :class="[
               'border-gray-600 py-1',
               index !== 0 && 'border-t',
@@ -110,7 +113,7 @@ const visibleMenuItems = computed(() => {
               variant="ghost"
               color="neutral"
               :icon="item.icon"
-              class="w-full hover:bg-primary/20 mb-1"
+              class="w-full hover:text-primary bg-transparent hover:bg-transparent active:bg-transparent mb-1"
               @click="toggleExpanded(item.id)"
             >
               <template #trailing>
@@ -126,8 +129,16 @@ const visibleMenuItems = computed(() => {
               <span class="truncate">{{ item.label }}</span>
             </UButton>
 
-            <!-- Children items -->
-            <div v-show="isExpanded(item.id)" class="ml-3 space-y-1">
+            <!-- Children items - only show if there are children -->
+            <div
+              v-if="hasChildren(item) && isExpanded(item.id)"
+              class="ml-3 space-y-1 relative"
+            >
+              <!-- Vertical line connecting parent to children -->
+              <div
+                class="absolute left-0 top-0 bottom-0 w-0.5 bg-gray-400/40 rounded-full"
+              ></div>
+
               <PermissionGate
                 v-for="child in item.children"
                 :key="child.id"
@@ -139,13 +150,15 @@ const visibleMenuItems = computed(() => {
                   color="neutral"
                   :icon="child.icon"
                   :to="child.path || child.route"
-                  class="w-full hover:bg-primary/15 text-sm"
+                  class="w-full text-sm relative pl-4 hover:text-primary bg-transparent hover:bg-transparent active:bg-transparent"
                   :class="
                     isItemActive(child.path || child.route) &&
-                    'bg-primary/15 text-white shadow hover:!bg-primary/15'
+                    'font-extrabold text-primary'
                   "
                   @click="handleMenuClick"
                 >
+                  <!-- Horizontal line connecting to vertical line -->
+
                   <span class="truncate">{{ child.label }}</span>
                 </UButton>
               </PermissionGate>
@@ -160,10 +173,10 @@ const visibleMenuItems = computed(() => {
             color="neutral"
             :icon="item.icon"
             :to="item.path || item.route"
-            class="w-full hover:bg-primary/20"
+            class="w-full hover:text-primary bg-transparent hover:bg-transparent active:bg-transparent"
             :class="
               isItemActive(item.path || item.route) &&
-              'bg-primary/20 text-white shadow hover:!bg-primary/20'
+              'font-extrabold text-primary'
             "
             @click="handleMenuClick"
           >

@@ -22,18 +22,22 @@ const excludedFields = computed(() => {
   if (!form.value.type) {
     baseExcluded.push("sidebar", "parent", "extension");
   }
-  // If type is "mini", exclude sidebar and parent (mini sidebars are independent)
-  else if (form.value.type === "mini") {
+  // If type is "Mini Sidebar" - shows in sidebar, has path, no parent/sidebar
+  else if (form.value.type === "Mini Sidebar") {
     baseExcluded.push("sidebar", "parent");
   }
-  // If type is "menu"
-  else if (form.value.type === "menu") {
+  // If type is "Dropdown" - shows inside a sidebar, no path, no parent/extension
+  else if (form.value.type === "Dropdown Menu") {
+    baseExcluded.push("path", "parent", "extension");
+  }
+  // If type is "Menu" - shows inside sidebar or dropdown, can have everything
+  else if (form.value.type === "Menu") {
     // If parent is selected, exclude sidebar (child inherits parent's sidebar)
     // But keep path field visible as it might be required
     if (form.value.parent) {
       baseExcluded.push("sidebar");
     }
-    // If sidebar is selected, exclude parent (direct menu under sidebar)  
+    // If sidebar is selected, exclude parent (direct menu under sidebar)
     else if (form.value.sidebar) {
       baseExcluded.push("parent");
     }
@@ -62,13 +66,14 @@ const { reregisterAllMenus, registerTableMenusWithSidebarIds } =
 const { tables } = useGlobalState();
 
 // API composable for creating menu
-const { execute: createMenu, pending: creating, error: createError } = useApiLazy(
-  () => "/menu_definition",
-  {
-    method: "post",
-    errorContext: "Create Menu",
-  }
-);
+const {
+  execute: createMenu,
+  pending: creating,
+  error: createError,
+} = useApiLazy(() => "/menu_definition", {
+  method: "post",
+  errorContext: "Create Menu",
+});
 
 // Register header actions
 useHeaderActionRegistry([
@@ -98,26 +103,39 @@ watch(
   (newType, oldType) => {
     if (oldType && newType !== oldType) {
       // Clear fields that should be excluded for the new type
-      if (newType === "mini") {
+      if (newType === "Mini Sidebar") {
+        // Mini Sidebar: no parent, no sidebar, but has path
         form.value.sidebar = null;
         form.value.parent = null;
-      } else if (newType === "menu") {
-        // If switching to menu, don't auto-clear as user might want to keep values
+        // Keep path as it's required for Mini Sidebar
+      } else if (newType === "Dropdown Menu") {
+        // Dropdown: no path, no parent, no extension, but has sidebar
+        form.value.path = "";
+        form.value.parent = null;
+        form.value.extension = null;
+        // Keep sidebar as it's required for Dropdown
+      } else if (newType === "Menu") {
+        // Menu: can have everything, don't auto-clear as user might want to keep values
+        // But ensure mutual exclusion between parent and sidebar
+        if (form.value.parent && form.value.sidebar) {
+          form.value.sidebar = null; // Prefer parent over sidebar
+        }
       } else {
         // If clearing type, clear all relation fields
         form.value.sidebar = null;
         form.value.parent = null;
         form.value.extension = null;
+        form.value.path = "";
       }
     }
   }
 );
 
-// Watch parent/sidebar mutual exclusion for menu type
+// Watch parent/sidebar mutual exclusion for Menu type
 watch(
   () => form.value.parent,
   (newParent) => {
-    if (newParent && form.value.type === "menu") {
+    if (newParent && form.value.type === "Menu") {
       form.value.sidebar = null;
       // Don't clear path - user might want to set custom path for child menu
     }
@@ -127,8 +145,38 @@ watch(
 watch(
   () => form.value.sidebar,
   (newSidebar) => {
-    if (newSidebar && form.value.type === "menu") {
+    if (newSidebar && form.value.type === "Menu") {
       form.value.parent = null;
+    }
+  }
+);
+
+// Watch path changes for Mini Sidebar type
+watch(
+  () => form.value.path,
+  (newPath) => {
+    if (form.value.type === "Mini Sidebar" && !newPath) {
+      // Mini Sidebar requires a path
+      toast.add({
+        title: "Path Required",
+        description: "Mini Sidebar must have a path",
+        color: "warning",
+      });
+    }
+  }
+);
+
+// Watch sidebar changes for Dropdown Menu type
+watch(
+  () => form.value.sidebar,
+  (newSidebar) => {
+    if (form.value.type === "Dropdown Menu" && !newSidebar) {
+      // Dropdown Menu requires a sidebar
+      toast.add({
+        title: "Sidebar Required",
+        description: "Dropdown Menu must be assigned to a sidebar",
+        color: "warning",
+      });
     }
   }
 );
@@ -138,7 +186,45 @@ onMounted(() => {
 });
 
 async function saveMenu() {
-  // Validate form
+  // Custom validation based on menu type
+  let validationErrors: string[] = [];
+
+  if (form.value.type === "Mini Sidebar") {
+    if (!form.value.path) {
+      validationErrors.push("Path is required for Mini Sidebar");
+    }
+    if (form.value.parent || form.value.sidebar) {
+      validationErrors.push("Mini Sidebar cannot have parent or sidebar");
+    }
+  } else if (form.value.type === "Dropdown Menu") {
+    if (!form.value.sidebar) {
+      validationErrors.push("Sidebar is required for Dropdown Menu");
+    }
+    if (form.value.path) {
+      validationErrors.push("Dropdown Menu cannot have path");
+    }
+    if (form.value.parent || form.value.extension) {
+      validationErrors.push("Dropdown Menu cannot have parent or extension");
+    }
+  } else if (form.value.type === "Menu") {
+    if (!form.value.sidebar && !form.value.parent) {
+      validationErrors.push("Menu must have either sidebar or parent");
+    }
+    if (form.value.sidebar && form.value.parent) {
+      validationErrors.push("Menu cannot have both sidebar and parent");
+    }
+  }
+
+  if (validationErrors.length > 0) {
+    toast.add({
+      title: "Validation Error",
+      description: validationErrors.join(", "),
+      color: "error",
+    });
+    return;
+  }
+
+  // Validate form using existing validation
   const validationResult = validate(form.value);
   if (
     !validationResult.isValid &&

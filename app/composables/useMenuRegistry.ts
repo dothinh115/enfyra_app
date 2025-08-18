@@ -1,7 +1,10 @@
 export function useMenuRegistry() {
   const menuItems = useState<MenuItem[]>("menu-items", () => []);
   const miniSidebars = useState<MiniSidebar[]>("mini-sidebars", () => []);
-  const bottomMiniSidebars = useState<MiniSidebar[]>("bottom-mini-sidebars", () => []);
+  const bottomMiniSidebars = useState<MiniSidebar[]>(
+    "bottom-mini-sidebars",
+    () => []
+  );
 
   const registerMenuItem = (item: MenuItem) => {
     const existingIndex = menuItems.value.findIndex((m) => m.id === item.id);
@@ -16,18 +19,19 @@ export function useMenuRegistry() {
   const registerMiniSidebar = (sidebar: MiniSidebar | MiniSidebar[]) => {
     // Handle array input
     if (Array.isArray(sidebar)) {
-      sidebar.forEach(s => registerSingleMiniSidebar(s));
+      sidebar.forEach((s) => registerSingleMiniSidebar(s));
       return;
     }
-    
+
     // Handle single object
     registerSingleMiniSidebar(sidebar);
   };
-  
+
   const registerSingleMiniSidebar = (sidebar: MiniSidebar) => {
     // Determine which array to use based on position (default to "top")
-    const targetArray = sidebar.position === "bottom" ? bottomMiniSidebars : miniSidebars;
-    
+    const targetArray =
+      sidebar.position === "bottom" ? bottomMiniSidebars : miniSidebars;
+
     const existingIndex = targetArray.value.findIndex(
       (s) => s.id === sidebar.id
     );
@@ -39,7 +43,6 @@ export function useMenuRegistry() {
       targetArray.value.push(sidebar);
     }
   };
-
 
   const unregisterMenuItem = (id: string) => {
     const index = menuItems.value.findIndex((m) => m.id === id);
@@ -55,7 +58,7 @@ export function useMenuRegistry() {
       miniSidebars.value.splice(index, 1);
       return;
     }
-    
+
     // Try to remove from bottom sidebars
     index = bottomMiniSidebars.value.findIndex((s) => s.id === id);
     if (index > -1) {
@@ -80,9 +83,9 @@ export function useMenuRegistry() {
   const registerAllMenusFromApi = async (menuDefinitions: MenuDefinition[]) => {
     if (!menuDefinitions || menuDefinitions.length === 0) return;
 
-    // FIRST: Register mini sidebars (type: "mini") - sorted by order
+    // FIRST: Register mini sidebars (type: "Mini Sidebar") - sorted by order
     const miniSidebarsData = menuDefinitions
-      .filter((item) => item.type === "mini" && item.isEnabled)
+      .filter((item) => item.type === "Mini Sidebar" && item.isEnabled)
       .sort((a, b) => a.order - b.order);
 
     if (miniSidebarsData.length > 0) {
@@ -97,13 +100,34 @@ export function useMenuRegistry() {
       registerMiniSidebar(sidebarsToRegister);
     }
 
-    // SECOND: Register menu items (type: "menu") - after sidebars are registered, sorted by order
-    const menuItemsData = menuDefinitions
-      .filter((item) => item.type === "menu" && item.isEnabled)
+    // SECOND: Register dropdown menus (type: "Dropdown Menu") - sorted by order
+    const dropdownMenusData = menuDefinitions
+      .filter((item) => item.type === "Dropdown Menu" && item.isEnabled)
       .sort((a, b) => a.order - b.order);
 
-    if (menuItemsData.length > 0) {
-      menuItemsData.forEach((item) => {
+    if (dropdownMenusData.length > 0) {
+      dropdownMenusData.forEach((item) => {
+        // Dropdown menus must have a sidebar
+        const sidebarId = item.sidebar?.id;
+        if (sidebarId) {
+          // Copy entire API object to registry for full compatibility
+          registerMenuItem({
+            ...item,
+            id: item.id.toString(),
+            sidebarId: sidebarId,
+            route: item.path || "", // Dropdown menus don't have path, use empty string
+          } as any);
+        }
+      });
+    }
+
+    // THIRD: Register regular menu items (type: "Menu") - after sidebars and dropdowns are registered, sorted by order
+    const regularMenuItems = menuDefinitions
+      .filter((item) => item.type === "Menu" && item.isEnabled)
+      .sort((a, b) => a.order - b.order);
+
+    if (regularMenuItems.length > 0) {
+      regularMenuItems.forEach((item) => {
         // item.sidebar.id is the ID of the sidebar this menu belongs to
         const sidebarId = item.sidebar?.id;
         if (sidebarId) {

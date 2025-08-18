@@ -49,6 +49,17 @@ function getDisplayLabel(
 ): string {
   if (!item || typeof item !== "object") return "";
 
+  // Helper: safely get a non-empty string from any field
+  const getValueAsString = (
+    obj: Record<string, any>,
+    key: string
+  ): string | null => {
+    const raw: unknown = obj[key as keyof typeof obj];
+    if (raw === undefined || raw === null) return null;
+    const str = String(raw).trim();
+    return str === "" ? null : str;
+  };
+
   // Get list of relation keys
   const relationKeys = new Set(
     (tableMeta?.definition || [])
@@ -57,41 +68,53 @@ function getDisplayLabel(
   );
 
   // Filter out fields that are not relations
-  const nonRelationKeys = Object.keys(item).filter(
+  const nonRelationKeys: string[] = Object.keys(item).filter(
     (key) => !relationKeys.has(key)
   );
 
   // Prioritize common keys but only in non-relation
-  const preferredKeys = [
+  const preferredKeys: string[] = [
     "name",
     "title",
     "propertyName",
+    "label",
     "path",
     "method",
     "description",
   ];
+
+  const foundFields: string[] = [];
+
+  // Tìm 2 fields đầu tiên từ preferred keys
   for (const key of preferredKeys) {
-    if (nonRelationKeys.includes(key)) {
-      const val = item[key];
-      if (val !== undefined && val !== null) {
-        const str = String(val).trim();
-        if (str !== "") return str;
-      }
-    }
+    if (!nonRelationKeys.includes(key) || foundFields.length >= 2) continue;
+    const str = getValueAsString(item, key);
+    if (str) foundFields.push(str);
   }
 
-  // If no priority key exists, iterate through all remaining non-relation fields (except id)
+  // Nếu chưa đủ 2 fields, tìm thêm từ các fields còn lại (bỏ id)
   for (const key of nonRelationKeys) {
-    if (key === "id") continue;
-    const val = item[key];
-    if (val !== undefined && val !== null) {
-      const str = String(val).trim();
-      if (str !== "") return str;
-    }
+    if (key === "id" || foundFields.length >= 2) continue;
+    const str = getValueAsString(item, key);
+    if (str) foundFields.push(str);
   }
 
-  // If nothing exists
-  return item.id ? `ID: ${item.id}` : "";
+  // Kết hợp 2 fields
+  if (foundFields.length === 0) {
+    const idStr = getValueAsString(item, "id");
+    return idStr ? `ID: ${idStr}` : "";
+  } else if (foundFields.length === 1) {
+    return foundFields[0] as string;
+  } else {
+    return `${foundFields[0]} - ${foundFields[1]}`;
+  }
+}
+
+function shortenId(id: string | number): string {
+  if (id === undefined || id === null) return "";
+  const str = String(id);
+  // Ngắn hơn nữa: 4 ký tự đầu + … + 3 ký tự cuối
+  return str.length > 12 ? `${str.slice(0, 4)}…${str.slice(-3)}` : str;
 }
 </script>
 
@@ -104,9 +127,9 @@ function getDisplayLabel(
     variant="outline"
     :color="isSelected(item.id) ? 'primary' : 'neutral'"
   >
-    <div class="truncate flex items-center gap-2">
+    <div class="truncate flex items-center gap-2" :title="String(item.id)">
       <UIcon v-if="isSelected(item.id)" name="lucide:check" class="w-4 h-4" />
-      ID: {{ item.id }} - {{ getDisplayLabel(item) }}
+      {{ shortenId(item.id) }} - {{ getDisplayLabel(item) }}
     </div>
     <div class="flex gap-1">
       <UButton

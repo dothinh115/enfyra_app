@@ -71,7 +71,8 @@ function shortenId(id: string | number): string {
     return "Invalid ID";
   }
   const str = String(id);
-  return str.length <= 6 ? str : `${str.slice(0, 4)}...`;
+  // Ngắn hơn nữa: 4 ký tự đầu + … + 3 ký tự cuối
+  return str.length > 12 ? `${str.slice(0, 4)}…${str.slice(-3)}` : str;
 }
 </script>
 
@@ -84,6 +85,7 @@ function shortenId(id: string | number): string {
       :color="item.id ? 'primary' : 'error'"
       variant="soft"
       class="flex items-center gap-1"
+      :title="item.id ? String(item.id) : 'Invalid ID'"
     >
       {{ item.id ? shortenId(item.id) : "Invalid ID" }}
       <button
