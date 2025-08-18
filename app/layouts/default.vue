@@ -37,7 +37,7 @@
 
       <!-- Navigation -->
       <div class="flex-1 w-full">
-        <SidebarMiniMenu />
+        <SidebarMiniSidebar />
       </div>
     </aside>
 

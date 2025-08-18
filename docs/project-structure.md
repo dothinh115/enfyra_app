@@ -94,7 +94,7 @@ components/
 │
 ├── sidebar/                  # Sidebar navigation
 │   ├── Menu.vue             # Full sidebar menu
-│   └── MiniMenu.vue         # Collapsed sidebar
+│   └── MiniSidebar.vue      # Collapsed sidebar
 │
 ├── table/                    # Table management components
 │   ├── Columns.vue          # Column management
