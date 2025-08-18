@@ -91,9 +91,9 @@ export interface PermissionGateProps {
 // Header Action Types
 export interface HeaderAction {
   id: string;
-  label?: string;
-  icon?: string;
-  variant?: "solid" | "outline" | "ghost" | "soft";
+  label?: string | ComputedRef<string>;
+  icon?: string | ComputedRef<string>;
+  variant?: "solid" | "outline" | "ghost" | "soft" | ComputedRef<"solid" | "outline" | "ghost" | "soft">;
   color?:
     | "primary"
     | "secondary"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const props = withDefaults(defineProps<{
-  type?: 'text' | 'avatar' | 'card' | 'table' | 'form';
+  type?: 'text' | 'avatar' | 'card' | 'table' | 'form' | 'folder';
   lines?: number;
   animated?: boolean;
 }>(), {
@@ -89,6 +89,39 @@ const animationClass = computed(() => props.animated ? 'animate-pulse' : '');
     <div class="flex gap-4 pt-4">
       <div :class="['w-24 h-10 bg-gray-200 dark:bg-gray-700 rounded', animationClass]"></div>
       <div :class="['w-20 h-10 bg-gray-200 dark:bg-gray-700 rounded', animationClass]"></div>
+    </div>
+  </div>
+
+  <!-- Folder Skeleton -->
+  <div v-else-if="type === 'folder'" class="grid gap-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8">
+    <div
+      v-for="i in 12"
+      :key="i"
+      class="group flex flex-col items-center relative p-2"
+      :class="animationClass"
+    >
+      <!-- Skeleton Icon with folder-like shape -->
+      <div class="relative mb-2">
+        <div class="w-[120px] h-[120px] bg-gradient-to-br from-gray-200/60 via-gray-200/40 to-gray-200/60 dark:from-gray-700/60 dark:via-gray-700/40 dark:to-gray-700/60 rounded-2xl shadow-sm border border-gray-200/20 dark:border-gray-600/20">
+          <!-- Inner folder icon placeholder -->
+          <div class="absolute inset-0 flex items-center justify-center">
+            <div class="w-16 h-16 bg-gray-300/40 dark:bg-gray-600/40 rounded-lg"></div>
+          </div>
+          
+          <!-- Subtle shine effect -->
+          <div class="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-transparent rounded-2xl"></div>
+        </div>
+      </div>
+      
+      <!-- Skeleton Name with varied widths -->
+      <div class="text-center w-full mt-2">
+        <div 
+          :class="[
+            'h-4 bg-gradient-to-r from-gray-200/60 to-gray-300/60 dark:from-gray-700/60 dark:to-gray-600/60 rounded-full mx-auto',
+            i % 4 === 0 ? 'w-24' : i % 3 === 0 ? 'w-16' : i % 2 === 0 ? 'w-20' : 'w-18'
+          ]"
+        ></div>
+      </div>
     </div>
   </div>
 </template>

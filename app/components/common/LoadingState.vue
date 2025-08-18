@@ -3,7 +3,7 @@ const props = withDefaults(defineProps<{
   title?: string;
   description?: string;
   size?: "sm" | "md" | "lg";
-  type?: 'dots' | 'spinner' | 'skeleton' | 'table' | 'form' | 'card';
+  type?: 'dots' | 'spinner' | 'skeleton' | 'table' | 'form' | 'card' | 'folder';
   context?: 'page' | 'modal' | 'inline' | 'button';
 }>(), {
   size: 'md',
@@ -25,7 +25,7 @@ const loadingType = computed(() => {
 });
 
 const showTitle = computed(() => 
-  props.context !== 'button' && props.context !== 'inline' && loadingType.value !== 'table' && loadingType.value !== 'form' && loadingType.value !== 'card'
+  props.context !== 'button' && props.context !== 'inline' && loadingType.value !== 'table' && loadingType.value !== 'form' && loadingType.value !== 'card' && loadingType.value !== 'folder'
 );
 </script>
 
@@ -33,8 +33,8 @@ const showTitle = computed(() =>
   <div 
     :class="[
       'transition-all duration-300 ease-in-out',
-      loadingType === 'table' || loadingType === 'form' || loadingType === 'card' ? 'w-full' : 'flex flex-col items-center justify-center',
-      context === 'inline' ? 'py-2 gap-2' : (loadingType === 'table' || loadingType === 'form' || loadingType === 'card') ? 'py-4' : 'py-8 gap-4',
+      loadingType === 'table' || loadingType === 'form' || loadingType === 'card' || loadingType === 'folder' ? 'w-full' : 'flex flex-col items-center justify-center',
+      context === 'inline' ? 'py-2 gap-2' : (loadingType === 'table' || loadingType === 'form' || loadingType === 'card' || loadingType === 'folder') ? 'py-4' : 'py-8 gap-4',
       context === 'button' ? 'py-1 gap-1' : ''
     ]"
     role="status"
@@ -70,6 +70,12 @@ const showTitle = computed(() =>
     <CommonLoadingSkeleton 
       v-else-if="loadingType === 'card'" 
       type="card" 
+      :animated="true" 
+    />
+    
+    <CommonLoadingSkeleton 
+      v-else-if="loadingType === 'folder'" 
+      type="folder" 
       :animated="true" 
     />
     

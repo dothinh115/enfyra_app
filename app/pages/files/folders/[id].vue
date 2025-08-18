@@ -1,32 +1,30 @@
 <script setup lang="ts">
+const route = useRoute();
 const showCreateModal = ref(false);
 const { getIncludeFields } = useSchema("folder_definition");
 const { isMounted } = useMounted();
 
-// Get root folders (folders without parent)
+// Get child folders
 const {
-  data: rootFolders,
-  pending: rootPending,
-  execute: fetchRootFolders,
-} = useApiLazy(() => `folder_definition`, {
+  data: folder,
+  pending,
+  execute: fetchFolder,
+} = useApiLazy(() => `/folder_definition`, {
   query: {
     fields: getIncludeFields(),
-    limit: 0,
     sort: "-order,-createdAt",
     filter: {
-      parent: {
-        id: {
-          _is_null: true,
-        },
+      id: {
+        _eq: route.params.id,
       },
     },
   },
-  errorContext: "Load Root Folders",
+  errorContext: "Load Child Folders",
 });
 
-// Execute API call when component mounts
-onMounted(() => {
-  fetchRootFolders();
+// Execute API calls when component mounts
+onMounted(async () => {
+  await fetchFolder();
 });
 
 // Register header action for create folder
@@ -46,14 +44,16 @@ useHeaderActionRegistry([
 <template>
   <div class="space-y-6">
     <!-- Header -->
-    <div class="!mb-12">
-      <h1 class="text-2xl font-bold text-gray-300">Folder Manager</h1>
+    <div class="!mb-20">
+      <h1 class="text-2xl font-bold text-gray-300">
+        {{ folder?.data?.[0].name }} - Child Folders
+      </h1>
     </div>
 
     <!-- Content -->
     <Transition name="loading-fade" mode="out-in">
       <CommonLoadingState
-        v-if="!isMounted || rootPending"
+        v-if="!isMounted || pending"
         title="Loading folders..."
         description="Fetching folder structure"
         size="sm"
@@ -63,11 +63,12 @@ useHeaderActionRegistry([
 
       <FolderGrid
         v-else
-        empty-title="No folders found"
-        empty-description="Create your first folder to get started organizing your files"
-        :folders="rootFolders?.data"
+        empty-title="No child folders found"
+        empty-description="This folder doesn't contain any subfolders"
+        :folders="folder?.data?.[0].children"
+        :parent-id="route.params.id as string"
         v-model:show-create-modal="showCreateModal"
-        @refresh-folders="fetchRootFolders"
+        @refresh-folders="fetchFolder"
       />
     </Transition>
   </div>
