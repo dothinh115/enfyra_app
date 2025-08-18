@@ -8,7 +8,6 @@
       :column-map="fieldMap"
       :type-map="typeMapWithGenerated"
       :errors="errors"
-      :readonly="readonly"
       @update:form-data="updateFormData"
       @update:errors="updateErrors"
     />
@@ -24,13 +23,11 @@ const props = withDefaults(
     excluded?: string[];
     includes?: string[];
     typeMap?: Record<string, any>;
-    readonly?: boolean;
   }>(),
   {
     excluded: () => [],
     includes: () => [],
     typeMap: () => ({}),
-    readonly: false,
   }
 );
 

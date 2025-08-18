@@ -39,14 +39,10 @@ const { isTablet } = useScreen();
       </template>
 
       <template #body>
-        <div class="p-2 max-h-[80vh] overflow-y-auto">
-          <FormEditorLazy
-            :table-name="props.tableName"
-            :model-value="props.record"
-            :errors="{}"
-            readonly
-          />
-        </div>
+        <RecordDetailsViewer
+          :record="props.record"
+          :table-name="props.tableName"
+        />
       </template>
     </UDrawer>
   </Teleport>

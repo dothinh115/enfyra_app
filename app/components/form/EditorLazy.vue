@@ -10,7 +10,6 @@ const props = defineProps<{
   excluded?: string[];
   includes?: string[];
   typeMap?: Record<string, any>;
-  readonly?: boolean;
 }>();
 
 const emit = defineEmits<{

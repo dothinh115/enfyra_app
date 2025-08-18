@@ -1,9 +1,11 @@
 // useGlobalState is auto-imported
 
-export function useSchema(tableName: string) {
+export function useSchema(tableName: string | Ref<string>) {
   const { schemas } = useGlobalState();
+  
+  const tableNameRef = isRef(tableName) ? tableName : ref(tableName);
 
-  const definition = computed(() => schemas.value[tableName]?.definition || []);
+  const definition = computed(() => schemas.value[tableNameRef.value]?.definition || []);
 
   // Helper function to sort fields by standard order
   function sortFieldsByOrder(fields: any[]): any[] {

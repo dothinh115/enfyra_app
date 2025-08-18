@@ -7,7 +7,6 @@ const props = defineProps<{
   columnMap: Map<string, any>;
   typeMap?: Record<string, any>;
   errors: Record<string, string>;
-  readonly?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -78,7 +77,6 @@ const fieldProps = computed(() => {
     </template>
 
     <FormFieldRenderer
-      v-if="!readonly"
       :key-name="keyName"
       :form-data="formData"
       :column-map="columnMap"
@@ -86,12 +84,6 @@ const fieldProps = computed(() => {
       :errors="errors"
       @update:form-data="updateFormData"
       @update:errors="updateErrors"
-    />
-    <FormValueRenderer
-      v-else
-      :key-name="keyName"
-      :form-data="formData"
-      :column-map="columnMap"
     />
   </UFormField>
 </template>

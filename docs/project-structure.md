@@ -71,7 +71,6 @@ components/
 │   ├── RichTextEditor.vue   # Rich text editor
 │   ├── RichTextEditorLazy.vue # Lazy-loaded rich text editor
 │   ├── UuidField.vue        # UUID field component
-│   ├── ValueRenderer.vue    # Value display renderer
 │   ├── permission/          # Permission-specific forms
 │   │   ├── Editor.vue       # Permission editor
 │   │   ├── Field.vue        # Permission field

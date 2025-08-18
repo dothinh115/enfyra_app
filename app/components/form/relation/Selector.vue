@@ -16,10 +16,15 @@ const showCreateDrawer = ref(false);
 const showFilterDrawer = ref(false);
 const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
 const currentFilter = ref(createEmptyFilter());
-const { schemas } = useGlobalState();
-const targetTable = useGlobalState().tables.value.find(
-  (t) => t.id === props.relationMeta.targetTable.id
+const { schemas, tables } = useGlobalState();
+const targetTable = computed(() => 
+  tables.value.find((t) => t.id === props.relationMeta?.targetTable?.id)
 );
+
+// Get schema for the target table - computed to handle reactive props
+const targetTableName = computed(() => targetTable.value?.name || '');
+const { getIncludeFields, definition } = useSchema(targetTableName);
+
 const confirmingDeleteId = ref<any>(null);
 let confirmTimeout: ReturnType<typeof setTimeout> | null = null;
 const detailModal = ref(false);
@@ -44,11 +49,11 @@ function handleDeleteClick(item: any) {
 }
 
 async function deleteRecord(id: any) {
-  if (!targetTable?.name || props.disabled) return;
+  if (!targetTable.value?.name || props.disabled) return;
 
   // Create a specific instance for this record deletion
   const { execute: removeSpecificRecord } = useApiLazy(
-    () => `/${targetTable.name}/${id}`,
+    () => `/${targetTable.value?.name}/${id}`,
     {
       method: "delete",
       errorContext: "Delete Relation Record",
@@ -77,14 +82,14 @@ const {
   pending: loading,
   execute: fetchData,
   error: apiError,
-} = useApiLazy(() => `/${targetTable?.name}`, {
+} = useApiLazy(() => `/${targetTable.value?.name}`, {
   query: computed(() => {
     const filterQuery = hasActiveFilters(currentFilter.value)
       ? buildQuery(currentFilter.value)
       : {};
 
     const query = {
-      fields: "*",
+      fields: getIncludeFields(),
       page: page.value,
       limit,
       meta: "totalCount,filterCount",
