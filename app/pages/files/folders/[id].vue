@@ -44,7 +44,7 @@ useHeaderActionRegistry([
 <template>
   <div class="space-y-6">
     <!-- Header -->
-    <div class="!mb-20">
+    <div class="!mb-20" v-if="isMounted && !pending">
       <h1 class="text-2xl font-bold text-gray-300">
         {{ folder?.data?.[0].name }} - Child Folders
       </h1>
