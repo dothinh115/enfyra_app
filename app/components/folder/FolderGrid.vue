@@ -176,9 +176,9 @@ async function saveEdit(folder: any) {
         :items="getContextMenuItems(folder, refreshFolders)"
       >
         <div
-          class="group flex flex-col items-center cursor-pointer relative p-2"
+          class="group flex flex-col items-center cursor-pointer relative p-2 rounded-lg transition-colors"
           :class="{
-            'bg-primary/10 rounded-lg': selectedFolders.includes(folder.id),
+            'bg-primary/10': selectedFolders.includes(folder.id),
           }"
         >
           <!-- Selection Checkbox -->
@@ -197,7 +197,7 @@ async function saveEdit(folder: any) {
 
           <!-- Folder Icon - Main Element -->
           <div 
-            class="relative"
+            class="relative p-1 rounded-lg group-hover:bg-white/20 group-hover:shadow-lg transition-all"
             @click="
               () => {
                 if (isSelectionMode) {
@@ -211,7 +211,7 @@ async function saveEdit(folder: any) {
             <UIcon
               :name="folder.icon || 'i-lucide-folder'"
               :size="120"
-              class="text-sky-500 group-hover:text-sky-600 transition-colors"
+              class="text-sky-500 transition-colors"
               style="color: #5aaadb"
               :class="{
                 'opacity-70':
@@ -248,17 +248,28 @@ async function saveEdit(folder: any) {
                 class="!p-0.5 !min-w-[20px] !w-5 !h-5 flex items-center justify-center"
               />
             </div>
-            <p
+            <div
               v-else
-              @dblclick.stop="startEditName(folder)"
-              class="font-medium text-gray-900 dark:text-gray-100 truncate group-hover:text-sky-600 transition-colors cursor-pointer"
-              :class="{
-                'opacity-70':
-                  isSelectionMode && !selectedFolders.includes(folder.id),
-              }"
+              class="flex items-center justify-center gap-1"
             >
-              {{ folder.name }}
-            </p>
+              <p
+                class="font-medium text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 truncate transition-colors"
+                :class="{
+                  'opacity-70':
+                    isSelectionMode && !selectedFolders.includes(folder.id),
+                }"
+              >
+                {{ folder.name }}
+              </p>
+              <UButton
+                icon="lucide:edit-3"
+                size="xs"
+                variant="ghost"
+                color="neutral"
+                @click.stop="startEditName(folder)"
+                class="opacity-30 group-hover:opacity-100 transition-opacity ml-1"
+              />
+            </div>
           </div>
         </div>
       </UContextMenu>
