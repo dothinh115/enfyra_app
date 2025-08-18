@@ -14,9 +14,9 @@
     <template v-for="action in visibleButtonActions" :key="action.id">
       <PermissionGate :condition="action.permission">
         <UButton
-          :label="isTablet ? undefined : action.label"
-          :icon="action.icon"
-          :variant="action.variant || 'solid'"
+          :label="isTablet ? undefined : (isRef(action.label) ? unref(action.label) : action.label)"
+          :icon="isRef(action.icon) ? unref(action.icon) : action.icon"
+          :variant="(isRef(action.variant) ? unref(action.variant) : action.variant) || 'solid'"
           :color="action.color || 'primary'"
           :size="isTablet ? 'sm' : (action.size || 'md')"
           :loading="unref(action.loading)"

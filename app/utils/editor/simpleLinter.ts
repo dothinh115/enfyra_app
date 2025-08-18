@@ -85,12 +85,12 @@ export function createSimpleLinter() {
         const constVars = new Set<string>();
         
         while ((constMatch = constPattern.exec(code)) !== null) {
-          constVars.add(constMatch[1]);
+          constVars.add(constMatch[1] || '');
         }
         
         let assignMatch;
         while ((assignMatch = assignPattern.exec(code)) !== null) {
-          if (constVars.has(assignMatch[1])) {
+          if (constVars.has(assignMatch[1] || '')) {
             const pos = assignMatch.index || 0;
             diagnostics.push({
               from: pos,

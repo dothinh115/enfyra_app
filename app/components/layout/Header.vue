@@ -17,9 +17,9 @@
       <UButton
         v-for="action in headerActions.filter(a => !a.component && a.side === 'left')"
         :key="action.id"
-        :icon="action.icon"
-        :label="action.label"
-        :variant="action.variant || 'soft'"
+        :icon="isRef(action.icon) ? unref(action.icon) : action.icon"
+        :label="isRef(action.label) ? unref(action.label) : action.label"
+        :variant="(isRef(action.variant) ? unref(action.variant) : action.variant) || 'soft'"
         :color="action.color || 'neutral'"
         :size="action.size || (isMobile ? 'sm' : 'md')"
         :disabled="typeof action.disabled === 'boolean' ? action.disabled : unref(action.disabled)"
