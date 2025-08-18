@@ -107,14 +107,13 @@ export function useMenuRegistry() {
         // item.sidebar.id is the ID of the sidebar this menu belongs to
         const sidebarId = item.sidebar?.id;
         if (sidebarId) {
+          // Copy entire API object to registry for full compatibility
           registerMenuItem({
+            ...item,
             id: item.id.toString(),
-            label: item.label,
-            route: item.path,
-            icon: item.icon,
             sidebarId: sidebarId,
-            permission: item.permission || undefined,
-          });
+            route: item.path, // Keep both path and route for compatibility
+          } as any);
         }
       });
     }

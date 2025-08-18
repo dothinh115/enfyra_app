@@ -7,7 +7,10 @@ export const useMenuApi = () => {
     pending: menuDefinitionsPending,
     execute: fetchMenuDefinitions,
   } = useApiLazy<{ data: MenuApiItem[] }>(() => "/menu_definition", {
-    query: computed(() => ({ limit: 0 })),
+    query: computed(() => ({ 
+      limit: 0,
+      fields: "*,parent.*,children.*,sidebar.*"
+    })),
     errorContext: "Fetch Menu Definitions",
   });
 
@@ -37,6 +40,7 @@ export const useMenuApi = () => {
   return {
     fetchMenuDefinitions,
     menuDefinitionsPending,
+    menuDefinitions,
     getMenuItems,
   };
 };

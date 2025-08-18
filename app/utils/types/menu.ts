@@ -28,6 +28,20 @@ export interface MenuItem {
   icon?: string;
   sidebarId: number;
   permission?: PermissionCondition;
+  // Additional fields from API for full compatibility
+  path?: string;
+  children?: any[];
+  order?: number;
+  type?: "mini" | "menu";
+  parent?: any;
+  sidebar?: any;
+  description?: string;
+  isEnabled?: boolean;
+  isSystem?: boolean;
+  menus?: any[];
+  extension?: any;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // Internal Interface for Mini Sidebars in useMenuRegistry

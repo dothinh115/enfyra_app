@@ -55,43 +55,14 @@ const currentSidebar = computed(() => {
   return matchingSidebar?.id ? Number(matchingSidebar.id) : null;
 });
 
-// Fetch menu data with children from API
-const { data: menuData, execute: fetchMenuData } = useApiLazy(
-  () => "/menu_definition",
-  {
-    query: computed(() => ({
-      fields: "*,parent.*,children.*,sidebar.*",
-      filter: JSON.stringify({
-        type: { _eq: "menu" },
-        isEnabled: { _eq: true },
-        sidebar: { id: { _eq: currentSidebar.value } },
-      }),
-      sort: "order",
-    })),
-    errorContext: "Fetch Menu Items",
-  }
-);
-
 // Get visible menu items for current sidebar
 const visibleMenuItems = computed(() => {
   if (!currentSidebar.value) return [];
 
-  // Use API data if available, fallback to registry
-  if (menuData.value?.data) {
-    return menuData.value.data;
-  }
-
-  // Fallback to registry (flat items)
+  // Use registry data (now includes children)
   const items = getMenuItemsBySidebar(currentSidebar.value);
   return items;
 });
-
-// Watch for sidebar changes and fetch menu data
-watch(currentSidebar, async (newSidebar) => {
-  if (newSidebar) {
-    await fetchMenuData();
-  }
-}, { immediate: true });
 </script>
 
 <template>
@@ -157,7 +128,7 @@ watch(currentSidebar, async (newSidebar) => {
             </UButton>
 
             <!-- Children items -->
-            <div v-show="isExpanded(item.id)" class="ml-3 space-y-1 mt-1">
+            <div v-show="isExpanded(item.id)" class="ml-3 space-y-1">
               <PermissionGate
                 v-for="child in item.children"
                 :key="child.id"
@@ -168,10 +139,10 @@ watch(currentSidebar, async (newSidebar) => {
                   variant="ghost"
                   color="neutral"
                   :icon="child.icon"
-                  :to="child.path"
+                  :to="child.path || child.route"
                   class="w-full hover:bg-primary/15 text-sm"
                   :class="
-                    isItemActive(child.path) &&
+                    isItemActive(child.path || child.route) &&
                     'bg-primary/15 text-white shadow hover:!bg-primary/15'
                   "
                   @click="handleMenuClick"
