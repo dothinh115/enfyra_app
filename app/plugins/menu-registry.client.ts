@@ -4,14 +4,7 @@ import { useGlobalState } from "~/composables/useGlobalState";
 import { useAuth } from "~/composables/useAuth";
 
 export default defineNuxtPlugin(async () => {
-  const { me, fetchUser, logout } = useAuth();
-
-  if (!me.value) {
-    await fetchUser();
-  }
-  if (!me.value) {
-    return;
-  }
+  const { logout } = useAuth();
 
   const {
     registerAllMenusFromApi,
@@ -23,10 +16,12 @@ export default defineNuxtPlugin(async () => {
 
   const { fetchMenuDefinitions } = useMenuApi();
 
-  await fetchSchema();
+  // Fetch schema and menu definitions in parallel for better performance
+  const [schemaResult, menuResponse] = await Promise.all([
+    fetchSchema(),
+    fetchMenuDefinitions(),
+  ]);
 
-  // Fetch and register all menu definitions from API using unified function
-  const menuResponse = await fetchMenuDefinitions();
   if (
     menuResponse &&
     "data" in menuResponse &&
