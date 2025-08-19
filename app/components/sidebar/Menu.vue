@@ -74,27 +74,34 @@ const visibleMenuItems = computed(() => {
   </div>
 
   <!-- Menu items based on registry -->
-  <nav v-else class="flex flex-col space-y-1">
+  <nav
+    v-else
+    class="flex flex-col space-y-1 bg-gradient-to-b from-background to-muted/5"
+  >
     <!-- Empty state when no menu items available -->
     <template v-if="visibleMenuItems.length === 0">
       <div
-        class="flex flex-col items-center justify-center py-8 px-4 text-center"
+        class="bg-gradient-to-br from-muted/20 to-muted/10 rounded-xl p-8 border border-muted/30"
       >
-        <UIcon name="lucide:list" class="w-8 h-8 text-muted-foreground mb-2" />
-        <p class="text-sm text-muted-foreground">No menu items available</p>
-        <p class="text-xs text-muted-foreground mt-1">
-          Contact your administrator to get access
-        </p>
+        <div class="flex flex-col items-center justify-center text-center">
+          <div
+            class="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center mb-4"
+          >
+            <UIcon name="lucide:list" class="w-8 h-8 text-muted-foreground" />
+          </div>
+          <h3 class="font-semibold text-foreground mb-2">
+            No menu items available
+          </h3>
+          <p class="text-sm text-muted-foreground">
+            Contact your administrator to get access
+          </p>
+        </div>
       </div>
     </template>
 
     <!-- Render menu items -->
     <template v-else>
-      <div
-        v-for="(item, index) in visibleMenuItems"
-        :key="item.id"
-        class="space-y-1"
-      >
+      <div v-for="item in visibleMenuItems" :key="item.id" class="space-y-1">
         <PermissionGate :condition="item.permission as any">
           <!-- Menu item with children (collapsible) -->
           <div
@@ -102,86 +109,131 @@ const visibleMenuItems = computed(() => {
               item.type === 'Dropdown Menu' ||
               (item.type === 'Menu' && hasChildren(item))
             "
-            :class="[
-              'border-gray-600 py-1',
-              index !== 0 && 'border-t',
-              index !== visibleMenuItems.length - 1 && 'border-b',
-            ]"
+            class="bg-gradient-to-r from-muted/20 to-muted/10 rounded-xl border border-muted/30 overflow-hidden"
+          >
+            <!-- Parent Menu Item -->
+            <UButton
+              size="lg"
+              variant="ghost"
+              color="neutral"
+              :icon="item.icon"
+              class="w-full justify-start text-left rounded-lg transition-all duration-200 group mb-1"
+              :class="[
+                isExpanded(item.id)
+                  ? 'bg-gradient-to-r from-primary/20 to-secondary/20 shadow-md'
+                  : 'hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10',
+              ]"
+              @click="toggleExpanded(item.id)"
+            >
+              <template #leading>
+                <div
+                  class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-200"
+                >
+                  <UIcon
+                    :name="item.icon || 'lucide:box'"
+                    size="16"
+                    class="text-primary"
+                  />
+                </div>
+              </template>
+              <template #trailing>
+                <div class="flex items-center flex-grow justify-end">
+                  <UIcon
+                    :name="
+                      isExpanded(item.id)
+                        ? 'lucide:chevron-down'
+                        : 'lucide:chevron-right'
+                    "
+                    class="transition-transform duration-200"
+                    :class="[
+                      'text-primary',
+                      isExpanded(item.id) ? 'rotate-0 scale-125' : 'rotate-0',
+                    ]"
+                    size="18"
+                  />
+                </div>
+              </template>
+              <div class="flex flex-col items-start">
+                <span class="text-sm font-medium text-foreground">{{
+                  item.label
+                }}</span>
+              </div>
+            </UButton>
+
+            <!-- Children items - only show if there are children -->
+            <div
+              v-if="hasChildren(item) && isExpanded(item.id)"
+              class="bg-muted/10 pl-3 pb-3 space-y-1"
+            >
+              <PermissionGate
+                v-for="child in item.children"
+                :key="child.id"
+                :condition="child.permission as any"
+              >
+                <NuxtLink
+                  :to="child.path || child.route"
+                  class="flex items-center gap-3 w-full px-3 py-2 rounded-lg transition-all duration-200 group hover:bg-background/50"
+                  :class="[
+                    'border border-transparent',
+                    isItemActive(child.path || child.route)
+                      ? 'font-semibold'
+                      : 'hover:border-muted/50',
+                  ]"
+                  @click="handleMenuClick"
+                >
+                  <div
+                    class="w-6 h-6 rounded-md bg-gradient-to-br from-info/20 to-success/20 flex items-center justify-center"
+                  >
+                    <UIcon :name="child.icon" size="14" class="text-info" />
+                  </div>
+                  <span 
+                    class="text-sm truncate transition-colors duration-200"
+                    :class="[
+                      isItemActive(child.path || child.route)
+                        ? 'text-primary'
+                        : 'text-foreground'
+                    ]"
+                  >
+                    {{ child.label }}
+                  </span>
+                </NuxtLink>
+              </PermissionGate>
+            </div>
+          </div>
+
+          <!-- Regular menu item (link) -->
+          <div
+            v-else
+            class="bg-gradient-to-r from-background to-muted/10 rounded-xl border border-muted/30 hover:shadow-lg transition-all duration-200"
           >
             <UButton
               size="lg"
               variant="ghost"
               color="neutral"
               :icon="item.icon"
-              class="w-full hover:text-primary bg-transparent hover:bg-transparent active:bg-transparent mb-1"
-              @click="toggleExpanded(item.id)"
+              :to="item.path || item.route"
+              class="w-full justify-start text-left hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 rounded-lg transition-all duration-200 group"
+              :class="[
+                isItemActive(item.path || item.route)
+                  ? 'bg-gradient-to-r from-primary/20 to-secondary/20 font-semibold text-primary shadow-md'
+                  : '',
+              ]"
+              @click="handleMenuClick"
             >
-              <template #trailing>
-                <UIcon
-                  :name="
-                    isExpanded(item.id)
-                      ? 'lucide:chevron-down'
-                      : 'lucide:chevron-right'
-                  "
-                  class="ml-auto transition-transform duration-200"
-                />
-              </template>
-              <span class="truncate">{{ item.label }}</span>
-            </UButton>
-
-            <!-- Children items - only show if there are children -->
-            <div
-              v-if="hasChildren(item) && isExpanded(item.id)"
-              class="ml-3 space-y-1 relative"
-            >
-              <!-- Vertical line connecting parent to children -->
-              <div
-                class="absolute left-0 top-0 bottom-0 w-0.5 bg-gray-400/40 rounded-full"
-              ></div>
-
-              <PermissionGate
-                v-for="child in item.children"
-                :key="child.id"
-                :condition="child.permission as any"
-              >
-                <UButton
-                  size="md"
-                  variant="ghost"
-                  color="neutral"
-                  :icon="child.icon"
-                  :to="child.path || child.route"
-                  class="w-full text-sm relative pl-4 hover:text-primary bg-transparent hover:bg-transparent active:bg-transparent"
-                  :class="
-                    isItemActive(child.path || child.route) &&
-                    'font-extrabold text-primary'
-                  "
-                  @click="handleMenuClick"
+              <template #leading>
+                <div
+                  class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-200"
                 >
-                  <!-- Horizontal line connecting to vertical line -->
-
-                  <span class="truncate">{{ child.label }}</span>
-                </UButton>
-              </PermissionGate>
-            </div>
+                  <UIcon
+                    :name="item.icon || 'lucide:box'"
+                    size="16"
+                    class="text-primary"
+                  />
+                </div>
+              </template>
+              <span class="text-sm font-medium">{{ item.label }}</span>
+            </UButton>
           </div>
-
-          <!-- Regular menu item (link) -->
-          <UButton
-            v-else
-            size="lg"
-            variant="ghost"
-            color="neutral"
-            :icon="item.icon"
-            :to="item.path || item.route"
-            class="w-full hover:text-primary bg-transparent hover:bg-transparent active:bg-transparent"
-            :class="
-              isItemActive(item.path || item.route) &&
-              'font-extrabold text-primary'
-            "
-            @click="handleMenuClick"
-          >
-            <span class="truncate">{{ item.label }}</span>
-          </UButton>
         </PermissionGate>
       </div>
     </template>

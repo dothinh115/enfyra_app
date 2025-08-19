@@ -61,9 +61,9 @@ const isActive = (path: string | undefined) => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full w-full">
+  <div class="flex flex-col h-full w-full p-2">
     <!-- Navigation Section -->
-    <div class="flex flex-col items-center w-full py-2 gap-2">
+    <div class="flex flex-col items-center w-full space-y-3">
       <UTooltip
         v-for="item in items.filter((item) => item.show)"
         :key="item.icon"
@@ -71,25 +71,42 @@ const isActive = (path: string | undefined) => {
         placement="right"
         :delay-duration="0"
       >
-        <UButton
-          variant="ghost"
-          :icon="item.icon"
-          :to="item.hasRoute ? item.route : undefined"
-          @click="item.onClick"
-          class="transition duration-200 ease-in-out w-12 h-12 flex justify-center items-center rounded-lg text-gray-300"
+        <div
+          class="relative group"
           :class="[
-            isActive(item.route)
-              ? 'bg-primary text-gray-800 hover:bg-primary'
-              : '',
-            item.class || ''
+            isActive(item.route) 
+              ? 'bg-gradient-to-br from-primary/20 to-secondary/20 rounded-xl p-1 shadow-lg border border-primary/30' 
+              : 'hover:bg-gradient-to-br hover:from-muted/20 hover:to-muted/10 rounded-xl p-1 border border-transparent hover:border-muted/30 transition-all duration-200'
           ]"
-        />
+        >
+          <UButton
+            variant="ghost"
+            :icon="item.icon"
+            :to="item.hasRoute ? item.route : undefined"
+            @click="item.onClick"
+            class="w-10 h-10 flex justify-center items-center rounded-lg transition-all duration-200 group-hover:scale-110"
+            :class="[
+              isActive(item.route)
+                ? 'bg-gradient-to-br from-primary/30 to-secondary/30 text-primary shadow-md'
+                : 'text-muted-foreground hover:text-primary bg-gradient-to-br hover:from-background hover:to-muted/20',
+              item.class || ''
+            ]"
+          />
+          <!-- Active indicator -->
+          <div 
+            v-if="isActive(item.route)"
+            class="absolute -right-1 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-primary to-secondary rounded-full"
+          />
+        </div>
       </UTooltip>
     </div>
 
     <!-- Bottom Section: Bottom Items -->
     <div class="mt-auto w-full">
-      <div v-if="bottomItems.length > 0" class="flex flex-col items-center w-full py-2 gap-2">
+      <div v-if="bottomItems.length > 0" class="flex flex-col items-center w-full space-y-3">
+        <!-- Separator -->
+        <div class="w-8 h-px bg-gradient-to-r from-transparent via-muted/50 to-transparent" />
+        
         <UTooltip
           v-for="item in bottomItems.filter((item) => item.show)"
           :key="item.icon"
@@ -97,19 +114,33 @@ const isActive = (path: string | undefined) => {
           placement="right"
           :delay-duration="0"
         >
-          <UButton
-            variant="ghost"
-            :icon="item.icon"
-            :to="item.hasRoute ? item.route : undefined"
-            @click="item.onClick"
-            class="transition duration-200 ease-in-out w-12 h-12 flex justify-center items-center rounded-lg text-gray-300"
+          <div
+            class="relative group"
             :class="[
-              isActive(item.route)
-                ? 'bg-primary text-gray-800 hover:bg-primary'
-                : '',
-              item.class || ''
+              isActive(item.route) 
+                ? 'bg-gradient-to-br from-warning/20 to-error/20 rounded-xl p-1 shadow-lg border border-warning/30' 
+                : 'hover:bg-gradient-to-br hover:from-muted/20 hover:to-muted/10 rounded-xl p-1 border border-transparent hover:border-muted/30 transition-all duration-200'
             ]"
-          />
+          >
+            <UButton
+              variant="ghost"
+              :icon="item.icon"
+              :to="item.hasRoute ? item.route : undefined"
+              @click="item.onClick"
+              class="w-10 h-10 flex justify-center items-center rounded-lg transition-all duration-200 group-hover:scale-110"
+              :class="[
+                isActive(item.route)
+                  ? 'bg-gradient-to-br from-warning/30 to-error/30 text-warning shadow-md'
+                  : 'text-muted-foreground hover:text-warning bg-gradient-to-br hover:from-background hover:to-muted/20',
+                item.class || ''
+              ]"
+            />
+            <!-- Active indicator -->
+            <div 
+              v-if="isActive(item.route)"
+              class="absolute -right-1 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-warning to-error rounded-full"
+            />
+          </div>
         </UTooltip>
       </div>
     </div>

@@ -1,16 +1,19 @@
 <template>
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <FormField
-      v-for="field in visibleFields"
-      :key="field.name || field.propertyName"
-      :key-name="field.name || field.propertyName"
-      :form-data="modelValue"
-      :column-map="fieldMap"
-      :type-map="typeMapWithGenerated"
-      :errors="errors"
-      @update:form-data="updateFormData"
-      @update:errors="updateErrors"
-    />
+  <div class="space-y-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <FormField
+        v-for="field in visibleFields"
+        :key="field.name || field.propertyName"
+        :key-name="field.name || field.propertyName"
+        :form-data="modelValue"
+        :column-map="fieldMap"
+        :type-map="typeMapWithGenerated"
+        :errors="errors"
+        @update:form-data="updateFormData"
+        @update:errors="updateErrors"
+        class="relative group"
+      />
+    </div>
   </div>
 </template>
 
@@ -37,7 +40,9 @@ const emit = defineEmits<{
   "update:hasChanges": [hasChanges: boolean];
 }>();
 
-const { definition, fieldMap, sortFieldsByOrder, useFormChanges } = useSchema(props.tableName);
+const { definition, fieldMap, sortFieldsByOrder, useFormChanges } = useSchema(
+  props.tableName
+);
 
 // Form change tracking
 const formChanges = useFormChanges();
@@ -103,20 +108,36 @@ function updateErrors(errors: Record<string, string>) {
 }
 
 // Initialize original data when modelValue changes (first load)
-watch(() => props.modelValue, (newValue) => {
-  if (newValue && Object.keys(newValue).length > 0 && Object.keys(originalData.value).length === 0) {
-    originalData.value = JSON.parse(JSON.stringify(newValue));
-    formChanges.update(newValue);
-  }
-}, { immediate: true, deep: true });
+watch(
+  () => props.modelValue,
+  (newValue) => {
+    if (
+      newValue &&
+      Object.keys(newValue).length > 0 &&
+      Object.keys(originalData.value).length === 0
+    ) {
+      originalData.value = JSON.parse(JSON.stringify(newValue));
+      formChanges.update(newValue);
+    }
+  },
+  { immediate: true, deep: true }
+);
 
 // Watch for form changes and emit hasChanges
-watch(() => props.modelValue, (newValue) => {
-  if (newValue && Object.keys(newValue).length > 0 && Object.keys(originalData.value).length > 0) {
-    formChanges.checkChanges(newValue);
-    emit("update:hasChanges", formChanges.hasChanges.value);
-  }
-}, { deep: true });
+watch(
+  () => props.modelValue,
+  (newValue) => {
+    if (
+      newValue &&
+      Object.keys(newValue).length > 0 &&
+      Object.keys(originalData.value).length > 0
+    ) {
+      formChanges.checkChanges(newValue);
+      emit("update:hasChanges", formChanges.hasChanges.value);
+    }
+  },
+  { deep: true }
+);
 
 // Expose method to confirm form changes (call after successful save)
 defineExpose({
@@ -126,6 +147,6 @@ defineExpose({
       formChanges.update(props.modelValue);
       emit("update:hasChanges", false);
     }
-  }
+  },
 });
 </script>

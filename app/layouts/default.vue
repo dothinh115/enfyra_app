@@ -18,20 +18,46 @@
         <UTooltip
           :text="sidebarVisible ? 'Hide Menu' : 'Show Menu'"
           placement="right"
+          :delay-duration="0"
         >
-          <UButton
-            variant="ghost"
-            :icon="
-              sidebarVisible ? 'lucide:chevron-left' : 'lucide:chevron-right'
-            "
-            @click="toggleSidebar"
-            class="w-12 h-12 flex justify-center items-center rounded-lg hover:bg-gray-700 text-gray-300"
-            :class="sidebarVisible ? 'bg-gray-700' : 'bg-gray-600'"
-            :aria-label="
-              sidebarVisible ? 'Hide navigation menu' : 'Show navigation menu'
-            "
-            :aria-expanded="sidebarVisible"
-          />
+          <div
+            class="relative group"
+            :class="[
+              sidebarVisible
+                ? 'bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-xl p-1 shadow-lg border border-orange-500/30'
+                : 'hover:bg-gradient-to-br hover:from-orange-500/10 hover:to-red-500/10 rounded-xl p-1 border border-transparent hover:border-orange-500/20 transition-all duration-200',
+            ]"
+          >
+            <UButton
+              variant="ghost"
+              :icon="sidebarVisible ? 'lucide:chevron-left' : 'lucide:menu'"
+              @click="toggleSidebar"
+              class="w-10 h-10 flex justify-center items-center rounded-lg transition-all duration-200 group-hover:scale-110"
+              :class="[
+                sidebarVisible
+                  ? 'bg-gradient-to-br from-orange-500/30 to-red-500/30 text-orange-600 shadow-md'
+                  : 'text-muted-foreground hover:text-orange-600 bg-gradient-to-br hover:from-background hover:to-muted/20',
+              ]"
+              :aria-label="
+                sidebarVisible ? 'Hide navigation menu' : 'Show navigation menu'
+              "
+              :aria-expanded="sidebarVisible"
+            />
+            <!-- Active indicator -->
+            <div
+              v-if="sidebarVisible"
+              class="absolute -right-1 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-orange-500 to-red-500 rounded-full"
+            />
+            <!-- Menu indicator dots when collapsed -->
+            <div
+              v-if="!sidebarVisible"
+              class="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 flex gap-0.5"
+            >
+              <div class="w-1 h-1 bg-orange-500/60 rounded-full"></div>
+              <div class="w-1 h-1 bg-orange-500/60 rounded-full"></div>
+              <div class="w-1 h-1 bg-orange-500/60 rounded-full"></div>
+            </div>
+          </div>
         </UTooltip>
       </div>
 
@@ -45,7 +71,7 @@
     <Transition :name="isTablet ? 'fade-tablet' : ''" mode="out-in">
       <aside
         v-if="sidebarVisible"
-        class="bg-gray-700 p-4 flex flex-col border-l border-gray-600 flex-shrink-0"
+        class="bg-gray-700 p-2 flex flex-col border-l border-gray-600 flex-shrink-0"
         :class="
           isTablet
             ? 'fixed inset-y-0 left-16 w-80 z-50 shadow-xl'
@@ -53,7 +79,7 @@
         "
         aria-label="Secondary navigation"
       >
-        <CommonFull class="mb-9" />
+        <CommonFull class="mb-4" />
         <SidebarMenu />
       </aside>
     </Transition>
@@ -70,7 +96,15 @@
     </Transition>
 
     <!-- Main Content -->
-    <main class="flex-1 flex flex-col min-h-0" id="main-content">
+    <main
+      class="flex-1 flex flex-col min-h-0 bg-gradient-to-br from-background via-muted/5 to-muted/10 relative"
+      id="main-content"
+    >
+      <!-- Subtle pattern overlay -->
+      <div
+        class="absolute inset-0 opacity-30 bg-gradient-to-tr from-transparent via-primary/5 to-secondary/5 pointer-events-none"
+      ></div>
+
       <!-- Header -->
       <LayoutHeader />
 
@@ -78,11 +112,15 @@
       <LayoutSubHeader />
 
       <!-- Page Content -->
-      <section
-        class="flex-1 min-h-0 overflow-auto"
-        :class="isTablet ? 'p-4' : 'p-6'"
-      >
-        <slot />
+      <section class="flex-1 min-h-0 overflow-auto relative z-10">
+        <!-- Content background with subtle styling -->
+        <div
+          class="min-h-full bg-gradient-to-b from-background/50 to-transparent rounded-xl backdrop-blur-sm"
+        >
+          <div class="p-6">
+            <slot />
+          </div>
+        </div>
       </section>
     </main>
   </div>
