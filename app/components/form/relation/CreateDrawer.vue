@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 const props = defineProps<{
   modelValue: boolean;
   relationMeta: any;
@@ -22,10 +21,10 @@ const { generateEmptyForm, validate } = useSchema(targetTable?.name);
 const {
   data: createData,
   pending: creating,
-  execute: createRecord
+  execute: createRecord,
 } = useApiLazy(() => `/${targetTable?.name}`, {
   method: "post",
-  errorContext: "Create Relation Record"
+  errorContext: "Create Relation Record",
 });
 
 const createForm = ref(generateEmptyForm());
@@ -49,7 +48,10 @@ async function createNewRecord() {
   }
 
   await createRecord({ body: createForm.value });
-  emit("update:selected", [...props.selected, { id: createData.value?.data[0]?.id }]);
+  emit("update:selected", [
+    ...props.selected,
+    { id: createData.value?.data[0]?.id },
+  ]);
   emit("created");
   show.value = false;
 }
@@ -57,37 +59,93 @@ async function createNewRecord() {
 
 <template>
   <Teleport to="body">
-    <UDrawer 
-      v-model:open="show" 
-      direction="right" 
+    <UDrawer
+      v-model:open="show"
+      direction="right"
       :class="isTablet ? 'w-full' : 'min-w-xl'"
     >
       <template #header>
         <div
-          class="flex items-center justify-between border-b border-muted pb-2"
+          class="bg-gradient-to-r from-background/90 to-muted/20 rounded-t-xl"
         >
-          <h2>New {{ targetTable?.name }}</h2>
-          <UButton
-            icon="lucide:x"
-            @click="show = false"
-            variant="ghost"
-            color="error"
-          />
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div
+                class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg"
+              >
+                <UIcon name="lucide:plus" class="text-sm text-white" />
+              </div>
+              <div>
+                <h2 class="text-xl font-semibold text-foreground">
+                  Create New Record
+                </h2>
+                <p class="text-sm text-muted-foreground">
+                  {{ targetTable?.name }} table
+                </p>
+              </div>
+            </div>
+            <UButton
+              icon="lucide:x"
+              @click="show = false"
+              variant="ghost"
+              color="neutral"
+              size="lg"
+              class="hover:bg-error/10 hover:text-error transition-colors duration-200"
+            />
+          </div>
         </div>
       </template>
       <template #body>
-        <FormEditorLazy
-          v-model="createForm"
-          :table-name="targetTable?.name"
-          :errors="createErrors"
-        />
-        <div class="flex justify-end border-t border-muted pt-2 mt-4">
-          <UButton
-            icon="lucide:plus"
-            @click="createNewRecord"
-            :loading="creating"
-            >Create New</UButton
+        <div class="space-y-6">
+          <!-- Form Section -->
+          <div
+            class="bg-gradient-to-r from-background/50 to-muted/10 rounded-xl border border-muted/30 p-6"
           >
+            <div class="flex items-center gap-2 mb-4">
+              <UIcon name="lucide:edit-3" class="text-info" size="18" />
+              <h3 class="text-lg font-semibold text-foreground">Form Fields</h3>
+            </div>
+            <FormEditorLazy
+              v-model="createForm"
+              :table-name="targetTable?.name"
+              :errors="createErrors"
+            />
+          </div>
+
+          <!-- Actions Section -->
+          <div
+            class="bg-gradient-to-r from-muted/10 to-background/50 rounded-xl border border-muted/30 p-4"
+          >
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <UIcon
+                  name="lucide:info"
+                  class="text-muted-foreground"
+                  size="16"
+                />
+                <span class="text-sm text-muted-foreground"
+                  >Ready to create new record?</span
+                >
+              </div>
+              <div class="flex gap-3">
+                <UButton
+                  variant="ghost"
+                  color="neutral"
+                  @click="show = false"
+                  :disabled="creating"
+                >
+                  Cancel
+                </UButton>
+                <UButton
+                  icon="lucide:plus"
+                  @click="createNewRecord"
+                  :loading="creating"
+                >
+                  Create Record
+                </UButton>
+              </div>
+            </div>
+          </div>
         </div>
       </template>
     </UDrawer>

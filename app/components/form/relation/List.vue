@@ -119,14 +119,15 @@ function shortenId(id: string | number): string {
 </script>
 
 <template>
-  <UButton
-    v-for="item in data"
-    :key="item.id"
-    class="w-full px-4 py-3 hover:bg-muted flex items-center justify-between"
-    @click.stop="toggle(item.id)"
-    variant="outline"
-    :color="isSelected(item.id) ? 'primary' : 'neutral'"
-  >
+  <div class="space-y-1">
+    <UButton
+      v-for="item in data"
+      :key="item.id"
+      class="w-full px-4 py-3 hover:bg-muted flex items-center justify-between"
+      @click.stop="toggle(item.id)"
+      variant="outline"
+      :color="isSelected(item.id) ? 'primary' : 'neutral'"
+    >
     <div class="truncate flex items-center gap-2" :title="String(item.id)">
       <UIcon v-if="isSelected(item.id)" name="lucide:check" class="w-4 h-4" />
       {{ shortenId(item.id) }} - {{ getDisplayLabel(item) }}
@@ -151,5 +152,6 @@ function shortenId(id: string | number): string {
         :label="confirmingDeleteId === item.id ? 'Confirm' : undefined"
       />
     </div>
-  </UButton>
+    </UButton>
+  </div>
 </template>

@@ -69,14 +69,16 @@
           :key="field.name || field.propertyName"
           class="bg-background/50 rounded-md p-3 border border-muted/30"
         >
-          <div class="flex items-center justify-between">
+          <div class="flex flex-col space-y-2">
             <span class="text-xs font-medium text-muted-foreground uppercase tracking-wide">
               {{ field.name || field.propertyName }}
             </span>
-            <RecordDetailsRegularField
-              :field="field"
-              :value="record[field.name || field.propertyName]"
-            />
+            <div class="text-right">
+              <RecordDetailsRegularField
+                :field="field"
+                :value="record[field.name || field.propertyName]"
+              />
+            </div>
           </div>
         </div>
       </div>

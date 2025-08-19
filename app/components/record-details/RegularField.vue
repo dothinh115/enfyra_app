@@ -122,7 +122,7 @@ const getFieldClass = computed(() => {
 function formatDate(value: any): string {
   try {
     const date = new Date(value);
-    return date.toLocaleString();
+    return date.toLocaleDateString();
   } catch {
     return String(value);
   }
