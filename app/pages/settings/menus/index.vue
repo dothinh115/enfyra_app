@@ -141,15 +141,11 @@ function getMenuLoader(menuId: string) {
   return menuLoaders.value[menuId];
 }
 
-// Apply filters - called by FilterDrawer
-async function applyFilters() {
+// Handle filter apply from FilterDrawer
+async function handleFilterApply(filter: FilterGroup) {
+  currentFilter.value = filter;
   page.value = 1;
   await fetchMenus();
-}
-
-function clearFilters() {
-  currentFilter.value = createEmptyFilter();
-  applyFilters();
 }
 
 async function toggleEnabled(menuItem: any, value?: boolean) {
@@ -369,9 +365,8 @@ async function deleteMenu(menuItem: any) {
   <!-- Filter Drawer -->
   <FilterDrawerLazy
     v-model="showFilterDrawer"
-    :filter-value="currentFilter"
     :table-name="tableName"
-    @apply="applyFilters"
-    @clear="clearFilters"
+    :current-filter="currentFilter"
+    @apply="handleFilterApply"
   />
 </template>

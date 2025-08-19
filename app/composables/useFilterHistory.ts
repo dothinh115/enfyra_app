@@ -127,9 +127,29 @@ export function useFilterHistory(tableName: string) {
       // Generate auto name if not provided
       const name = customName || generateFilterName(filter);
       
-      // Check for duplicates (same filter structure)
+      // Check for duplicates (same filter structure + tableName, ignoring all id fields)
+      const normalizeFilter = (filter: any, tableName: string): string => {
+        const removeIds = (obj: any): any => {
+          if (Array.isArray(obj)) {
+            return obj.map(removeIds);
+          }
+          if (obj && typeof obj === 'object') {
+            const { id, ...rest } = obj;
+            const result: any = {};
+            for (const key in rest) {
+              result[key] = removeIds(rest[key]);
+            }
+            return result;
+          }
+          return obj;
+        };
+        
+        // Include tableName in the normalized key to ensure filters are table-specific
+        return `${tableName}:${JSON.stringify(removeIds(filter))}`;
+      };
+      
       const existingIndex = history.findIndex(item => 
-        JSON.stringify(item.filter) === JSON.stringify(filter)
+        normalizeFilter(item.filter, item.tableName) === normalizeFilter(filter, tableName)
       );
       
       if (existingIndex >= 0) {

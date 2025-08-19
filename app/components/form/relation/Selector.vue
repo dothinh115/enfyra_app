@@ -146,7 +146,9 @@ function viewDetails(item: any) {
   detailModal.value = true;
 }
 
-async function applyFilter() {
+// Handle filter apply from FilterDrawer
+async function handleFilterApply(filter: FilterGroup) {
+  currentFilter.value = filter;
   page.value = 1; // Reset to first page when filter changes
   await fetchDataWithValidation();
 }
@@ -302,9 +304,8 @@ watch(page, async (newPage, oldPage) => {
   <!-- Filter Drawer -->
   <FilterDrawerLazy
     v-model="showFilterDrawer"
-    :filter-value="currentFilter"
     :table-name="targetTable?.name || ''"
-    @apply="applyFilter"
-    @clear="clearFilter"
+    :current-filter="currentFilter"
+    @apply="handleFilterApply"
   />
 </template>

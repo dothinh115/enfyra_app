@@ -75,10 +75,9 @@
 
     <FilterDrawerLazy
       v-model="showFilterDrawer"
-      :filter-value="currentFilter"
       :table-name="tableName"
-      @apply="applyFilters"
-      @clear="clearFilters"
+      :current-filter="currentFilter"
+      @apply="handleFilterApply"
     />
   </div>
 </template>
@@ -179,14 +178,11 @@ useHeaderActionRegistry([
   },
 ]);
 
-async function applyFilters() {
+// Handle filter apply from FilterDrawer
+async function handleFilterApply(filter: FilterGroup) {
+  currentFilter.value = filter;
   page.value = 1;
   await fetchUsers();
-}
-
-function clearFilters() {
-  currentFilter.value = createEmptyFilter();
-  applyFilters();
 }
 
 function getHeaderActions(user: any) {

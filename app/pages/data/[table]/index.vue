@@ -315,18 +315,15 @@ watch(
   { immediate: true }
 );
 
-// Apply filters - called by FilterDrawer
-async function applyFilters() {
+// Handle filter apply from FilterDrawer
+async function handleFilterApply(filter: FilterGroup) {
+  currentFilter.value = filter;
   page.value = 1;
-
-
   await fetchData();
 }
 
-function clearFilters() {
-  currentFilter.value = createEmptyFilter();
-  applyFilters();
-}
+// Clear filters is now handled by FilterDrawer internally
+// When clear is clicked, it will emit apply with empty filter
 
 async function handleDelete(id: string) {
   const result = await confirm({
@@ -544,10 +541,9 @@ useHeaderActionRegistry([
     <FilterDrawerLazy
       :model-value="showFilterDrawer"
       @update:model-value="showFilterDrawer = $event"
-      :filter-value="currentFilter"
       :table-name="tableName"
-      @apply="applyFilters"
-      @clear="clearFilters"
+      :current-filter="currentFilter"
+      @apply="handleFilterApply"
     />
   </div>
 </template>

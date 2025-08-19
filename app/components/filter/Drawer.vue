@@ -3,8 +3,8 @@ import { useFilterHistory } from "~/composables/useFilterHistory";
 
 const props = defineProps<{
   modelValue: boolean;
-  filterValue: FilterGroup;
   tableName: string;
+  currentFilter?: FilterGroup; // Optional current filter from parent
 }>();
 
 const { schemas } = useGlobalState();
@@ -13,59 +13,70 @@ const { hasActiveFilters } = useFilterQuery();
 
 const emit = defineEmits<{
   "update:modelValue": [value: boolean];
-  "update:filter-value": [value: FilterGroup];
-  apply: [];
-  clear: [];
+  apply: [filter: FilterGroup];
 }>();
 
-const localFilter = ref<FilterGroup>({ ...props.filterValue });
+// Create and manage filter state internally
+const { createEmptyFilter } = useFilterQuery();
+const localFilter = ref<FilterGroup>(createEmptyFilter());
+const originalFilter = ref<FilterGroup>(createEmptyFilter()); // Track original state
 
+// Initialize filter from parent if provided
 watch(
-  () => props.filterValue,
-  (newValue) => {
-    localFilter.value = { ...newValue };
+  () => props.currentFilter,
+  (newFilter) => {
+    if (newFilter) {
+      localFilter.value = JSON.parse(JSON.stringify(newFilter));
+    }
   },
-  { deep: true }
+  { immediate: true }
+);
+
+// Save original state when drawer opens and restore on cancel
+watch(
+  () => props.modelValue,
+  (isOpen) => {
+    if (isOpen) {
+      // Use parent's current filter if provided, otherwise use existing local state
+      const initialFilter = props.currentFilter || localFilter.value;
+      localFilter.value = JSON.parse(JSON.stringify(initialFilter));
+      originalFilter.value = JSON.parse(JSON.stringify(initialFilter));
+    }
+  }
 );
 
 function handleApply() {
-  emit("update:filter-value", { ...localFilter.value });
-  
   // Auto-save to filter history if there are active filters
   if (hasActiveFilters(localFilter.value)) {
     addToHistory(localFilter.value);
   }
   
-  emit("apply");
+  // Emit the normalized filter object
+  emit("apply", { ...localFilter.value });
   emit("update:modelValue", false);
 }
 
 function handleClear() {
-  const emptyFilter: FilterGroup = {
-    id: Math.random().toString(36).substring(2, 9),
-    operator: "and",
-    conditions: [],
-  };
-
-  localFilter.value = emptyFilter;
-  emit("update:filter-value", emptyFilter);
-  emit("clear");
+  // Clear local filter
+  localFilter.value = createEmptyFilter();
+  
+  // Apply cleared filter immediately
+  emit("apply", { ...localFilter.value });
   emit("update:modelValue", false);
 }
 
 function handleClose() {
-  // Reset to original filter if user closes without applying
-  localFilter.value = { ...props.filterValue };
-  
-  // Don't emit any filter changes when closing without applying
-  // Just close the drawer
+  // Revert to original state when canceling
+  localFilter.value = JSON.parse(JSON.stringify(originalFilter.value));
   emit("update:modelValue", false);
 }
 
 function applySavedFilter(filter: any) {
+  // Apply saved filter directly
   localFilter.value = { ...filter };
-  emit("update:filter-value", { ...filter });
-  emit("apply");
+  
+  // Emit the filter and close
+  emit("apply", { ...filter });
   emit("update:modelValue", false);
 }
 

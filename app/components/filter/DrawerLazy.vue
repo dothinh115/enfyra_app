@@ -3,12 +3,10 @@
     <Suspense>
       <FilterDrawer
         :model-value="props.modelValue"
-        :filter-value="props.filterValue"
         :table-name="props.tableName"
+        :current-filter="props.currentFilter"
         @update:model-value="(value) => emit('update:modelValue', value)"
-        @update:filter-value="(value) => emit('update:filterValue', value)"
-        @apply="() => emit('apply')"
-        @clear="() => emit('clear')"
+        @apply="(filter) => emit('apply', filter)"
       />
       <template #fallback>
         <div class="flex items-center justify-center p-8">
@@ -27,14 +25,12 @@ const FilterDrawer = defineAsyncComponent(() => import('./Drawer.vue'))
 
 const props = defineProps<{
   modelValue: boolean;
-  filterValue: FilterGroup;
   tableName: string;
+  currentFilter?: FilterGroup;
 }>()
 
 const emit = defineEmits<{
   "update:modelValue": [value: boolean];
-  "update:filterValue": [value: FilterGroup];
-  apply: [];
-  clear: [];
+  apply: [filter: FilterGroup];
 }>()
 </script>

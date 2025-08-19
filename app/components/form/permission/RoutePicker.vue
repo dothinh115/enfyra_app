@@ -137,10 +137,9 @@
     <!-- Filter Drawer -->
     <FilterDrawerLazy
       v-model="showFilterDrawer"
-      :filter-value="currentFilter"
       table-name="route_definition"
-      @apply="applyFilter"
-      @clear="clearFilter"
+      :current-filter="currentFilter"
+      @apply="handleFilterApply"
     />
   </Teleport>
 </template>
@@ -202,8 +201,9 @@ watch(page, () => {
   fetchRoutes();
 });
 
-// Filter functions
-async function applyFilter() {
+// Handle filter apply from FilterDrawer
+async function handleFilterApply(filter: FilterGroup) {
+  currentFilter.value = filter;
   page.value = 1; // Reset to first page when filter changes
   await fetchRoutes();
 }
