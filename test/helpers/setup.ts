@@ -15,6 +15,17 @@ global.useRouter = vi.fn()
 global.navigateTo = vi.fn()
 global.$fetch = vi.fn()
 
+// Mock permission and auth composables
+global.usePermissions = vi.fn(() => ({
+  hasAnyPermission: vi.fn(() => false),
+  hasAllPermissions: vi.fn(() => false),
+  checkPermissionCondition: vi.fn(() => false)
+}))
+
+global.useAuth = vi.fn(() => ({
+  me: { value: null }
+}))
+
 // Setup default mocks
 beforeEach(() => {
   vi.clearAllMocks()

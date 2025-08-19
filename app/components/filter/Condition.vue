@@ -1,8 +1,4 @@
 <script setup lang="ts">
-// UInput, USelect, UButton auto-imported by Nuxt
-// getOperatorsByType, mapDbTypeToFilterType, needsValue, needsTwoValues auto-imported from utils
-// getCombinedOptionsForContext, getFieldOptions auto-imported from utils
-
 const props = defineProps<{
   condition: FilterCondition;
   parentGroup: FilterGroup;
@@ -20,6 +16,11 @@ const emit = defineEmits<{
 
 function updateCondition() {
   emit("update:condition", { ...props.condition });
+}
+
+function updateValue(newValue: any) {
+  props.condition.value = newValue;
+  updateCondition();
 }
 
 function onFieldSelectChange(selectedValue: string) {
@@ -43,15 +44,20 @@ function onFieldSelectChange(selectedValue: string) {
     props.condition.value = null;
     updateCondition();
   } else if (selectedOption.fieldCategory === "relation") {
-    // Emit event to convert to group
+    // Convert to relation group
     const newRelationContext = props.parentGroup.relationContext
       ? `${props.parentGroup.relationContext}.${selectedValue}`
       : selectedValue;
 
     // Get target table name and its first field
     const targetTableName = selectedOption.targetTable || props.tableName;
-    const targetOptions = getCombinedOptionsForContext(targetTableName, props.schemas);
-    const firstField = targetOptions.find(opt => opt.fieldCategory === "column");
+    const targetOptions = getCombinedOptionsForContext(
+      targetTableName,
+      props.schemas
+    );
+    const firstField = targetOptions.find(
+      (opt) => opt.fieldCategory === "column"
+    );
 
     const newGroup: FilterGroup = {
       id: Math.random().toString(36).substring(2, 9),
@@ -63,7 +69,9 @@ function onFieldSelectChange(selectedValue: string) {
           field: firstField?.value || "",
           operator: "_eq",
           value: null,
-          type: firstField?.fieldType ? mapDbTypeToFilterType(firstField.fieldType) : "string",
+          type: firstField?.fieldType
+            ? mapDbTypeToFilterType(firstField.fieldType)
+            : "string",
         },
       ],
     };
@@ -71,6 +79,18 @@ function onFieldSelectChange(selectedValue: string) {
     emit("convert-to-group", newGroup, props.conditionIndex);
   }
 }
+
+// Get enum options for select fields
+const enumOptions = computed(() => {
+  if (props.condition.type === "select") {
+    return getFieldOptions(
+      props.condition.field,
+      props.tableName,
+      props.schemas
+    );
+  }
+  return [];
+});
 </script>
 
 <template>
@@ -113,105 +133,25 @@ function onFieldSelectChange(selectedValue: string) {
       }}
     </span>
 
-    <!-- Value Input(s) -->
-    <template v-if="needsValue(condition.operator)">
-      <!-- Boolean Select -->
-      <USelect
-        v-if="!readonly && condition.type === 'boolean'"
-        v-model="condition.value"
-        :items="[
-          { label: 'True', value: true },
-          { label: 'False', value: false },
-        ]"
-        @update:model-value="updateCondition"
-        class="min-w-24 min-h-8"
-      />
-
-      <!-- Select with Options -->
-      <USelect
-        v-else-if="
-          !readonly &&
-          condition.type === 'select' &&
-          ['_in', '_not_in'].includes(condition.operator)
-        "
-        v-model="condition.value"
-        :items="getFieldOptions(condition.field, tableName, schemas)"
-        multiple
-        @update:model-value="updateCondition"
-        class="min-w-32 min-h-8"
-      />
-
-      <USelect
-        v-else-if="!readonly && condition.type === 'select'"
-        v-model="condition.value"
-        :items="getFieldOptions(condition.field, tableName, schemas)"
-        @update:model-value="updateCondition"
-        class="min-w-24 min-h-8"
-      />
-
-      <!-- Between Values -->
-      <div
-        v-else-if="!readonly && needsTwoValues(condition.operator)"
-        class="flex items-center gap-1"
-      >
-        <UInput
-          :model-value="condition.value?.[0] || ''"
-          @update:model-value="
-            (val) => {
-              condition.value = [val, condition.value?.[1] || ''];
-              updateCondition();
-            }
-          "
-          :type="
-            condition.type === 'number'
-              ? 'number'
-              : condition.type === 'date'
-              ? 'date'
-              : 'text'
-          "
-          size="sm"
-          class="w-24"
-        />
-        <span class="text-xs text-gray-500">and</span>
-        <UInput
-          :model-value="condition.value?.[1] || ''"
-          @update:model-value="
-            (val) => {
-              condition.value = [condition.value?.[0] || '', val];
-              updateCondition();
-            }
-          "
-          :type="
-            condition.type === 'number'
-              ? 'number'
-              : condition.type === 'date'
-              ? 'date'
-              : 'text'
-          "
-          size="sm"
-          class="w-24"
-        />
-      </div>
-
-      <!-- Single Value -->
-      <UInput
-        v-else-if="!readonly"
-        v-model="condition.value"
-        @update:model-value="updateCondition"
-        :type="
-          condition.type === 'number'
-            ? 'number'
-            : condition.type === 'date'
-            ? 'date'
-            : 'text'
-        "
-        size="sm"
-        class="min-w-32 min-h-8"
+    <!-- Value Input -->
+    <template
+      v-if="needsValue(condition.operator) || condition.operator === '_is_null'"
+    >
+      <FilterValueInput
+        v-if="!readonly"
+        :model-value="condition.value"
+        @update:model-value="updateValue"
+        :operator="condition.operator"
+        :field-type="condition.type || 'string'"
+        :enum-options="enumOptions"
       />
 
       <!-- Readonly Value Display -->
       <span v-else class="text-sm">
-        <template v-if="needsTwoValues(condition.operator)">
+        <template v-if="condition.operator === '_is_null'">
+          {{ condition.value ? "Is empty" : "Is not empty" }}
+        </template>
+        <template v-else-if="needsTwoValues(condition.operator)">
           {{ condition.value?.[0] }} - {{ condition.value?.[1] }}
         </template>
         <template v-else-if="Array.isArray(condition.value)">

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Vue functions are auto-imported
-import { UInput, UTextarea, USwitch, USelect, UCalendar } from "#components";
+import { UInput, UTextarea, USwitch, USelect, UCalendar, FormDateField } from "#components";
 import { CalendarDate } from "@internationalized/date";
 
 const props = defineProps<{
@@ -342,67 +342,13 @@ function getComponentConfigByKey(key: string) {
       };
 
     case "date": {
-      let modelValue = null;
-
-      if (props.formData[key]) {
-        try {
-          if (props.formData[key] instanceof Date) {
-            const date = props.formData[key];
-            if (!isNaN(date.getTime())) {
-              modelValue = new CalendarDate(
-                date.getFullYear(),
-                date.getMonth() + 1,
-                date.getDate()
-              );
-            }
-          } else if (typeof props.formData[key] === "string") {
-            const date = new Date(props.formData[key]);
-            if (!isNaN(date.getTime())) {
-              modelValue = new CalendarDate(
-                date.getFullYear(),
-                date.getMonth() + 1,
-                date.getDate()
-              );
-            }
-          } else if (typeof props.formData[key] === "number") {
-            const date = new Date(props.formData[key]);
-            if (!isNaN(date.getTime())) {
-              modelValue = new CalendarDate(
-                date.getFullYear(),
-                date.getMonth() + 1,
-                date.getDate()
-              );
-            }
-          }
-        } catch (error) {
-          console.error("Error converting to CalendarDate:", error);
-          modelValue = null;
-        }
-      }
-
       return {
-        component: UCalendar,
+        component: FormDateField,
         componentProps: {
           disabled: disabled,
-          class: "w-full",
-          modelValue: modelValue,
-          placeholder: new CalendarDate(
-            new Date().getFullYear(),
-            new Date().getMonth() + 1,
-            new Date().getDate()
-          ),
-          "onUpdate:modelValue": (val: any) => {
-            if (val) {
-              try {
-                const date = new Date(val.year, val.month - 1, val.day);
-                updateFormData(key, date);
-              } catch (error) {
-                console.error("Error creating Date object:", error);
-                updateFormData(key, null);
-              }
-            } else {
-              updateFormData(key, null);
-            }
+          modelValue: props.formData[key],
+          "onUpdate:modelValue": (val: Date | null) => {
+            updateFormData(key, val);
           },
         },
         fieldProps,

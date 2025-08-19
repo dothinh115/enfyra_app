@@ -33,3 +33,6 @@ enfyra-extension/
 AI_MEMORY_BE.md
 AI_MEMORY_FE.md
 
+# Test coverage reports
+coverage/
+
