@@ -49,6 +49,8 @@ function getDisplayLabel(
 ): string {
   if (!item || typeof item !== "object") return "";
 
+  const MAX_LABEL_LENGTH = 50;
+
   // Helper: safely get a non-empty string from any field
   const getValueAsString = (
     obj: Record<string, any>,
@@ -58,6 +60,11 @@ function getDisplayLabel(
     if (raw === undefined || raw === null) return null;
     const str = String(raw).trim();
     return str === "" ? null : str;
+  };
+
+  // Helper: truncate string to fit within limit
+  const truncateString = (str: string, maxLength: number): string => {
+    return str.length > maxLength ? `${str.slice(0, maxLength - 1)}…` : str;
   };
 
   // Get list of relation keys
@@ -99,15 +106,36 @@ function getDisplayLabel(
     if (str) foundFields.push(str);
   }
 
-  // Kết hợp 2 fields
+  // Kết hợp 2 fields với giới hạn ký tự
+  let result: string;
   if (foundFields.length === 0) {
     const idStr = getValueAsString(item, "id");
-    return idStr ? `ID: ${idStr}` : "";
+    result = idStr ? `ID: ${idStr}` : "";
   } else if (foundFields.length === 1) {
-    return foundFields[0] as string;
+    result = foundFields[0]!;
   } else {
-    return `${foundFields[0]} - ${foundFields[1]}`;
+    const firstField = foundFields[0]!;
+    const secondField = foundFields[1]!;
+    const combined = `${firstField} - ${secondField}`;
+    
+    if (combined.length > MAX_LABEL_LENGTH) {
+      // Nếu quá dài, ưu tiên field đầu tiên và cắt ngắn field thứ hai
+      const separator = " - ";
+      const remainingLength = MAX_LABEL_LENGTH - firstField.length - separator.length - 1; // -1 for ellipsis
+      
+      if (remainingLength > 5) {
+        const truncatedSecond = truncateString(secondField, remainingLength);
+        result = `${firstField}${separator}${truncatedSecond}`;
+      } else {
+        // Nếu field đầu quá dài, chỉ dùng field đầu
+        result = truncateString(firstField, MAX_LABEL_LENGTH);
+      }
+    } else {
+      result = combined;
+    }
   }
+
+  return truncateString(result, MAX_LABEL_LENGTH);
 }
 
 function shortenId(id: string | number): string {
@@ -128,11 +156,11 @@ function shortenId(id: string | number): string {
       variant="outline"
       :color="isSelected(item.id) ? 'primary' : 'neutral'"
     >
-    <div class="truncate flex items-center gap-2" :title="String(item.id)">
-      <UIcon v-if="isSelected(item.id)" name="lucide:check" class="w-4 h-4" />
-      {{ shortenId(item.id) }} - {{ getDisplayLabel(item) }}
+    <div class="flex items-center gap-2 min-w-0 flex-1" :title="`${shortenId(item.id)} - ${getDisplayLabel(item)}`">
+      <UIcon v-if="isSelected(item.id)" name="lucide:check" class="w-4 h-4 flex-shrink-0" />
+      <span class="truncate">{{ shortenId(item.id) }} - {{ getDisplayLabel(item) }}</span>
     </div>
-    <div class="flex gap-1">
+    <div class="flex gap-1 flex-shrink-0">
       <UButton
         icon="lucide:info"
         size="md"
