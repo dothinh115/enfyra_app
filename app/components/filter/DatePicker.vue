@@ -55,7 +55,7 @@
       </template>
       
       <template #footer>
-        <div class="flex justify-end">
+        <div class="flex justify-end w-full">
           <UButton 
             @click="applyValue" 
             color="primary"
