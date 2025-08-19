@@ -1,4 +1,4 @@
 // Export all filter utilities for auto-import
-export * from './FilterOperators';
-export * from './FilterUtils';
-export type * from './FilterTypes';
+export * from './filter-operators';
+export * from './filter-utils';
+export type * from './filter-types';

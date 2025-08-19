@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FilterProps } from "../../utils/common/filter/FilterTypes";
+import type { FilterProps } from "../../utils/common/filter/filter-types";
 // FilterGroup will be auto-imported by Nuxt
 
 const props = defineProps<FilterProps>();

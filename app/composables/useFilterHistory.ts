@@ -1,3 +1,5 @@
+import { generateFilterId } from '~/utils/common/filter/filter-operators';
+
 export interface FilterHistoryItem {
   id: string;
   name: string;
@@ -176,9 +178,9 @@ export function useFilterHistory(tableName: string) {
         history.unshift(newItem);
       }
       
-      // Keep only last 50 filters
-      if (history.length > 50) {
-        history.splice(50);
+      // Keep only last 20 filters (FIFO - remove oldest when full)
+      if (history.length > 20) {
+        history.splice(20);
       }
       
       localStorage.setItem(storageKey, JSON.stringify(history));
@@ -251,7 +253,7 @@ export function useFilterHistory(tableName: string) {
 
   // Generate unique ID
   const generateId = (): string => {
-    return Date.now().toString(36) + Math.random().toString(36).substring(2);
+    return generateFilterId();
   };
 
   return {

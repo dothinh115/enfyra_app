@@ -45,7 +45,7 @@
   >
     <UInput
       :model-value="modelValue?.[0] || ''"
-      @update:model-value="updateRangeValue(0, $event)"
+      @update:model-value="handleRangeUpdate(0, $event)"
       type="number"
       class="w-24"
       placeholder="From"
@@ -53,7 +53,7 @@
     <span class="text-xs text-gray-500">and</span>
     <UInput
       :model-value="modelValue?.[1] || ''"
-      @update:model-value="updateRangeValue(1, $event)"
+      @update:model-value="handleRangeUpdate(1, $event)"
       type="number"
       class="w-24"
       placeholder="To"
@@ -102,7 +102,8 @@
 </template>
 
 <script setup lang="ts">
-import { needsTwoValues } from '~/utils/common/filter/FilterOperators';
+import { needsTwoValues } from '~/utils/common/filter/filter-operators';
+import { getInputType, getInputPlaceholder, updateRangeValue } from '~/utils/common/filter/filter-helpers';
 
 const props = defineProps<{
   modelValue: any;
@@ -115,21 +116,8 @@ const emit = defineEmits<{
   'update:modelValue': [value: any];
 }>();
 
-function getInputType(type: string): string {
-  return type === 'number' ? 'number' : 'text';
-}
-
-function getInputPlaceholder(operator: string, type: string): string {
-  if (operator === '_contains') return 'Contains text...';
-  if (operator === '_starts_with') return 'Starts with...';
-  if (operator === '_ends_with') return 'Ends with...';
-  if (type === 'number') return 'Enter number...';
-  return 'Enter value...';
-}
-
-function updateRangeValue(index: 0 | 1, value: any) {
-  const currentValue = props.modelValue || ['', ''];
-  currentValue[index] = value;
-  emit('update:modelValue', [...currentValue]);
+function handleRangeUpdate(index: 0 | 1, value: any) {
+  const newValue = updateRangeValue(props.modelValue, index, value);
+  emit('update:modelValue', newValue);
 }
 </script>

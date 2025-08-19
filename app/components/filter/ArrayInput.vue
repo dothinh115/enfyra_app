@@ -8,6 +8,8 @@
 </template>
 
 <script setup lang="ts">
+import { parseArrayValue, getArrayPlaceholder } from '~/utils/common/filter/filter-helpers';
+
 const props = defineProps<{
   modelValue: any[];
   fieldType: string;
@@ -25,28 +27,17 @@ const displayValue = computed({
     return '';
   },
   set: (value: string) => {
-    parseArrayValue(value);
+    handleArrayInput(value);
   }
 });
 
 const placeholder = computed(() => {
-  return props.fieldType === 'number' ? '1,2,3' : 'value1,value2,value3';
+  return getArrayPlaceholder(props.fieldType);
 });
 
-function parseArrayValue(value: string) {
-  if (!value.trim()) {
-    emit('update:modelValue', []);
-    return;
-  }
-  
-  const values = value.split(',').map(v => v.trim()).filter(v => v.length > 0);
-  
-  if (props.fieldType === 'number') {
-    const numbers = values.map(v => parseFloat(v)).filter(v => !isNaN(v));
-    emit('update:modelValue', numbers);
-  } else {
-    emit('update:modelValue', values);
-  }
+function handleArrayInput(value: string) {
+  const parsedValues = parseArrayValue(value, props.fieldType);
+  emit('update:modelValue', parsedValues);
 }
 
 // Auto-normalize input format on blur

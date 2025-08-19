@@ -49,6 +49,7 @@
 
 <script setup lang="ts">
 import { CalendarDate } from '@internationalized/date';
+import { formatDate } from '~/utils/common/filter/filter-helpers';
 
 const props = defineProps<{
   modelValue: Date | null;
@@ -76,16 +77,6 @@ const buttonClass = computed(() => {
     props.class || ''
   ];
 });
-
-function formatDate(date: Date | string): string {
-  if (!date) return '';
-  const d = date instanceof Date ? date : new Date(date);
-  return d.toLocaleDateString('en-US', { 
-    month: 'short', 
-    day: 'numeric',
-    year: 'numeric'
-  });
-}
 
 function openModal() {
   // Convert Date to CalendarDate for UCalendar

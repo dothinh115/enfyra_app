@@ -24,59 +24,12 @@ function updateValue(newValue: any) {
 }
 
 function onFieldSelectChange(selectedValue: string) {
-  const options = getCombinedOptionsForContext(props.tableName, props.schemas);
-  const selectedOption = options.find((opt) => opt.value === selectedValue);
-
-  if (!selectedOption) return;
-
-  if (selectedOption.fieldCategory === "column") {
-    // Set field path - include relation prefix if in relation context
-    const fieldPath = props.parentGroup.relationContext
-      ? `${props.parentGroup.relationContext}.${selectedValue}`
-      : selectedValue;
-
-    props.condition.field = fieldPath;
-    props.condition.type = mapDbTypeToFilterType(
-      selectedOption.fieldType || "string"
-    );
-    props.condition.operator =
-      getOperatorsByType(props.condition.type)[0]?.value || "_eq";
-    props.condition.value = null;
-    updateCondition();
-  } else if (selectedOption.fieldCategory === "relation") {
-    // Convert to relation group
-    const newRelationContext = props.parentGroup.relationContext
-      ? `${props.parentGroup.relationContext}.${selectedValue}`
-      : selectedValue;
-
-    // Get target table name and its first field
-    const targetTableName = selectedOption.targetTable || props.tableName;
-    const targetOptions = getCombinedOptionsForContext(
-      targetTableName,
-      props.schemas
-    );
-    const firstField = targetOptions.find(
-      (opt) => opt.fieldCategory === "column"
-    );
-
-    const newGroup: FilterGroup = {
-      id: Math.random().toString(36).substring(2, 9),
-      operator: "and",
-      relationContext: newRelationContext,
-      conditions: [
-        {
-          id: Math.random().toString(36).substring(2, 9),
-          field: firstField?.value || "",
-          operator: "_eq",
-          value: null,
-          type: firstField?.fieldType
-            ? mapDbTypeToFilterType(firstField.fieldType)
-            : "string",
-        },
-      ],
-    };
-
-    emit("convert-to-group", newGroup, props.conditionIndex);
+  const { onFieldSelectChange: handleFieldSelect } = useFieldSelection(props.schemas, props.tableName);
+  
+  const result = handleFieldSelect(selectedValue, props.condition, props.parentGroup, emit);
+  
+  if (result && result.convertToGroup) {
+    emit("convert-to-group", result.newGroup, props.conditionIndex);
   }
 }
 

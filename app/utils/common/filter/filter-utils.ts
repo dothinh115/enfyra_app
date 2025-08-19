@@ -1,4 +1,4 @@
-import type { FilterGroup, FieldOption } from "./FilterTypes";
+import type { FilterGroup, FieldOption } from "./filter-types";
 
 export function getTargetTableNameForGroup(
   group: FilterGroup,

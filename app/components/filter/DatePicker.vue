@@ -3,7 +3,7 @@
     <!-- Single Date Picker Button -->
     <UButton
       v-if="mode === 'single'"
-      @click="openModal"
+      @click="() => openModal()"
       variant="outline"
       :label="modelValue ? formatDate(modelValue) : 'Date'"
       icon="i-heroicons-calendar"
@@ -14,7 +14,7 @@
     <!-- Date Range Buttons -->
     <div v-else-if="mode === 'range'" class="flex items-center gap-1">
       <UButton
-        @click="openModal('from')"
+        @click="() => openModal('from')"
         variant="outline"
         :label="modelValue?.[0] ? formatDate(modelValue[0]) : 'From'"
         icon="i-heroicons-calendar"
@@ -23,7 +23,7 @@
       />
       <span class="text-xs text-gray-500">and</span>
       <UButton
-        @click="openModal('to')"
+        @click="() => openModal('to')"
         variant="outline"
         :label="modelValue?.[1] ? formatDate(modelValue[1]) : 'To'"
         icon="i-heroicons-calendar"
@@ -69,6 +69,8 @@
 </template>
 
 <script setup lang="ts">
+import { formatDate } from '~/utils/common/filter/filter-helpers';
+
 const props = defineProps<{
   modelValue: any;
   mode: 'single' | 'range';
@@ -81,15 +83,6 @@ const emit = defineEmits<{
 const showModal = ref(false);
 const tempValue = ref(null);
 const rangeMode = ref<'from' | 'to'>('from');
-
-function formatDate(date: string | Date): string {
-  if (!date) return '';
-  return new Date(date).toLocaleDateString('en-US', { 
-    month: 'short', 
-    day: 'numeric',
-    year: 'numeric'
-  });
-}
 
 function openModal(mode?: 'from' | 'to') {
   if (props.mode === 'single') {
