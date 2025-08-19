@@ -17,7 +17,7 @@ export default defineNuxtPlugin(async () => {
   const { fetchMenuDefinitions } = useMenuApi();
 
   // Fetch schema and menu definitions in parallel for better performance
-  const [schemaResult, menuResponse] = await Promise.all([
+  const [, menuResponse] = await Promise.all([
     fetchSchema(),
     fetchMenuDefinitions(),
   ]);
