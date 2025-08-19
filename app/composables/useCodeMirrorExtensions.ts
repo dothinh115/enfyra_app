@@ -32,11 +32,71 @@ import {
   foldGutter,
   foldKeymap,
   indentOnInput,
+  indentService,
 } from "@codemirror/language";
 import { searchKeymap, highlightSelectionMatches } from "@codemirror/search";
 
 export function useCodeMirrorExtensions() {
-  // No custom config needed for Vue anymore
+  // Smart Vue indent service - disable indent only at script root level
+  const vueIndentService = indentService.of((context, pos) => {
+    const doc = context.state.doc;
+    
+    // Find the actual line that contains content before cursor
+    let checkPos = pos - 1;
+    let prevLineText = '';
+    let actualPrevLine = null;
+    
+    // Walk backwards to find non-empty line
+    while (checkPos > 0) {
+      const lineAtPos = doc.lineAt(checkPos);
+      const lineText = lineAtPos.text.trim();
+      
+      if (lineText !== '') {
+        prevLineText = lineAtPos.text;
+        actualPrevLine = lineAtPos;
+        break;
+      }
+      checkPos = lineAtPos.from - 1;
+    }
+    
+    // Check if we're right after opening <script> tag
+    if (prevLineText.trim().match(/^<script[^>]*>$/)) {
+      return 0; // No indent after <script>
+    }
+    
+    // Check if previous line looks like it's at script root level
+    const trimmedPrev = prevLineText.trim();
+    const rootLevelPatterns = [
+      /^(import|export|const|let|var|function|class)\b/,
+      /^\/\//,  // comments
+      /^\/\*/,  // block comments
+    ];
+    
+    const isRootLevel = rootLevelPatterns.some(pattern => pattern.test(trimmedPrev)) 
+                       && !trimmedPrev.includes('{') 
+                       && !trimmedPrev.endsWith('{')
+                       && !trimmedPrev.includes('(');
+    
+    if (isRootLevel) {
+      return 0; // No indent for root level statements
+    }
+    
+    // Use standard JavaScript indentation logic
+    const baseIndent = /^\s*/.exec(prevLineText)?.[0]?.length || 0;
+    
+    // Check for patterns that should indent next line
+    const trimmed = prevLineText.trim();
+    const shouldIndent = trimmed.endsWith('{') || 
+                         trimmed.endsWith('(') ||
+                         /\b(if|for|while|function)\s*\([^)]*\)\s*{$/.test(trimmed) ||
+                         /^function\s+\w+\s*\([^)]*\)\s*{/.test(trimmed);
+    
+    if (shouldIndent) {
+      return baseIndent + 2; // Indent inside blocks
+    }
+    
+    return baseIndent; // Keep same level
+  });
 
   // Language extension - Only JavaScript, no TypeScript
   function getLanguageExtension(language?: "javascript" | "vue" | "json" | "html") {
@@ -170,8 +230,12 @@ export function useCodeMirrorExtensions() {
       ]),
     ];
     
-    // Never add auto-indent for Vue - it causes issues
-    if (language === 'javascript' || language === 'html' || language === 'json') {
+    // Add language-specific indentation
+    if (language === 'vue') {
+      // Use custom indent service for Vue to disable auto-indent
+      setup.push(vueIndentService);
+    } else if (language === 'javascript' || language === 'html' || language === 'json') {
+      // Use default auto-indent for other languages
       setup.push(indentOnInput());
     }
     
