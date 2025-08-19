@@ -53,9 +53,9 @@ export function useCodeMirrorTheme(height?: string) {
       lineHeight: "1.6",
     },
 
-    ".cm-content *::selection": {
-      backgroundColor: "#264F78",
-      color: "#ffffff",
+    ".cm-content ::selection": {
+      backgroundColor: "#264F78 !important",
+      color: "inherit !important",
     },
 
     ".cm-line": {
@@ -73,14 +73,75 @@ export function useCodeMirrorTheme(height?: string) {
     },
 
     ".cm-selectionBackground": {
-      backgroundColor: "#264F78",
+      backgroundColor: "#264F78 !important",
     },
+    
+    "&.cm-focused .cm-selectionBackground": {
+      backgroundColor: "#264F78 !important",
+    },
+    
     ".cm-selectionMatch": {
       backgroundColor: "#515c6a80",
     },
 
     ".cm-cursor": {
       borderLeft: "2px solid white",
+    },
+
+    // Autocomplete dropdown styles
+    ".cm-tooltip": {
+      backgroundColor: "#252526",
+      color: "#d4d4d4",
+      border: "1px solid #454545",
+      borderRadius: "4px",
+      padding: "0",
+    },
+
+    ".cm-tooltip-autocomplete": {
+      "& > ul": {
+        maxHeight: "200px",
+        fontFamily: "'Fira Code', monospace",
+        fontSize: "13px",
+      },
+      "& > ul > li": {
+        padding: "4px 8px",
+        display: "flex",
+        alignItems: "center",
+        minHeight: "24px",
+      },
+      "& > ul > li[aria-selected]": {
+        backgroundColor: "#094771",
+        color: "#ffffff",
+      },
+      "& .cm-completionIcon": {
+        width: "16px",
+        marginRight: "4px",
+        opacity: "0.7",
+      },
+      "& .cm-completionLabel": {
+        flex: "1",
+      },
+      "& .cm-completionDetail": {
+        marginLeft: "8px",
+        color: "#858585",
+        fontStyle: "italic",
+      },
+    },
+
+    // Hover info tooltip
+    ".cm-tooltip-hover": {
+      backgroundColor: "#1e1e1e",
+      border: "1px solid #454545",
+      padding: "8px",
+      maxWidth: "500px",
+    },
+
+    // Diagnostic tooltips
+    ".cm-diagnostic": {
+      backgroundColor: "#252526",
+      border: "1px solid #454545",
+      padding: "4px 8px",
+      borderRadius: "4px",
     },
   }));
 

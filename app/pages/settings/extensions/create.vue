@@ -7,6 +7,7 @@
         :errors="createErrors"
         :excluded="['compiledCode']"
         :type-map="{ code: { type: 'code', language: 'vue', height: '400px' } }"
+        @update:errors="(errors) => createErrors = errors"
       />
     </UForm>
 

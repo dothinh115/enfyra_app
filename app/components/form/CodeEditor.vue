@@ -9,7 +9,7 @@ const emit = defineEmits(["update:modelValue", "diagnostics"]);
 
 // Use composables for clean separation of concerns
 const { customTheme, syntaxHighlighting: syntaxHighlightingExtension } = useCodeMirrorTheme(props.height);
-const { getLanguageExtension, basicSetup } = useCodeMirrorExtensions();
+const { getLanguageExtension, getBasicSetup } = useCodeMirrorExtensions();
 const { editorRef, createEditor, watchExtensions, destroyEditor } = useCodeMirrorEditor({
   modelValue: props.modelValue,
   language: props.language,
@@ -20,9 +20,14 @@ const { editorRef, createEditor, watchExtensions, destroyEditor } = useCodeMirro
 // Language extension
 const languageExtension = computed(() => getLanguageExtension(props.language));
 
-// Editor extensions
+// Diagnostics callback
+const onDiagnostics = (diags: any[]) => {
+  emit("diagnostics", diags);
+};
+
+// Editor extensions - now includes language-specific linting
 const extensions = computed(() => [
-  ...basicSetup,
+  ...getBasicSetup(props.language, onDiagnostics),
   languageExtension.value,
   syntaxHighlightingExtension(),
   customTheme.value,
