@@ -160,13 +160,14 @@ export function useMenuRegistry() {
   // Function to find sidebar ID by path
   const findSidebarIdByPath = (path: string): number | null => {
     // Look through registered mini sidebars to find one with matching route
-    const sidebar = miniSidebars.value.find(s => s.route === path) || 
-                   bottomMiniSidebars.value.find(s => s.route === path);
-    
+    const sidebar =
+      miniSidebars.value.find((s) => s.route === path) ||
+      bottomMiniSidebars.value.find((s) => s.route === path);
+
     if (sidebar) {
       return parseInt(sidebar.id);
     }
-    
+
     // If not found in mini sidebars, check if there are any registered menu items
     // that might indicate the sidebar structure
     return null;
@@ -196,12 +197,14 @@ export function useMenuRegistry() {
     });
 
     // Find the collections and data sidebar IDs dynamically
-    const collectionsSidebarId = findSidebarIdByPath('/collections');
-    const dataSidebarId = findSidebarIdByPath('/data');
+    const collectionsSidebarId = findSidebarIdByPath("/collections");
+    const dataSidebarId = findSidebarIdByPath("/data");
 
     // If we can't find the sidebars, don't register table menus
     if (!collectionsSidebarId) {
-      console.warn('Collections sidebar not found, skipping table menu registration');
+      console.warn(
+        "Collections sidebar not found, skipping table menu registration"
+      );
       return;
     }
 
@@ -247,7 +250,6 @@ export function useMenuRegistry() {
       nonSystemTables.forEach((table) => {
         const tableName = table.name || table.table_name;
         if (!tableName) return;
-
         registerMenuItem({
           id: `data-${tableName}`,
           label: table.label || table.display_name || tableName,
