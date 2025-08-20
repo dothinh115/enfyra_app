@@ -91,9 +91,13 @@ onMounted(async () => {});
 <template>
   <div class="space-y-6">
     <!-- Header -->
-    <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-300">Handler Manager</h1>
-    </div>
+    <CommonPageHeader
+      title="Handler Manager"
+      title-size="md"
+      show-background
+      background-gradient="from-rose-500/8 via-pink-400/5 to-transparent"
+      padding-y="py-6"
+    />
     <Transition name="loading-fade" mode="out-in">
       <CommonLoadingState
         v-if="!isMounted || loading"

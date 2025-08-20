@@ -4,19 +4,20 @@
 
 <template>
   <div class="mx-auto max-w-2xl text-center space-y-8 py-12">
-    <!-- Header with icon -->
-    <div class="space-y-4">
-      <div class="flex justify-center">
-        <div class="p-6 bg-primary/10 rounded-full">
-          <UIcon name="lucide:database" class="w-16 h-16 text-primary" />
-        </div>
-      </div>
-      <div>
-        <h1 class="text-3xl font-bold text-foreground">Table Collections</h1>
-        <p class="text-lg text-muted-foreground mt-2 max-w-md mx-auto">
-          Manage your database table structures and schemas. Select a table from
-          the sidebar to get started.
-        </p>
+    <!-- Page Header -->
+    <CommonPageHeader
+      title="Table Collections"
+      description="Manage your database table structures and schemas. Select a table from the sidebar to get started."
+      title-size="xl"
+      show-background
+      background-gradient="from-primary-500/8 via-primary-400/4 to-transparent"
+      padding-y="py-8"
+    />
+    
+    <!-- Icon decoration -->
+    <div class="flex justify-center">
+      <div class="p-6 bg-primary/10 rounded-full">
+        <UIcon name="lucide:database" class="w-16 h-16 text-primary" />
       </div>
     </div>
 

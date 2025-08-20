@@ -446,11 +446,13 @@ useHeaderActionRegistry([
 <template>
   <div class="space-y-4">
     <!-- Header -->
-    <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold text-gray-300">
-        {{ table?.name || "Data Records" }}
-      </h1>
-    </div>
+    <CommonPageHeader
+      :title="table?.name || 'Data Records'"
+      title-size="md"
+      show-background
+      background-gradient="from-cyan-500/8 via-blue-400/5 to-transparent"
+      padding-y="py-6"
+    />
 
     <!-- Data Table -->
     <Transition name="loading-fade" mode="out-in">

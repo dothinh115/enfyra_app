@@ -227,7 +227,7 @@ export function useFolderTableColumns() {
           label: "Open",
           icon: "i-lucide-folder-open",
           onSelect: (folder) => {
-            router.push(`/files/folders/${folder.id}`);
+            router.push(`/files/management/${folder.id}`);
           },
         },
         {

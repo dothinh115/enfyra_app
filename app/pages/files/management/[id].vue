@@ -43,12 +43,15 @@ useHeaderActionRegistry([
 
 <template>
   <div class="space-y-6">
-    <!-- Header -->
-    <div class="!mb-20" v-if="isMounted && !pending">
-      <h1 class="text-2xl font-bold text-gray-300">
-        {{ folder?.data?.[0].name }} - Child Folders
-      </h1>
-    </div>
+    <!-- Page Header -->
+    <CommonPageHeader
+      v-if="isMounted && !pending"
+      :title="`${folder?.data?.[0].name} - Child Folders`"
+      title-size="lg"
+      padding-y="py-6"
+      show-background
+      background-gradient="from-blue-500/5 via-indigo-400/3 to-transparent"
+    />
 
     <!-- Content -->
     <FolderManager

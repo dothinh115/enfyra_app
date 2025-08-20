@@ -27,10 +27,24 @@ const emit = defineEmits<Emits>();
 const route = useRoute();
 const router = useRouter();
 
-// View mode from query or default to grid
-const viewMode = ref<"grid" | "list">(
-  (route.query.view as "grid" | "list") || "grid"
-);
+// View mode - get from query first, then localStorage, then default to grid
+const getInitialViewMode = (): "grid" | "list" => {
+  // Priority: URL query > localStorage > default
+  if (route.query.view) {
+    return route.query.view as "grid" | "list";
+  }
+  
+  if (process.client) {
+    const saved = localStorage.getItem('folder-view-mode');
+    if (saved === 'grid' || saved === 'list') {
+      return saved;
+    }
+  }
+  
+  return "grid";
+};
+
+const viewMode = ref<"grid" | "list">(getInitialViewMode());
 
 // Folder management composable for state
 const {
@@ -77,7 +91,7 @@ async function handleBulkDelete(selectedRows: any[]) {
 
 // Handle row click to navigate to folder
 function handleRowClick(folder: any) {
-  navigateTo(`/files/folders/${folder.id}`);
+  navigateTo(`/files/management/${folder.id}`);
 }
 
 // Register subheader actions for view mode AND selection actions
@@ -93,6 +107,12 @@ useSubHeaderActionRegistry([
     onClick: () => {
       const newViewMode = viewMode.value === "grid" ? "list" : "grid";
       viewMode.value = newViewMode;
+      
+      // Save to localStorage
+      if (process.client) {
+        localStorage.setItem('folder-view-mode', newViewMode);
+      }
+      
       // Update URL query
       router.push({
         query: { ...route.query, view: newViewMode }

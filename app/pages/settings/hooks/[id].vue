@@ -9,31 +9,23 @@
       context="page"
     />
 
-    <UForm
-      v-else-if="detail"
-      :state="form"
-      @submit="updateHook"
-      class="space-y-6"
-    >
-      <div class="flex items-center gap-3">
-        <UIcon name="lucide:zap" class="text-2xl text-primary" />
-        <div class="text-xl font-bold text-primary">
-          Hook: {{ detail.name || "(no name)" }}
-        </div>
+    <div v-else-if="detail" class="relative">
+      <!-- Header -->
+      <CommonPageHeader
+        :title="`Hook: ${detail.name || '(no name)'}`"
+        title-size="lg"
+        show-background
+        background-gradient="from-red-500/6 via-orange-400/4 to-transparent"
+        padding-y="py-6"
+      />
+
+      <!-- Hook Status Badges -->
+      <div class="flex items-center gap-3 mb-6">
+        <UBadge color="primary" v-if="detail.isSystem">System Hook</UBadge>
+        <UBadge color="secondary" v-if="detail.isEnabled">Enabled</UBadge>
       </div>
 
-      <UCard>
-        <template #header>
-          <div class="flex justify-between items-center">
-            <div class="flex items-center gap-3">
-              <UBadge color="primary" v-if="detail.isSystem"
-                >System Hook</UBadge
-              >
-              <UBadge color="secondary" v-if="detail.isEnabled">Enabled</UBadge>
-            </div>
-          </div>
-        </template>
-
+      <UForm :state="form" @submit="updateHook">
         <FormEditorLazy
           ref="formEditorRef"
           v-model="form"
@@ -42,8 +34,8 @@
           :table-name="'hook_definition'"
           :excluded="['isSystem']"
         />
-      </UCard>
-    </UForm>
+      </UForm>
+    </div>
 
     <CommonEmptyState
       v-else

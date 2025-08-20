@@ -42,7 +42,7 @@ const refreshFolders = () => {
 // Navigation
 function navigateToFolder(folder: any) {
   if (!isSelectionMode.value) {
-    router.push(`/files/folders/${folder.id}`);
+    router.push(`/files/management/${folder.id}`);
   } else {
     toggleFolderSelection(folder.id);
   }

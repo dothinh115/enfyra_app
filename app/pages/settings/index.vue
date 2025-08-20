@@ -1,9 +1,15 @@
 <template>
   <div class="mx-auto max-w-2xl">
     <!-- Header -->
-    <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-300">System Settings</h1>
-    </div>
+    <CommonPageHeader
+      title="System Settings"
+      title-size="md"
+      variant="minimal"
+      show-background
+      background-gradient="from-gray-500/5 via-gray-400/3 to-transparent"
+      padding-y="py-4"
+    />
+    
     <CommonEmptyState
       title="System Settings"
       description="Manage your system configuration, users, roles, menus, extensions, and more. Select a setting category from the sidebar to get started."

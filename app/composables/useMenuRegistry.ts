@@ -157,6 +157,21 @@ export function useMenuRegistry() {
     }
   };
 
+  // Function to find sidebar ID by path
+  const findSidebarIdByPath = (path: string): number | null => {
+    // Look through registered mini sidebars to find one with matching route
+    const sidebar = miniSidebars.value.find(s => s.route === path) || 
+                   bottomMiniSidebars.value.find(s => s.route === path);
+    
+    if (sidebar) {
+      return parseInt(sidebar.id);
+    }
+    
+    // If not found in mini sidebars, check if there are any registered menu items
+    // that might indicate the sidebar structure
+    return null;
+  };
+
   // Table menu registration functions (from useMenuRegistry)
   const registerTableMenusWithSidebarIds = async (tables: any[]) => {
     if (!tables || tables.length === 0) {
@@ -180,6 +195,16 @@ export function useMenuRegistry() {
       unregisterMenuItem(item.id);
     });
 
+    // Find the collections and data sidebar IDs dynamically
+    const collectionsSidebarId = findSidebarIdByPath('/collections');
+    const dataSidebarId = findSidebarIdByPath('/data');
+
+    // If we can't find the sidebars, don't register table menus
+    if (!collectionsSidebarId) {
+      console.warn('Collections sidebar not found, skipping table menu registration');
+      return;
+    }
+
     // Filter tables that can be modified in collections
     const modifiableTables = tables.filter((table) => {
       // User tables (non-system) can always be modified
@@ -191,7 +216,7 @@ export function useMenuRegistry() {
     // Filter out system tables for data sidebar
     const nonSystemTables = tables.filter((table) => !table.isSystem);
 
-    // Register modifiable tables in collections sidebar (ID: 3)
+    // Register modifiable tables in collections sidebar
     modifiableTables.forEach((table) => {
       const tableName = table.name || table.table_name;
       if (!tableName) return;
@@ -201,7 +226,7 @@ export function useMenuRegistry() {
         label: table.label || table.display_name || tableName,
         route: `/collections/${tableName}`,
         icon: table.icon || "lucide:table",
-        sidebarId: 3,
+        sidebarId: collectionsSidebarId,
         permission: {
           and: [
             { route: `/table_definition`, actions: ["read"] },
@@ -217,31 +242,33 @@ export function useMenuRegistry() {
       });
     });
 
-    // Register non-system tables in data sidebar (ID: 2)
-    nonSystemTables.forEach((table) => {
-      const tableName = table.name || table.table_name;
-      if (!tableName) return;
+    // Register non-system tables in data sidebar (if found)
+    if (dataSidebarId) {
+      nonSystemTables.forEach((table) => {
+        const tableName = table.name || table.table_name;
+        if (!tableName) return;
 
-      registerMenuItem({
-        id: `data-${tableName}`,
-        label: table.label || table.display_name || tableName,
-        route: `/data/${tableName}`,
-        icon: table.icon || "lucide:database",
-        sidebarId: 2,
-        permission: {
-          and: [
-            { route: `/table_definition`, actions: ["read"] },
-            {
-              or: [
-                { route: `/table_definition`, actions: ["create"] },
-                { route: `/table_definition`, actions: ["update"] },
-                { route: `/table_definition`, actions: ["delete"] },
-              ],
-            },
-          ],
-        },
+        registerMenuItem({
+          id: `data-${tableName}`,
+          label: table.label || table.display_name || tableName,
+          route: `/data/${tableName}`,
+          icon: table.icon || "lucide:database",
+          sidebarId: dataSidebarId,
+          permission: {
+            and: [
+              { route: `/table_definition`, actions: ["read"] },
+              {
+                or: [
+                  { route: `/table_definition`, actions: ["create"] },
+                  { route: `/table_definition`, actions: ["update"] },
+                  { route: `/table_definition`, actions: ["delete"] },
+                ],
+              },
+            ],
+          },
+        });
       });
-    });
+    }
   };
 
   // Extension menu registration functions (from useMenuRegistry)

@@ -191,30 +191,31 @@ watch(
       context="page"
     />
 
-    <UForm v-else-if="detail" :state="form" @submit="saveUser">
-      <UCard>
-        <template #header>
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-4">
-              <UAvatar
-                v-if="detail.avatar"
-                :src="detail.avatar"
-                :alt="detail.name"
-                size="xl"
-              />
-              <UAvatar v-else :alt="detail.name" size="xl">
-                {{ detail.email?.charAt(0)?.toUpperCase() || "?" }}
-              </UAvatar>
-              <div>
-                <div class="text-xl font-semibold">{{ detail.name }}</div>
-                <div class="text-sm text-muted-foreground">
-                  {{ detail.email }}
-                </div>
-              </div>
-            </div>
-          </div>
-        </template>
+    <div v-else-if="detail" class="relative">
+      <!-- Header -->
+      <CommonPageHeader
+        :title="detail.name"
+        :description="detail.email"
+        title-size="lg"
+        show-background
+        background-gradient="from-blue-500/6 via-indigo-400/4 to-transparent"
+        padding-y="py-6"
+      />
 
+      <!-- User Avatar -->
+      <div class="flex items-center gap-4 mb-6">
+        <UAvatar
+          v-if="detail.avatar"
+          :src="detail.avatar"
+          :alt="detail.name"
+          size="xl"
+        />
+        <UAvatar v-else :alt="detail.name" size="xl">
+          {{ detail.email?.charAt(0)?.toUpperCase() || "?" }}
+        </UAvatar>
+      </div>
+
+      <UForm :state="form" @submit="saveUser">
         <FormEditorLazy
           ref="formEditorRef"
           v-model="form"
@@ -222,10 +223,9 @@ watch(
           v-model:has-changes="hasFormChanges"
           table-name="user_definition"
           :excluded="['isRootAdmin', 'isSystem']"
-          class="mt-4"
         />
-      </UCard>
-    </UForm>
+      </UForm>
+    </div>
 
     <CommonEmptyState
       v-else

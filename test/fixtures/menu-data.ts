@@ -79,7 +79,7 @@ export const mockMenuDefinitions: MenuDefinition[] = [
       {
         id: 6,
         label: 'Folders',
-        path: '/files/folders',
+        path: '/files/management',
         icon: 'lucide:folder',
         permission: null
       }

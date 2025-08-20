@@ -9,37 +9,24 @@
       context="page"
     />
 
-    <UForm
-      v-else-if="detail"
-      :state="form"
-      @submit="updateExtension"
-      class="space-y-6"
-    >
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <UIcon
-            name="i-heroicons-puzzle-piece"
-            class="text-2xl text-primary"
-          />
-          <div class="text-xl font-bold text-primary">
-            Extension: {{ detail.name }}
-          </div>
-        </div>
+    <div v-else-if="detail" class="relative">
+      <!-- Header -->
+      <CommonPageHeader
+        :title="`Extension: ${detail.name}`"
+        title-size="lg"
+        show-background
+        background-gradient="from-purple-500/6 via-violet-400/4 to-transparent"
+        padding-y="py-6"
+      />
+
+      <!-- Extension Status Badges -->
+      <div class="flex items-center gap-3 mb-6">
+        <UBadge color="primary" v-if="form.isSystem">System Extension</UBadge>
+        <UBadge color="secondary" v-if="form.isEnabled">Enabled</UBadge>
+        <UBadge color="info">{{ form.type }}</UBadge>
       </div>
 
-      <UCard>
-        <template #header>
-          <div class="flex justify-between items-center">
-            <div class="flex items-center gap-3">
-              <UBadge color="primary" v-if="form.isSystem"
-                >System Extension</UBadge
-              >
-              <UBadge color="secondary" v-if="form.isEnabled">Enabled</UBadge>
-              <UBadge color="info">{{ form.type }}</UBadge>
-            </div>
-          </div>
-        </template>
-
+      <UForm :state="form" @submit="updateExtension">
         <FormEditorLazy
           ref="formEditorRef"
           v-model="form"
@@ -51,8 +38,8 @@
             code: { type: 'code', language: 'vue', height: '400px' },
           }"
         />
-      </UCard>
-    </UForm>
+      </UForm>
+    </div>
 
     <CommonEmptyState
       v-else

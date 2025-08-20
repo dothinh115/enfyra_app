@@ -11,9 +11,13 @@
       />
 
       <div v-else-if="role" class="space-y-6">
-        <div class="flex justify-between items-center">
-          <h1 class="text-xl font-semibold">Role Details</h1>
-        </div>
+        <CommonPageHeader
+          title="Role Details"
+          title-size="md"
+          show-background
+          background-gradient="from-amber-500/6 via-yellow-400/4 to-transparent"
+          padding-y="py-4"
+        />
 
         <UForm :state="form" @submit="save">
           <FormEditorLazy

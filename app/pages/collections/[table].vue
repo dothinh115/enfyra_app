@@ -180,9 +180,13 @@ onMounted(async () => {
 <template>
   <div class="relative">
     <!-- Header -->
-    <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-300">Table Editor</h1>
-    </div>
+    <CommonPageHeader
+      :title="table ? `Edit Table: ${table.name}` : 'Table Editor'"
+      title-size="lg"
+      show-background
+      background-gradient="from-indigo-500/8 via-purple-400/5 to-transparent"
+      padding-y="py-6"
+    />
     <Transition name="loading-fade" mode="out-in">
       <CommonLoadingState
         v-if="!isMounted || loading"

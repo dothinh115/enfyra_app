@@ -1,6 +1,12 @@
 <template>
   <div class="container mx-auto p-6">
-    <h1 class="text-2xl font-bold mb-6">Dashboard</h1>
+    <CommonPageHeader
+      title="Dashboard"
+      title-size="md"
+      show-background
+      background-gradient="from-green-500/6 via-emerald-400/3 to-transparent"
+      padding-y="py-6"
+    />
 
     <CommonEmptyState
       title="Welcome to Dashboard"

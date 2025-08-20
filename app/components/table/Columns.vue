@@ -294,7 +294,6 @@ watch(
           :excluded="[
             'isSystem',
             'id',
-            'enumValues',
             'createdAt',
             'updatedAt',
             'isPrimary',

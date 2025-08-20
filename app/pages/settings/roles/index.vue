@@ -88,9 +88,13 @@ watch(
 <template>
   <div class="space-y-6">
     <!-- Header -->
-    <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-300">Role Manager</h1>
-    </div>
+    <CommonPageHeader
+      title="Role Manager"
+      title-size="md"
+      show-background
+      background-gradient="from-amber-500/8 via-orange-400/5 to-transparent"
+      padding-y="py-6"
+    />
     <Transition name="loading-fade" mode="out-in">
       <CommonLoadingState
         v-if="!isMounted || loading"

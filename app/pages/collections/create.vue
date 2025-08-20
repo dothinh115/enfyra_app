@@ -194,20 +194,32 @@ async function save() {
 </script>
 
 <template>
-  <div>
+  <div class="relative">
+    <!-- Header -->
+    <CommonPageHeader
+      title="Create New Table"
+      title-size="lg"
+      show-background
+      background-gradient="from-indigo-500/8 via-purple-400/5 to-transparent"
+      padding-y="py-6"
+    />
+    
     <div class="mx-auto">
       <TableForm v-model="table" :new="true">
         <template #tableName>
-          <UFormField
-            :error="nameError && nameError !== '' ? nameError : undefined"
-          >
-            <UInput
-              v-model="table.name"
-              placeholder="Enter table name"
-              class="w-full"
-              size="xl"
-            />
-          </UFormField>
+          <div class="mb-6">
+            <UFormField
+              :error="nameError && nameError !== '' ? nameError : undefined"
+              label="Table Name"
+            >
+              <UInput
+                v-model="table.name"
+                placeholder="Enter table name"
+                class="w-full"
+                size="lg"
+              />
+            </UFormField>
+          </div>
         </template>
         <div class="space-y-6">
           <TableConstraints

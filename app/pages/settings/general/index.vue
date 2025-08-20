@@ -92,9 +92,13 @@ onMounted(async () => {
 <template>
   <div>
     <!-- Header -->
-    <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-300">General Settings</h1>
-    </div>
+    <CommonPageHeader
+      title="General Settings"
+      title-size="md"
+      show-background
+      background-gradient="from-teal-500/8 via-emerald-400/5 to-transparent"
+      padding-y="py-6"
+    />
 
     <Transition name="loading-fade" mode="out-in">
     <CommonLoadingState

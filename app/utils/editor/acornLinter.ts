@@ -56,9 +56,10 @@ export class AcornLinter {
     try {
       // Parse with Acorn
       const ast = parse(jsCode, {
-        ecmaVersion: 2020,
+        ecmaVersion: 2022,
         sourceType: 'module',
-        allowReturnOutsideFunction: true
+        allowReturnOutsideFunction: true,
+        allowAwaitOutsideFunction: true
       });
 
       // Custom validation rules

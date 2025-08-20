@@ -83,14 +83,14 @@ function getComponentConfigByKey(key: string) {
 
     case "select":
     case "enum": {
-      // Get options from config or from schema enumValues
+      // Get options from config or from schema options
       let items = config.options ?? [];
 
       // If no options provided and field type is enum, get from schema
       if (items.length === 0) {
         const column = props.columnMap.get(key);
-        if (column?.type === "enum" && column?.enumValues) {
-          items = column.enumValues.map((opt: string) => ({
+        if (column?.type === "enum" && column?.options) {
+          items = column.options.map((opt: string) => ({
             label: opt,
             value: opt,
           }));

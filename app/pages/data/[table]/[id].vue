@@ -167,27 +167,29 @@ useHeaderActionRegistry([
 </script>
 
 <template>
-  <Transition name="loading-fade" mode="out-in">
-    <!-- Loading state -->
-    <CommonLoadingState
-      v-if="loading || !currentRecord.id"
-      type="form"
-      context="page"
-      size="lg"
-      :title="`Loading ${route.params.table}...`"
-      :description="`Fetching record details`"
+  <div class="relative">
+    <!-- Header -->
+    <CommonPageHeader
+      v-if="currentRecord.id"
+      :title="`${route.params.table}: ${currentRecord.id}`"
+      title-size="lg"
+      show-background
+      background-gradient="from-cyan-500/6 via-blue-400/4 to-transparent"
+      padding-y="py-6"
     />
-    <!-- Form content - chỉ hiển thị khi có data thật sự -->
-    <UCard v-else-if="currentRecord.id" variant="subtle">
-      <template #header>
-        <div class="flex items-center justify-between">
-          <div class="text-lg font-semibold capitalize">
-            {{ route.params.table }}: {{ currentRecord.id }}
-          </div>
-        </div>
-      </template>
 
-      <template #default>
+    <Transition name="loading-fade" mode="out-in">
+      <!-- Loading state -->
+      <CommonLoadingState
+        v-if="loading || !currentRecord.id"
+        type="form"
+        context="page"
+        size="lg"
+        :title="`Loading ${route.params.table}...`"
+        :description="`Fetching record details`"
+      />
+      <!-- Form content -->
+      <div v-else-if="currentRecord.id">
         <FormEditorLazy
           ref="formEditorRef"
           :table-name="(route.params.table as string)"
@@ -196,9 +198,9 @@ useHeaderActionRegistry([
           v-model:errors="updateErrors"
           v-model:has-changes="hasFormChanges"
         />
-      </template>
-    </UCard>
-  </Transition>
+      </div>
+    </Transition>
+  </div>
 
   <!-- Debug info -->
   <div

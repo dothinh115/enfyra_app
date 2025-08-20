@@ -253,9 +253,13 @@ async function deleteRoute(routeItem: any) {
 <template>
   <div class="space-y-6">
     <!-- Header -->
-    <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-300">Routing Manager</h1>
-    </div>
+    <CommonPageHeader
+      title="Routing Manager"
+      title-size="md"
+      show-background
+      background-gradient="from-lime-500/8 via-green-400/5 to-transparent"
+      padding-y="py-6"
+    />
     <Transition name="loading-fade" mode="out-in">
       <div v-if="loading">
         <CommonLoadingState

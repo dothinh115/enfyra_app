@@ -16,31 +16,22 @@ const table = useModel(props, "modelValue");
 </script>
 
 <template>
-  <UCard class="bg-muted-50 rounded-xl shadow-sm">
-    <template #header>
-      <div class="space-y-4">
-        <div class="flex flex-col gap-3">
-          <div class="flex items-center justify-between">
-            <div class="text-xl font-semibold text-primary">
-              {{
-                !props.new ? `Edit Table: ${table.name}` : `Create New Table`
-              }}
-            </div>
-          </div>
-          <div>
-            <slot name="tableName" />
-          </div>
-          <UTextarea
-            v-model="table.description"
-            placeholder="Describe this table"
-            autoresize
-            variant="subtle"
-            class="text-sm w-full"
-          />
-        </div>
-      </div>
-    </template>
-
+  <div class="space-y-6">
+    <!-- Table Name slot for create new -->
+    <slot name="tableName" />
+    
+    <!-- Table Description -->
+    <div class="mb-6">
+      <UTextarea
+        v-model="table.description"
+        placeholder="Describe this table"
+        autoresize
+        variant="outline"
+        class="text-sm w-full"
+      />
+    </div>
+    
+    <!-- Table Content -->
     <slot />
-  </UCard>
+  </div>
 </template>

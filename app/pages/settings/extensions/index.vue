@@ -1,9 +1,13 @@
 <template>
   <div class="extension-manager-page">
     <!-- Header -->
-    <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-300">Extension Manager</h1>
-    </div>
+    <CommonPageHeader
+      title="Extension Manager"
+      title-size="md"
+      show-background
+      background-gradient="from-purple-500/6 via-violet-400/3 to-transparent"
+      padding-y="py-6"
+    />
 
     <Transition name="loading-fade" mode="out-in">
       <CommonLoadingState

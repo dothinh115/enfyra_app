@@ -302,39 +302,35 @@ onMounted(async () => {
       context="page"
     />
 
-    <div v-else-if="detail" class="space-y-6">
-      <div class="flex items-center gap-3">
+    <div v-else-if="detail" class="relative">
+      <!-- Header -->
+      <CommonPageHeader
+        :title="`Menu: ${detail.name}`"
+        title-size="lg"
+        show-background
+        background-gradient="from-violet-500/6 via-purple-400/4 to-transparent"
+        padding-y="py-6"
+      />
+
+      <!-- Menu Status Badges -->
+      <div class="flex items-center gap-3 mb-6">
         <UIcon
           :name="detail.icon || 'lucide:circle'"
-          class="text-2xl text-primary"
+          class="text-xl text-primary mr-2"
         />
-        <div class="text-xl font-bold text-primary">
-          Menu: {{ detail.name }}
-        </div>
+        <UBadge color="primary" v-if="detail.isSystem">System Menu</UBadge>
+        <UBadge color="secondary" v-if="detail.isEnabled">Enabled</UBadge>
       </div>
 
-      <UCard>
-        <template #header>
-          <div class="flex justify-between items-center">
-            <div class="flex items-center gap-3">
-              <UBadge color="primary" v-if="detail.isSystem"
-                >System Menu</UBadge
-              >
-              <UBadge color="secondary" v-if="detail.isEnabled">Enabled</UBadge>
-            </div>
-          </div>
-        </template>
-
-        <FormEditorLazy
-          ref="formEditorRef"
-          v-model="form"
-          v-model:errors="errors"
-          v-model:has-changes="hasFormChanges"
-          :table-name="tableName"
-          :excluded="excludedFields"
-          :type-map="typeMap"
-        />
-      </UCard>
+      <FormEditorLazy
+        ref="formEditorRef"
+        v-model="form"
+        v-model:errors="errors"
+        v-model:has-changes="hasFormChanges"
+        :table-name="tableName"
+        :excluded="excludedFields"
+        :type-map="typeMap"
+      />
     </div>
 
     <CommonEmptyState

@@ -9,32 +9,27 @@
       context="page"
     />
 
-    <UForm
-      v-else-if="detail"
-      :state="form"
-      @submit="updateRoute"
-      class="space-y-6"
-    >
-      <div class="flex items-center gap-3">
+    <div v-else-if="detail" class="relative">
+      <!-- Header -->
+      <CommonPageHeader
+        :title="`Route: ${detail.path}`"
+        title-size="lg"
+        show-background
+        background-gradient="from-lime-500/6 via-green-400/4 to-transparent"
+        padding-y="py-6"
+      />
+
+      <!-- Route Status Badges -->
+      <div class="flex items-center gap-3 mb-6">
         <UIcon
           :name="detail.icon || 'lucide:circle'"
-          class="text-2xl text-primary"
+          class="text-xl text-primary mr-2"
         />
-        <div class="text-xl font-bold text-primary">
-          Route: {{ detail.path }}
-        </div>
+        <UBadge color="primary" v-if="form.isSystem">System Route</UBadge>
+        <UBadge color="secondary" v-if="form.isEnabled">Enabled</UBadge>
       </div>
 
-      <UCard>
-        <template #header>
-          <div class="flex justify-between items-center">
-            <div class="flex items-center gap-3">
-              <UBadge color="primary" v-if="form.isSystem">System Route</UBadge>
-              <UBadge color="secondary" v-if="form.isEnabled">Enabled</UBadge>
-            </div>
-          </div>
-        </template>
-
+      <UForm :state="form" @submit="updateRoute">
         <FormEditorLazy
           ref="formEditorRef"
           v-model="form"
@@ -48,8 +43,8 @@
             },
           }"
         />
-      </UCard>
-    </UForm>
+      </UForm>
+    </div>
 
     <CommonEmptyState
       v-else

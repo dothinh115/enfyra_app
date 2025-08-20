@@ -138,10 +138,11 @@ export function useCodeMirrorExtensions() {
       try {
         // Parse với acorn
         const ast = acorn.parse(codeToLint, {
-          ecmaVersion: 2020,
+          ecmaVersion: 2022,
           sourceType: "module",
           locations: true,
           onComment: undefined,
+          allowAwaitOutsideFunction: true,
         });
         
         // Track const variables
