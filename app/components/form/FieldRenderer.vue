@@ -1,7 +1,12 @@
 <script setup lang="ts">
 // Vue functions are auto-imported
-import { UInput, UTextarea, USwitch, USelect, UCalendar, FormDateField } from "#components";
-import { CalendarDate } from "@internationalized/date";
+import {
+  UInput,
+  UTextarea,
+  USwitch,
+  USelect,
+  FormDateField,
+} from "#components";
 
 const props = defineProps<{
   keyName: string;
@@ -219,7 +224,6 @@ function getComponentConfigByKey(key: string) {
       };
 
     case "code":
-      
       // If field is disabled, show disabled input instead of code editor
       if (disabled) {
         return {

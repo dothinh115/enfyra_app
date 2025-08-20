@@ -55,12 +55,6 @@
         :key="action.key || action.id"
         :is="action.component"
         v-bind="action.props"
-        @vue:mounted="
-          console.log('🚀 Component mounted with key:', action.key || action.id)
-        "
-        @vue:updated="
-          console.log('🔄 Component updated with key:', action.key || action.id)
-        "
       />
 
       <!-- Regular button actions -->
@@ -68,9 +62,7 @@
         v-for="action in subHeaderActions.filter(
           (a) => {
             const showValue = a.show === undefined ? true : (isRef(a.show) ? unref(a.show) : a.show);
-            const shouldShow = a && !a.component && a.side === 'right' && showValue;
-            console.log('SubHeader button filter:', a.id, 'show value:', a.show, 'isRef:', isRef(a.show), 'showValue:', showValue, 'shouldShow:', shouldShow);
-            return shouldShow;
+            return a && !a.component && a.side === 'right' && showValue;
           }
         )"
         :key="action.id"

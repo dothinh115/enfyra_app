@@ -231,6 +231,7 @@ export const useGlobalState = () => {
   return {
     tables,
     schemas,
+    routes,
     globalLoading,
     fetchSchema,
     sidebarVisible,

@@ -16,7 +16,6 @@ const { validate, getIncludeFields } = useSchema(tableName);
 
 const { fetchMenuDefinitions } = useMenuApi();
 const { reregisterAllMenus } = useMenuRegistry();
-const { tables } = useGlobalState();
 
 const {
   data: menuData,
@@ -305,7 +304,7 @@ onMounted(async () => {
     <div v-else-if="detail" class="relative">
       <!-- Header -->
       <CommonPageHeader
-        :title="`Menu: ${detail.name}`"
+        :title="`Menu: ${detail.label}`"
         title-size="lg"
         show-background
         background-gradient="from-violet-500/6 via-purple-400/4 to-transparent"
