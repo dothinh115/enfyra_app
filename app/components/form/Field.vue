@@ -15,7 +15,7 @@ const emit = defineEmits<{
 }>();
 
 // Copy status state
-const copyStatus = ref<'idle' | 'success' | 'error'>('idle');
+const copyStatus = ref<"idle" | "success" | "error">("idle");
 
 function updateFormData(key: string, value: any) {
   emit("update:formData", key, value);
@@ -53,31 +53,67 @@ const fieldProps = computed(() => {
 // Check if field is a relation (exclude from dropdown)
 const isRelationField = computed(() => {
   const field = props.columnMap.get(props.keyName);
-  const manualConfig = props.typeMap?.[props.keyName];
-  const fieldType = (typeof manualConfig === "string" ? manualConfig : manualConfig?.type) || field?.type;
-  
-  return fieldType === 'relation' || field?.relation || field?.foreignKey;
+  return field?.fieldType === "relation";
 });
 
 // Copy raw value function
 async function copyRawValue() {
   const rawValue = props.formData[props.keyName];
-  const textToCopy = JSON.stringify(rawValue, null, 2);
   
+  // Handle different value types for copy
+  let textToCopy: string;
+  if (typeof rawValue === 'string') {
+    textToCopy = rawValue; // Don't stringify strings to avoid quotes
+  } else if (rawValue === null || rawValue === undefined) {
+    textToCopy = String(rawValue);
+  } else {
+    textToCopy = JSON.stringify(rawValue, null, 2);
+  }
+
   try {
+    // Check if clipboard API is available and in secure context
+    if (!navigator.clipboard || !window.isSecureContext) {
+      throw new Error("Clipboard API not available or not in secure context");
+    }
+
     await navigator.clipboard.writeText(textToCopy);
-    copyStatus.value = 'success';
-    
+    copyStatus.value = "success";
+
     // Reset status after 2 seconds
     setTimeout(() => {
-      copyStatus.value = 'idle';
+      copyStatus.value = "idle";
     }, 2000);
   } catch (error) {
-    copyStatus.value = 'error';
-    
+    // Fallback: try using execCommand
+    try {
+      const textArea = document.createElement("textarea");
+      textArea.value = textToCopy;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      textArea.style.opacity = "0";
+      textArea.style.pointerEvents = "none";
+      document.body.appendChild(textArea);
+
+      textArea.focus();
+      textArea.select();
+      textArea.setSelectionRange(0, textArea.value.length);
+
+      const successful = document.execCommand("copy");
+      document.body.removeChild(textArea);
+
+      if (successful) {
+        copyStatus.value = "success";
+      } else {
+        copyStatus.value = "error";
+      }
+    } catch (fallbackError) {
+      copyStatus.value = "error";
+    }
+
     // Reset status after 2 seconds
     setTimeout(() => {
-      copyStatus.value = 'idle';
+      copyStatus.value = "idle";
     }, 2000);
   }
 }
@@ -85,10 +121,10 @@ async function copyRawValue() {
 // Dropdown menu items
 const dropdownItems = computed(() => [
   {
-    label: 'Copy Raw Value',
-    icon: 'i-lucide-copy',
-    click: copyRawValue
-  }
+    label: "Copy Raw Value",
+    icon: "i-lucide-copy",
+    onSelect: copyRawValue,
+  },
 ]);
 </script>
 
@@ -115,7 +151,7 @@ const dropdownItems = computed(() => [
             >*</span
           >
         </span>
-        
+
         <div class="flex items-center gap-2">
           <!-- Copy Status Indicator -->
           <div class="flex items-center">
@@ -123,7 +159,7 @@ const dropdownItems = computed(() => [
               <UIcon
                 v-if="copyStatus === 'success'"
                 name="i-lucide-check"
-                class="w-4 h-4 text-green-600"
+                class="w-4 h-4 text-green-600 ml-2"
               />
               <UIcon
                 v-else-if="copyStatus === 'error'"
@@ -132,7 +168,7 @@ const dropdownItems = computed(() => [
               />
             </Transition>
           </div>
-          
+
           <!-- Dropdown Menu for non-relation fields -->
           <UDropdownMenu
             v-if="!isRelationField"
@@ -166,4 +202,3 @@ const dropdownItems = computed(() => [
     />
   </UFormField>
 </template>
-
