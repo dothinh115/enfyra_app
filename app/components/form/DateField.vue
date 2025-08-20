@@ -49,6 +49,7 @@
 
 <script setup lang="ts">
 import { CalendarDate } from '@internationalized/date';
+import type { DateValue } from '@internationalized/date';
 import { formatDate } from '~/utils/common/filter/filter-helpers';
 
 const props = defineProps<{
@@ -62,7 +63,7 @@ const emit = defineEmits<{
 }>();
 
 const showModal = ref(false);
-const tempValue = ref<CalendarDate | null>(null);
+const tempValue = ref<any>(null);
 
 // Display value for button label
 const displayValue = computed(() => {

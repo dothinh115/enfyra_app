@@ -140,5 +140,8 @@ export function useSubHeaderActionRegistry(
   return {
     subHeaderActions,
     register,
+    unregisterSubHeaderAction,
+    unregisterSubHeaderActions,
+    clearSubHeaderActions,
   };
 }

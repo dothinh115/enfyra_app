@@ -19,12 +19,14 @@ export function useFolderManagement(parentFilter?: any) {
 
   const toast = useToast();
   const { confirm } = useConfirm();
-  const showDetailModal = ref(false);
-  const selectedFolder = ref<any>(null);
+  
+  // Use useState for global state sharing across components
+  const showDetailModal = useState('folder-detail-modal', () => false);
+  const selectedFolder = useState<any>('folder-selected', () => null);
 
   // Multi-select state
-  const selectedFolders = ref<string[]>([]);
-  const isSelectionMode = ref(false);
+  const selectedFolders = useState<string[]>('folder-selected-list', () => []);
+  const isSelectionMode = useState('folder-selection-mode', () => false);
 
   // Multi-select functions
   function toggleFolderSelection(folderId: string) {

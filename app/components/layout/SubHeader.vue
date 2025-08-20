@@ -8,7 +8,10 @@
       <!-- Component actions -->
       <component
         v-for="action in subHeaderActions.filter(
-          (a) => a && a.component && a.side === 'left' && (a.show === undefined ? true : (typeof a.show === 'boolean' ? a.show : unref(a.show)))
+          (a) => {
+            const showValue = a.show === undefined ? true : (isRef(a.show) ? unref(a.show) : a.show);
+            return a && a.component && a.side === 'left' && showValue;
+          }
         )"
         :key="action.key || action.id"
         :is="action.component"
@@ -18,7 +21,10 @@
       <!-- Regular button actions -->
       <UButton
         v-for="action in subHeaderActions.filter(
-          (a) => a && !a.component && a.side === 'left' && (a.show === undefined ? true : (typeof a.show === 'boolean' ? a.show : unref(a.show)))
+          (a) => {
+            const showValue = a.show === undefined ? true : (isRef(a.show) ? unref(a.show) : a.show);
+            return a && !a.component && a.side === 'left' && showValue;
+          }
         )"
         :key="action.id"
         :icon="isRef(action.icon) ? unref(action.icon) : action.icon"
@@ -41,7 +47,10 @@
       <!-- Component actions -->
       <component
         v-for="action in subHeaderActions.filter(
-          (a) => a && a.component && a.side === 'right' && (a.show === undefined ? true : (typeof a.show === 'boolean' ? a.show : unref(a.show)))
+          (a) => {
+            const showValue = a.show === undefined ? true : (isRef(a.show) ? unref(a.show) : a.show);
+            return a && a.component && a.side === 'right' && showValue;
+          }
         )"
         :key="action.key || action.id"
         :is="action.component"
@@ -57,7 +66,12 @@
       <!-- Regular button actions -->
       <UButton
         v-for="action in subHeaderActions.filter(
-          (a) => a && !a.component && a.side === 'right' && (a.show === undefined ? true : (typeof a.show === 'boolean' ? a.show : unref(a.show)))
+          (a) => {
+            const showValue = a.show === undefined ? true : (isRef(a.show) ? unref(a.show) : a.show);
+            const shouldShow = a && !a.component && a.side === 'right' && showValue;
+            console.log('SubHeader button filter:', a.id, 'show value:', a.show, 'isRef:', isRef(a.show), 'showValue:', showValue, 'shouldShow:', shouldShow);
+            return shouldShow;
+          }
         )"
         :key="action.id"
         :icon="isRef(action.icon) ? unref(action.icon) : action.icon"

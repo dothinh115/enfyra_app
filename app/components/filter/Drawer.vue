@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { FilterCondition, FilterGroup } from "~/utils/common/filter/filter-types";
 import { useFilterHistory } from "~/composables/useFilterHistory";
 
 const props = defineProps<{
@@ -81,7 +82,7 @@ function applySavedFilter(filter: any) {
 }
 
 const hasActiveConditions = computed(() => {
-  return localFilter.value.conditions.some((condition) => {
+  return localFilter.value.conditions.some((condition: FilterCondition | FilterGroup) => {
     if ("field" in condition) {
       return condition.field && condition.operator;
     } else {
@@ -91,7 +92,7 @@ const hasActiveConditions = computed(() => {
 });
 
 function hasActiveFiltersLocal(group: FilterGroup): boolean {
-  return group.conditions.some((condition) => {
+  return group.conditions.some((condition: FilterCondition | FilterGroup) => {
     if ("field" in condition) {
       return condition.field && condition.operator;
     } else {

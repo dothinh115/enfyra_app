@@ -130,9 +130,9 @@ export function useCodeMirrorExtensions() {
         const scriptMatch = text.match(/<script[^>]*>([\s\S]*?)<\/script>/);
         if (!scriptMatch) return diagnostics;
         
-        codeToLint = scriptMatch[1];
+        codeToLint = scriptMatch[1] || '';
         // Calculate offset to the start of script content
-        offset = text.indexOf(scriptMatch[1]);
+        offset = text.indexOf(scriptMatch[1] || '');
       }
       
       try {
@@ -141,7 +141,7 @@ export function useCodeMirrorExtensions() {
           ecmaVersion: 2020,
           sourceType: "module",
           locations: true,
-          onComment: false,
+          onComment: undefined,
         });
         
         // Track const variables

@@ -160,13 +160,6 @@ const { isTablet } = useScreen();
     <div class="flex items-center justify-between gap-2">
       <div class="flex items-center gap-2">
         <slot name="header-actions" />
-
-        <!-- Bulk Actions -->
-        <DataTableBulkActions
-          v-if="selectable"
-          :selected-count="selectedRows.length"
-          :on-delete="handleBulkDelete"
-        />
       </div>
     </div>
 
@@ -190,6 +183,7 @@ const { isTablet } = useScreen();
                 'px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100',
                 header.id === '__actions' ? 'text-center' : 'text-left',
                 header.id === 'select' ? 'w-12 min-w-12 max-w-12' : '',
+                header.id === '__actions' ? 'w-12 min-w-12 max-w-12' : '',
                 header.column.getCanSort() &&
                   'cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-800',
               ]"
@@ -248,6 +242,7 @@ const { isTablet } = useScreen();
               :class="[
                 'px-4 py-3 text-sm text-gray-900 dark:text-gray-100',
                 cell.column.id === 'select' ? 'w-12 min-w-12 max-w-12' : '',
+                cell.column.id === '__actions' ? 'w-12 min-w-12 max-w-12' : '',
               ]"
             >
               <span v-if="typeof cell.column.columnDef.cell !== 'function'">
@@ -302,6 +297,14 @@ const { isTablet } = useScreen();
           size="sm"
         />
       </div>
+    </div>
+
+    <!-- Bottom Bulk Actions - positioned bottom right -->
+    <div v-if="selectable && selectedRows.length > 0" class="flex justify-end">
+      <DataTableBulkActions
+        :selected-count="selectedRows.length"
+        :on-delete="handleBulkDelete"
+      />
     </div>
   </div>
 </template>

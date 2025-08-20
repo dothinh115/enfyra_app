@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ColumnDef } from "@tanstack/vue-table";
+import type { DataTableColumnConfig } from "~/composables/useDataTableColumns";
 import ColumnSelector from "~/components/data-table/ColumnSelector.vue";
 
 const route = useRoute();
@@ -198,105 +199,81 @@ useSubHeaderActionRegistry([
   },
 ]);
 
-// Build columns from schema
+// Use DataTable composable system
+const { buildColumn, buildActionsColumn } = useDataTableColumns();
+
+// Build columns from schema using composable
 const columns = computed<ColumnDef<any>[]>(() => {
   const schema = schemas.value[tableName];
   if (!schema?.definition) return [];
 
-  const cols: ColumnDef<any>[] = schema.definition
+  const dataColumns = schema.definition
     .filter(
       (field: any) =>
         field.fieldType === "column" && visibleColumns.value.has(field.name)
     )
-    .map((field: any) => ({
-      id: field.name,
-      accessorKey: field.name,
-      header: field.label || field.name,
-      cell: ({ getValue }: any) => {
-        const value = getValue();
-        if (value === null || value === undefined) return "-";
+    .map((field: any) => {
+      let config: DataTableColumnConfig = {
+        id: field.name,
+        header: field.label || field.name,
+      };
 
-        // Handle different field types
-        if (field.type === "boolean") {
-          return h(
-            "span",
-            {
-              class: `inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                value
-                  ? "bg-green-100 text-green-800"
-                  : "bg-gray-100 text-gray-800"
-              }`,
-            },
-            value ? "Yes" : "No"
-          );
-        }
+      // Use built-in formatters when possible
+      if (field.type === "datetime") {
+        config.format = "datetime";
+      } else if (field.type === "date") {
+        config.format = "date";
+      } else if (field.type === "boolean") {
+        config.format = "badge";
+        config.formatOptions = {
+          badgeColor: (value: boolean) => value ? "success" : "neutral",
+          badgeVariant: "soft",
+          badgeMap: { true: "Yes", false: "No" }
+        };
+      } else {
+        // Custom formatter for text truncation
+        config.format = "custom";
+        config.formatOptions = {
+          formatter: (value: any) => {
+            if (value === null || value === undefined) return "-";
+            const str = String(value);
+            return str.length > 50 ? str.slice(0, 50) + "..." : str;
+          }
+        };
+      }
+      
+      return buildColumn(config);
+    });
 
-        if (field.type === "datetime") {
-          return new Date(value).toLocaleString();
-        }
-
-        if (field.type === "date") {
-          return new Date(value).toLocaleDateString();
-        }
-
-        // Truncate long text
-        const str = String(value);
-        return str.length > 50 ? str.slice(0, 50) + "..." : str;
+  // Add actions column using composable
+  const actionsConfig = {
+    actions: [
+      {
+        label: "Delete",
+        icon: "i-lucide-trash-2",
+        class: "text-red-500",
+        show: () => {
+          const hasDeletePermission = checkPermissionCondition({
+            and: [
+              {
+                route: `/${route.params.table}`,
+                actions: ["delete"],
+              },
+            ],
+          });
+          return hasDeletePermission;
+        },
+        onSelect: (row: any) => {
+          handleDelete(row.id);
+        },
       },
-    }));
+    ],
+    width: 80,
+  };
+  
+  const actionsColumn = buildActionsColumn(actionsConfig);
 
-  // Add actions column
-  cols.push({
-    id: "__actions",
-    header: "Actions",
-    enableHiding: false,
-    size: 80,
-    cell: ({ row }) => {
-      const { checkPermissionCondition } = usePermissions();
-      const hasDeletePermission = checkPermissionCondition({
-        and: [
-          {
-            route: `/${route.params.table}`,
-            actions: ["delete"],
-          },
-        ],
-      });
-
-      return h("div", { class: "flex justify-center" }, [
-        h(
-          "button",
-          {
-            class: hasDeletePermission
-              ? "inline-flex items-center px-2 py-1.5 text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded hover:bg-red-100 transition-colors"
-              : "inline-flex items-center px-2 py-1.5 text-xs font-medium text-gray-400 bg-gray-50 border border-gray-200 rounded cursor-not-allowed opacity-50",
-            onClick: hasDeletePermission
-              ? (e) => {
-                  e.stopPropagation();
-                  handleDelete(row.original.id);
-                }
-              : undefined,
-            disabled: !hasDeletePermission,
-            title: hasDeletePermission ? "Delete" : "No permission to delete",
-          },
-          [
-            h(
-              "svg",
-              { class: "w-3 h-3", fill: "currentColor", viewBox: "0 0 20 20" },
-              [
-                h("path", {
-                  fillRule: "evenodd",
-                  d: "M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z",
-                  clipRule: "evenodd",
-                }),
-              ]
-            ),
-          ]
-        ),
-      ]);
-    },
-  });
-
-  return cols;
+  return [...dataColumns, actionsColumn];
 });
 
 // Watch for API data changes
@@ -322,8 +299,10 @@ async function handleFilterApply(filter: FilterGroup) {
   await fetchData();
 }
 
-// Clear filters is now handled by FilterDrawer internally
-// When clear is clicked, it will emit apply with empty filter
+// Clear filters function
+async function clearFilters() {
+  await handleFilterApply(createEmptyFilter());
+}
 
 async function handleDelete(id: string) {
   const result = await confirm({

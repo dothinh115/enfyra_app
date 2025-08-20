@@ -51,25 +51,18 @@ useHeaderActionRegistry([
     </div>
 
     <!-- Content -->
-    <Transition name="loading-fade" mode="out-in">
-      <CommonLoadingState
-        v-if="!isMounted || pending"
-        title="Loading folders..."
-        description="Fetching folder structure"
-        size="sm"
-        type="folder"
-        context="page"
-      />
+    <FolderManager
+      :folders="folder?.data?.[0].children || []"
+      :loading="!isMounted || pending"
+      empty-title="No child folders found"
+      empty-description="This folder doesn't contain any subfolders"
+      :show-create-button="true"
+      :parent-id="route.params.id as string"
+      @refresh-folders="fetchFolder"
+      @create-folder="showCreateModal = true"
+    />
 
-      <FolderGrid
-        v-else
-        empty-title="No child folders found"
-        empty-description="This folder doesn't contain any subfolders"
-        :folders="folder?.data?.[0].children"
-        :parent-id="route.params.id as string"
-        v-model:show-create-modal="showCreateModal"
-        @refresh-folders="fetchFolder"
-      />
-    </Transition>
+    <!-- Create Folder Modal -->
+    <FolderCreateModal v-model="showCreateModal" @created="fetchFolder" :parent-id="route.params.id as string" />
   </div>
 </template>
