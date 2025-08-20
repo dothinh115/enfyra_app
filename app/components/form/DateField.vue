@@ -29,7 +29,7 @@
       
       <template #body>
         <div class="p-4">
-          <UCalendar v-model="tempValue" />
+          <UCalendar v-model="tempValue as any" />
         </div>
       </template>
       
@@ -49,7 +49,6 @@
 
 <script setup lang="ts">
 import { CalendarDate } from '@internationalized/date';
-import type { DateValue } from '@internationalized/date';
 import { formatDate } from '~/utils/common/filter/filter-helpers';
 
 const props = defineProps<{
@@ -63,7 +62,7 @@ const emit = defineEmits<{
 }>();
 
 const showModal = ref(false);
-const tempValue = ref<any>(null);
+const tempValue = ref<CalendarDate | null>(null);
 
 // Display value for button label
 const displayValue = computed(() => {

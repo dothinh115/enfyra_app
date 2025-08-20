@@ -266,17 +266,15 @@ function formatDate(date: string) {
               </div>
 
               <!-- Folder Icon -->
-              <div 
-                class="relative rounded-2xl p-4 transition-all duration-300"
-                :class="[
-                  getFolderIcon(folder).bgColor,
-                  hoveredFolderId === folder.id ? 'scale-110 rotate-3' : ''
-                ]"
-              >
+              <div class="flex justify-center items-center p-4">
                 <UIcon
                   :name="getFolderIcon(folder).name"
-                  class="w-12 h-12 transition-colors"
-                  :class="getFolderIcon(folder).color"
+                  :size="96"
+                  class="transition-all duration-300"
+                  :class="[
+                    getFolderIcon(folder).color,
+                    hoveredFolderId === folder.id ? 'scale-110 rotate-3' : ''
+                  ]"
                 />
               </div>
 
