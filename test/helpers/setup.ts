@@ -1,4 +1,8 @@
 import { vi } from 'vitest'
+import { config } from '@vue/test-utils'
+
+// Setup Vue Test Utils global config
+config.global.plugins = []
 
 // Mock global Vue functions
 global.ref = vi.fn()

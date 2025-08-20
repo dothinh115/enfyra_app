@@ -88,18 +88,21 @@ useHeaderActionRegistry([
       :stats="pageStats"
     />
 
-    <!-- Shared Folder Manager -->
-    <FolderManager
-      :folders="filteredFolders"
-      :loading="!isMounted || rootPending"
-      empty-title="No folders yet"
-      empty-description="Create your first folder to start organizing your files and documents."
+    <!-- Integrated File Manager -->
+    <FileManager
+      :loading="!isMounted"
+      empty-title="No items yet"
+      empty-description="Create folders or upload files to get started organizing your content."
       :show-create-button="true"
-      @refresh-folders="fetchRootFolders"
+      @refresh-items="fetchRootFolders"
       @create-folder="showCreateModal = true"
     />
 
     <!-- Create Folder Modal -->
     <FolderCreateModal v-model="showCreateModal" @created="handleFolderCreated" />
+    
+    <!-- Detail Modals -->
+    <FolderDetailModal />
+    <FileDetailModal />
   </div>
 </template>

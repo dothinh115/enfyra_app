@@ -120,6 +120,7 @@ export const EXTENSION_COMPOSABLES = {
   useApi: 'useApi',
   useApiLazy: 'useApiLazy',
   useHeaderActionRegistry: 'useHeaderActionRegistry',
+  useSubHeaderActionRegistry: 'useSubHeaderActionRegistry',
   useSchema: 'useSchema',
   useScreen: 'useScreen',
   useGlobalState: 'useGlobalState',

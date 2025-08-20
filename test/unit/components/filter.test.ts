@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 
 // Mock the Vue composition API functions that our components use
 const mockEmit = vi.fn()

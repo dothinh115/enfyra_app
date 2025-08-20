@@ -54,18 +54,21 @@ useHeaderActionRegistry([
     />
 
     <!-- Content -->
-    <FolderManager
-      :folders="folder?.data?.[0].children || []"
-      :loading="!isMounted || pending"
-      empty-title="No child folders found"
-      empty-description="This folder doesn't contain any subfolders"
-      :show-create-button="true"
+    <FileManager
       :parent-id="route.params.id as string"
-      @refresh-folders="fetchFolder"
+      :loading="!isMounted || pending"
+      empty-title="No items found"
+      empty-description="This folder doesn't contain any files or subfolders"
+      :show-create-button="true"
+      @refresh-items="fetchFolder"
       @create-folder="showCreateModal = true"
     />
 
     <!-- Create Folder Modal -->
     <FolderCreateModal v-model="showCreateModal" @created="fetchFolder" :parent-id="route.params.id as string" />
+    
+    <!-- Detail Modals -->
+    <FolderDetailModal />
+    <FileDetailModal />
   </div>
 </template>

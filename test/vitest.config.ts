@@ -9,8 +9,14 @@ export default defineConfig({
   plugins: [vue()],
   test: {
     globals: true,
-    environment: 'happy-dom',
-    setupFiles: ['./test/helpers/setup.ts']
+    environment: 'jsdom',
+    setupFiles: [resolve(__dirname, 'helpers/setup.ts')],
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        singleThread: true,
+      }
+    }
   },
   resolve: {
     alias: {

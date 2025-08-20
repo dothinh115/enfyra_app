@@ -62,7 +62,6 @@ import {
 
 import {
   EXTENSION_VUE_FUNCTIONS,
-  createComposableMap,
 } from "../utils/extension/globals";
 
 // Extension cache with version-based invalidation
@@ -72,7 +71,10 @@ const cacheHits = ref(0);
 const cacheMisses = ref(0);
 
 // Extension metadata cache using Nuxt state
-const extensionMetaCache = useState<Map<string, any>>('extension-meta-cache', () => new Map());
+const extensionMetaCache = useState<Map<string, any>>(
+  "extension-meta-cache",
+  () => new Map()
+);
 
 const isComponentCached = (
   extensionName: string,
@@ -134,7 +136,6 @@ export const useDynamicComponent = () => {
 
     // Dynamic Components
     Widget: markRaw(DynamicWidgetComponent),
-    DynamicWidgetComponent: markRaw(DynamicWidgetComponent),
   };
 
   /**
@@ -229,8 +230,9 @@ export const useDynamicComponent = () => {
       // Inject composables globally
       const g = globalThis as any;
 
-      // Create composables mapping from imports using helper
-      const composableMap = createComposableMap({
+      // Direct injection - no need for createComposableMap filtering
+      const composables = {
+        // Enfyra composables
         useApi,
         useApiLazy,
         useHeaderActionRegistry,
@@ -242,6 +244,7 @@ export const useDynamicComponent = () => {
         useAuth,
         usePermissions,
         useFilterQuery,
+        // Nuxt composables  
         useToast,
         useState,
         useRoute,
@@ -254,14 +257,14 @@ export const useDynamicComponent = () => {
         useLazyFetch,
         useHead,
         useSeoMeta,
-      });
+      };
 
-      // Inject available composables
-      Object.entries(composableMap).forEach(([key, composable]) => {
+      // Inject all composables directly
+      Object.entries(composables).forEach(([key, composable]) => {
         if (typeof composable === "function") {
           g[key] = composable;
         } else {
-          console.warn(`Extension composable ${key} is not a function`);
+          console.warn(`Extension composable ${key} is not a function`, composable);
         }
       });
 

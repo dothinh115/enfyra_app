@@ -192,6 +192,7 @@ export const useGlobalState = () => {
               targetTable: rel.sourceTable,
               type: inverseRelationType(rel.type),
               fieldType: "relation",
+              isNullable: true,
             };
             delete inverseRel.id;
             schema[targetTableName].definition.push(inverseRel);
