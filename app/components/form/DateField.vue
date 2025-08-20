@@ -26,21 +26,16 @@
           </UButton>
         </div>
       </template>
-      
+
       <template #body>
         <div class="p-4">
-          <UCalendar v-model="tempValue as any" />
+          <UCalendar :v-model="tempValue as any" />
         </div>
       </template>
-      
+
       <template #footer>
         <div class="flex justify-end w-full">
-          <UButton 
-            @click="applyValue" 
-            color="primary"
-          >
-            Apply
-          </UButton>
+          <UButton @click="applyValue" color="primary"> Apply </UButton>
         </div>
       </template>
     </UModal>
@@ -48,8 +43,8 @@
 </template>
 
 <script setup lang="ts">
-import { CalendarDate } from '@internationalized/date';
-import { formatDate } from '~/utils/common/filter/filter-helpers';
+import { CalendarDate } from "@internationalized/date";
+import { formatDate } from "~/utils/common/filter/filter-helpers";
 
 const props = defineProps<{
   modelValue: Date | null;
@@ -58,31 +53,35 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  'update:modelValue': [value: Date | null];
+  "update:modelValue": [value: Date | null];
 }>();
 
 const showModal = ref(false);
-const tempValue = ref<CalendarDate | null>(null);
+// Initialize with current date
+const today = new Date();
+const tempValue = ref<CalendarDate>(
+  new CalendarDate(today.getFullYear(), today.getMonth() + 1, today.getDate())
+);
 
 // Display value for button label
 const displayValue = computed(() => {
-  if (!props.modelValue) return 'Select date';
+  if (!props.modelValue) return "Select date";
   return formatDate(props.modelValue);
 });
 
 // Button class binding
 const buttonClass = computed(() => {
-  return [
-    'justify-start',
-    props.class || ''
-  ];
+  return ["justify-start", props.class || ""];
 });
 
 function openModal() {
   // Convert Date to CalendarDate for UCalendar
   if (props.modelValue) {
     try {
-      const date = props.modelValue instanceof Date ? props.modelValue : new Date(props.modelValue);
+      const date =
+        props.modelValue instanceof Date
+          ? props.modelValue
+          : new Date(props.modelValue);
       if (!isNaN(date.getTime())) {
         tempValue.value = new CalendarDate(
           date.getFullYear(),
@@ -90,32 +89,54 @@ function openModal() {
           date.getDate()
         );
       } else {
-        tempValue.value = null;
+        // Use current date as fallback
+        const today = new Date();
+        tempValue.value = new CalendarDate(
+          today.getFullYear(),
+          today.getMonth() + 1,
+          today.getDate()
+        );
       }
     } catch (error) {
       console.error("Error converting to CalendarDate:", error);
-      tempValue.value = null;
+      // Use current date as fallback
+      const today = new Date();
+      tempValue.value = new CalendarDate(
+        today.getFullYear(),
+        today.getMonth() + 1,
+        today.getDate()
+      );
     }
   } else {
-    tempValue.value = null;
+    // Use current date as default when no value
+    const today = new Date();
+    tempValue.value = new CalendarDate(
+      today.getFullYear(),
+      today.getMonth() + 1,
+      today.getDate()
+    );
   }
-  
+
   showModal.value = true;
 }
 
 function applyValue() {
   if (tempValue.value) {
     try {
-      const date = new Date(tempValue.value.year, tempValue.value.month - 1, tempValue.value.day);
-      emit('update:modelValue', date);
+      const date = new Date(
+        tempValue.value.year,
+        tempValue.value.month - 1,
+        tempValue.value.day
+      );
+      emit("update:modelValue", date);
     } catch (error) {
       console.error("Error creating Date object:", error);
-      emit('update:modelValue', null);
+      emit("update:modelValue", null);
     }
   } else {
-    emit('update:modelValue', null);
+    emit("update:modelValue", null);
   }
-  
+
   showModal.value = false;
 }
 </script>
