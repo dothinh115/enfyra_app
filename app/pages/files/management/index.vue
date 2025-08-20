@@ -83,7 +83,7 @@ useHeaderActionRegistry([
   <div class="space-y-8">
     <!-- Page Header -->
     <CommonPageHeader
-      title="Folder Manager"
+      title="Files Manager"
       description="Organize your files and documents efficiently"
       :stats="pageStats"
     />

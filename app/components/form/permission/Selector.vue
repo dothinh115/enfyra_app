@@ -113,6 +113,7 @@ function handleAllowAllChange(value: boolean) {
 }
 
 function applyGroups() {
+  console.log('🚀 Selector applyGroups called with isAllowAll:', isAllowAll.value, 'currentGroups:', currentGroups.value);
   if (isAllowAll.value) {
     emit("apply", { allowAll: true });
   } else if (currentGroups.value.length > 0) {

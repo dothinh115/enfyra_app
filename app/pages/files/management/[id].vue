@@ -46,7 +46,7 @@ useHeaderActionRegistry([
     <!-- Page Header -->
     <CommonPageHeader
       v-if="isMounted && !pending"
-      :title="`${folder?.data?.[0].name} - Child Folders`"
+      :title="`${folder?.data?.[0].name} - Files Manager`"
       title-size="lg"
       padding-y="py-6"
       show-background

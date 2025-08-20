@@ -36,7 +36,6 @@
           v-model:errors="errors"
           v-model:has-changes="hasFormChanges"
           :table-name="tableName"
-          :excluded="['isSystem', 'routePermissions', 'middlewares']"
           :type-map="{
             handlers: {
               componentProps: { allowDelete: true },
@@ -187,7 +186,7 @@ async function updateRoute() {
     description: "Route updated!",
   });
   errors.value = {};
-  
+
   // Confirm form changes as new baseline
   formEditorRef.value?.confirmChanges();
 }

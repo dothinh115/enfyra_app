@@ -99,10 +99,10 @@ useSubHeaderActionRegistry([
   {
     id: "page-view-mode",
     label: computed(() =>
-      viewMode.value === "grid" ? "Grid View" : "List View"
+      viewMode.value === "grid" ? "List View" : "Grid View"
     ),
     icon: computed(() =>
-      viewMode.value === "grid" ? "lucide:layout-grid" : "lucide:layout-list"
+      viewMode.value === "grid" ? "lucide:layout-list" : "lucide:layout-grid"
     ),
     onClick: () => {
       const newViewMode = viewMode.value === "grid" ? "list" : "grid";

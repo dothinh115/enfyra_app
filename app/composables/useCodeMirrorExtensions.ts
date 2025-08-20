@@ -136,14 +136,22 @@ export function useCodeMirrorExtensions() {
       }
       
       try {
-        // Parse với acorn
-        const ast = acorn.parse(codeToLint, {
+        // Parse với acorn - allow return at root level for JavaScript
+        const parseOptions: any = {
           ecmaVersion: 2022,
           sourceType: "module",
           locations: true,
           onComment: undefined,
           allowAwaitOutsideFunction: true,
-        });
+        };
+        
+        // For JavaScript, allow return statements at root level (for function expressions)
+        if (language === 'javascript') {
+          parseOptions.sourceType = "script"; // script mode allows return at root
+          parseOptions.allowReturnOutsideFunction = true;
+        }
+        
+        const ast = acorn.parse(codeToLint, parseOptions);
         
         // Track const variables
         const constVars = new Set<string>();
