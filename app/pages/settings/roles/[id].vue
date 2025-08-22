@@ -10,7 +10,7 @@
         context="page"
       />
 
-      <div v-else-if="role" class="space-y-6">
+      <div v-else-if="apiData?.data?.[0]" class="space-y-6">
         <CommonPageHeader
           title="Role Details"
           title-size="md"
@@ -119,8 +119,6 @@ const {
 
 const form = ref<Record<string, any>>({});
 
-const role = computed(() => apiData.value?.data?.[0]);
-
 watch(
   apiData,
   (newData) => {
@@ -176,7 +174,7 @@ async function save() {
     description: "Role updated!",
   });
   errors.value = {};
-  
+
   // Confirm form changes as new baseline
   formEditorRef.value?.confirmChanges();
 }

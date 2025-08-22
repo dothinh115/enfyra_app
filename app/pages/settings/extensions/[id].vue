@@ -9,10 +9,10 @@
       context="page"
     />
 
-    <div v-else-if="detail" class="relative">
+    <div v-else-if="extensionData?.data?.[0]" class="relative">
       <!-- Header -->
       <CommonPageHeader
-        :title="`Extension: ${detail.name}`"
+        :title="`Extension: ${extensionData?.data?.[0]?.name}`"
         title-size="lg"
         show-background
         background-gradient="from-purple-500/6 via-violet-400/4 to-transparent"
@@ -21,9 +21,13 @@
 
       <!-- Extension Status Badges -->
       <div class="flex items-center gap-3 mb-6">
-        <UBadge color="primary" v-if="form.isSystem">System Extension</UBadge>
-        <UBadge color="secondary" v-if="form.isEnabled">Enabled</UBadge>
-        <UBadge color="info">{{ form.type }}</UBadge>
+        <UBadge color="primary" v-if="extensionData?.data?.[0]?.isSystem"
+          >System Extension</UBadge
+        >
+        <UBadge color="secondary" v-if="extensionData?.data?.[0]?.isEnabled"
+          >Enabled</UBadge
+        >
+        <UBadge color="info">{{ extensionData?.data?.[0]?.type }}</UBadge>
       </div>
 
       <UForm :state="form" @submit="updateExtension">
@@ -183,8 +187,6 @@ const {
   method: "delete",
   errorContext: "Delete Extension",
 });
-
-const detail = computed(() => extensionData.value?.data?.[0]);
 
 const form = ref<Record<string, any>>({});
 const errors = ref<Record<string, string>>({});

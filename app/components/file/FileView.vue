@@ -72,13 +72,6 @@ function copyFileUrl(file: any) {
   }
 }
 
-function showFileDetail(file: any) {
-  const showFileDetailModal = useState("file-detail-modal", () => false);
-  const selectedFile = useState<any>("file-selected", () => null);
-  selectedFile.value = file;
-  showFileDetailModal.value = true;
-}
-
 function deleteFile(file: any) {
   const { deleteFile } = useFileManager();
   deleteFile(file, () => emit("refresh-files"));
@@ -237,7 +230,7 @@ const fileColumns = computed(() => [
       {
         label: "Details",
         icon: "i-lucide-info",
-        onSelect: (file) => showFileDetail(file),
+        onSelect: (file) => navigateTo(`/files/${file.id}`),
       },
       // Only show delete action if user has permission
       ...(canDeleteFile

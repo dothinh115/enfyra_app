@@ -298,6 +298,7 @@ const emit = defineEmits<{
 const { checkPermissionCondition } = usePermissions();
 const { confirm } = useConfirm();
 const toast = useToast();
+const router = useRouter();
 
 // Check delete permission for files
 const canDeleteFile = checkPermissionCondition({
@@ -518,7 +519,7 @@ function getContextMenuItems(file: any) {
         label: "Details",
         icon: "lucide:info",
         onSelect: () => {
-          showFileDetail(file);
+          navigateTo(`/files/${file.id}`);
         },
       },
     ],
@@ -586,7 +587,7 @@ function getDropdownMenuItems(file: any) {
       label: "Details",
       icon: "lucide:info",
       onSelect: () => {
-        showFileDetail(file);
+        navigateTo(`/files/${file.id}`);
       },
     },
   ];

@@ -10,7 +10,7 @@
         context="page"
       />
 
-      <UForm v-else-if="handler" :state="form" @submit="save">
+      <UForm v-else-if="handlerData?.data?.[0]" :state="form" @submit="save">
         <FormEditorLazy
           ref="formEditorRef"
           v-model="form"
@@ -117,8 +117,6 @@ const {
   errorContext: "Delete Handler",
 });
 
-const handler = computed(() => handlerData.value?.data?.[0]);
-
 watch(
   handlerData,
   (newData) => {
@@ -156,7 +154,7 @@ async function save() {
     description: "Handler updated!",
   });
   errors.value = {};
-  
+
   // Confirm form changes as new baseline
   formEditorRef.value?.confirmChanges();
 }

@@ -4,14 +4,10 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-05-15",
   devtools: { enabled: true },
   modules: ["@nuxt/icon", "@nuxt/ui", "@nuxtjs/tailwindcss", "nuxt-codemirror"],
-  ui: {
-    global: true,
-    icons: ['lucide']
-  },
   colorMode: {
-    preference: 'dark',
-    fallback: 'dark',
-    storageKey: 'nuxt-color-mode'
+    preference: "dark",
+    fallback: "dark",
+    storageKey: "nuxt-color-mode",
   },
   ssr: false,
   nitro: {
@@ -30,7 +26,11 @@ export default defineNuxtConfig({
       },
       meta: [
         { charset: "utf-8" },
-        { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" },
+        {
+          name: "viewport",
+          content:
+            "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+        },
         { name: "theme-color", content: "#3b82f6" },
         { name: "color-scheme", content: "dark" },
       ],
@@ -104,7 +104,7 @@ export default defineNuxtConfig({
             ],
             // CodeMirror languages - separate chunk
             "codemirror-langs": [
-              "@codemirror/lang-javascript", 
+              "@codemirror/lang-javascript",
               "@codemirror/lang-vue",
               "@codemirror/lang-html",
             ],
@@ -112,7 +112,7 @@ export default defineNuxtConfig({
             "codemirror-features": [
               "@codemirror/lint",
               "@codemirror/commands",
-              "@codemirror/autocomplete", 
+              "@codemirror/autocomplete",
               "@codemirror/search",
             ],
             // Vue table - separate chunk để lazy load

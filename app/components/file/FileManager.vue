@@ -63,7 +63,12 @@ function handleFolderClick(folder: any) {
 }
 
 function handleFileClick(file: any) {
-  // Handle file click - show preview or details
+  console.log("File clicked:", file);
+  console.log("File ID:", file.id);
+  console.log("File filename:", file.filename);
+
+  // Navigate to file detail page
+  navigateTo(`/files/${file.id}`);
 }
 
 function toggleItemSelection(itemId: string) {

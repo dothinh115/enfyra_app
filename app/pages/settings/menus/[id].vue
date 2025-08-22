@@ -47,8 +47,6 @@ const {
   errorContext: "Delete Menu",
 });
 
-const detail = computed(() => menuData.value?.data?.[0]);
-
 const form = ref<Record<string, any>>({});
 
 const errors = ref<Record<string, string>>({});
@@ -218,7 +216,7 @@ useHeaderActionRegistry([
     size: "md",
     onClick: deleteMenuDetail,
     loading: deleteLoading,
-    disabled: computed(() => detail.value?.isSystem || false),
+    disabled: computed(() => menuData.value?.data?.[0]?.isSystem || false),
     permission: {
       and: [
         {
@@ -301,10 +299,10 @@ onMounted(async () => {
       context="page"
     />
 
-    <div v-else-if="detail" class="relative">
+    <div v-else-if="menuData?.data?.[0]" class="relative">
       <!-- Header -->
       <CommonPageHeader
-        :title="`Menu: ${detail.label}`"
+        :title="`Menu: ${menuData?.data?.[0]?.label}`"
         title-size="lg"
         show-background
         background-gradient="from-violet-500/6 via-purple-400/4 to-transparent"
@@ -314,11 +312,15 @@ onMounted(async () => {
       <!-- Menu Status Badges -->
       <div class="flex items-center gap-3 mb-6">
         <UIcon
-          :name="detail.icon || 'lucide:circle'"
+          :name="menuData?.data?.[0]?.icon || 'lucide:circle'"
           class="text-xl text-primary mr-2"
         />
-        <UBadge color="primary" v-if="detail.isSystem">System Menu</UBadge>
-        <UBadge color="secondary" v-if="detail.isEnabled">Enabled</UBadge>
+        <UBadge color="primary" v-if="menuData?.data?.[0]?.isSystem"
+          >System Menu</UBadge
+        >
+        <UBadge color="secondary" v-if="menuData?.data?.[0]?.isEnabled"
+          >Enabled</UBadge
+        >
       </div>
 
       <FormEditorLazy

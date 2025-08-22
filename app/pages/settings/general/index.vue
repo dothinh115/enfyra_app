@@ -101,31 +101,23 @@ onMounted(async () => {
     />
 
     <Transition name="loading-fade" mode="out-in">
-    <CommonLoadingState
-      v-if="!isMounted || loading"
-      title="Loading settings..."
-      description="Fetching system configuration"
-      size="sm"
-      type="form"
-      context="page"
-    />
+      <CommonLoadingState
+        v-if="!isMounted || loading"
+        title="Loading settings..."
+        description="Fetching system configuration"
+        size="sm"
+        type="form"
+        context="page"
+      />
 
-    <UForm v-else @submit="handleSaveSetting" :state="setting">
-      <UCard>
-        <template #header>
-          <div class="text-lg font-semibold">General Settings</div>
-        </template>
-
-        <template #default>
-          <FormEditorLazy
-            table-name="setting_definition"
-            mode="edit"
-            v-model="setting"
-            v-model:errors="errors"
-          />
-        </template>
-      </UCard>
-    </UForm>
-  </Transition>
+      <UForm v-else @submit="handleSaveSetting" :state="setting">
+        <FormEditorLazy
+          table-name="setting_definition"
+          mode="edit"
+          v-model="setting"
+          v-model:errors="errors"
+        />
+      </UForm>
+    </Transition>
   </div>
 </template>

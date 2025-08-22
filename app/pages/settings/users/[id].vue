@@ -28,8 +28,6 @@ const {
 
 const form = ref<Record<string, any>>({});
 
-const detail = computed(() => apiData.value?.data?.[0]);
-
 const errors = ref<Record<string, string>>({});
 
 watch(
@@ -127,14 +125,14 @@ async function saveUser() {
     description: "User updated!",
   });
   errors.value = {};
-  
+
   // Confirm form changes as new baseline
   formEditorRef.value?.confirmChanges();
 }
 
 async function deleteUser() {
   const ok = await confirm({
-    content: `Are you sure you want to delete user "${detail.value?.name}"?`,
+    content: `Are you sure you want to delete user "${apiData.value?.data?.[0]?.name}"?`,
   });
   if (!ok) return;
 
@@ -191,11 +189,11 @@ watch(
       context="page"
     />
 
-    <div v-else-if="detail" class="relative">
+    <div v-else-if="apiData?.data?.[0]" class="relative">
       <!-- Header -->
       <CommonPageHeader
-        :title="detail.name"
-        :description="detail.email"
+        :title="apiData?.data?.[0]?.name"
+        :description="apiData?.data?.[0]?.email"
         title-size="lg"
         show-background
         background-gradient="from-blue-500/6 via-indigo-400/4 to-transparent"
@@ -205,13 +203,13 @@ watch(
       <!-- User Avatar -->
       <div class="flex items-center gap-4 mb-6">
         <UAvatar
-          v-if="detail.avatar"
-          :src="detail.avatar"
-          :alt="detail.name"
+          v-if="apiData?.data?.[0]?.avatar"
+          :src="apiData?.data?.[0]?.avatar"
+          :alt="apiData?.data?.[0]?.name"
           size="xl"
         />
-        <UAvatar v-else :alt="detail.name" size="xl">
-          {{ detail.email?.charAt(0)?.toUpperCase() || "?" }}
+        <UAvatar v-else :alt="apiData?.data?.[0]?.name" size="xl">
+          {{ apiData?.data?.[0]?.email?.charAt(0)?.toUpperCase() || "?" }}
         </UAvatar>
       </div>
 

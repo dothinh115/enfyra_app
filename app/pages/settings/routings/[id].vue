@@ -9,10 +9,10 @@
       context="page"
     />
 
-    <div v-else-if="detail" class="relative">
+    <div v-else-if="routeData?.data?.[0]" class="relative">
       <!-- Header -->
       <CommonPageHeader
-        :title="`Route: ${detail.path}`"
+        :title="`Route: ${routeData?.data?.[0]?.path}`"
         title-size="lg"
         show-background
         background-gradient="from-lime-500/6 via-green-400/4 to-transparent"
@@ -22,11 +22,15 @@
       <!-- Route Status Badges -->
       <div class="flex items-center gap-3 mb-6">
         <UIcon
-          :name="detail.icon || 'lucide:circle'"
+          :name="routeData?.data?.[0]?.icon || 'lucide:circle'"
           class="text-xl text-primary mr-2"
         />
-        <UBadge color="primary" v-if="form.isSystem">System Route</UBadge>
-        <UBadge color="secondary" v-if="form.isEnabled">Enabled</UBadge>
+        <UBadge color="primary" v-if="routeData?.data?.[0].isSystem"
+          >System Route</UBadge
+        >
+        <UBadge color="secondary" v-if="routeData?.data?.[0].isEnabled"
+          >Enabled</UBadge
+        >
       </div>
 
       <UForm :state="form" @submit="updateRoute">
@@ -139,8 +143,6 @@ const {
   method: "delete",
   errorContext: "Delete Route",
 });
-
-const detail = computed(() => routeData.value?.data?.[0]);
 
 const form = ref<Record<string, any>>({});
 

@@ -9,10 +9,10 @@
       context="page"
     />
 
-    <div v-else-if="detail" class="relative">
+    <div v-else-if="hookData?.data?.[0]" class="relative">
       <!-- Header -->
       <CommonPageHeader
-        :title="`Hook: ${detail.name || '(no name)'}`"
+        :title="`Hook: ${hookData?.data?.[0]?.name || '(no name)'}`"
         title-size="lg"
         show-background
         background-gradient="from-red-500/6 via-orange-400/4 to-transparent"
@@ -21,8 +21,12 @@
 
       <!-- Hook Status Badges -->
       <div class="flex items-center gap-3 mb-6">
-        <UBadge color="primary" v-if="detail.isSystem">System Hook</UBadge>
-        <UBadge color="secondary" v-if="detail.isEnabled">Enabled</UBadge>
+        <UBadge color="primary" v-if="hookData?.data?.[0]?.isSystem"
+          >System Hook</UBadge
+        >
+        <UBadge color="secondary" v-if="hookData?.data?.[0]?.isEnabled"
+          >Enabled</UBadge
+        >
       </div>
 
       <UForm :state="form" @submit="updateHook">
@@ -131,8 +135,6 @@ const {
   errorContext: "Delete Hook",
 });
 
-const detail = computed(() => hookData.value?.data?.[0]);
-
 const form = ref<Record<string, any>>({});
 
 const errors = ref<Record<string, string>>({});
@@ -174,7 +176,7 @@ async function updateHook() {
     description: "Hook updated!",
   });
   errors.value = {};
-  
+
   // Confirm form changes as new baseline
   formEditorRef.value?.confirmChanges();
 }
