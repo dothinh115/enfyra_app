@@ -114,7 +114,7 @@ async function deleteHook(hook: any) {
   }
 }
 
-onMounted(async () => {});
+onMounted(fetchHooks);
 </script>
 
 <template>

@@ -81,7 +81,7 @@ watch(
   }
 );
 
-// Remove empty onMounted
+onMounted(fetchRoles);
 </script>
 
 <template>

@@ -103,14 +103,14 @@ const pageStats = computed(() => {
       iconColor: "text-primary",
       iconBg: "bg-primary/10",
       value: totalChildFolders,
-      label: "Subfolders",
+      label: "Child Folders",
     },
     {
       icon: "lucide:file",
       iconColor: "text-blue-600 dark:text-blue-400",
       iconBg: "bg-blue-100 dark:bg-blue-900/30",
       value: totalChildFiles,
-      label: "Files",
+      label: "Child Files",
     },
   ];
 });
@@ -251,16 +251,16 @@ useHeaderActionRegistry([
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-8">
     <!-- Page Header -->
     <CommonPageHeader
       :title="pageTitle"
       description="Manage files and subfolders in this directory"
       :stats="pageStats"
       title-size="md"
-      padding-y="py-6"
       show-background
       background-gradient="from-blue-500/8 via-cyan-400/5 to-transparent"
+      padding-y="py-6"
     />
 
     <!-- Content -->

@@ -25,8 +25,8 @@ const {
   errorContext: "Fetch Route Handlers",
 });
 
-const { execute: removeHandler } = useApiLazy(
-  () => `/route_handler_definition/0`,
+const { execute: removeHandler, error: removeHandlerError } = useApiLazy(
+  () => `/route_handler_definition`,
   {
     method: "delete",
     errorContext: "Delete Handler",
@@ -62,15 +62,11 @@ async function deleteHandler(id: number) {
   });
   if (!ok) return;
 
-  const { execute: deleteSpecificHandler } = useApiLazy(
-    () => `/route_handler_definition/${id}`,
-    {
-      method: "delete",
-      errorContext: "Delete Handler",
-    }
-  );
+  await removeHandler({ id });
 
-  await deleteSpecificHandler();
+  if (removeHandlerError.value) {
+    return;
+  }
 
   toast.add({ title: "Deleted", color: "success" });
   await fetchRouteHandlers();
@@ -84,7 +80,7 @@ watch(
   }
 );
 
-onMounted(async () => {});
+onMounted(fetchRouteHandlers);
 </script>
 
 <template>
