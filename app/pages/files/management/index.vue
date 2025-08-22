@@ -1,8 +1,6 @@
 <script setup lang="ts">
 const showCreateModal = ref(false);
 const showUploadModal = ref(false);
-const { getIncludeFields: getFolderFields } = useSchema("folder_definition");
-const { getIncludeFields: getFileFields } = useSchema("file_definition");
 
 // Pagination state
 const route = useRoute();
@@ -17,7 +15,6 @@ const {
   execute: fetchRootFolders,
 } = useApiLazy(() => `folder_definition`, {
   query: computed(() => ({
-    fields: getFolderFields(),
     limit,
     page: folderPage.value,
     meta: "*",
@@ -40,7 +37,6 @@ const {
   execute: fetchRootFiles,
 } = useApiLazy(() => `file_definition`, {
   query: computed(() => ({
-    fields: getFileFields(),
     limit,
     page: filePage.value,
     meta: "*",
@@ -234,6 +230,10 @@ useHeaderActionRegistry([
       title="Files Manager"
       description="Organize your files and documents efficiently"
       :stats="pageStats"
+      title-size="md"
+      show-background
+      background-gradient="from-blue-500/8 via-cyan-400/5 to-transparent"
+      padding-y="py-6"
     />
 
     <!-- Integrated File Manager -->

@@ -276,9 +276,6 @@ useSubHeaderActionRegistry([
             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
               Folders
             </h2>
-            <UBadge color="primary" variant="soft" size="sm">
-              {{ props.folders.length }}
-            </UBadge>
           </div>
 
           <FolderView
@@ -302,9 +299,6 @@ useSubHeaderActionRegistry([
             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
               Files
             </h2>
-            <UBadge color="neutral" variant="soft" size="sm">
-              {{ props.files.length }}
-            </UBadge>
           </div>
 
           <FileView

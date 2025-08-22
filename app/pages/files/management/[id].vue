@@ -3,8 +3,6 @@ const route = useRoute();
 const router = useRouter();
 const showCreateModal = ref(false);
 const showUploadModal = ref(false);
-const { getIncludeFields: getFolderFields } = useSchema("folder_definition");
-const { getIncludeFields: getFileFields } = useSchema("file_definition");
 
 // Pagination state
 const folderPage = ref(Number(route.query.folderPage) || 1);
@@ -18,7 +16,6 @@ const {
   execute: fetchFolder,
 } = useApiLazy(() => `/folder_definition`, {
   query: {
-    fields: getFolderFields(),
     filter: {
       id: {
         _eq: route.params.id,
@@ -35,7 +32,6 @@ const {
   execute: fetchChildFolders,
 } = useApiLazy(() => `/folder_definition`, {
   query: {
-    fields: getFolderFields(),
     limit: pageLimit,
     page: folderPage.value,
     meta: "*",
@@ -58,7 +54,6 @@ const {
   execute: fetchFolderFiles,
 } = useApiLazy(() => `/file_definition`, {
   query: {
-    fields: getFileFields(),
     limit: pageLimit,
     page: filePage.value,
     meta: "*",
@@ -262,10 +257,10 @@ useHeaderActionRegistry([
       :title="pageTitle"
       description="Manage files and subfolders in this directory"
       :stats="pageStats"
-      title-size="lg"
+      title-size="md"
       padding-y="py-6"
       show-background
-      background-gradient="from-blue-500/5 via-indigo-400/3 to-transparent"
+      background-gradient="from-blue-500/8 via-cyan-400/5 to-transparent"
     />
 
     <!-- Content -->
