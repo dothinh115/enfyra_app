@@ -236,6 +236,8 @@ async function deleteMenu(menuItem: any) {
     });
   }
 }
+
+onMounted(fetchMenus);
 </script>
 
 <template>

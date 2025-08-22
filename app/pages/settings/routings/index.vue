@@ -246,6 +246,8 @@ async function deleteRoute(routeItem: any) {
     });
   }
 }
+
+onMounted(fetchRoutes);
 </script>
 
 <template>
