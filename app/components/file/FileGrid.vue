@@ -43,9 +43,9 @@
               <div
                 class="relative h-32 p-6 flex items-center justify-center overflow-hidden"
                 :class="[
-                  file.type === 'image'
-                    ? 'bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20'
-                    : 'bg-gradient-to-br from-gray-50 to-slate-50 dark:from-gray-900/20 dark:to-slate-900/20',
+                  !isImageFile(file)
+                    ? 'bg-gradient-to-br from-gray-50 to-slate-50 dark:from-gray-900/20 dark:to-slate-900/20'
+                    : '',
                 ]"
               >
                 <!-- Background Pattern -->
@@ -66,19 +66,24 @@
                 <!-- Image preview for image files -->
                 <div
                   v-if="isImageFile(file)"
-                  class="relative w-20 h-20 rounded-lg overflow-hidden bg-white dark:bg-gray-700 shadow-lg"
+                  class="absolute inset-0 w-full h-full"
                 >
-                  <img
+                  <CommonImage
                     :src="file.assetUrl"
                     :alt="file.displayName"
                     class="w-full h-full object-cover"
                     loading="lazy"
                     @error="handleImageError"
                   />
+                  <!-- Dark overlay for better text readability -->
+                  <div class="absolute inset-0 bg-black/20" />
                 </div>
 
                 <!-- Icon for other files -->
-                <div v-else class="flex justify-center items-center p-4">
+                <div
+                  v-if="!isImageFile(file)"
+                  class="flex justify-center items-center p-4 relative z-10"
+                >
                   <UIcon
                     :name="file.icon"
                     :size="96"
@@ -92,7 +97,7 @@
 
                 <!-- Hover Effect Overlay -->
                 <div
-                  class="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  class="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                 />
               </div>
 

@@ -136,7 +136,6 @@ function toggleItemSelection(folderId: string) {
 <template>
   <div>
     <Transition name="loading-fade" mode="out-in">
-      <!-- Loading State - chỉ hiển thị khi loading và chưa có data -->
       <div
         v-if="(loading && folders.length === 0) || !isMounted"
         class="col-span-full"
@@ -144,8 +143,7 @@ function toggleItemSelection(folderId: string) {
         <CommonLoadingState type="folder" />
       </div>
 
-      <!-- Content - hiển thị ngay khi có data, không cần đợi isMounted -->
-      <div v-else-if="folders.length > 0" key="content">
+      <div v-else-if="!loading && folders.length > 0" key="content">
         <!-- Grid View -->
         <FolderGrid
           v-if="viewMode === 'grid'"

@@ -7,6 +7,8 @@ const router = useRouter();
 const toast = useToast();
 const { confirm } = useConfirm();
 
+const { isMounted } = useMounted();
+
 // Get ID from route params
 const fileId = route.params.id as string;
 
@@ -159,14 +161,12 @@ function getFileIconAndColor(mimetype: string): {
   icon: string;
   color: string;
   background: string;
-  size: string;
 } {
   if (!mimetype)
     return {
       icon: "lucide:file",
       color: "text-gray-300",
       background: "bg-gray-800",
-      size: "w-32 h-32",
     };
 
   if (mimetype.startsWith("image/"))
@@ -174,69 +174,42 @@ function getFileIconAndColor(mimetype: string): {
       icon: "lucide:image",
       color: "text-blue-300",
       background: "bg-blue-500/20",
-      size: "w-32 h-32",
     };
   if (mimetype.startsWith("video/"))
     return {
       icon: "lucide:video",
       color: "text-purple-300",
       background: "bg-purple-500/20",
-      size: "w-32 h-32",
     };
   if (mimetype.startsWith("audio/"))
     return {
       icon: "lucide:music",
       color: "text-green-300",
       background: "bg-green-500/20",
-      size: "w-32 h-32",
     };
   if (mimetype.includes("pdf"))
     return {
       icon: "lucide:file-text",
       color: "text-red-300",
       background: "bg-red-900/30",
-      size: "w-32 h-32",
     };
   if (mimetype.includes("zip") || mimetype.includes("archive"))
     return {
       icon: "lucide:archive",
       color: "text-yellow-300",
       background: "bg-yellow-900/30",
-      size: "w-32 h-32",
     };
   if (mimetype.startsWith("text/"))
     return {
       icon: "lucide:file-text",
       color: "text-cyan-300",
       background: "bg-cyan-900/30",
-      size: "w-32 h-32",
     };
   return {
     icon: "lucide:file",
     color: "text-gray-300",
     background: "bg-gray-800",
-    size: "w-32 h-32",
   };
-}
-
-// Format file size
-function formatFileSize(bytes: number): string {
-  if (bytes === 0) return "0 B";
-  const k = 1024;
-  const sizes = ["B", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
-}
-
-// Format date
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 }
 </script>
 
@@ -244,7 +217,7 @@ function formatDate(dateString: string): string {
   <div class="space-y-6">
     <!-- Page Header -->
     <CommonPageHeader
-      :title="file?.data?.[0].filename || 'File Details'"
+      :title="file?.data?.[0]?.filename || 'File Details'"
       :description="`View and edit file information`"
       title-size="xl"
       show-background
@@ -262,55 +235,53 @@ function formatDate(dateString: string): string {
       </template>
     </CommonPageHeader>
 
-    <!-- Loading State -->
-    <div v-if="pending" class="flex justify-center py-12">
-      <CommonLoadingState type="form" />
-    </div>
+    <Transition name="loading-fade" mode="out-in">
+      <!-- Loading State -->
+      <div v-if="!isMounted || pending" class="flex justify-center py-12">
+        <CommonLoadingState type="form" />
+      </div>
 
-    <!-- File Content -->
-    <div v-if="form.id" class="space-y-6">
-      <!-- File Preview -->
-      <div
-        class="bg-gray-800/50 rounded-xl border border-gray-700/50 shadow-xl"
-      >
-        <div class="flex justify-center">
-          <div v-if="form.mimetype?.startsWith('image/')">
-            <CommonImage
-              :src="`/assets/${form.id}`"
-              :alt="form.filename"
-              class="max-w-132 max-h-132 object-contain"
-              loading="lazy"
-            />
-          </div>
-
-          <!-- File Icon for non-images -->
-          <div v-else class="text-center">
-            <div
-              :class="[
-                getFileIconAndColor(form.mimetype).background,
-                'w-100 h-100 rounded-2xl flex items-center justify-center mx-auto',
-              ]"
-            >
-              <UIcon
-                :name="getFileIconAndColor(form.mimetype).icon"
-                :class="getFileIconAndColor(form.mimetype).color"
-                size="192"
+      <!-- File Content -->
+      <div v-else-if="form.id" class="space-y-6">
+        <!-- File Preview -->
+        <div
+          class="bg-gray-800/50 rounded-xl border border-gray-700/50 shadow-xl"
+        >
+          <div class="flex justify-center">
+            <div v-if="form.mimetype?.startsWith('image/')">
+              <CommonImage
+                :src="`/assets/${form.id}`"
+                :alt="form.filename"
+                class="max-w-132 max-h-132 object-contain"
+                loading="lazy"
               />
+            </div>
+
+            <!-- File Icon for non-images -->
+            <div v-else class="text-center">
+              <div
+                :class="[
+                  getFileIconAndColor(form.mimetype).background,
+                  'w-100 h-100 rounded-2xl flex items-center justify-center mx-auto',
+                ]"
+              >
+                <UIcon
+                  :name="getFileIconAndColor(form.mimetype).icon"
+                  :class="getFileIconAndColor(form.mimetype).color"
+                  size="192"
+                />
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- File Editor Section -->
-      <UCard>
-        <template #header>
+        <!-- File Editor Section -->
+        <div class="space-y-4">
           <div class="flex items-center gap-3">
             <UIcon name="lucide:edit-3" class="w-5 h-5" />
             <h3 class="text-lg font-semibold">Edit File Information</h3>
           </div>
-        </template>
 
-        <div class="p-6">
           <UForm :state="form" @submit="saveFile">
             <FormEditorLazy
               ref="formEditorRef"
@@ -322,7 +293,7 @@ function formatDate(dateString: string): string {
             />
           </UForm>
         </div>
-      </UCard>
-    </div>
+      </div>
+    </Transition>
   </div>
 </template>

@@ -178,6 +178,7 @@ useSubHeaderActionRegistry([
 
       router.push({
         query: { ...route.query, view: newViewMode },
+        replace: true,
       });
     },
     side: "left",
