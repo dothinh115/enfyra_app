@@ -80,14 +80,14 @@ const pageStats = computed(() => {
       iconColor: "text-primary",
       iconBg: "bg-primary/10",
       value: totalFolders,
-      label: "Total Folders",
+      label: "Root Folders",
     },
     {
       icon: "lucide:file",
       iconColor: "text-blue-600 dark:text-blue-400",
       iconBg: "bg-blue-100 dark:bg-blue-900/30",
       value: totalFiles,
-      label: "Total Files",
+      label: "Root Files",
     },
   ];
 });
