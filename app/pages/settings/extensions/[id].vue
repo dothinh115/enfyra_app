@@ -9,40 +9,45 @@
       context="page"
     />
 
-    <div v-else-if="extensionData?.data?.[0]" class="relative">
-      <!-- Header -->
+    <div v-else-if="extensionData?.data?.[0]" class="space-y-6">
+      <!-- Header - Full width -->
       <CommonPageHeader
         :title="`Extension: ${extensionData?.data?.[0]?.name}`"
         title-size="lg"
         show-background
         background-gradient="from-purple-500/6 via-violet-400/4 to-transparent"
         padding-y="py-6"
-      />
+      >
+        <template #badges>
+          <!-- Extension Status Badges -->
+          <div class="flex items-center gap-3">
+            <UBadge color="primary" v-if="extensionData?.data?.[0]?.isSystem"
+              >System Extension</UBadge
+            >
+            <UBadge color="secondary" v-if="extensionData?.data?.[0]?.isEnabled"
+              >Enabled</UBadge
+            >
+            <UBadge color="info">{{ extensionData?.data?.[0]?.type }}</UBadge>
+          </div>
+        </template>
+      </CommonPageHeader>
 
-      <!-- Extension Status Badges -->
-      <div class="flex items-center gap-3 mb-6">
-        <UBadge color="primary" v-if="extensionData?.data?.[0]?.isSystem"
-          >System Extension</UBadge
-        >
-        <UBadge color="secondary" v-if="extensionData?.data?.[0]?.isEnabled"
-          >Enabled</UBadge
-        >
-        <UBadge color="info">{{ extensionData?.data?.[0]?.type }}</UBadge>
+      <!-- Content - Limited width -->
+      <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
+        <UForm :state="form" @submit="updateExtension">
+          <FormEditorLazy
+            ref="formEditorRef"
+            v-model="form"
+            v-model:errors="errors"
+            v-model:has-changes="hasFormChanges"
+            :table-name="tableName"
+            :excluded="['createdAt', 'updatedAt', 'isSystem', 'compiledCode']"
+            :type-map="{
+              code: { type: 'code', language: 'vue', height: '400px' },
+            }"
+          />
+        </UForm>
       </div>
-
-      <UForm :state="form" @submit="updateExtension">
-        <FormEditorLazy
-          ref="formEditorRef"
-          v-model="form"
-          v-model:errors="errors"
-          v-model:has-changes="hasFormChanges"
-          :table-name="tableName"
-          :excluded="['createdAt', 'updatedAt', 'isSystem', 'compiledCode']"
-          :type-map="{
-            code: { type: 'code', language: 'vue', height: '400px' },
-          }"
-        />
-      </UForm>
     </div>
 
     <CommonEmptyState

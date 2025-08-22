@@ -9,36 +9,41 @@
       context="page"
     />
 
-    <div v-else-if="hookData?.data?.[0]" class="relative">
-      <!-- Header -->
+    <div v-else-if="hookData?.data?.[0]" class="space-y-6">
+      <!-- Header - Full width -->
       <CommonPageHeader
         :title="`Hook: ${hookData?.data?.[0]?.name || '(no name)'}`"
         title-size="lg"
         show-background
         background-gradient="from-red-500/6 via-orange-400/4 to-transparent"
         padding-y="py-6"
-      />
+      >
+        <template #badges>
+          <!-- Hook Status Badges -->
+          <div class="flex items-center gap-3">
+            <UBadge color="primary" v-if="hookData?.data?.[0]?.isSystem"
+              >System Hook</UBadge
+            >
+            <UBadge color="secondary" v-if="hookData?.data?.[0]?.isEnabled"
+              >Enabled</UBadge
+            >
+          </div>
+        </template>
+      </CommonPageHeader>
 
-      <!-- Hook Status Badges -->
-      <div class="flex items-center gap-3 mb-6">
-        <UBadge color="primary" v-if="hookData?.data?.[0]?.isSystem"
-          >System Hook</UBadge
-        >
-        <UBadge color="secondary" v-if="hookData?.data?.[0]?.isEnabled"
-          >Enabled</UBadge
-        >
+      <!-- Content - Limited width -->
+      <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
+        <UForm :state="form" @submit="updateHook">
+          <FormEditorLazy
+            ref="formEditorRef"
+            v-model="form"
+            v-model:errors="errors"
+            v-model:has-changes="hasFormChanges"
+            :table-name="'hook_definition'"
+            :excluded="['isSystem']"
+          />
+        </UForm>
       </div>
-
-      <UForm :state="form" @submit="updateHook">
-        <FormEditorLazy
-          ref="formEditorRef"
-          v-model="form"
-          v-model:errors="errors"
-          v-model:has-changes="hasFormChanges"
-          :table-name="'hook_definition'"
-          :excluded="['isSystem']"
-        />
-      </UForm>
     </div>
 
     <CommonEmptyState

@@ -9,44 +9,49 @@
       context="page"
     />
 
-    <div v-else-if="routeData?.data?.[0]" class="relative">
-      <!-- Header -->
+    <div v-else-if="routeData?.data?.[0]" class="space-y-6">
+      <!-- Header - Full width -->
       <CommonPageHeader
         :title="`Route: ${routeData?.data?.[0]?.path}`"
         title-size="lg"
         show-background
         background-gradient="from-lime-500/6 via-green-400/4 to-transparent"
         padding-y="py-6"
-      />
+      >
+        <template #badges>
+          <!-- Route Status Badges -->
+          <div class="flex items-center gap-3">
+            <UIcon
+              :name="routeData?.data?.[0]?.icon || 'lucide:circle'"
+              class="text-xl text-primary mr-2"
+            />
+            <UBadge color="primary" v-if="routeData?.data?.[0].isSystem"
+              >System Route</UBadge
+            >
+            <UBadge color="secondary" v-if="routeData?.data?.[0].isEnabled"
+              >Enabled</UBadge
+            >
+          </div>
+        </template>
+      </CommonPageHeader>
 
-      <!-- Route Status Badges -->
-      <div class="flex items-center gap-3 mb-6">
-        <UIcon
-          :name="routeData?.data?.[0]?.icon || 'lucide:circle'"
-          class="text-xl text-primary mr-2"
-        />
-        <UBadge color="primary" v-if="routeData?.data?.[0].isSystem"
-          >System Route</UBadge
-        >
-        <UBadge color="secondary" v-if="routeData?.data?.[0].isEnabled"
-          >Enabled</UBadge
-        >
+      <!-- Content - Limited width -->
+      <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
+        <UForm :state="form" @submit="updateRoute">
+          <FormEditorLazy
+            ref="formEditorRef"
+            v-model="form"
+            v-model:errors="errors"
+            v-model:has-changes="hasFormChanges"
+            :table-name="tableName"
+            :type-map="{
+              handlers: {
+                componentProps: { allowDelete: true },
+              },
+            }"
+          />
+        </UForm>
       </div>
-
-      <UForm :state="form" @submit="updateRoute">
-        <FormEditorLazy
-          ref="formEditorRef"
-          v-model="form"
-          v-model:errors="errors"
-          v-model:has-changes="hasFormChanges"
-          :table-name="tableName"
-          :type-map="{
-            handlers: {
-              componentProps: { allowDelete: true },
-            },
-          }"
-        />
-      </UForm>
     </div>
 
     <CommonEmptyState

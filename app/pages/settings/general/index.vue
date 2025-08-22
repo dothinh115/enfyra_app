@@ -90,7 +90,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div>
+  <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
     <!-- Header -->
     <CommonPageHeader
       title="General Settings"

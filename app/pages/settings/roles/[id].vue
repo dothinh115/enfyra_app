@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto space-y-6">
+  <div class="space-y-6">
     <Transition name="loading-fade" mode="out-in">
       <CommonLoadingState
         v-if="!isMounted || loading"
@@ -11,6 +11,7 @@
       />
 
       <div v-else-if="apiData?.data?.[0]" class="space-y-6">
+        <!-- Header - Full width -->
         <CommonPageHeader
           title="Role Details"
           title-size="md"
@@ -19,22 +20,25 @@
           padding-y="py-4"
         />
 
-        <UForm :state="form" @submit="save">
-          <FormEditorLazy
-            ref="formEditorRef"
-            v-model="form"
-            v-model:errors="errors"
-            v-model:has-changes="hasFormChanges"
-            :table-name="tableName"
-            :type-map="{
-              routePermissions: {
-                componentProps: {
-                  allowDelete: true,
+        <!-- Content - Limited width -->
+        <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
+          <UForm :state="form" @submit="save">
+            <FormEditorLazy
+              ref="formEditorRef"
+              v-model="form"
+              v-model:errors="errors"
+              v-model:has-changes="hasFormChanges"
+              :table-name="tableName"
+              :type-map="{
+                routePermissions: {
+                  componentProps: {
+                    allowDelete: true,
+                  },
                 },
-              },
-            }"
-          />
-        </UForm>
+              }"
+            />
+          </UForm>
+        </div>
       </div>
 
       <CommonEmptyState

@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto space-y-6">
+  <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full space-y-6">
     <Transition name="loading-fade" mode="out-in">
       <CommonLoadingState
         v-if="!isMounted || loading"
@@ -10,15 +10,29 @@
         context="page"
       />
 
-      <UForm v-else-if="handlerData?.data?.[0]" :state="form" @submit="save">
-        <FormEditorLazy
-          ref="formEditorRef"
-          v-model="form"
-          v-model:errors="errors"
-          v-model:has-changes="hasFormChanges"
-          :table-name="tableName"
+      <div v-else-if="handlerData?.data?.[0]" class="space-y-6">
+        <!-- Header - Full width -->
+        <CommonPageHeader
+          title="Handler Details"
+          title-size="lg"
+          show-background
+          background-gradient="from-emerald-500/6 via-teal-400/4 to-transparent"
+          padding-y="py-6"
         />
-      </UForm>
+
+        <!-- Content - Limited width -->
+        <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
+          <UForm :state="form" @submit="save">
+            <FormEditorLazy
+              ref="formEditorRef"
+              v-model="form"
+              v-model:errors="errors"
+              v-model:has-changes="hasFormChanges"
+              :table-name="tableName"
+            />
+          </UForm>
+        </div>
+      </div>
 
       <CommonEmptyState
         v-else

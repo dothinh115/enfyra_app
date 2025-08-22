@@ -220,7 +220,7 @@ function getFileIconAndColor(mimetype: string): {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full space-y-6">
     <!-- Page Header -->
     <CommonPageHeader
       :title="pageTitle"

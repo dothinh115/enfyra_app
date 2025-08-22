@@ -76,24 +76,26 @@ async function handleCreate() {
 </script>
 
 <template>
-  <UForm :state="newRecord" @submit="handleCreate">
-    <UCard variant="subtle">
-      <template #header>
-        <div class="flex items-center justify-between">
-          <div class="text-lg font-semibold capitalize">
-            {{ route.params.table }}: new record
-          </div>
-        </div>
-      </template>
+  <div class="space-y-6">
+    <!-- Header - Full width -->
+    <CommonPageHeader
+      :title="`Create New ${route.params.table} Record`"
+      title-size="lg"
+      show-background
+      background-gradient="from-cyan-500/6 via-blue-400/4 to-transparent"
+      padding-y="py-6"
+    />
 
-      <template #default>
+    <!-- Content - Limited width -->
+    <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
+      <UForm :state="newRecord" @submit="handleCreate">
         <FormEditorLazy
           :table-name="(route.params.table as string)"
           mode="create"
           v-model="newRecord"
           v-model:errors="createErrors"
         />
-      </template>
-    </UCard>
-  </UForm>
+      </UForm>
+    </div>
+  </div>
 </template>

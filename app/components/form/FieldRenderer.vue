@@ -325,6 +325,7 @@ function getComponentConfigByKey(key: string) {
         componentProps: {
           modelValue: ensureString(props.formData[key]),
           disabled: disabled,
+          isPrimary: column?.isPrimary || false,
           "onUpdate:modelValue": (val: string) => {
             updateFormData(key, val);
           },

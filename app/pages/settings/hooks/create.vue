@@ -1,12 +1,23 @@
 <template>
-  <div class="mx-auto space-y-6">
-    <UForm :state="createForm" @submit="handleCreate">
-      <FormEditorLazy
-        v-model="createForm"
-        :table-name="tableName"
-        v-model:errors="createErrors"
-      />
-    </UForm>
+  <div class="space-y-6">
+    <!-- Header -->
+    <CommonPageHeader
+      title="Create New Hook"
+      title-size="lg"
+      show-background
+      background-gradient="from-red-500/6 via-orange-400/4 to-transparent"
+      padding-y="py-6"
+    />
+
+    <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
+      <UForm :state="createForm" @submit="handleCreate">
+        <FormEditorLazy
+          v-model="createForm"
+          :table-name="tableName"
+          v-model:errors="createErrors"
+        />
+      </UForm>
+    </div>
   </div>
 </template>
 

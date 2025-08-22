@@ -203,8 +203,8 @@ async function save() {
       background-gradient="from-indigo-500/8 via-purple-400/5 to-transparent"
       padding-y="py-6"
     />
-    
-    <div class="mx-auto">
+
+    <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
       <TableForm v-model="table" :new="true">
         <template #tableName>
           <div class="mb-6">

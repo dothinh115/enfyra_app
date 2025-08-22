@@ -1,16 +1,28 @@
 <template>
-  <UForm class="mx-auto space-y-6" :state="form" @submit="handleCreate">
-    <FormEditorLazy
-      v-model="form"
-      v-model:errors="errors"
-      :table-name="tableName"
+  <div class="space-y-6">
+    <!-- Header -->
+    <CommonPageHeader
+      title="Create New User"
+      title-size="lg"
+      show-background
+      background-gradient="from-blue-500/6 via-indigo-400/4 to-transparent"
+      padding-y="py-6"
     />
-  </UForm>
+
+    <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
+      <UForm :state="form" @submit="handleCreate">
+        <FormEditorLazy
+          v-model="form"
+          v-model:errors="errors"
+          :table-name="tableName"
+        />
+      </UForm>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 const toast = useToast();
-
 
 const tableName = "user_definition";
 
@@ -78,6 +90,6 @@ async function handleCreate() {
     color: "success",
   });
 
-      await navigateTo(`/settings/users/${createData.value?.data[0]?.id}`);
+  await navigateTo(`/settings/users/${createData.value?.data[0]?.id}`);
 }
 </script>

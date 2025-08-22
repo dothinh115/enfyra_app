@@ -268,21 +268,17 @@ async function saveMenu() {
 
 <template>
   <div class="space-y-6">
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <UIcon name="lucide:plus" class="text-2xl text-primary" />
-        <div class="text-xl font-bold text-primary">Create New Menu</div>
-      </div>
-    </div>
+    <!-- Header -->
+    <CommonPageHeader
+      title="Create New Menu"
+      title-size="lg"
+      show-background
+      background-gradient="from-violet-500/6 via-purple-400/4 to-transparent"
+      padding-y="py-6"
+    />
 
-    <UForm :state="form" @submit="saveMenu" class="space-y-6">
-      <UCard>
-        <template #header>
-          <div class="flex justify-between items-center">
-            <h3 class="text-lg font-semibold">Menu Information</h3>
-          </div>
-        </template>
-
+    <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
+      <UForm :state="form" @submit="saveMenu">
         <FormEditorLazy
           v-model="form"
           v-model:errors="errors"
@@ -290,7 +286,7 @@ async function saveMenu() {
           :excluded="excludedFields"
           :type-map="typeMap"
         />
-      </UCard>
-    </UForm>
+      </UForm>
+    </div>
   </div>
 </template>

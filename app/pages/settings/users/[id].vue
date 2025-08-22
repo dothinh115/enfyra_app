@@ -189,40 +189,29 @@ watch(
       context="page"
     />
 
-    <div v-else-if="apiData?.data?.[0]" class="relative">
-      <!-- Header -->
+    <div v-else-if="apiData?.data?.[0]" class="space-y-6">
+      <!-- Header - Full width -->
       <CommonPageHeader
-        :title="apiData?.data?.[0]?.name"
-        :description="apiData?.data?.[0]?.email"
+        :title="apiData?.data?.[0]?.email"
         title-size="lg"
         show-background
         background-gradient="from-blue-500/6 via-indigo-400/4 to-transparent"
         padding-y="py-6"
       />
 
-      <!-- User Avatar -->
-      <div class="flex items-center gap-4 mb-6">
-        <UAvatar
-          v-if="apiData?.data?.[0]?.avatar"
-          :src="apiData?.data?.[0]?.avatar"
-          :alt="apiData?.data?.[0]?.name"
-          size="xl"
-        />
-        <UAvatar v-else :alt="apiData?.data?.[0]?.name" size="xl">
-          {{ apiData?.data?.[0]?.email?.charAt(0)?.toUpperCase() || "?" }}
-        </UAvatar>
+      <!-- Content - Limited width -->
+      <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
+        <UForm :state="form" @submit="saveUser">
+          <FormEditorLazy
+            ref="formEditorRef"
+            v-model="form"
+            v-model:errors="errors"
+            v-model:has-changes="hasFormChanges"
+            table-name="user_definition"
+            :excluded="['isRootAdmin', 'isSystem']"
+          />
+        </UForm>
       </div>
-
-      <UForm :state="form" @submit="saveUser">
-        <FormEditorLazy
-          ref="formEditorRef"
-          v-model="form"
-          v-model:errors="errors"
-          v-model:has-changes="hasFormChanges"
-          table-name="user_definition"
-          :excluded="['isRootAdmin', 'isSystem']"
-        />
-      </UForm>
     </div>
 
     <CommonEmptyState

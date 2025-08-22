@@ -8,6 +8,7 @@
       readonly
     />
     <UButton
+      v-if="!isPrimary"
       icon="lucide:refresh-cw"
       color="primary"
       variant="solid"
@@ -24,9 +25,11 @@ withDefaults(
     modelValue?: string;
     placeholder?: string;
     disabled?: boolean;
+    isPrimary?: boolean;
   }>(),
   {
     disabled: false,
+    isPrimary: false,
   }
 );
 

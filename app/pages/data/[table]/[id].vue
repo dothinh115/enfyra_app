@@ -73,7 +73,7 @@ async function handleUpdate() {
     description: "Record updated!",
   });
   updateErrors.value = {};
-  
+
   // Confirm form changes as new baseline
   formEditorRef.value?.confirmChanges();
 
@@ -167,8 +167,8 @@ useHeaderActionRegistry([
 </script>
 
 <template>
-  <div class="relative">
-    <!-- Header -->
+  <div class="space-y-6">
+    <!-- Header - Full width -->
     <CommonPageHeader
       v-if="currentRecord.id"
       :title="`${route.params.table}: ${currentRecord.id}`"
@@ -178,28 +178,31 @@ useHeaderActionRegistry([
       padding-y="py-6"
     />
 
-    <Transition name="loading-fade" mode="out-in">
-      <!-- Loading state -->
-      <CommonLoadingState
-        v-if="loading || !currentRecord.id"
-        type="form"
-        context="page"
-        size="lg"
-        :title="`Loading ${route.params.table}...`"
-        :description="`Fetching record details`"
-      />
-      <!-- Form content -->
-      <div v-else-if="currentRecord.id">
-        <FormEditorLazy
-          ref="formEditorRef"
-          :table-name="(route.params.table as string)"
-          mode="edit"
-          v-model="currentRecord"
-          v-model:errors="updateErrors"
-          v-model:has-changes="hasFormChanges"
+    <!-- Content - Limited width -->
+    <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
+      <Transition name="loading-fade" mode="out-in">
+        <!-- Loading state -->
+        <CommonLoadingState
+          v-if="loading || !currentRecord.id"
+          type="form"
+          context="page"
+          size="lg"
+          :title="`Loading ${route.params.table}...`"
+          :description="`Fetching record details`"
         />
-      </div>
-    </Transition>
+        <!-- Form content -->
+        <div v-else-if="currentRecord.id">
+          <FormEditorLazy
+            ref="formEditorRef"
+            :table-name="(route.params.table as string)"
+            mode="edit"
+            v-model="currentRecord"
+            v-model:errors="updateErrors"
+            v-model:has-changes="hasFormChanges"
+          />
+        </div>
+      </Transition>
+    </div>
   </div>
 
   <!-- Debug info -->
