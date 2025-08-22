@@ -67,32 +67,31 @@ const { execute: uploadFilesApi, error: uploadError } = useApiLazy(
 
 // Prepare folders data
 const folders = computed(() => rootFolders.value?.data || []);
-const folderTotal = computed(() => rootFolders.value?.meta?.totalCount || 0);
+const folderTotal = computed(() => rootFolders.value?.meta?.filterCount || 0);
 
 // Prepare files data
 const files = computed(() => rootFiles.value?.data || []);
-const fileTotal = computed(() => rootFiles.value?.meta?.totalCount || 0);
+const fileTotal = computed(() => rootFiles.value?.meta?.filterCount || 0);
 
 // Stats for PageHeader
 const pageStats = computed(() => {
-  const total = rootFolders.value?.data?.length || 0;
-  const systemFolders =
-    rootFolders.value?.data?.filter((f: any) => f.isSystem)?.length || 0;
+  const totalFolders = rootFolders.value?.meta?.filterCount || 0;
+  const totalFiles = rootFiles.value?.meta?.filterCount || 0;
 
   return [
     {
       icon: "lucide:folder",
       iconColor: "text-primary",
       iconBg: "bg-primary/10",
-      value: total,
+      value: totalFolders,
       label: "Total Folders",
     },
     {
-      icon: "lucide:shield",
-      iconColor: "text-amber-600 dark:text-amber-400",
-      iconBg: "bg-amber-100 dark:bg-amber-900/30",
-      value: systemFolders,
-      label: "System",
+      icon: "lucide:file",
+      iconColor: "text-blue-600 dark:text-blue-400",
+      iconBg: "bg-blue-100 dark:bg-blue-900/30",
+      value: totalFiles,
+      label: "Total Files",
     },
   ];
 });

@@ -85,16 +85,39 @@ const { execute: uploadFilesApi, error: uploadError } = useApiLazy(
 
 // Prepare folders data
 const folders = computed(() => childFolders.value?.data || []);
-const folderTotal = computed(() => childFolders.value?.meta?.totalCount || 0);
+const folderTotal = computed(() => childFolders.value?.meta?.filterCount || 0);
 
 // Prepare files data
 const files = computed(() => folderFiles.value?.data || []);
-const fileTotal = computed(() => folderFiles.value?.meta?.totalCount || 0);
+const fileTotal = computed(() => folderFiles.value?.meta?.filterCount || 0);
 
 // Page title computation
 const pageTitle = computed(() => {
   if (folderPending.value) return "Loading...";
   return `${folder.value?.data?.[0]?.name || "Unknown Folder"} - Files Manager`;
+});
+
+// Stats for PageHeader
+const pageStats = computed(() => {
+  const totalChildFolders = childFolders.value?.meta?.filterCount || 0;
+  const totalChildFiles = folderFiles.value?.meta?.filterCount || 0;
+
+  return [
+    {
+      icon: "lucide:folder",
+      iconColor: "text-primary",
+      iconBg: "bg-primary/10",
+      value: totalChildFolders,
+      label: "Subfolders",
+    },
+    {
+      icon: "lucide:file",
+      iconColor: "text-blue-600 dark:text-blue-400",
+      iconBg: "bg-blue-100 dark:bg-blue-900/30",
+      value: totalChildFiles,
+      label: "Files",
+    },
+  ];
 });
 
 // Handle refresh
@@ -238,6 +261,7 @@ useHeaderActionRegistry([
     <CommonPageHeader
       :title="pageTitle"
       description="Manage files and subfolders in this directory"
+      :stats="pageStats"
       title-size="lg"
       padding-y="py-6"
       show-background
