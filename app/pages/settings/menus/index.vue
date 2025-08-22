@@ -78,7 +78,9 @@ useHeaderActionRegistry([
       return filterColor.value;
     },
     get key() {
-      return `filter-${currentFilter.value.conditions.length}-${hasActiveFilters(currentFilter.value)}`;
+      return `filter-${
+        currentFilter.value.conditions.length
+      }-${hasActiveFilters(currentFilter.value)}`;
     },
     size: "md",
     onClick: () => {
@@ -113,13 +115,9 @@ useHeaderActionRegistry([
 ]);
 
 // Update menus when data changes
-watch(
-  menusData,
-  (newMenus) => {
-    menus.value = newMenus;
-  },
-  { immediate: true }
-);
+watch(menusData, (newMenus) => {
+  menus.value = newMenus;
+});
 
 // Watch for page changes in URL
 watch(
@@ -127,8 +125,7 @@ watch(
   async (newVal) => {
     page.value = newVal ? Number(newVal) : 1;
     await fetchMenus();
-  },
-  { immediate: true }
+  }
 );
 
 // Create loaders for each menu toggle button

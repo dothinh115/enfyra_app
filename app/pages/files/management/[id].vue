@@ -1,9 +1,15 @@
 <script setup lang="ts">
 const route = useRoute();
+const router = useRouter();
 const showCreateModal = ref(false);
 const showUploadModal = ref(false);
 const { getIncludeFields: getFolderFields } = useSchema("folder_definition");
 const { getIncludeFields: getFileFields } = useSchema("file_definition");
+
+// Pagination state
+const folderPage = ref(Number(route.query.folderPage) || 1);
+const filePage = ref(Number(route.query.filePage) || 1);
+const pageLimit = 20; // Show 20 items per page
 
 // Get current folder info
 const {
@@ -30,7 +36,9 @@ const {
 } = useApiLazy(() => `/folder_definition`, {
   query: {
     fields: getFolderFields(),
-    limit: 0,
+    limit: pageLimit,
+    page: folderPage.value,
+    meta: "*",
     sort: "-order,-createdAt",
     filter: {
       parent: {
@@ -51,7 +59,9 @@ const {
 } = useApiLazy(() => `/file_definition`, {
   query: {
     fields: getFileFields(),
-    limit: 0,
+    limit: pageLimit,
+    page: filePage.value,
+    meta: "*",
     sort: "-createdAt",
     filter: {
       folder: {
@@ -75,9 +85,11 @@ const { execute: uploadFilesApi, error: uploadError } = useApiLazy(
 
 // Prepare folders data
 const folders = computed(() => childFolders.value?.data || []);
+const folderTotal = computed(() => childFolders.value?.meta?.totalCount || 0);
 
 // Prepare files data
 const files = computed(() => folderFiles.value?.data || []);
+const fileTotal = computed(() => folderFiles.value?.meta?.totalCount || 0);
 
 // Page title computation
 const pageTitle = computed(() => {
@@ -87,6 +99,15 @@ const pageTitle = computed(() => {
 
 // Handle refresh
 function handleRefreshItems() {
+  // Reset to first page
+  folderPage.value = 1;
+  filePage.value = 1;
+
+  // Update query
+  router.push({
+    query: { ...route.query, folderPage: "1", filePage: "1" },
+  });
+
   fetchFolder();
   fetchChildFolders();
   fetchFolderFiles();
@@ -94,6 +115,15 @@ function handleRefreshItems() {
 
 // Handle folder created
 function handleFolderCreated() {
+  // Reset to first page
+  folderPage.value = 1;
+  filePage.value = 1;
+
+  // Update query
+  router.push({
+    query: { ...route.query, folderPage: "1", filePage: "1" },
+  });
+
   fetchChildFolders();
   fetchFolderFiles();
 }
@@ -135,14 +165,31 @@ async function handleFileUpload(files: File | File[]) {
 }
 
 // Execute API calls when component mounts
-onMounted(() => {
+onMounted(async () => {
   // Fetch folder info first for header (non-blocking)
-  fetchFolder();
+  await fetchFolder();
 
   // Fetch content in parallel (non-blocking)
   fetchChildFolders();
   fetchFolderFiles();
 });
+
+// Watch query changes and refetch data
+watch(
+  () => route.query.folderPage,
+  async (newVal) => {
+    folderPage.value = newVal ? Number(newVal) : 1;
+    await fetchChildFolders();
+  }
+);
+
+watch(
+  () => route.query.filePage,
+  async (newVal) => {
+    filePage.value = newVal ? Number(newVal) : 1;
+    await fetchFolderFiles();
+  }
+);
 
 // Register header actions
 useHeaderActionRegistry([
@@ -212,6 +259,52 @@ useHeaderActionRegistry([
       @refresh-files="fetchFolderFiles"
       @create-folder="showCreateModal = true"
     />
+
+    <!-- Pagination -->
+    <div
+      class="flex justify-center gap-4 mt-6"
+      v-if="!childFoldersPending && !filesPending"
+    >
+      <!-- Folder Pagination -->
+      <div v-if="folderTotal > pageLimit" class="flex items-center gap-2">
+        <span class="text-sm text-gray-600 dark:text-gray-400">Folders:</span>
+        <UPagination
+          v-model:page="folderPage"
+          :items-per-page="pageLimit"
+          :total="folderTotal"
+          show-edges
+          :sibling-count="1"
+          :to="
+            (p) => ({
+              path: route.path,
+              query: { ...route.query, folderPage: p },
+            })
+          "
+          color="secondary"
+          active-color="secondary"
+        />
+      </div>
+
+      <!-- File Pagination -->
+      <div v-if="fileTotal > pageLimit" class="flex items-center gap-2">
+        <span class="text-sm text-gray-600 dark:text-gray-400">Files:</span>
+        <UPagination
+          v-model:page="filePage"
+          :items-per-page="pageLimit"
+          :total="fileTotal"
+          show-edges
+          :sibling-count="1"
+          :to="
+            (p) => ({
+              path: route.path,
+              query: { ...route.query, filePage: p },
+            })
+          "
+          color="secondary"
+          active-color="secondary"
+        />
+      </div>
+    </div>
 
     <!-- Upload Modal -->
     <CommonUploadModal

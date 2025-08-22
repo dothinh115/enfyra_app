@@ -500,10 +500,19 @@ useHeaderActionRegistry([
     <!-- Pagination - only show when more than 1 page -->
     <UPagination
       v-if="!loading && Math.ceil(total / pageLimit) > 1"
-      v-model="page"
-      :page-count="pageLimit"
+      v-model:page="page"
+      :items-per-page="pageLimit"
       :total="total"
-      @update:model-value="fetchData"
+      show-edges
+      :sibling-count="1"
+      :to="
+        (p) => ({
+          path: route.path,
+          query: { ...route.query, page: p },
+        })
+      "
+      color="secondary"
+      active-color="secondary"
     />
 
     <!-- Filter Drawer - use existing component -->

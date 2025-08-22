@@ -4,15 +4,23 @@ const showUploadModal = ref(false);
 const { getIncludeFields: getFolderFields } = useSchema("folder_definition");
 const { getIncludeFields: getFileFields } = useSchema("file_definition");
 
+// Pagination state
+const route = useRoute();
+const router = useRouter();
+const folderPage = ref(Number(route.query.folderPage) || 1);
+const filePage = ref(Number(route.query.filePage) || 1);
+const limit = 20;
 // Get root folders (folders without parent)
 const {
   data: rootFolders,
   pending: rootPending,
   execute: fetchRootFolders,
 } = useApiLazy(() => `folder_definition`, {
-  query: {
+  query: computed(() => ({
     fields: getFolderFields(),
-    limit: 0,
+    limit,
+    page: folderPage.value,
+    meta: "*",
     sort: "-order,-createdAt",
     filter: {
       parent: {
@@ -21,7 +29,7 @@ const {
         },
       },
     },
-  },
+  })),
   errorContext: "Load Root Folders",
 });
 
@@ -31,9 +39,11 @@ const {
   pending: filesPending,
   execute: fetchRootFiles,
 } = useApiLazy(() => `file_definition`, {
-  query: {
+  query: computed(() => ({
     fields: getFileFields(),
-    limit: 0,
+    limit,
+    page: filePage.value,
+    meta: "*",
     sort: "-createdAt",
     filter: {
       folder: {
@@ -42,7 +52,7 @@ const {
         },
       },
     },
-  },
+  })),
   errorContext: "Load Root Files",
 });
 
@@ -57,9 +67,11 @@ const { execute: uploadFilesApi, error: uploadError } = useApiLazy(
 
 // Prepare folders data
 const folders = computed(() => rootFolders.value?.data || []);
+const folderTotal = computed(() => rootFolders.value?.meta?.totalCount || 0);
 
 // Prepare files data
 const files = computed(() => rootFiles.value?.data || []);
+const fileTotal = computed(() => rootFiles.value?.meta?.totalCount || 0);
 
 // Stats for PageHeader
 const pageStats = computed(() => {
@@ -90,6 +102,42 @@ onMounted(() => {
   fetchRootFolders();
   fetchRootFiles();
 });
+
+// Watch page changes and refetch data
+watch(folderPage, (newPage) => {
+  // Update query
+  router.push({
+    query: { ...route.query, folderPage: newPage.toString() },
+  });
+});
+
+watch(filePage, (newPage) => {
+  // Update query
+  router.push({
+    query: { ...route.query, filePage: newPage.toString() },
+  });
+});
+
+// Watch query changes and refetch data
+watch(
+  () => route.query.folderPage,
+  async (newPage) => {
+    if (newPage) {
+      folderPage.value = Number(newPage);
+      await fetchRootFolders();
+    }
+  }
+);
+
+watch(
+  () => route.query.filePage,
+  async (newPage) => {
+    if (newPage) {
+      filePage.value = Number(newPage);
+      await fetchRootFiles();
+    }
+  }
+);
 
 // Handle folder created - refresh both folders and files
 function handleFolderCreated() {
@@ -203,6 +251,52 @@ useHeaderActionRegistry([
       @refresh-files="fetchRootFiles"
       @create-folder="showCreateModal = true"
     />
+
+    <!-- Pagination -->
+    <div
+      class="flex justify-center gap-4 mt-6"
+      v-if="!rootPending && !filesPending"
+    >
+      <!-- Folder Pagination -->
+      <div v-if="folderTotal > limit" class="flex items-center gap-2">
+        <span class="text-sm text-gray-600 dark:text-gray-400">Folders:</span>
+        <UPagination
+          v-model:page="folderPage"
+          :items-per-page="limit"
+          :total="folderTotal"
+          show-edges
+          :sibling-count="1"
+          :to="
+            (p) => ({
+              path: route.path,
+              query: { ...route.query, folderPage: p },
+            })
+          "
+          color="secondary"
+          active-color="secondary"
+        />
+      </div>
+
+      <!-- File Pagination -->
+      <div v-if="fileTotal > limit" class="flex items-center gap-2">
+        <span class="text-sm text-gray-600 dark:text-gray-400">Files:</span>
+        <UPagination
+          v-model:page="filePage"
+          :items-per-page="limit"
+          :total="fileTotal"
+          show-edges
+          :sibling-count="1"
+          :to="
+            (p) => ({
+              path: route.path,
+              query: { ...route.query, filePage: p },
+            })
+          "
+          color="secondary"
+          active-color="secondary"
+        />
+      </div>
+    </div>
 
     <!-- Upload Modal -->
     <CommonUploadModal

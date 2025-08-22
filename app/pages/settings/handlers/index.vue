@@ -81,8 +81,7 @@ watch(
   async (newVal) => {
     page.value = newVal ? Number(newVal) : 1;
     await fetchRouteHandlers();
-  },
-  { immediate: true }
+  }
 );
 
 onMounted(async () => {});
@@ -168,11 +167,20 @@ onMounted(async () => {});
       v-if="!loading && routeHandlers.length > 0"
     >
       <UPagination
-        v-model="page"
-        :page-count="pageLimit"
-        :total="total"
-        size="sm"
         v-if="total > pageLimit"
+        v-model:page="page"
+        :items-per-page="pageLimit"
+        :total="total"
+        show-edges
+        :sibling-count="1"
+        :to="
+          (p) => ({
+            path: route.path,
+            query: { ...route.query, page: p },
+          })
+        "
+        color="secondary"
+        active-color="secondary"
       />
     </div>
   </div>

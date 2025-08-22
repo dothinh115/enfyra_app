@@ -77,11 +77,20 @@
 
     <div class="flex justify-center mt-4" v-if="!loading && extensions.length > 0">
       <UPagination
-        v-model="page"
-        :page-count="limit"
-        :total="total"
-        size="sm"
         v-if="total > limit"
+        v-model:page="page"
+        :items-per-page="limit"
+        :total="total"
+        show-edges
+        :sibling-count="1"
+        :to="
+          (p) => ({
+            path: route.path,
+            query: { ...route.query, page: p },
+          })
+        "
+        color="secondary"
+        active-color="secondary"
       />
     </div>
   </div>

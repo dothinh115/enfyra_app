@@ -25,11 +25,6 @@ const {
   errorContext: "Fetch Hooks",
 });
 
-const { execute: updateHook } = useApiLazy(() => `/hook_definition/0`, {
-  method: "patch",
-  errorContext: "Toggle Hook",
-});
-
 // Update API at setup level
 const { execute: updateHookApi, error: updateError } = useApiLazy(
   () => `/hook_definition`,
@@ -76,8 +71,7 @@ watch(
   async (newVal) => {
     page.value = newVal ? Number(newVal) : 1;
     await fetchHooks();
-  },
-  { immediate: true }
+  }
 );
 
 async function toggleEnabled(hook: any, value?: boolean) {
@@ -223,11 +217,20 @@ onMounted(async () => {});
 
     <div class="flex justify-center" v-if="!loading && hooks.length > 0">
       <UPagination
-        v-model="page"
-        :page-count="pageLimit"
-        :total="total"
-        size="sm"
         v-if="total > pageLimit"
+        v-model:page="page"
+        :items-per-page="pageLimit"
+        :total="total"
+        show-edges
+        :sibling-count="1"
+        :to="
+          (p) => ({
+            path: route.path,
+            query: { ...route.query, page: p },
+          })
+        "
+        color="secondary"
+        active-color="secondary"
       />
     </div>
   </div>

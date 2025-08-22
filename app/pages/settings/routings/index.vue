@@ -110,8 +110,7 @@ watch(
   routesData,
   (newRoutes) => {
     routes.value = newRoutes;
-  },
-  { immediate: true }
+  }
 );
 
 // Handle filter apply from FilterDrawer
@@ -126,8 +125,7 @@ watch(
   async (newVal) => {
     page.value = newVal ? Number(newVal) : 1;
     await fetchRoutes();
-  },
-  { immediate: true }
+  }
 );
 
 // Update API at setup level
