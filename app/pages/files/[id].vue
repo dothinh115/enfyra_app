@@ -156,6 +156,12 @@ async function deleteFile() {
   await navigateTo("/files");
 }
 
+// Page title computation
+const pageTitle = computed(() => {
+  if (pending.value) return "Loading...";
+  return file.value?.data?.[0]?.filename || "File Details";
+});
+
 // Get file icon and color based on mimetype
 function getFileIconAndColor(mimetype: string): {
   icon: string;
@@ -217,7 +223,7 @@ function getFileIconAndColor(mimetype: string): {
   <div class="space-y-6">
     <!-- Page Header -->
     <CommonPageHeader
-      :title="file?.data?.[0]?.filename || 'File Details'"
+      :title="pageTitle"
       :description="`View and edit file information`"
       title-size="xl"
       show-background
