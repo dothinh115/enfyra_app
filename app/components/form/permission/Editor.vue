@@ -5,7 +5,8 @@
       direction="right"
       class="w-full max-w-2xl"
       :ui="{
-        header: 'border-b border-muted text-muted pb-2 flex items-center justify-between',
+        header:
+          'border-b border-muted text-muted pb-2 flex items-center justify-between',
       }"
     >
       <template #header>
@@ -25,14 +26,26 @@
           <div>
             <label class="block text-sm font-medium mb-2">Route</label>
             <div class="flex gap-2">
-              <div class="flex-1 p-3 border border-muted rounded-lg bg-muted/10">
-                <div v-if="localPermission.route" class="flex items-center gap-2">
+              <div
+                class="flex-1 p-3 border border-muted rounded-lg bg-muted/10"
+              >
+                <div
+                  v-if="localPermission.route"
+                  class="flex items-center gap-2"
+                >
                   <UIcon name="lucide:route" class="w-4 h-4 text-primary" />
-                  <span class="font-mono text-sm">{{ localPermission.route }}</span>
+                  <span class="font-mono text-sm">{{
+                    localPermission.route
+                  }}</span>
                 </div>
-                <div v-else class="flex items-center gap-2 text-muted-foreground">
+                <div
+                  v-else
+                  class="flex items-center gap-2 text-muted-foreground"
+                >
                   <UIcon name="lucide:route" class="w-4 h-4" />
-                  <span class="text-sm italic">Click "Select Route" to choose a route</span>
+                  <span class="text-sm italic"
+                    >Click "Select Route" to choose a route</span
+                  >
                 </div>
               </div>
               <UButton
@@ -56,8 +69,16 @@
               <UBadge
                 v-for="action in ['create', 'read', 'update', 'delete']"
                 :key="action"
-                :color="localPermission?.actions?.includes(action) ? 'primary' : 'neutral'"
-                :variant="localPermission?.actions?.includes(action) ? 'solid' : 'outline'"
+                :color="
+                  localPermission?.actions?.includes(action)
+                    ? 'primary'
+                    : 'neutral'
+                "
+                :variant="
+                  localPermission?.actions?.includes(action)
+                    ? 'solid'
+                    : 'outline'
+                "
                 size="md"
                 class="cursor-pointer px-3 py-1.5 transition-all"
                 @click="toggleAction(action)"
@@ -69,19 +90,23 @@
             <p class="text-xs text-muted-foreground mt-2">
               Click to toggle permissions
             </p>
-            <p v-if="!localPermission.actions?.length" class="text-xs text-error mt-1">
+            <p
+              v-if="!localPermission.actions?.length"
+              class="text-xs text-error mt-1"
+            >
               At least one action is required
             </p>
           </div>
 
+          <!-- Allowed Users -->
+          <FormPermissionAllowedUsers
+            v-model="localPermission.allowedUsers"
+            :disabled="disabled"
+          />
+
           <!-- Buttons -->
           <div class="flex justify-end gap-2 pt-4 border-t border-muted">
-            <UButton
-              variant="outline"
-              @click="close"
-            >
-              Cancel
-            </UButton>
+            <UButton variant="outline" @click="close"> Cancel </UButton>
             <UButton
               color="primary"
               @click="apply"
@@ -110,42 +135,50 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  'update:modelValue': [value: boolean];
-  'apply': [permission: any];
+  "update:modelValue": [value: boolean];
+  apply: [permission: any];
 }>();
 
 const isOpen = computed({
   get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value)
+  set: (value) => emit("update:modelValue", value),
 });
 
 const localPermission = ref<any>({
-  route: '',
-  actions: []
+  route: "",
+  actions: [],
+  allowedUsers: [],
 });
 
 const showRoutePicker = ref(false);
 
 // Validation
 const isValid = computed(() => {
-  return !!(localPermission.value.route && localPermission.value.actions?.length > 0);
+  return !!(
+    localPermission.value.route && localPermission.value.actions?.length > 0
+  );
 });
 
 // Watch for permission changes
-watch(() => props.permission, (newPermission) => {
-  if (newPermission) {
-    localPermission.value = {
-      ...newPermission,
-      actions: [...(newPermission.actions || [])]
-    };
-  }
-}, { immediate: true, deep: true });
+watch(
+  () => props.permission,
+  (newPermission) => {
+    if (newPermission) {
+      localPermission.value = {
+        ...newPermission,
+        actions: [...(newPermission.actions || [])],
+        allowedUsers: [...(newPermission.allowedUsers || [])],
+      };
+    }
+  },
+  { immediate: true, deep: true }
+);
 
 function toggleAction(action: string) {
   if (!localPermission.value.actions) {
     localPermission.value.actions = [];
   }
-  
+
   const index = localPermission.value.actions.indexOf(action);
   if (index > -1) {
     localPermission.value.actions.splice(index, 1);
@@ -156,16 +189,16 @@ function toggleAction(action: string) {
 
 function getActionIcon(action: string): string {
   const icons: Record<string, string> = {
-    create: 'lucide:plus-circle',
-    read: 'lucide:eye',
-    update: 'lucide:edit',
-    delete: 'lucide:trash-2'
+    create: "lucide:plus-circle",
+    read: "lucide:eye",
+    update: "lucide:edit",
+    delete: "lucide:trash-2",
   };
-  return icons[action] || 'lucide:shield';
+  return icons[action] || "lucide:shield";
 }
 
 function close() {
-  emit('update:modelValue', false);
+  emit("update:modelValue", false);
 }
 
 function onRouteSelect(route: any) {
@@ -173,7 +206,7 @@ function onRouteSelect(route: any) {
 }
 
 function apply() {
-  emit('apply', { ...localPermission.value });
+  emit("apply", { ...localPermission.value });
   close();
 }
 </script>

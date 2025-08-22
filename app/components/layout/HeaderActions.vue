@@ -1,12 +1,12 @@
 <template>
   <div class="flex gap-2">
     <!-- Component actions -->
-    <template v-for="action in visibleComponentActions" :key="action.key || action.id">
+    <template
+      v-for="action in visibleComponentActions"
+      :key="action.key || action.id"
+    >
       <PermissionGate :condition="action.permission">
-        <component
-          :is="action.component"
-          v-bind="action.props"
-        />
+        <component :is="action.component" v-bind="action.props" />
       </PermissionGate>
     </template>
 
@@ -14,11 +14,23 @@
     <template v-for="action in visibleButtonActions" :key="action.id">
       <PermissionGate :condition="action.permission">
         <UButton
-          :label="isTablet ? undefined : (isRef(action.label) ? unref(action.label) : action.label)"
+          :label="
+            isTablet
+              ? undefined
+              : isRef(action.label)
+              ? unref(action.label)
+              : action.label
+          "
           :icon="isRef(action.icon) ? unref(action.icon) : action.icon"
-          :variant="(isRef(action.variant) ? unref(action.variant) : action.variant) || 'solid'"
-          :color="action.color || 'primary'"
-          :size="isTablet ? 'sm' : (action.size || 'md')"
+          :variant="
+            (isRef(action.variant) ? unref(action.variant) : action.variant) ||
+            'solid'
+          "
+          :color="
+            (isRef(action.color) ? unref(action.color) : action.color) ||
+            'primary'
+          "
+          :size="isTablet ? 'sm' : action.size || 'md'"
           :loading="unref(action.loading)"
           :disabled="unref(action.disabled)"
           :to="action.to"
@@ -33,7 +45,6 @@
 </template>
 
 <script setup lang="ts">
-
 const route = useRoute();
 const { headerActions } = useHeaderActionRegistry();
 const { isTablet } = useScreen();
@@ -60,15 +71,15 @@ const visibleActions = computed(() => {
   });
 
   // Filter for right side only (header actions are on the right by default)
-  return filtered.filter(action => action.side === 'right' || !action.side);
+  return filtered.filter((action) => action.side === "right" || !action.side);
 });
 
 const visibleComponentActions = computed(() => {
-  return visibleActions.value.filter(action => action.component);
+  return visibleActions.value.filter((action) => action.component);
 });
 
 const visibleButtonActions = computed(() => {
-  return visibleActions.value.filter(action => !action.component);
+  return visibleActions.value.filter((action) => !action.component);
 });
 
 const handleActionClick = (action: HeaderAction) => {

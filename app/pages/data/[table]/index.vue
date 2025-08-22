@@ -128,7 +128,6 @@ const columnDropdownItems = computed(() => {
   const schema = schemas.value[tableName];
   if (!schema?.definition) return [];
 
-
   const items = schema.definition
     .filter((field: any) => field.fieldType === "column")
     .map((field: any) => ({
@@ -147,18 +146,10 @@ const columnDropdownItems = computed(() => {
 
 // Toggle column visibility
 function toggleColumnVisibility(columnName: string) {
-  console.log("🚀 toggleColumnVisibility called:", columnName);
-  console.log(
-    "🔍 Before toggle - visibleColumns:",
-    Array.from(visibleColumns.value)
-  );
-
   if (visibleColumns.value.has(columnName)) {
     visibleColumns.value.delete(columnName);
-    console.log("❌ Removed column:", columnName);
   } else {
     visibleColumns.value.add(columnName);
-    console.log("✅ Added column:", columnName);
   }
 
   // Trigger reactivity
@@ -166,11 +157,6 @@ function toggleColumnVisibility(columnName: string) {
 
   // Save to localStorage
   saveColumnVisibility(tableName, visibleColumns.value);
-
-  console.log(
-    "🔍 After toggle - visibleColumns:",
-    Array.from(visibleColumns.value)
-  );
 }
 
 useSubHeaderActionRegistry([
@@ -226,9 +212,9 @@ const columns = computed<ColumnDef<any>[]>(() => {
       } else if (field.type === "boolean") {
         config.format = "badge";
         config.formatOptions = {
-          badgeColor: (value: boolean) => value ? "success" : "neutral",
+          badgeColor: (value: boolean) => (value ? "success" : "neutral"),
           badgeVariant: "soft",
-          badgeMap: { true: "Yes", false: "No" }
+          badgeMap: { true: "Yes", false: "No" },
         };
       } else {
         // Custom formatter for text truncation
@@ -238,10 +224,10 @@ const columns = computed<ColumnDef<any>[]>(() => {
             if (value === null || value === undefined) return "-";
             const str = String(value);
             return str.length > 50 ? str.slice(0, 50) + "..." : str;
-          }
+          },
         };
       }
-      
+
       return buildColumn(config);
     });
 
@@ -270,7 +256,7 @@ const columns = computed<ColumnDef<any>[]>(() => {
     ],
     width: 80,
   };
-  
+
   const actionsColumn = buildActionsColumn(actionsConfig);
 
   return [...dataColumns, actionsColumn];
@@ -406,7 +392,9 @@ useHeaderActionRegistry([
       return filterColor.value;
     },
     get key() {
-      return `filter-${currentFilter.value.conditions.length}-${hasActiveFilters(currentFilter.value)}`;
+      return `filter-${
+        currentFilter.value.conditions.length
+      }-${hasActiveFilters(currentFilter.value)}`;
     },
     size: "md",
     onClick: () => {

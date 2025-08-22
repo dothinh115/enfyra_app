@@ -6,7 +6,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   "update:modelValue": [value: boolean];
-  created: [folder: any];
+  created: [];
 }>();
 
 const toast = useToast();
@@ -33,12 +33,12 @@ const isOpen = computed({
 watch(isOpen, (newVal) => {
   if (newVal) {
     newFolder.value = generateEmptyForm();
-    
+
     // Set parent if provided
     if (props.parentId) {
       newFolder.value.parent = { id: props.parentId };
     }
-    
+
     createErrors.value = {};
   }
 });
@@ -56,7 +56,7 @@ async function handleCreate() {
     return;
   }
 
-  const result = await createFolder({ body: newFolder.value });
+  await createFolder({ body: newFolder.value });
 
   // Check if there was an error
   if (createError.value) {
@@ -69,8 +69,8 @@ async function handleCreate() {
     description: "New folder created successfully!",
   });
 
-  // Emit created event with new folder data
-  emit("created", result?.data?.[0]);
+  // Emit created event
+  emit("created");
 
   // Close modal
   isOpen.value = false;
@@ -111,6 +111,7 @@ async function handleCreate() {
             :errors="createErrors"
             @update:errors="(errors) => (createErrors = errors)"
             table-name="folder_definition"
+            :excluded="['children', 'files']"
           />
         </UForm>
       </template>

@@ -1,165 +1,263 @@
-interface FileDefinition {
-  id: string;
-  filename: string;
-  filename_disk: string;
-  mimetype: string;
-  type: "image" | "video" | "document" | "audio" | "archive" | "other" | null;
-  filesize: string;
-  storage: string;
-  location: string;
-  title?: string;
-  description?: string;
-  visibility: "public" | "private";
-  status: "active" | "archived" | "quarantine";
-  folder?: any;
-  uploaded_by?: any;
-  createdAt?: string;
-  updatedAt?: string;
-}
 
-interface FileItem extends FileDefinition {
-  itemType: "file";
-  icon: string;
-  displayName: string;
-  size: string;
-  modifiedAt: string;
-  assetUrl: string;
-  previewUrl: string;
-}
+export function useFileManager(parentFilter?: any) {
+  // API call for folders (only if parentFilter is provided)
+  const apiCall = parentFilter
+    ? useApiLazy(() => "folder_definition", {
+        query: computed(() => ({
+          limit: 100,
+          fields: "*",
+          sort: "order,name",
+          filter: parentFilter,
+        })),
+      })
+    : { data: ref(null), pending: ref(false), execute: () => {} };
 
-interface FolderItem {
-  id: string;
-  name: string;
-  itemType: "folder";
-  icon: string;
-  displayName: string;
-  size: null;
-  modifiedAt: string;
-  children?: any[];
-}
+  const { data: folders, pending, execute: refreshFolders } = apiCall;
 
-export function useFileManager(parentId?: string) {
-  // Fetch folders
-  const { getIncludeFields: getFolderFields } = useSchema("folder_definition");
-  const {
-    data: foldersData,
-    pending: foldersPending,
-    execute: fetchFolders,
-  } = useApiLazy(() => "folder_definition", {
-    query: computed(() => ({
-      fields: getFolderFields(),
-      limit: 0,
-      sort: "-order,-createdAt",
-      filter: parentId
-        ? {
-            parent: { id: { _eq: parentId } },
-          }
-        : {
-            parent: { id: { _is_null: true } },
-          },
-    })),
-    errorContext: "Load Folders",
-  });
+  const toast = useToast();
+  const { confirm } = useConfirm();
 
-  // Fetch files
-  const { getIncludeFields: getFileFields } = useSchema("file_definition");
-  const {
-    data: filesData,
-    pending: filesPending,
-    execute: fetchFiles,
-  } = useApiLazy(() => "file_definition", {
-    query: computed(() => ({
-      fields: getFileFields(),
-      limit: 0,
-      sort: "-createdAt",
-      filter: parentId
-        ? {
-            folder: {
-              id: {
-                _eq: parentId,
-              },
-            },
-          }
-        : {
-            folder: { _is_null: true },
-          },
-    })),
-    errorContext: "Load Files",
-  });
-
-  // Combined data
-  const folders = computed(() => foldersData.value?.data || []);
-  const files = computed(
-    () => filesData.value?.data || ([] as FileDefinition[])
+  // API calls at setup level (following best practices)
+  const { execute: deleteFolderApi, error: deleteFolderError } = useApiLazy(
+    () => "/folder_definition",
+    {
+      method: "delete",
+      errorContext: "Delete Folder",
+    }
   );
 
-  // Combined items for display (folders first, then files)
-  const items = computed((): (FolderItem | FileItem)[] => {
-    const folderItems: FolderItem[] = folders.value.map((folder: any) => ({
-      ...folder,
-      itemType: "folder" as const,
-      icon: "lucide:folder",
-      displayName: folder.name,
-      size: null,
-      modifiedAt: folder.updatedAt,
-    }));
+  const { execute: deleteFileApi, error: deleteFileError } = useApiLazy(
+    () => "/file_definition",
+    {
+      method: "delete",
+      errorContext: "Delete File",
+    }
+  );
 
-    const fileItems: FileItem[] = files.value.map((file: FileDefinition) => ({
-      ...file,
-      itemType: "file" as const,
-      icon: getFileIcon(file.mimetype, file.type),
-      displayName: file.filename || file.title || "Untitled",
-      size: formatFileSize(parseInt(file.filesize || "0")),
-      modifiedAt: file.updatedAt || "",
-      assetUrl: `/assets/${file.id}`, // Asset URL for files
-      previewUrl: `/assets/${file.id}`, // Same URL for preview
-    }));
+  // Use useState for global state sharing across components
+  const showDetailModal = useState("folder-detail-modal", () => false);
+  const selectedFolder = useState<any>("folder-selected", () => null);
 
-    return [...folderItems, ...fileItems];
-  });
+  // Multi-select state
+  const selectedFolders = useState<string[]>("folder-selected-list", () => []);
+  const isSelectionMode = useState("folder-selection-mode", () => false);
 
-  const pending = computed(() => foldersPending.value || filesPending.value);
-
-  // Fetch both folders and files
-  const fetchAll = async () => {
-    await Promise.all([fetchFolders(), fetchFiles()]);
-  };
-
-  // File utilities
-  function getFileIcon(mimetype: string, type: FileDefinition["type"]): string {
-    if (mimetype?.startsWith("image/")) return "lucide:image";
-    if (mimetype?.startsWith("video/")) return "lucide:video";
-    if (mimetype?.startsWith("audio/")) return "lucide:music";
-    if (mimetype?.includes("pdf")) return "lucide:file-text";
-    if (mimetype?.includes("zip") || mimetype?.includes("archive"))
-      return "lucide:archive";
-    if (mimetype?.startsWith("text/")) return "lucide:file-text";
-    if (type === "document") return "lucide:file-text";
-    return "lucide:file";
+  // Multi-select functions
+  function toggleFolderSelection(folderId: string) {
+    const index = selectedFolders.value.indexOf(folderId);
+    if (index > -1) {
+      selectedFolders.value.splice(index, 1);
+    } else {
+      selectedFolders.value.push(folderId);
+    }
   }
 
-  function formatFileSize(bytes: number): string {
-    if (bytes === 0) return "0 B";
-    const k = 1024;
-    const sizes = ["B", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+  function toggleSelectionMode() {
+    isSelectionMode.value = !isSelectionMode.value;
+
+    if (!isSelectionMode.value) {
+      selectedFolders.value = [];
+    }
+  }
+
+  function toggleSelectAll(totalCount: number = 0, folderList?: any[]) {
+    if (selectedFolders.value.length === totalCount) {
+      // All selected, deselect all
+      selectedFolders.value = [];
+    } else {
+      // Not all selected, select all
+      selectedFolders.value = [];
+      const foldersToUse = folderList || folders.value?.data || [];
+      foldersToUse.forEach((folder: any) => {
+        selectedFolders.value.push(folder.id);
+      });
+    }
+  }
+
+  function showFolderDetail(folder: any) {
+    selectedFolder.value = folder;
+    console.log(selectedFolder.value);
+    showDetailModal.value = true;
+  }
+
+  function getContextMenuItems(folder: any, refreshCallback?: () => void) {
+    return [
+      [
+        {
+          label: "Details",
+          icon: "i-lucide-info",
+          onSelect: () => showFolderDetail(folder),
+        },
+      ],
+      [
+        {
+          label: "Delete",
+          icon: "i-lucide-trash",
+          color: "error" as const,
+          onSelect: () => deleteFolder(folder, refreshCallback),
+        },
+      ],
+    ];
+  }
+
+  async function deleteFolder(folder: any, refreshCallback?: () => void) {
+    const isConfirmed = await confirm({
+      title: "Delete Folder",
+      content: `Are you sure you want to delete folder "${folder.name}"? This action cannot be undone.`,
+      confirmText: "Delete",
+      cancelText: "Cancel",
+    });
+
+    if (isConfirmed) {
+      await deleteFolderApi({ id: folder.id });
+
+      if (deleteFolderError.value) {
+        return;
+      }
+
+      // Call refresh callback if provided, otherwise use internal one
+      if (refreshCallback) {
+        refreshCallback();
+      } else if (refreshFolders) {
+        await refreshFolders();
+      }
+
+      toast.add({
+        title: "Success",
+        description: `Folder "${folder.name}" has been deleted successfully!`,
+        color: "success",
+      });
+    }
+  }
+
+  async function deleteSelectedFolders(
+    folderList?: any[],
+    refreshCallback?: () => void
+  ) {
+    if (selectedFolders.value.length === 0) return;
+
+    const currentFolders = folderList || folders.value?.data || [];
+    const folderNames = selectedFolders.value
+      .map((id) => currentFolders.find((f: any) => f.id === id)?.name)
+      .filter(Boolean);
+
+    const isConfirmed = await confirm({
+      title: "Delete Multiple Folders",
+      content: `Are you sure you want to delete ${
+        selectedFolders.value.length
+      } folder(s)? This includes: ${folderNames.slice(0, 3).join(", ")}${
+        folderNames.length > 3 ? ` and ${folderNames.length - 3} more` : ""
+      }. This action cannot be undone.`,
+      confirmText: "Delete",
+      cancelText: "Cancel",
+    });
+
+    if (isConfirmed) {
+      // Use batch operations as per docs recommendation
+      await deleteFolderApi({ ids: selectedFolders.value });
+
+      if (deleteFolderError.value) {
+        return;
+      }
+
+      // Call refresh callback if provided, otherwise use internal one
+      if (refreshCallback) {
+        refreshCallback();
+      } else if (refreshFolders) {
+        await refreshFolders();
+      }
+
+      toast.add({
+        title: "Success",
+        description: `${selectedFolders.value.length} folder(s) deleted successfully!`,
+        color: "success",
+      });
+
+      selectedFolders.value = [];
+      isSelectionMode.value = false;
+    }
+  }
+
+  async function deleteFile(file: any, refreshCallback?: () => void) {
+    const isConfirmed = await confirm({
+      title: "Delete File",
+      content: `Are you sure you want to delete file "${file.filename || file.displayName}"? This action cannot be undone.`,
+      confirmText: "Delete",
+      cancelText: "Cancel",
+    });
+
+    if (isConfirmed) {
+      await deleteFileApi({ id: file.id });
+
+      if (deleteFileError.value) {
+        return;
+      }
+
+      if (refreshCallback) {
+        refreshCallback();
+      }
+
+      toast.add({
+        title: "Success",
+        description: `File "${file.filename || file.displayName}" has been deleted successfully!`,
+        color: "success",
+      });
+    }
+  }
+
+  async function deleteSelectedFiles(fileIds: string[], refreshCallback?: () => void) {
+    if (fileIds.length === 0) return;
+
+    const isConfirmed = await confirm({
+      title: "Delete Multiple Files",
+      content: `Are you sure you want to delete ${fileIds.length} file(s)? This action cannot be undone.`,
+      confirmText: "Delete",
+      cancelText: "Cancel",
+    });
+
+    if (isConfirmed) {
+      // Use batch operations as per docs recommendation
+      await deleteFileApi({ ids: fileIds });
+
+      if (deleteFileError.value) {
+        return;
+      }
+
+      if (refreshCallback) {
+        refreshCallback();
+      }
+
+      toast.add({
+        title: "Success",
+        description: `${fileIds.length} file(s) deleted successfully!`,
+        color: "success",
+      });
+    }
   }
 
   return {
-    // Data
+    // Data (only used when API call is made)
     folders,
-    files,
-    items,
     pending,
+    refreshFolders,
 
-    // Actions
-    fetchAll,
-    fetchFolders,
-    fetchFiles,
+    // Modal state
+    showDetailModal,
+    selectedFolder,
 
-    // Utilities
-    getFileIcon,
-    formatFileSize,
+    // Selection state
+    selectedFolders,
+    isSelectionMode,
+
+    // Functions
+    toggleFolderSelection,
+    toggleSelectionMode,
+    toggleSelectAll,
+    showFolderDetail,
+    getContextMenuItems,
+    deleteFolder,
+    deleteSelectedFolders,
+    deleteFile,
+    deleteSelectedFiles,
   };
 }

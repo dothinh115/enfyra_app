@@ -1,10 +1,13 @@
 <template>
   <div class="space-y-4">
     <!-- Grid View -->
-    <div v-if="viewMode === 'grid'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      <TransitionGroup name="scale">
+    <div
+      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+    >
+      <!-- Folder Items Container -->
+      <div v-if="transformedFolders.length > 0" class="contents">
         <div
-          v-for="folder in folders"
+          v-for="folder in transformedFolders"
           :key="folder.id"
           class="group relative"
           @mouseenter="hoveredFolderId = folder.id"
@@ -13,7 +16,7 @@
           <!-- Card Container with Context Menu -->
           <UContextMenu :items="getContextMenuItems(folder)">
             <div
-              class="relative bg-white dark:bg-gray-800 rounded-xl border transition-all duration-300 cursor-pointer overflow-hidden"
+              class="relative bg-white dark:bg-gray-800 rounded-xl border transition-all duration-300 cursor-pointer overflow-hidden h-full flex flex-col"
               :class="[
                 selectedItems.includes(folder.id)
                   ? 'border-primary-500 shadow-lg shadow-primary-500/20 scale-[1.02]'
@@ -37,11 +40,18 @@
               </div>
 
               <!-- Card Header with Gradient -->
-              <div class="relative h-32 p-6 flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20">
+              <div
+                class="relative h-32 p-6 flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20"
+              >
                 <!-- Background Pattern -->
                 <div class="absolute inset-0 opacity-10">
                   <svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <pattern
+                      id="grid"
+                      width="20"
+                      height="20"
+                      patternUnits="userSpaceOnUse"
+                    >
                       <circle cx="10" cy="10" r="1" fill="currentColor" />
                     </pattern>
                     <rect width="100%" height="100%" fill="url(#grid)" />
@@ -56,7 +66,7 @@
                     class="transition-all duration-300"
                     :class="[
                       getFolderIcon(folder).color,
-                      hoveredFolderId === folder.id ? 'scale-110 rotate-3' : ''
+                      hoveredFolderId === folder.id ? 'scale-110 rotate-3' : '',
                     ]"
                   />
                 </div>
@@ -68,11 +78,14 @@
               </div>
 
               <!-- Card Body -->
-              <div class="p-4 space-y-3">
+              <div class="p-4 space-y-3 flex-1 flex flex-col">
                 <!-- Folder Name -->
                 <div class="flex items-start justify-between gap-2">
                   <!-- Inline Edit Mode -->
-                  <div v-if="editingFolderId === folder.id" class="flex items-center gap-1 flex-1">
+                  <div
+                    v-if="editingFolderId === folder.id"
+                    class="flex items-center gap-1 flex-1"
+                  >
                     <input
                       v-model="editingName"
                       @keyup.enter="!editingLoading && saveEdit(folder)"
@@ -108,10 +121,13 @@
                       />
                     </div>
                   </div>
-                  
+
                   <!-- Normal Display Mode -->
-                  <div v-else class="flex items-center justify-between gap-2 flex-1">
-                    <h3 
+                  <div
+                    v-else
+                    class="flex items-center justify-between gap-2 flex-1"
+                  >
+                    <h3
                       class="font-semibold text-gray-900 dark:text-white truncate flex-1"
                       :title="folder.name"
                       @dblclick="startRename(folder)"
@@ -127,7 +143,7 @@
                       class="opacity-0 group-hover:opacity-100 transition-opacity ml-1"
                     />
                   </div>
-                  
+
                   <UBadge
                     v-if="folder.isSystem"
                     color="warning"
@@ -139,7 +155,7 @@
                 </div>
 
                 <!-- Folder Description -->
-                <p 
+                <p
                   v-if="folder.description"
                   class="text-sm text-gray-500 dark:text-gray-400 line-clamp-2"
                   :title="folder.description"
@@ -148,7 +164,9 @@
                 </p>
 
                 <!-- Folder Stats -->
-                <div class="flex items-center justify-between text-xs text-gray-400 dark:text-gray-500">
+                <div
+                  class="flex items-center justify-between text-xs text-gray-400 dark:text-gray-500"
+                >
                   <div class="flex items-center gap-1">
                     <UIcon name="lucide:calendar" class="w-3 h-3" />
                     <span>{{ formatDate(folder.createdAt) }}</span>
@@ -160,7 +178,9 @@
                 </div>
 
                 <!-- Quick Actions (visible on hover) -->
-                <div class="flex items-center gap-2 pt-2 border-t border-gray-100 dark:border-gray-700 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <div
+                  class="flex items-center gap-2 pt-2 border-t border-gray-100 dark:border-gray-700 opacity-0 group-hover:opacity-100 transition-opacity duration-200 mt-auto"
+                >
                   <UButton
                     icon="lucide:folder-open"
                     size="xs"
@@ -185,87 +205,30 @@
             </div>
           </UContextMenu>
         </div>
-      </TransitionGroup>
-    </div>
-
-    <!-- List View -->
-    <div v-else-if="viewMode === 'list'" class="space-y-1">
-      <div
-        v-for="folder in folders"
-        :key="folder.id"
-        class="group flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer"
-        :class="{
-          'bg-primary/10 border border-primary/30': isSelectionMode && selectedItems.includes(folder.id)
-        }"
-        @click="handleFolderClick(folder)"
-      >
-        <!-- Selection checkbox -->
-        <div v-if="isSelectionMode" class="flex-shrink-0">
-          <UCheckbox
-            :checked="selectedItems.includes(folder.id)"
-            @click.stop
-            @change="toggleItemSelection(folder.id)"
-          />
-        </div>
-
-        <!-- Folder Icon -->
-        <div class="flex-shrink-0">
-          <UIcon
-            :name="getFolderIcon(folder).name"
-            class="w-5 h-5"
-            :class="getFolderIcon(folder).color"
-          />
-        </div>
-
-        <!-- Name -->
-        <div class="flex-1 min-w-0">
-          <p class="font-medium truncate">{{ folder.name }}</p>
-        </div>
-
-        <!-- Items count -->
-        <div class="flex-shrink-0 text-right w-20">
-          <p class="text-sm text-muted-foreground">
-            {{ folder.fileCount || 0 }} items
-          </p>
-        </div>
-
-        <!-- Modified date -->
-        <div class="flex-shrink-0 text-right w-32">
-          <p class="text-sm text-muted-foreground">
-            {{ formatDate(folder.updatedAt) }}
-          </p>
-        </div>
-
-        <!-- Actions -->
-        <div class="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-          <UDropdownMenu :items="getDropdownMenuItems(folder)">
-            <UButton
-              icon="lucide:more-horizontal"
-              variant="ghost"
-              size="sm"
-              @click.stop
-            />
-          </UDropdownMenu>
-        </div>
       </div>
-    </div>
 
-    <!-- Empty state -->
-    <div v-if="folders.length === 0 && !loading" class="text-center py-12">
-      <UIcon name="lucide:folder" class="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-      <p class="text-lg font-medium text-muted-foreground">{{ emptyTitle }}</p>
-      <p class="text-sm text-muted-foreground mt-1">{{ emptyDescription }}</p>
+      <!-- Empty State -->
+      <div v-else class="col-span-full text-center py-12">
+        <UIcon
+          name="lucide:folder"
+          class="w-16 h-16 text-muted-foreground mx-auto mb-4"
+        />
+        <p class="text-lg font-medium text-muted-foreground">
+          {{ emptyTitle }}
+        </p>
+        <p class="text-sm text-muted-foreground mt-1">
+          {{ emptyDescription }}
+        </p>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { formatDate } from '~/utils/common/filter/filter-helpers';
+import { formatDate } from "~/utils/common/filter/filter-helpers";
 
 interface Props {
   folders: any[];
-  viewMode: 'grid' | 'list';
-  loading?: boolean;
   emptyTitle?: string;
   emptyDescription?: string;
   isSelectionMode?: boolean;
@@ -273,17 +236,24 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  loading: false,
   emptyTitle: "No folders",
   emptyDescription: "No folders in this location",
   isSelectionMode: false,
   selectedItems: () => [],
 });
 
+// Transform folders data for display
+const transformedFolders = computed(() => {
+  return props.folders.map((folder: any) => ({
+    ...folder,
+    fileCount: folder.children?.length || folder.files?.length || 0,
+  }));
+});
+
 const emit = defineEmits<{
-  'folder-click': [folder: any];
-  'toggle-selection': [folderId: string];
-  'refresh-folders': [];
+  "folder-click": [folder: any];
+  "toggle-selection": [folderId: string];
+  "refresh-folders": [];
 }>();
 
 // Hover state for cards
@@ -291,23 +261,57 @@ const hoveredFolderId = ref<string | null>(null);
 
 // Inline editing state
 const editingFolderId = ref<string | null>(null);
-const editingName = ref('');
-const originalName = ref('');
+const editingName = ref("");
+const originalName = ref("");
 const editingLoading = ref(false);
 
 // Import folder management for folder details
-const { showFolderDetail } = useFolderManagement();
+const { showFolderDetail } = useFileManager();
+
+// Import confirm for delete confirmation
+const { confirm } = useConfirm();
+
+// Import permissions
+const { checkPermissionCondition } = usePermissions();
+
+// Check delete permission for folders
+const canDeleteFolder = checkPermissionCondition({
+  and: [
+    {
+      route: "/folder_definition",
+      actions: ["delete"],
+    },
+  ],
+});
+
+// Delete folder API at setup level
+const { execute: executeDeleteFolder } = useApiLazy(
+  () => `/folder_definition`,
+  {
+    method: "delete",
+    errorContext: "Delete Folder",
+  }
+);
+
+// Update folder API at setup level
+const { execute: executeUpdateFolder, error: updateError } = useApiLazy(
+  () => `/folder_definition`,
+  {
+    method: "patch",
+    errorContext: "Update Folder",
+  }
+);
 
 function handleFolderClick(folder: any) {
   if (props.isSelectionMode) {
     toggleItemSelection(folder.id);
   } else {
-    emit('folder-click', folder);
+    emit("folder-click", folder);
   }
 }
 
 function toggleItemSelection(folderId: string) {
-  emit('toggle-selection', folderId);
+  emit("toggle-selection", folderId);
 }
 
 // Show folder detail function
@@ -321,9 +325,11 @@ function startRename(folder: any) {
   editingFolderId.value = folder.id;
   editingName.value = folder.name;
   originalName.value = folder.name;
-  
+
   nextTick(() => {
-    const input = document.querySelector(`input[data-editing-id="${folder.id}"]`) as HTMLInputElement;
+    const input = document.querySelector(
+      `input[data-editing-id="${folder.id}"]`
+    ) as HTMLInputElement;
     if (input) {
       input.focus();
       input.select();
@@ -334,142 +340,151 @@ function startRename(folder: any) {
 function cancelEdit() {
   if (editingLoading.value) return;
   editingFolderId.value = null;
-  editingName.value = '';
-  originalName.value = '';
+  editingName.value = "";
+  originalName.value = "";
   editingLoading.value = false;
+}
+
+// Delete folder function
+async function deleteFolder(folder: any) {
+  const isConfirmed = await confirm({
+    title: "Delete Folder",
+    content: `Are you sure you want to delete "${folder.name}"? This action cannot be undone.`,
+    confirmText: "Delete",
+    cancelText: "Cancel",
+  });
+
+  if (!isConfirmed) return;
+
+  await executeDeleteFolder({ id: folder.id });
+  emit("refresh-folders");
 }
 
 async function saveEdit(folder: any) {
   if (!editingName.value.trim()) {
-    console.error('Folder name cannot be empty');
     return;
   }
 
   editingLoading.value = true;
 
-  try {
-    const { execute: updateFolder, error } = useApiLazy(
-      () => `folder_definition/${folder.id}`,
-      {
-        method: "patch",
-        errorContext: "Update Folder",
-      }
-    );
+  await executeUpdateFolder({
+    id: folder.id,
+    body: { name: editingName.value.trim() },
+  });
 
-    await updateFolder({ body: { name: editingName.value.trim() } });
-
-    if (error.value) {
-      editingLoading.value = false;
-      return;
-    }
-
-    console.log('Folder updated successfully');
-
-    editingFolderId.value = null;
-    editingName.value = '';
-    originalName.value = '';
+  if (updateError.value) {
     editingLoading.value = false;
-    
-    // Refresh the list
-    emit('refresh-folders');
-    
-  } catch (error) {
-    console.error('Error updating folder:', error);
-    editingLoading.value = false;
+    return;
   }
+
+  editingFolderId.value = null;
+  editingName.value = "";
+  originalName.value = "";
+  editingLoading.value = false;
+
+  // Refresh the list
+  emit("refresh-folders");
 }
 
 // Get context menu items for folders
 function getContextMenuItems(folder: any) {
-  return [
-    [{
-      label: 'Open',
-      icon: 'lucide:folder-open',
-      onSelect: () => {
-        emit('folder-click', folder);
+  const menuItems: any = [
+    [
+      {
+        label: "Open",
+        icon: "lucide:folder-open",
+        onSelect: () => {
+          emit("folder-click", folder);
+        },
       },
-    }],
-    [{
-      label: 'Rename',
-      icon: 'lucide:edit-3',
-      onSelect: () => {
-        startRename(folder);
+
+      {
+        label: "Rename",
+        icon: "lucide:edit-3",
+        onSelect: () => {
+          startRename(folder);
+        },
       },
-    }],
-    [{
-      label: 'Details',
-      icon: 'lucide:info',
-      onSelect: () => {
-        showDetail(folder);
+
+      {
+        label: "Details",
+        icon: "lucide:info",
+        onSelect: () => {
+          showDetail(folder);
+        },
       },
-    }],
-    [{
-      label: 'Delete',
-      icon: 'lucide:trash-2',
-      class: 'text-red-500',
-      onSelect: () => {
-        console.log('Delete folder:', folder);
-      },
-    }],
+    ],
   ];
+
+  // Only show delete option if user has permission
+  if (canDeleteFolder) {
+    menuItems.push([
+      {
+        label: "Delete",
+        icon: "lucide:trash-2",
+        color: "error" as const,
+        onSelect: () => {
+          deleteFolder(folder);
+        },
+      },
+    ]);
+  }
+
+  return menuItems;
 }
 
 // Get dropdown menu items (flat array)
 function getDropdownMenuItems(folder: any) {
-  return [
+  const menuItems: any = [
     {
-      label: 'Open',
-      icon: 'lucide:folder-open',
+      label: "Open",
+      icon: "lucide:folder-open",
       onSelect: () => {
-        emit('folder-click', folder);
+        emit("folder-click", folder);
       },
     },
     {
-      label: 'Rename',
-      icon: 'lucide:edit-3',
+      label: "Rename",
+      icon: "lucide:edit-3",
       onSelect: () => {
         startRename(folder);
       },
     },
     {
-      label: 'Details',
-      icon: 'lucide:info',
+      label: "Details",
+      icon: "lucide:info",
       onSelect: () => {
         showDetail(folder);
       },
     },
-    {
-      label: 'Delete',
-      icon: 'lucide:trash-2',
-      class: 'text-red-500',
-      onSelect: () => {
-        console.log('Delete folder:', folder);
-      },
-    },
   ];
+
+  if (canDeleteFolder) {
+    menuItems.push({
+      label: "Delete",
+      icon: "lucide:trash-2",
+      color: "error" as const,
+      onSelect: () => {
+        deleteFolder(folder);
+      },
+    });
+  }
+
+  return menuItems;
 }
 
 // Get folder icon with color
 function getFolderIcon(folder: any) {
   if (folder.isSystem) {
     return {
-      name: folder.icon || 'lucide:shield',
-      color: 'text-amber-500 dark:text-amber-400',
+      name: folder.icon || "lucide:shield",
+      color: "text-amber-500 dark:text-amber-400",
     };
   }
-  
+
   return {
-    name: folder.icon || 'lucide:folder',
-    color: 'text-blue-500 dark:text-blue-400',
+    name: folder.icon || "lucide:folder",
+    color: "text-blue-500 dark:text-blue-400",
   };
 }
 </script>
-
-<style>
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-</style>

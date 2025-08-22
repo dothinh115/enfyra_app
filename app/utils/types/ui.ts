@@ -93,7 +93,12 @@ export interface HeaderAction {
   id: string;
   label?: string | ComputedRef<string>;
   icon?: string | ComputedRef<string>;
-  variant?: "solid" | "outline" | "ghost" | "soft" | ComputedRef<"solid" | "outline" | "ghost" | "soft">;
+  variant?:
+    | "solid"
+    | "outline"
+    | "ghost"
+    | "soft"
+    | ComputedRef<"solid" | "outline" | "ghost" | "soft">;
   color?:
     | "primary"
     | "secondary"
@@ -101,7 +106,16 @@ export interface HeaderAction {
     | "success"
     | "info"
     | "error"
-    | "neutral";
+    | "neutral"
+    | ComputedRef<
+        | "primary"
+        | "secondary"
+        | "warning"
+        | "success"
+        | "info"
+        | "error"
+        | "neutral"
+      >;
   size?: "sm" | "md" | "lg" | "xl";
   loading?:
     | boolean
@@ -126,11 +140,7 @@ export interface HeaderAction {
   key?: string; // For forcing component re-render
   side?: "left" | "right"; // Position in sub-header, default: "right"
   global?: boolean; // If true, persist across route changes
-  show?:
-    | boolean
-    | Ref<boolean>
-    | Readonly<Ref<boolean>>
-    | ComputedRef<boolean>; // For conditional visibility
+  show?: boolean | Ref<boolean> | Readonly<Ref<boolean>> | ComputedRef<boolean>; // For conditional visibility
 }
 
 // Settings Card Component
@@ -163,7 +173,7 @@ export interface SettingsCardProps {
   title: string;
   description?: string;
   icon: string;
-  iconColor?: 'primary' | 'success' | 'warning' | 'error' | 'neutral';
+  iconColor?: "primary" | "success" | "warning" | "error" | "neutral";
   stats?: SettingsCardStat[];
   actions?: SettingsCardAction[];
   headerActions?: SettingsCardHeaderAction[];

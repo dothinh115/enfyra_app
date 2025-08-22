@@ -7,12 +7,15 @@
       <!-- Left Side Actions -->
       <!-- Component actions -->
       <component
-        v-for="action in subHeaderActions.filter(
-          (a) => {
-            const showValue = a.show === undefined ? true : (isRef(a.show) ? unref(a.show) : a.show);
-            return a && a.component && a.side === 'left' && showValue;
-          }
-        )"
+        v-for="action in subHeaderActions.filter((a) => {
+          const showValue =
+            a.show === undefined
+              ? true
+              : isRef(a.show)
+              ? unref(a.show)
+              : a.show;
+          return a && a.component && a.side === 'left' && showValue;
+        })"
         :key="action.key || action.id"
         :is="action.component"
         v-bind="action.props"
@@ -20,17 +23,26 @@
 
       <!-- Regular button actions -->
       <UButton
-        v-for="action in subHeaderActions.filter(
-          (a) => {
-            const showValue = a.show === undefined ? true : (isRef(a.show) ? unref(a.show) : a.show);
-            return a && !a.component && a.side === 'left' && showValue;
-          }
-        )"
+        v-for="action in subHeaderActions.filter((a) => {
+          const showValue =
+            a.show === undefined
+              ? true
+              : isRef(a.show)
+              ? unref(a.show)
+              : a.show;
+          return a && !a.component && a.side === 'left' && showValue;
+        })"
         :key="action.id"
         :icon="isRef(action.icon) ? unref(action.icon) : action.icon"
         :label="isRef(action.label) ? unref(action.label) : action.label"
-        :variant="(isRef(action.variant) ? unref(action.variant) : action.variant) || 'soft'"
-        :color="action.color || 'neutral'"
+        :variant="
+          (isRef(action.variant) ? unref(action.variant) : action.variant) ||
+          'soft'
+        "
+        :color="
+          (isRef(action.color) ? unref(action.color) : action.color) ||
+          'neutral'
+        "
         :size="action.size || (isTablet ? 'sm' : 'md')"
         :disabled="
           typeof action.disabled === 'boolean'
@@ -46,12 +58,15 @@
     <div class="flex items-center gap-2">
       <!-- Component actions -->
       <component
-        v-for="action in subHeaderActions.filter(
-          (a) => {
-            const showValue = a.show === undefined ? true : (isRef(a.show) ? unref(a.show) : a.show);
-            return a && a.component && a.side === 'right' && showValue;
-          }
-        )"
+        v-for="action in subHeaderActions.filter((a) => {
+          const showValue =
+            a.show === undefined
+              ? true
+              : isRef(a.show)
+              ? unref(a.show)
+              : a.show;
+          return a && a.component && a.side === 'right' && showValue;
+        })"
         :key="action.key || action.id"
         :is="action.component"
         v-bind="action.props"
@@ -59,17 +74,26 @@
 
       <!-- Regular button actions -->
       <UButton
-        v-for="action in subHeaderActions.filter(
-          (a) => {
-            const showValue = a.show === undefined ? true : (isRef(a.show) ? unref(a.show) : a.show);
-            return a && !a.component && a.side === 'right' && showValue;
-          }
-        )"
+        v-for="action in subHeaderActions.filter((a) => {
+          const showValue =
+            a.show === undefined
+              ? true
+              : isRef(a.show)
+              ? unref(a.show)
+              : a.show;
+          return a && !a.component && a.side === 'right' && showValue;
+        })"
         :key="action.id"
         :icon="isRef(action.icon) ? unref(action.icon) : action.icon"
         :label="isRef(action.label) ? unref(action.label) : action.label"
-        :variant="(isRef(action.variant) ? unref(action.variant) : action.variant) || 'soft'"
-        :color="action.color || 'neutral'"
+        :variant="
+          (isRef(action.variant) ? unref(action.variant) : action.variant) ||
+          'soft'
+        "
+        :color="
+          (isRef(action.color) ? unref(action.color) : action.color) ||
+          'neutral'
+        "
         :size="action.size || (isTablet ? 'sm' : 'md')"
         :disabled="
           typeof action.disabled === 'boolean'

@@ -1,7 +1,10 @@
 <script setup lang="ts">
 interface Props {
   parentId?: string;
-  loading?: boolean;
+  folders?: any[];
+  files?: any[];
+  foldersLoading?: boolean;
+  filesLoading?: boolean;
   emptyTitle?: string;
   emptyDescription?: string;
   showCreateButton?: boolean;
@@ -9,12 +12,17 @@ interface Props {
 
 interface Emits {
   refreshItems: [];
+  refreshFolders: [];
+  refreshFiles: [];
   createFolder: [];
   createFile: [];
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  loading: false,
+  foldersLoading: false,
+  filesLoading: false,
+  folders: () => [],
+  files: () => [],
   emptyTitle: "No items yet",
   emptyDescription:
     "This folder is empty. Create folders or upload files to get started.",
@@ -27,12 +35,7 @@ const emit = defineEmits<Emits>();
 const route = useRoute();
 const router = useRouter();
 
-// File manager composable
-const { items, pending, fetchAll } = useFileManager(props.parentId);
-
-// View mode - get from query first, then localStorage, then default to grid
 const getInitialViewMode = (): "grid" | "list" => {
-  // Priority: URL query > localStorage > default
   if (route.query.view) {
     return route.query.view as "grid" | "list";
   }
@@ -49,37 +52,20 @@ const getInitialViewMode = (): "grid" | "list" => {
 
 const viewMode = ref<"grid" | "list">(getInitialViewMode());
 
-// Selection state
 const isSelectionMode = ref(false);
 const selectedItems = ref<string[]>([]);
 
-// Folder management composable for state
-const { deleteSelectedFolders } = useFolderManagement();
+const selectedFolders = useState<string[]>("folder-selected-list", () => []);
+const { confirm } = useConfirm();
 
-// Computed loading state
-const isLoading = computed(() => props.loading || pending.value);
-
-// Separate folders and files
-const folderItems = computed(() =>
-  items.value.filter((item) => item.itemType === "folder")
-);
-
-const fileItems = computed(() =>
-  items.value.filter((item) => item.itemType === "file")
-);
-
-// Handle item click
-function handleItemClick(item: any) {
-  if (item.itemType === "folder") {
-    navigateTo(`/files/management/${item.id}`);
-  } else {
-    // Handle file click - show preview or details
-    console.log("File clicked:", item);
-    // Could show preview modal or file details
-  }
+function handleFolderClick(folder: any) {
+  navigateTo(`/files/management/${folder.id}`);
 }
 
-// Toggle item selection
+function handleFileClick(file: any) {
+  // Handle file click - show preview or details
+}
+
 function toggleItemSelection(itemId: string) {
   const index = selectedItems.value.indexOf(itemId);
   if (index > -1) {
@@ -89,86 +75,85 @@ function toggleItemSelection(itemId: string) {
   }
 }
 
-// Show item context menu
-function showItemMenu(item: any, event: Event) {
-  console.log("Show menu for item:", item, event);
-  // Could implement context menu here
-}
-
-// Handle bulk delete
 async function handleBulkDelete() {
   if (selectedItems.value.length === 0) return;
 
-  // Separate folders and files
-  const folderIds = selectedItems.value.filter(
-    (id) => items.value.find((item) => item.id === id)?.itemType === "folder"
+  const folderIds = selectedItems.value.filter((id) =>
+    props.folders.find((folder) => folder.id === id)
   );
-  const fileIds = selectedItems.value.filter(
-    (id) => items.value.find((item) => item.id === id)?.itemType === "file"
+  const fileIds = selectedItems.value.filter((id) =>
+    props.files.find((file) => file.id === id)
   );
 
-  // Delete folders (existing logic)
+  const folderNames = folderIds
+    .map((id) => props.folders.find((f) => f.id === id)?.name)
+    .filter(Boolean);
+  const fileNames = fileIds
+    .map(
+      (id) =>
+        props.files.find((f) => f.id === id)?.filename ||
+        props.files.find((f) => f.id === id)?.displayName
+    )
+    .filter(Boolean);
+
+  const allNames = [...folderNames, ...fileNames];
+  const totalCount = selectedItems.value.length;
+
+  const isConfirmed = await confirm({
+    title: "Delete Multiple Items",
+    content: `Are you sure you want to delete ${totalCount} item(s)? This includes: ${allNames
+      .slice(0, 3)
+      .join(", ")}${
+      allNames.length > 3 ? ` and ${allNames.length - 3} more` : ""
+    }. This action cannot be undone.`,
+    confirmText: "Delete",
+    cancelText: "Cancel",
+  });
+
+  if (!isConfirmed) return;
+
+  let deletionErrors = false;
+
   if (folderIds.length > 0) {
-    const foldersToDelete = items.value.filter(
-      (item) => folderIds.includes(item.id) && item.itemType === "folder"
+    selectedFolders.value = folderIds;
+    const { execute: deleteFolderApi, error: deleteFolderError } = useApiLazy(
+      () => "/folder_definition",
+      { method: "delete", errorContext: "Delete Folder" }
     );
-    await deleteSelectedFolders(foldersToDelete, () => emit("refreshItems"));
-  }
 
-  // Delete files
-  if (fileIds.length > 0) {
-    try {
-      // Delete files one by one
-      for (const fileId of fileIds) {
-        const { execute: deleteFile, error } = useApiLazy(
-          () => `file_definition/${fileId}`,
-          {
-            method: "delete",
-            errorContext: "Delete File",
-          }
-        );
-
-        await deleteFile();
-
-        if (error.value) {
-          console.error(`Failed to delete file ${fileId}:`, error.value);
-          // Continue with other files even if one fails
-        }
-      }
-
-      // Show success message
-      const toast = useToast();
-      toast.add({
-        title: "Success",
-        description: `${fileIds.length} file(s) deleted successfully`,
-        color: "success",
-      });
-
-      // Refresh the file list
-      await fetchAll();
-      emit("refreshItems");
-    } catch (error) {
-      console.error("Error deleting files:", error);
-      const toast = useToast();
-      toast.add({
-        title: "Error",
-        description: "Failed to delete some files",
-        color: "error",
-      });
+    await deleteFolderApi({ ids: folderIds });
+    if (deleteFolderError.value) {
+      deletionErrors = true;
     }
   }
 
-  // Clear selection
-  selectedItems.value = [];
-  isSelectionMode.value = false;
+  if (fileIds.length > 0 && !deletionErrors) {
+    const { execute: deleteFileApi, error: deleteFileError } = useApiLazy(
+      () => "/file_definition",
+      { method: "delete", errorContext: "Delete File" }
+    );
+
+    await deleteFileApi({ ids: fileIds });
+    if (deleteFileError.value) {
+      deletionErrors = true;
+    }
+  }
+
+  if (!deletionErrors) {
+    emit("refreshItems");
+    selectedItems.value = [];
+    isSelectionMode.value = false;
+
+    const toast = useToast();
+    toast.add({
+      title: "Success",
+      description: `${totalCount} item(s) deleted successfully!`,
+      color: "success",
+    });
+  }
 }
 
-// Execute API call when component mounts
-onMounted(() => {
-  fetchAll();
-});
-
-// Register subheader actions for view mode AND selection actions
+// Register subheader actions
 useSubHeaderActionRegistry([
   {
     id: "page-view-mode",
@@ -182,12 +167,10 @@ useSubHeaderActionRegistry([
       const newViewMode = viewMode.value === "grid" ? "list" : "grid";
       viewMode.value = newViewMode;
 
-      // Save to localStorage
       if (process.client) {
         localStorage.setItem("file-manager-view-mode", newViewMode);
       }
 
-      // Update URL query
       router.push({
         query: { ...route.query, view: newViewMode },
       });
@@ -209,6 +192,19 @@ useSubHeaderActionRegistry([
       }
     },
     side: "right",
+    show: computed(() => viewMode.value === "grid"),
+    permission: {
+      and: [
+        {
+          route: "/folder_definition",
+          actions: ["delete"],
+        },
+        {
+          route: "/file_definition",
+          actions: ["delete"],
+        },
+      ],
+    },
   },
   {
     id: "bulk-delete",
@@ -219,33 +215,45 @@ useSubHeaderActionRegistry([
     onClick: handleBulkDelete,
     side: "right",
     show: computed(
-      () => isSelectionMode.value && selectedItems.value.length > 0
+      () =>
+        viewMode.value === "grid" &&
+        isSelectionMode.value &&
+        selectedItems.value.length > 0
     ),
   },
   {
     id: "select-all",
     label: computed(() => {
-      const totalCount = items.value?.length || 0;
+      const totalCount =
+        (props.folders?.length || 0) + (props.files?.length || 0);
       return selectedItems.value.length === totalCount
         ? "Deselect All"
         : "Select All";
     }),
     icon: computed(() => {
-      const totalCount = items.value?.length || 0;
+      const totalCount =
+        (props.folders?.length || 0) + (props.files?.length || 0);
       return selectedItems.value.length === totalCount
         ? "lucide:square"
         : "lucide:check-square";
     }),
+    color: computed(() => {
+      const totalCount =
+        (props.folders?.length || 0) + (props.files?.length || 0);
+      return selectedItems.value.length === totalCount ? "warning" : "primary";
+    }),
     onClick: () => {
-      const totalCount = items.value?.length || 0;
+      const totalCount =
+        (props.folders?.length || 0) + (props.files?.length || 0);
       if (selectedItems.value.length === totalCount) {
         selectedItems.value = [];
       } else {
-        selectedItems.value = items.value.map((item) => item.id);
+        const allItems = [...props.folders, ...props.files];
+        selectedItems.value = allItems.map((item) => item.id);
       }
     },
     side: "right",
-    show: computed(() => isSelectionMode.value),
+    show: computed(() => viewMode.value === "grid" && isSelectionMode.value),
   },
 ]);
 </script>
@@ -254,78 +262,57 @@ useSubHeaderActionRegistry([
   <div class="space-y-6">
     <!-- Content -->
     <div class="min-h-[400px] space-y-8">
-      <!-- Loading state -->
-      <CommonLoadingState
-        v-if="isLoading"
-        title="Loading files and folders..."
-        description="Fetching folder structure and files"
-        size="md"
-      />
-
-      <div v-else class="space-y-8">
+      <div class="space-y-8">
         <!-- Folders Section -->
-        <div v-if="folderItems.length > 0">
+        <div>
           <div class="flex items-center gap-2 mb-4">
             <UIcon name="lucide:folder" class="w-5 h-5 text-blue-500" />
             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
               Folders
             </h2>
             <UBadge color="primary" variant="soft" size="sm">
-              {{ folderItems.length }}
+              {{ props.folders.length }}
             </UBadge>
           </div>
 
-          <FolderGrid
-            :folders="folderItems"
+          <FolderView
+            :folders="props.folders"
             :view-mode="viewMode"
-            :loading="isLoading"
+            :loading="props.foldersLoading && props.folders.length === 0"
             empty-title="No folders"
             empty-description="No folders in this location"
             :is-selection-mode="isSelectionMode"
             :selected-items="selectedItems"
-            @folder-click="handleItemClick"
+            @folder-click="handleFolderClick"
             @toggle-selection="toggleItemSelection"
-            @refresh-folders="fetchAll"
+            @refresh-folders="() => emit('refreshFolders')"
           />
         </div>
 
         <!-- Files Section -->
-        <div v-if="fileItems.length > 0">
+        <div>
           <div class="flex items-center gap-2 mb-4">
             <UIcon name="lucide:file" class="w-5 h-5 text-gray-500" />
             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
               Files
             </h2>
             <UBadge color="neutral" variant="soft" size="sm">
-              {{ fileItems.length }}
+              {{ props.files.length }}
             </UBadge>
           </div>
 
-          <FileGrid
-            :files="fileItems"
+          <FileView
+            :files="props.files"
             :view-mode="viewMode"
-            :loading="isLoading"
+            :loading="props.filesLoading && props.files.length === 0"
             empty-title="No files"
             empty-description="No files in this location"
             :is-selection-mode="isSelectionMode"
             :selected-items="selectedItems"
-            @file-click="handleItemClick"
+            @file-click="handleFileClick"
             @toggle-selection="toggleItemSelection"
-            @refresh-files="fetchAll"
+            @refresh-files="() => emit('refreshFiles')"
           />
-        </div>
-
-        <!-- Empty state when both are empty -->
-        <div
-          v-if="folderItems.length === 0 && fileItems.length === 0"
-          class="text-center py-12"
-        >
-          <UIcon
-            name="lucide:folder-open"
-            class="w-16 h-16 text-gray-400 mx-auto mb-4"
-          />
-          <p class="text-lg font-medium text-gray-500">{{ emptyTitle }}</p>
-          <p class="text-sm text-gray-400 mt-1">{{ emptyDescription }}</p>
         </div>
       </div>
     </div>

@@ -1,7 +1,8 @@
 import { useLoader } from "./useLoader";
 
 // Extend ApiOptions for useApi-specific features
-interface UseApiOptions<T> extends Omit<ApiOptions<T>, 'lazy' | 'transform' | 'default'> {
+interface UseApiOptions<T>
+  extends Omit<ApiOptions<T>, "lazy" | "transform" | "default"> {
   watch?: boolean;
   disableBatch?: boolean;
   default?: () => T | Ref<T>;
@@ -112,6 +113,7 @@ export function useApi<T = any>(
     body?: any;
     id?: string | number;
     ids?: (string | number)[];
+    files?: any[];
   }) => {
     loader.startLoading();
     error.value = null;
@@ -210,6 +212,7 @@ export function useApiLazy<T = any>(
     body?: any;
     id?: string | number;
     ids?: (string | number)[];
+    files?: any[];
   }) => {
     loader.startLoading();
     error.value = null;
@@ -232,6 +235,29 @@ export function useApiLazy<T = any>(
             baseURL: apiPrefix,
             method: method as any,
             body: finalBody ? toRaw(finalBody) : undefined,
+            headers,
+            query: finalQuery,
+          });
+        });
+
+        const responses = await Promise.all(promises);
+        data.value = responses as T;
+        return responses;
+      }
+
+      // Batch operation with files array for POST method
+      if (
+        !opts.disableBatch &&
+        method === "post" &&
+        executeOpts?.files &&
+        Array.isArray(executeOpts.files) &&
+        executeOpts.files.length > 0
+      ) {
+        const promises = executeOpts.files.map(async (fileObj: any) => {
+          return $fetch<T>(basePath, {
+            baseURL: apiPrefix,
+            method: method as any,
+            body: fileObj, // {file: file1, folder: null}
             headers,
             query: finalQuery,
           });

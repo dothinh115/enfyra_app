@@ -27,10 +27,16 @@
           @click="editPermission(index, item)"
         >
           <div class="flex items-center gap-2">
-            <UIcon :name="item.allowAll ? 'lucide:shield-check' : 'lucide:shield'" 
-                  :class="item.allowAll ? 'w-4 h-4 text-success' : 'w-4 h-4 text-primary'" />
+            <UIcon
+              :name="item.allowAll ? 'lucide:shield-check' : 'lucide:shield'"
+              :class="
+                item.allowAll ? 'w-4 h-4 text-success' : 'w-4 h-4 text-primary'
+              "
+            />
             <template v-if="item.allowAll">
-              <span class="font-medium text-sm text-success">Allow All - No Restrictions</span>
+              <span class="font-medium text-sm text-success"
+                >Allow All - No Restrictions</span
+              >
             </template>
             <template v-else>
               <span class="font-mono text-sm">{{
@@ -136,6 +142,7 @@ function addPermission() {
     id: Math.random().toString(36).substring(2, 9),
     route: "",
     actions: [],
+    allowedUsers: [],
   };
   props.group.conditions.push(newPermission);
   updateGroup();
@@ -166,10 +173,11 @@ function isPermission(item: any): boolean {
 }
 
 function editPermission(index: number, item: any) {
-  editingPermission.value = { 
-    ...item, 
+  editingPermission.value = {
+    ...item,
     actions: [...(item.actions || [])],
-    allowAll: item.allowAll || false
+    allowedUsers: [...(item.allowedUsers || [])],
+    allowAll: item.allowAll || false,
   };
   editingIndex.value = index;
   showEditModal.value = true;

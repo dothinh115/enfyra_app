@@ -1,4 +1,3 @@
-
 export function usePermissions() {
   const { me } = useAuth();
 
@@ -30,9 +29,23 @@ export function usePermissions() {
     if (!routePermissions.length) return false;
 
     // Check if any permission has the required method
-    return routePermissions.some((permission: any) =>
+    const hasMethodPermission = routePermissions.some((permission: any) =>
       permission.methods.some((methodObj: any) => methodObj.method === method)
     );
+
+    // If method permission exists, check if user is in allowedUsers
+    if (hasMethodPermission) {
+      return routePermissions.some((permission: any) => {
+        // If no allowedUsers specified, permission applies to all users with role
+        if (!permission.allowedUsers || permission.allowedUsers.length === 0) {
+          return true;
+        }
+        // Check if current user is in allowedUsers list
+        return permission.allowedUsers.includes(me.value.id);
+      });
+    }
+
+    return false;
   };
 
   // Check if user has permission for a single rule
