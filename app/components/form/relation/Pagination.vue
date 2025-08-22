@@ -13,7 +13,6 @@ const emit = defineEmits<{
 }>();
 
 const totalPages = computed(() => Math.ceil(props.total / props.limit) || 1);
-const shouldShowPagination = computed(() => totalPages.value > 1);
 const isValidPage = computed(
   () => props.page >= 1 && props.page <= totalPages.value
 );
@@ -31,26 +30,25 @@ function apply() {
 </script>
 
 <template>
-  <div class="flex justify-between pt-2">
-    <div v-if="shouldShowPagination" class="text-xs text-muted-foreground flex gap-2 items-center">
+  <div class="flex justify-between">
+    <div class="text-xs text-muted-foreground flex gap-2 items-center">
       <span>Page {{ page }} / {{ totalPages }}</span>
       <span v-if="!isValidPage" class="text-red-500">(Invalid page)</span>
       <UButton
         icon="i-lucide-chevron-left"
         size="xs"
         @click="goToPage(page - 1)"
-        :disabled="page <= 1 || loading"
+        :disabled="page <= 1 || totalPages <= 1 || loading"
         :title="`Go to page ${page - 1}`"
       />
       <UButton
         icon="i-lucide-chevron-right"
         size="xs"
         @click="goToPage(page + 1)"
-        :disabled="page >= totalPages || loading"
+        :disabled="page >= totalPages || totalPages <= 1 || loading"
         :title="`Go to page ${page + 1}`"
       />
     </div>
-    <div v-else></div>
     <UButton
       icon="lucide:check"
       @click="apply"
