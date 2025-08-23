@@ -154,7 +154,7 @@ const isInViewport = ref(false);
 const maxRetries = 3;
 
 // Convert assets path to /api/assets/... for backend proxy
-const imageSrc = computed(() => {
+const imageSrc = (() => {
   let src = props.src;
 
   if (src.startsWith("/assets/")) {
@@ -171,22 +171,24 @@ const imageSrc = computed(() => {
   }
 
   return src;
-});
+})();
 
 // Generate WebP source URL
 const webpSrc = computed((): string | null => {
   if (!props.enableWebp) return null;
 
-  const src = imageSrc.value;
+  const src = imageSrc;
 
   // For external services that support format conversion
   if (src.includes("picsum.photos")) {
     return `${src}&format=webp`;
   }
 
-  // For your backend API - let users handle format via query params
+  // For your backend API - replace existing format or add new one
   if (src.startsWith("/api/assets/")) {
-    return `${src}&format=webp`;
+    const url = new URL(src, window.location.origin);
+    url.searchParams.set("format", "webp");
+    return url.pathname + url.search;
   }
 
   // For other external URLs, can't convert
@@ -197,7 +199,7 @@ const webpSrc = computed((): string | null => {
 const avifSrc = computed((): string | null => {
   if (!props.enableAvif) return null;
 
-  const src = imageSrc.value;
+  const src = imageSrc;
 
   // For external services that support AVIF
   if (src.includes("picsum.photos")) {
@@ -324,7 +326,7 @@ function retryLoad() {
       imageRef.value.src = "";
       requestAnimationFrame(() => {
         if (imageRef.value) {
-          imageRef.value.src = imageSrc.value;
+          imageRef.value.src = imageSrc;
         }
       });
     }
