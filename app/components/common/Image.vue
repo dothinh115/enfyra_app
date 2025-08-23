@@ -170,7 +170,7 @@ const sizeClasses = computed(() => {
     md: "w-24 h-24",
     lg: "w-32 h-32",
     xl: "w-48 h-48",
-    custom: "",
+    custom: "min-w-[100px] min-h-[100px]",
   };
   return sizes[props.size];
 });
