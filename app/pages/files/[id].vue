@@ -254,12 +254,16 @@ function getFileIconAndColor(mimetype: string): {
           class="bg-gray-800/50 rounded-xl border border-gray-700/50 shadow-xl"
         >
           <div class="flex justify-center">
-            <div v-if="form.mimetype?.startsWith('image/')">
+            <div
+              v-if="form.mimetype?.startsWith('image/')"
+              class="max-w-132 max-h-132"
+            >
               <CommonImage
                 :src="`/assets/${form.id}`"
                 :alt="form.filename"
-                class="max-w-132 max-h-132 object-contain"
-                loading="lazy"
+                class="object-contain h-full w-132 h-132"
+                loading-area="custom"
+                custom-loading-size="300px"
               />
             </div>
 
