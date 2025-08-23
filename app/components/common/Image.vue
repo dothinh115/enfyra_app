@@ -165,8 +165,9 @@ const imageSrc = computed(() => {
 
   // Auto-add format=avif if no format specified for backend assets
   if (src.startsWith("/api/assets/") && !src.includes("format=")) {
-    const separator = src.includes("?") ? "&" : "?";
-    src = `${src}${separator}format=avif`;
+    const url = new URL(src, window.location.origin);
+    url.searchParams.set("format", "avif");
+    src = url.pathname + url.search;
   }
 
   return src;
