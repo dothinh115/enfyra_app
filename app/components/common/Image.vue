@@ -206,9 +206,14 @@ const avifSrc = computed((): string | null => {
     return `${src}&format=avif`;
   }
 
-  // For your backend API - let users handle format via query params
+  // For your backend API - if already has format=avif, return null
   if (src.startsWith("/api/assets/")) {
-    return `${src}&format=avif`;
+    if (src.includes("format=avif")) {
+      return null; // Already optimized
+    }
+    const url = new URL(src, window.location.origin);
+    url.searchParams.set("format", "avif");
+    return url.pathname + url.search;
   }
 
   return null;
