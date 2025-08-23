@@ -270,11 +270,14 @@ function getComponentConfigByKey(key: string) {
       };
 
     case "array-select":
+      const schemaOptions = column?.options || [];
+      const finalOptions = config.options || schemaOptions;
+
       return {
         component: resolveComponent("ArraySelectEditor"),
         componentProps: {
           ...componentPropsBase,
-          options: config.options ?? [],
+          options: finalOptions,
           modelValue: ensureArray(props.formData[key]),
           "onUpdate:modelValue": (val: string[]) => {
             updateFormData(key, val);
