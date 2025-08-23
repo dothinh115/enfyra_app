@@ -59,23 +59,25 @@ interface DataTableProps {
 </template>
 
 <script setup lang="ts">
+import { buildColumn } from "~/composables/useDataTableColumns";
+
 const users = ref([
   { id: 1, name: "John Doe", email: "john@example.com" },
   { id: 2, name: "Jane Smith", email: "jane@example.com" },
 ]);
 
-const userColumns = [
-  {
+const userColumns = computed(() => [
+  buildColumn({
     id: "name",
     header: "Name",
     accessorKey: "name",
-  },
-  {
+  }),
+  buildColumn({
     id: "email",
     header: "Email",
     accessorKey: "email",
-  },
-];
+  }),
+]);
 
 function handleUserClick(user: any) {
   navigateTo(`/users/${user.id}`);
@@ -97,6 +99,21 @@ function handleUserClick(user: any) {
 </template>
 
 <script setup lang="ts">
+import { buildColumn } from "~/composables/useDataTableColumns";
+
+const columns = computed(() => [
+  buildColumn({
+    id: "name",
+    header: "Name",
+    accessorKey: "name",
+  }),
+  buildColumn({
+    id: "email",
+    header: "Email",
+    accessorKey: "email",
+  }),
+]);
+
 function handleBulkDelete(selectedItems: any[]) {
   // Handle bulk delete operation
   console.log("Deleting items:", selectedItems);
@@ -121,6 +138,26 @@ DataTable supports right-click context menus for enhanced user interaction:
 </template>
 
 <script setup lang="ts">
+import { buildColumn } from "~/composables/useDataTableColumns";
+
+const fileColumns = computed(() => [
+  buildColumn({
+    id: "filename",
+    header: "Filename",
+    accessorKey: "filename",
+  }),
+  buildColumn({
+    id: "filesize",
+    header: "Size",
+    accessorKey: "filesize",
+  }),
+  buildColumn({
+    id: "isPublished",
+    header: "Status",
+    accessorKey: "isPublished",
+  }),
+]);
+
 function getContextMenuItems(file: any) {
   const menuItems = [
     [
@@ -163,8 +200,10 @@ function getContextMenuItems(file: any) {
 
 ```vue
 <script setup lang="ts">
-const columns = [
-  {
+import { buildColumn } from "~/composables/useDataTableColumns";
+
+const columns = computed(() => [
+  buildColumn({
     id: "avatar",
     header: "",
     cell: ({ row }) => {
@@ -178,8 +217,8 @@ const columns = [
         h("span", { class: "font-medium" }, user.name),
       ]);
     },
-  },
-  {
+  }),
+  buildColumn({
     id: "status",
     header: "Status",
     cell: ({ getValue }) => {
@@ -197,8 +236,8 @@ const columns = [
         status
       );
     },
-  },
-];
+  }),
+]);
 </script>
 ```
 
@@ -303,6 +342,7 @@ const tableData = computed(() => data.value?.data || []);
 
 ### 1. Column Definition
 
+- **Always use `useDataTableColumns` composable** for consistent column building
 - Use descriptive `id` values for columns
 - Provide proper `header` text for accessibility
 - Use `accessorKey` for simple field access
@@ -310,16 +350,18 @@ const tableData = computed(() => data.value?.data || []);
 
 ```vue
 <script setup lang="ts">
-// ✅ Good
-const columns = [
-  {
+import { buildColumn } from "~/composables/useDataTableColumns";
+
+// ✅ Good - Using composable
+const columns = computed(() => [
+  buildColumn({
     id: "user-name",
     header: "Full Name",
     accessorKey: "name",
-  },
-];
+  }),
+]);
 
-// ❌ Avoid
+// ❌ Avoid - Raw column objects
 const columns = [
   {
     id: "col1",
@@ -370,16 +412,35 @@ function getContextMenuItems(item: any) {
 
 - Use `pageSize` to limit rendered rows
 - Implement server-side pagination for large datasets
-- Use `computed` for column definitions
+- **Always use `computed` with `useDataTableColumns` composable**
 - Avoid inline functions in templates
+- Avoid recreating column objects on every render
 
 ```vue
 <script setup lang="ts">
-// ✅ Good - Computed columns
-const columns = computed(() => buildColumns());
+import { buildColumn } from "~/composables/useDataTableColumns";
+
+// ✅ Good - Computed columns with composable
+const columns = computed(() => [
+  buildColumn({
+    id: "name",
+    header: "Name",
+    accessorKey: "name",
+  }),
+  buildColumn({
+    id: "email",
+    header: "Email",
+    accessorKey: "email",
+  }),
+]);
 
 // ❌ Avoid - Inline column definition
 // :columns="[{ id: 'name', header: 'Name' }]"
+
+// ❌ Avoid - Non-computed columns
+const columns = [
+  buildColumn({ id: "name", header: "Name", accessorKey: "name" }),
+];
 </script>
 ```
 
@@ -419,6 +480,46 @@ const tableData = computed(() => {
     @bulk-delete="handleBulkDelete"
   />
 </template>
+
+<script setup lang="ts">
+import {
+  buildColumn,
+  buildActionsColumn,
+} from "~/composables/useDataTableColumns";
+
+const fileColumns = computed(() => [
+  buildColumn({
+    id: "filename",
+    header: "Filename",
+    accessorKey: "filename",
+  }),
+  buildColumn({
+    id: "filesize",
+    header: "Size",
+    accessorKey: "filesize",
+  }),
+  buildColumn({
+    id: "isPublished",
+    header: "Status",
+    accessorKey: "isPublished",
+  }),
+  buildActionsColumn({
+    width: 60,
+    actions: [
+      {
+        label: "View",
+        icon: "i-lucide-eye",
+        onSelect: (file) => navigateTo(`/files/${file.id}`),
+      },
+      {
+        label: "Download",
+        icon: "i-lucide-download",
+        onSelect: (file) => downloadFile(file),
+      },
+    ],
+  }),
+]);
+</script>
 ```
 
 ### Settings Management Table
@@ -434,6 +535,28 @@ const tableData = computed(() => {
     "
   />
 </template>
+
+<script setup lang="ts">
+import { buildColumn } from "~/composables/useDataTableColumns";
+
+const settingsColumns = computed(() => [
+  buildColumn({
+    id: "name",
+    header: "Name",
+    accessorKey: "name",
+  }),
+  buildColumn({
+    id: "type",
+    header: "Type",
+    accessorKey: "type",
+  }),
+  buildColumn({
+    id: "isActive",
+    header: "Status",
+    accessorKey: "isActive",
+  }),
+]);
+</script>
 ```
 
 ### User Management Table
@@ -449,6 +572,157 @@ const tableData = computed(() => {
     @bulk-delete="handleBulkUserDelete"
   />
 </template>
+
+<script setup lang="ts">
+import {
+  buildColumn,
+  buildActionsColumn,
+} from "~/composables/useDataTableColumns";
+
+const userColumns = computed(() => [
+  buildColumn({
+    id: "name",
+    header: "Name",
+    accessorKey: "name",
+  }),
+  buildColumn({
+    id: "email",
+    header: "Email",
+    accessorKey: "email",
+  }),
+  buildColumn({
+    id: "role",
+    header: "Role",
+    accessorKey: "role.name",
+  }),
+  buildActionsColumn({
+    width: 60,
+    actions: [
+      {
+        label: "Edit",
+        icon: "i-lucide-edit",
+        onSelect: (user) => editUser(user),
+      },
+      {
+        label: "Delete",
+        icon: "i-lucide-trash-2",
+        color: "error" as const,
+        onSelect: (user) => deleteUser(user),
+      },
+    ],
+  }),
+]);
+</script>
+```
+
+## useDataTableColumns Composable
+
+The `useDataTableColumns` composable provides helper functions to build table columns consistently:
+
+### Available Functions
+
+#### `buildColumn(options)`
+
+Creates a standard table column with common options:
+
+```typescript
+interface ColumnOptions {
+  id: string;
+  header: string;
+  accessorKey?: string;
+  cell?: (props: any) => any;
+  width?: number;
+  sortable?: boolean;
+  hidden?: boolean;
+}
+
+const column = buildColumn({
+  id: "name",
+  header: "Name",
+  accessorKey: "name",
+  width: 200,
+  sortable: true,
+});
+```
+
+#### `buildActionsColumn(options)`
+
+Creates an actions column with predefined action buttons:
+
+```typescript
+interface ActionsColumnOptions {
+  width?: number;
+  actions: Array<{
+    label: string;
+    icon: string;
+    color?: "primary" | "secondary" | "success" | "warning" | "error";
+    onSelect: (item: any) => void;
+  }>;
+}
+
+const actionsColumn = buildActionsColumn({
+  width: 60,
+  actions: [
+    {
+      label: "Edit",
+      icon: "i-lucide-edit",
+      onSelect: (item) => editItem(item),
+    },
+    {
+      label: "Delete",
+      icon: "i-lucide-trash-2",
+      color: "error",
+      onSelect: (item) => deleteItem(item),
+    },
+  ],
+});
+```
+
+### Usage Pattern
+
+```vue
+<script setup lang="ts">
+import { buildColumn, buildActionsColumn } from '~/composables/useDataTableColumns';
+
+const columns = computed(() => [
+  // Basic columns
+  buildColumn({
+    id: "id",
+    header: "ID",
+    accessorKey: "id",
+    width: 80,
+  }),
+  buildColumn({
+    id: "name",
+    header: "Name",
+    accessorKey: "name",
+    sortable: true,
+  }),
+
+  // Custom cell rendering
+  buildColumn({
+    id: "status",
+    header: "Status",
+    cell: ({ getValue }) => {
+      const status = getValue();
+      return h('span', {
+        class: `px-2 py-1 rounded text-xs bg-${status === 'active' ? 'green' : 'red'}-100`
+      }, status);
+    },
+  }),
+
+  // Actions column
+  buildActionsColumn({
+    width: 80,
+    actions: [
+      {
+        label: "View",
+        icon: "i-lucide-eye",
+        onSelect: (item) => viewItem(item),
+    }),
+  }),
+]);
+</script>
 ```
 
 ## Related Components
@@ -463,15 +737,6 @@ For comprehensive documentation on related systems:
 - [API Composables Guide](./api-composables.md) - Data fetching patterns used with DataTable
 - [Permission System](./permission-system.md) - Permission-based actions and context menus
 - [Header Action Registry](./header-action-registry.md) - Header actions that complement table functionality
-
-## Migration from Previous Versions
-
-If upgrading from a previous DataTable implementation:
-
-1. **Context Menu**: Add `contextMenuItems` prop for right-click functionality
-2. **Types**: Update props to use `DataTableProps` interface
-3. **Events**: Update event handlers to use new event names
-4. **Styling**: Remove custom table styling (now handled internally)
 
 ## Troubleshooting
 

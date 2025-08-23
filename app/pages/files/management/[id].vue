@@ -184,11 +184,9 @@ async function handleFileUpload(files: File | File[]) {
 }
 
 // Execute API calls when component mounts
-onMounted(async () => {
-  // Fetch folder info first for header (non-blocking)
-  await fetchFolder();
-
-  // Fetch content in parallel (non-blocking)
+onMounted(() => {
+  // Fetch all in parallel for better UX
+  fetchFolder();
   fetchChildFolders();
   fetchFolderFiles();
 });
