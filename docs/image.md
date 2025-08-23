@@ -49,10 +49,11 @@ A professional image component with automatic lazy loading, format optimization,
 
 ## Usage Examples
 
-### Basic Image
+### Basic Image (Auto-optimized)
 
 ```vue
-<Image src="/api/assets/123" alt="Product image" />
+<!-- Automatically converts to /api/assets/123?format=avif -->
+<Image src="/assets/123" alt="Product image" />
 ```
 
 ### Image with Preset Size
@@ -185,13 +186,23 @@ A professional image component with automatic lazy loading, format optimization,
 
 ## Format Optimization
 
-Component automatically adds format parameters to the URL for external services:
+Component automatically optimizes image URLs:
 
-1. **AVIF** - Adds `&format=avif` for supported services
-2. **WebP** - Adds `&format=webp` for supported services  
-3. **Original format** - Falls back to original URL
+1. **Auto AVIF**: Automatically adds `format=avif` to backend assets if no format specified
+2. **External services**: Adds format parameters for supported services (picsum.photos, etc.)
+3. **Manual control**: You can override by adding format parameters to the src URL
 
-**Note**: For your backend API, you control format conversion via query parameters in the URL.
+**Examples:**
+```vue
+<!-- Auto-optimized: /api/assets/123 → /api/assets/123?format=avif -->
+<Image src="/assets/123" alt="Auto AVIF" />
+
+<!-- Manual override: Use your own format -->
+<Image src="/assets/123?format=webp&quality=90" alt="Manual WebP" />
+
+<!-- External service: Auto-adds format -->
+<Image src="https://picsum.photos/400/300" alt="External optimized" />
+```
 
 ## Error Handling
 

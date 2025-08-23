@@ -163,6 +163,12 @@ const imageSrc = computed(() => {
     src = src.replace("assets/", "/api/assets/");
   }
 
+  // Auto-add format=avif if no format specified for backend assets
+  if (src.startsWith("/api/assets/") && !src.includes("format=")) {
+    const separator = src.includes("?") ? "&" : "?";
+    src = `${src}${separator}format=avif`;
+  }
+
   return src;
 });
 
