@@ -29,6 +29,7 @@ import {
   CommonUploadModal,
   DynamicWidgetComponent,
   FilterDrawer,
+  DataTable,
 } from "#components";
 
 import {
@@ -44,6 +45,7 @@ import {
   useAuth,
   usePermissions,
   useFilterQuery,
+  useDataTableColumns,
 
   // Nuxt composables
   useToast,
@@ -60,9 +62,7 @@ import {
   useSeoMeta,
 } from "#imports";
 
-import {
-  EXTENSION_VUE_FUNCTIONS,
-} from "../utils/extension/globals";
+import { EXTENSION_VUE_FUNCTIONS } from "../utils/extension/globals";
 
 // Extension cache with version-based invalidation
 const extensionCache = new Map<string, any>();
@@ -115,6 +115,7 @@ export const useDynamicComponent = () => {
     UAvatar: markRaw(UAvatar),
     UProgress: markRaw(UProgress),
     UTable: markRaw(UTable),
+    DataTable: markRaw(DataTable),
     UPagination: markRaw(UPagination),
     UBreadcrumb: markRaw(UBreadcrumb),
     UTabs: markRaw(UTabs),
@@ -244,7 +245,8 @@ export const useDynamicComponent = () => {
         useAuth,
         usePermissions,
         useFilterQuery,
-        // Nuxt composables  
+        useDataTableColumns,
+        // Nuxt composables
         useToast,
         useState,
         useRoute,
@@ -264,7 +266,10 @@ export const useDynamicComponent = () => {
         if (typeof composable === "function") {
           g[key] = composable;
         } else {
-          console.warn(`Extension composable ${key} is not a function`, composable);
+          console.warn(
+            `Extension composable ${key} is not a function`,
+            composable
+          );
         }
       });
 

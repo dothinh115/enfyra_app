@@ -59,12 +59,13 @@ interface DataTableProps {
 </template>
 
 <script setup lang="ts">
-import { buildColumn } from "~/composables/useDataTableColumns";
-
 const users = ref([
   { id: 1, name: "John Doe", email: "john@example.com" },
   { id: 2, name: "Jane Smith", email: "jane@example.com" },
 ]);
+
+const { useDataTableColumns } = props.components;
+const { buildColumn } = useDataTableColumns();
 
 const userColumns = computed(() => [
   buildColumn({
@@ -99,7 +100,8 @@ function handleUserClick(user: any) {
 </template>
 
 <script setup lang="ts">
-import { buildColumn } from "~/composables/useDataTableColumns";
+const { useDataTableColumns } = props.components;
+const { buildColumn } = useDataTableColumns();
 
 const columns = computed(() => [
   buildColumn({
@@ -138,7 +140,8 @@ DataTable supports right-click context menus for enhanced user interaction:
 </template>
 
 <script setup lang="ts">
-import { buildColumn } from "~/composables/useDataTableColumns";
+const { useDataTableColumns } = props.components;
+const { buildColumn } = useDataTableColumns();
 
 const fileColumns = computed(() => [
   buildColumn({
@@ -200,7 +203,8 @@ function getContextMenuItems(file: any) {
 
 ```vue
 <script setup lang="ts">
-import { buildColumn } from "~/composables/useDataTableColumns";
+const { useDataTableColumns } = props.components;
+const { buildColumn } = useDataTableColumns();
 
 const columns = computed(() => [
   buildColumn({
@@ -245,10 +249,8 @@ const columns = computed(() => [
 
 ```vue
 <script setup lang="ts">
-import {
-  buildColumn,
-  buildActionsColumn,
-} from "~/composables/useDataTableColumns";
+const { useDataTableColumns } = props.components;
+const { buildColumn, buildActionsColumn } = useDataTableColumns();
 
 const columns = computed(() => [
   buildColumn({
@@ -350,7 +352,8 @@ const tableData = computed(() => data.value?.data || []);
 
 ```vue
 <script setup lang="ts">
-import { buildColumn } from "~/composables/useDataTableColumns";
+const { useDataTableColumns } = props.components;
+const { buildColumn } = useDataTableColumns();
 
 // ✅ Good - Using composable
 const columns = computed(() => [
@@ -418,7 +421,8 @@ function getContextMenuItems(item: any) {
 
 ```vue
 <script setup lang="ts">
-import { buildColumn } from "~/composables/useDataTableColumns";
+const { useDataTableColumns } = props.components;
+const { buildColumn } = useDataTableColumns();
 
 // ✅ Good - Computed columns with composable
 const columns = computed(() => [
@@ -537,7 +541,8 @@ const fileColumns = computed(() => [
 </template>
 
 <script setup lang="ts">
-import { buildColumn } from "~/composables/useDataTableColumns";
+const { useDataTableColumns } = props.components;
+const { buildColumn } = useDataTableColumns();
 
 const settingsColumns = computed(() => [
   buildColumn({
@@ -574,10 +579,8 @@ const settingsColumns = computed(() => [
 </template>
 
 <script setup lang="ts">
-import {
-  buildColumn,
-  buildActionsColumn,
-} from "~/composables/useDataTableColumns";
+const { useDataTableColumns } = props.components;
+const { buildColumn, buildActionsColumn } = useDataTableColumns();
 
 const userColumns = computed(() => [
   buildColumn({
@@ -618,6 +621,8 @@ const userColumns = computed(() => [
 ## useDataTableColumns Composable
 
 The `useDataTableColumns` composable provides helper functions to build table columns consistently:
+
+> **Note**: In dynamic components, `useDataTableColumns` is available through `props.components.useDataTableColumns()`. All examples in this documentation assume you're using the dynamic component system.
 
 ### Available Functions
 
@@ -682,7 +687,8 @@ const actionsColumn = buildActionsColumn({
 
 ```vue
 <script setup lang="ts">
-import { buildColumn, buildActionsColumn } from '~/composables/useDataTableColumns';
+const { useDataTableColumns } = props.components;
+const { buildColumn, buildActionsColumn } = useDataTableColumns();
 
 const columns = computed(() => [
   // Basic columns
@@ -719,7 +725,8 @@ const columns = computed(() => [
         label: "View",
         icon: "i-lucide-eye",
         onSelect: (item) => viewItem(item),
-    }),
+      }),
+    ],
   }),
 ]);
 </script>
