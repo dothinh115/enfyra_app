@@ -45,7 +45,7 @@ A professional image component with automatic lazy loading, format optimization,
 - **`errorText`** (string): Custom error text
 - **`enableWebp`** (boolean): Enable WebP format (default: true)
 - **`enableAvif`** (boolean): Enable AVIF format (default: true)
-- **`quality`** (number): Image quality (default: 80)
+
 
 ## Usage Examples
 
@@ -87,12 +87,11 @@ A professional image component with automatic lazy loading, format optimization,
 ### Image with Format Optimization
 
 ```vue
-<Image
-  src="/api/assets/123"
+<Image 
+  src="/api/assets/123" 
   :enable-webp="true"
   :enable-avif="true"
-  :quality="90"
-  alt="High quality image"
+  alt="Optimized image"
 />
 ```
 
@@ -186,11 +185,13 @@ A professional image component with automatic lazy loading, format optimization,
 
 ## Format Optimization
 
-Component automatically uses the best format supported by the browser:
+Component automatically adds format parameters to the URL for external services:
 
-1. **AVIF** (if browser supports)
-2. **WebP** (fallback for AVIF)
-3. **Original format** (final fallback)
+1. **AVIF** - Adds `&format=avif` for supported services
+2. **WebP** - Adds `&format=webp` for supported services  
+3. **Original format** - Falls back to original URL
+
+**Note**: For your backend API, you control format conversion via query parameters in the URL.
 
 ## Error Handling
 
@@ -203,7 +204,7 @@ Component automatically uses the best format supported by the browser:
 
 1. **Automatic lazy loading** - No configuration needed
 2. **Optimize image size** before uploading
-3. **Use WebP/AVIF** to reduce file size
+3. **Use format optimization** via backend query parameters
 4. **Use aspect ratio** to prevent layout shift
 5. **Use fallback** for important images
 

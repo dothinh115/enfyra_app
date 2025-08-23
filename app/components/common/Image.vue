@@ -127,7 +127,6 @@ interface Props {
   // Image optimization
   enableWebp?: boolean;
   enableAvif?: boolean;
-  quality?: number;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -143,7 +142,6 @@ const props = withDefaults(defineProps<Props>(), {
   errorText: "Failed to load image",
   enableWebp: true,
   enableAvif: true,
-  quality: 80,
 });
 
 // Refs
@@ -179,9 +177,9 @@ const webpSrc = computed((): string | null => {
     return `${src}&format=webp`;
   }
 
-  // For your backend API - you'd implement WebP conversion
+  // For your backend API - let users handle format via query params
   if (src.startsWith("/api/assets/")) {
-    return `${src}?format=webp&quality=${props.quality}`;
+    return `${src}&format=webp`;
   }
 
   // For other external URLs, can't convert
@@ -199,9 +197,9 @@ const avifSrc = computed((): string | null => {
     return `${src}&format=avif`;
   }
 
-  // For your backend API - you'd implement AVIF conversion
+  // For your backend API - let users handle format via query params
   if (src.startsWith("/api/assets/")) {
-    return `${src}?format=avif&quality=${props.quality}`;
+    return `${src}&format=avif`;
   }
 
   return null;
