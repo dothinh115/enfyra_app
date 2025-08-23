@@ -1,40 +1,30 @@
 <template>
   <div
     ref="containerRef"
-    :class="[
-      'relative overflow-hidden',
-      shapeClasses,
-      sizeClasses,
-      containerClass,
-    ]"
+    :class="['relative overflow-hidden', shapeClasses, containerClass]"
     :style="[aspectRatioStyle, containerStyle]"
   >
     <div
       v-if="isLoading"
-      :class="[loadingContainerClasses, shapeClasses]"
-      :style="loadingAreaSize"
+      :class="['absolute inset-0', shapeClasses]"
+      :style="loadingStyle"
     >
       <div
         class="absolute inset-0 bg-gray-200 dark:bg-gray-700"
         :class="shapeClasses"
-        :style="loadingAreaSize"
       />
 
       <div
         class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent dark:via-white/10"
         :class="[shapeClasses, 'animate-shimmer']"
-        :style="loadingAreaSize"
         style="background-size: 200% 100%"
       />
 
-      <div
-        class="absolute inset-0 flex items-center justify-center"
-        :style="loadingAreaSize"
-      >
+      <div class="absolute inset-0 flex items-center justify-center">
         <UIcon
           name="lucide:image"
           class="text-gray-300 dark:text-gray-600 opacity-50"
-          :size="loadingIconSize"
+          size="24"
         />
       </div>
     </div>
@@ -47,11 +37,7 @@
         shapeClasses,
       ]"
     >
-      <UIcon
-        name="lucide:image-off"
-        :size="errorIconSize"
-        class="mb-2 opacity-50"
-      />
+      <UIcon name="lucide:image-off" size="24" class="mb-2 opacity-50" />
       <span v-if="showErrorText" class="text-xs text-center px-2">
         {{ errorText }}
       </span>
@@ -71,11 +57,11 @@
       ref="imageRef"
       :src="imageSrc"
       :alt="alt"
-      :class="[
-        isLoading ? 'image-loading' : 'image-loaded',
-        'object-cover',
-        imageClass,
-      ]"
+      :class="['object-cover', imageClass]"
+      :style="{
+        opacity: isLoading ? 0 : 1,
+        transition: 'opacity 0.3s ease-out',
+      }"
       loading="lazy"
       decoding="async"
       @load="handleLoad"
@@ -87,7 +73,6 @@
 <script setup lang="ts">
 import { nextTick } from "vue";
 
-type ImageSize = "xs" | "sm" | "md" | "lg" | "xl" | "custom";
 type ImageShape = "square" | "rounded" | "circle" | "none";
 
 interface Props {
@@ -95,14 +80,12 @@ interface Props {
   alt?: string;
   class?: string;
   containerClass?: string;
-  size?: ImageSize;
   shape?: ImageShape;
   aspectRatio?: string;
   fallbackSrc?: string;
   allowRetry?: boolean;
   showErrorText?: boolean;
   errorText?: string;
-  loadingArea?: "full" | "center" | "custom";
   customLoadingSize?: string;
 }
 
@@ -110,15 +93,13 @@ const props = withDefaults(defineProps<Props>(), {
   alt: "",
   class: "",
   containerClass: "",
-  size: "custom",
   shape: "none",
   aspectRatio: "",
   fallbackSrc: "",
   allowRetry: true,
   showErrorText: false,
   errorText: "Failed to load image",
-  loadingArea: "full",
-  customLoadingSize: "100px",
+  customLoadingSize: "",
 });
 
 const containerRef = ref<HTMLDivElement>();
@@ -149,26 +130,6 @@ const imageSrc = computed(() => {
   return src;
 });
 
-const isCustomLoading = computed(() => 
-  props.loadingArea === "custom" && isLoading.value
-);
-
-const sizeClasses = computed(() => {
-  if (isCustomLoading.value) {
-    return "";
-  }
-
-  const sizes = {
-    xs: "w-8 h-8",
-    sm: "w-16 h-16",
-    md: "w-24 h-24",
-    lg: "w-32 h-32",
-    xl: "w-48 h-48",
-    custom: "w-full h-full",
-  };
-  return sizes[props.size];
-});
-
 const shapeClasses = computed(() => {
   const shapes = {
     square: "",
@@ -180,69 +141,34 @@ const shapeClasses = computed(() => {
 });
 
 const aspectRatioStyle = computed(() => {
-  if (props.aspectRatio && props.size === "custom") {
+  if (props.aspectRatio) {
     return { aspectRatio: props.aspectRatio };
   }
-
-  if (props.size === "custom") {
-    return {
-      minWidth: "100px",
-      minHeight: "100px",
-    };
-  }
-
-  return {};
-});
-
-const errorIconSize = computed(() => {
-  const iconSizes = {
-    xs: "12",
-    sm: "16",
-    md: "20",
-    lg: "24",
-    xl: "32",
-    custom: "24",
+  return {
+    minWidth: "100px",
+    minHeight: "100px",
   };
-  return iconSizes[props.size];
-});
-
-const loadingIconSize = computed(() => {
-  const iconSizes = {
-    xs: "16",
-    sm: "20",
-    md: "24",
-    lg: "32",
-    xl: "40",
-    custom: "32",
-  };
-  return iconSizes[props.size];
 });
 
 const imageClass = computed(() => props.class);
 
-const loadingContainerClasses = computed(() => "absolute inset-0");
-
-const loadingAreaSize = computed(() => {
-  if (props.loadingArea === "custom") {
-    const size = props.customLoadingSize;
+// Loading style: nếu có customLoadingSize thì dùng, không thì để trống (sẽ theo container)
+const loadingStyle = computed(() => {
+  if (props.customLoadingSize) {
     return {
-      width: `${size} !important`,
-      height: `${size} !important`,
-      minWidth: `${size} !important`,
-      minHeight: `${size} !important`,
+      width: props.customLoadingSize,
+      height: props.customLoadingSize,
     };
   }
   return {};
 });
 
+// Container style: chỉ override khi cần custom loading size
 const containerStyle = computed(() => {
-  if (isCustomLoading.value) {
-    const size = props.customLoadingSize;
+  if (props.customLoadingSize && isLoading.value) {
     return {
-      width: size,
-      height: size,
-      minWidth: size,
-      minHeight: size,
+      width: props.customLoadingSize,
+      height: props.customLoadingSize,
     };
   }
   return {};
@@ -343,7 +269,7 @@ onBeforeUnmount(() => {
     observer.value.disconnect();
     observer.value = undefined;
   }
-  
+
   if (retryTimer.value) {
     clearTimeout(retryTimer.value);
     retryTimer.value = null;
