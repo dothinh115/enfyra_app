@@ -9,7 +9,8 @@
     font-family: 'Manrope', system-ui, sans-serif;
     background: #111827;
     height: 100%;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 
   :root {
@@ -146,6 +147,16 @@
   .cm-completionDetail {
     color: #858585 !important;
     font-style: italic !important;
+  }
+
+  /* Common Image Component Animations */
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
   }
 }
 
