@@ -70,13 +70,14 @@ const {
 });
 
 // Upload files API
-const { execute: uploadFilesApi, error: uploadError } = useApiLazy(
-  () => `file_definition`,
-  {
-    method: "post",
-    errorContext: "Upload Files",
-  }
-);
+const {
+  execute: uploadFilesApi,
+  error: uploadError,
+  pending: uploadPending,
+} = useApiLazy(() => `file_definition`, {
+  method: "post",
+  errorContext: "Upload Files",
+});
 
 // Prepare folders data
 const folders = computed(() => childFolders.value?.data || []);
@@ -332,6 +333,7 @@ useHeaderActionRegistry([
       :multiple="true"
       accept="*/*"
       :max-size="50 * 1024 * 1024"
+      :loading="uploadPending"
       @upload="handleFileUpload"
     />
 
