@@ -23,21 +23,27 @@ A modern, extensible headless CMS built with Nuxt 4, featuring dynamic table man
 ## 📚 Documentation
 
 ### 🚀 **Quick Start**
+
 **New to Enfyra App? Start here!**
+
 - **[📖 Getting Started Guide](./docs/getting-started.md)** - **Complete step-by-step tutorial from setup to building your first features** (30 min → productivity)
 
 ### 🏗️ **Architecture & Core Systems**
+
 - **[Project Structure](./docs/project-structure.md)** - Complete codebase organization and architecture patterns
-- **[API Composables Guide](./docs/api-composables.md)** - Data fetching, error handling, and API integration patterns  
+- **[API Composables Guide](./docs/api-composables.md)** - Data fetching, error handling, and API integration patterns
 - **[Permission System](./docs/permission-system.md)** - Role-based access control with PermissionGate and usePermissions
 - **[Filter System](./docs/filter-query.md)** - Advanced data filtering with visual query builder
 - **[Form Field System](./docs/form-field.md)** - Dynamic form generation, validation, and schema integration
 
 ### ⚡ **UI & Interaction**
+
+- **[DataTable Component](./docs/data-table.md)** - Feature-rich table component with sorting, selection, and context menus
 - **[Header Action Registry](./docs/header-action-registry.md)** - Dynamic header buttons and interactive controls
 - **[Settings Card](./docs/settings-card.md)** - Consistent settings UI component patterns
 
 ### 🔧 **Advanced Development**
+
 - **[Extension Development Guide](./docs/extension-development-guide.md)** - Create custom extensions with full feature integration
 
 ---
@@ -45,13 +51,15 @@ A modern, extensible headless CMS built with Nuxt 4, featuring dynamic table man
 ## 📋 **Learning Path**
 
 ### **🔰 Beginner (First Day)**
+
 ```
 1. 📖 Getting Started Guide → Build your first features (30 min)
 2. 🏗️ Project Structure → Understand the codebase (10 min)
 3. 🔧 API Composables → Learn data patterns (15 min)
 ```
 
-### **🎯 Intermediate (First Week)**  
+### **🎯 Intermediate (First Week)**
+
 ```
 4. 🛡️ Permission System → Secure your UI (20 min)
 5. 📝 Form Fields → Dynamic forms (30 min)
@@ -59,8 +67,9 @@ A modern, extensible headless CMS built with Nuxt 4, featuring dynamic table man
 ```
 
 ### **🚀 Advanced (Production Ready)**
+
 ```
-7. ⚡ Header Actions → Interactive UI (15 min)  
+7. ⚡ Header Actions → Interactive UI (15 min)
 8. 🎨 Settings Cards → Consistent layouts (15 min)
 9. 🧩 Extension Development → Custom features (2-4 hours)
 ```
