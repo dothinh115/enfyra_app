@@ -12,16 +12,16 @@ import {
 import type { DataTableProps } from "../../utils/types";
 // Vue functions are auto-imported
 
-
 const props = withDefaults(defineProps<DataTableProps>(), {
   pageSize: 10,
   loading: false,
   selectable: false,
+  contextMenuItems: undefined,
 });
 
 const emit = defineEmits<{
-  'row-click': [row: any];
-  'bulk-delete': [selectedRows: any[]];
+  "row-click": [row: any];
+  "bulk-delete": [selectedRows: any[]];
 }>();
 
 // Table state
@@ -144,7 +144,7 @@ const selectedRows = computed(() => {
 // Bulk actions
 async function handleBulkDelete() {
   if (selectedRows.value.length > 0) {
-    emit('bulk-delete', selectedRows.value);
+    emit("bulk-delete", selectedRows.value);
     // Clear selection after delete
     rowSelection.value = {};
   }
@@ -227,34 +227,42 @@ const { isTablet } = useScreen();
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
-          <tr
+          <UContextMenu
             v-for="row in table.getRowModel().rows"
             :key="row.id"
-            :class="[
-              'hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors',
-              'cursor-pointer',
-            ]"
-            @click="emit('row-click', row.original)"
+            :items="
+              props.contextMenuItems ? props.contextMenuItems(row.original) : []
+            "
           >
-            <td
-              v-for="cell in row.getVisibleCells()"
-              :key="cell.id"
+            <tr
               :class="[
-                'px-4 py-3 text-sm text-gray-900 dark:text-gray-100',
-                cell.column.id === 'select' ? 'w-12 min-w-12 max-w-12' : '',
-                cell.column.id === '__actions' ? 'w-12 min-w-12 max-w-12' : '',
+                'hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors',
+                'cursor-pointer',
               ]"
+              @click="emit('row-click', row.original)"
             >
-              <span v-if="typeof cell.column.columnDef.cell !== 'function'">
-                {{ cell.getValue() }}
-              </span>
-              <component
-                v-else
-                :is="cell.column.columnDef.cell"
-                v-bind="cell.getContext()"
-              />
-            </td>
-          </tr>
+              <td
+                v-for="cell in row.getVisibleCells()"
+                :key="cell.id"
+                :class="[
+                  'px-4 py-3 text-sm text-gray-900 dark:text-gray-100',
+                  cell.column.id === 'select' ? 'w-12 min-w-12 max-w-12' : '',
+                  cell.column.id === '__actions'
+                    ? 'w-12 min-w-12 max-w-12'
+                    : '',
+                ]"
+              >
+                <span v-if="typeof cell.column.columnDef.cell !== 'function'">
+                  {{ cell.getValue() }}
+                </span>
+                <component
+                  v-else
+                  :is="cell.column.columnDef.cell"
+                  v-bind="cell.getContext()"
+                />
+              </td>
+            </tr>
+          </UContextMenu>
           <tr v-if="!loading && props.data.length === 0">
             <td
               :colspan="table.getFlatHeaders().length"
@@ -300,7 +308,10 @@ const { isTablet } = useScreen();
     </div>
 
     <!-- Bottom Bulk Actions - positioned bottom right -->
-    <div v-if="selectable && selectedRows.length > 0" class="flex justify-end">
+    <div
+      v-show="selectable && selectedRows.length > 0"
+      class="flex justify-end"
+    >
       <DataTableBulkActions
         :selected-count="selectedRows.length"
         :on-delete="handleBulkDelete"

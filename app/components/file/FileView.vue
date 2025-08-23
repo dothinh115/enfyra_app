@@ -263,6 +263,58 @@ function handleFileClick(file: any) {
 function toggleItemSelection(fileId: string) {
   emit("toggle-selection", fileId);
 }
+
+// Get context menu items for files (similar to FileGrid)
+function getContextMenuItems(file: any) {
+  const menuItems: any = [
+    [
+      {
+        label: "View",
+        icon: "lucide:eye",
+        onSelect: () => {
+          viewFile(file);
+        },
+      },
+      {
+        label: "Download",
+        icon: "lucide:download",
+        onSelect: () => {
+          downloadFile(file);
+        },
+      },
+      {
+        label: "Copy URL",
+        icon: "lucide:copy",
+        onSelect: () => {
+          copyFileUrl(file);
+        },
+      },
+      {
+        label: "Details",
+        icon: "lucide:info",
+        onSelect: () => {
+          navigateTo(`/files/${file.id}`);
+        },
+      },
+    ],
+  ];
+
+  // Only show delete action if user has permission
+  if (canDeleteFile) {
+    menuItems.push([
+      {
+        label: "Delete",
+        icon: "lucide:trash-2",
+        color: "error" as const,
+        onSelect: () => {
+          deleteFile(file);
+        },
+      },
+    ]);
+  }
+
+  return menuItems;
+}
 </script>
 
 <template>
@@ -288,6 +340,7 @@ function toggleItemSelection(fileId: string) {
           :empty-description="emptyDescription"
           :is-selection-mode="isSelectionMode"
           :selected-items="selectedItems"
+          :copy-file-url="copyFileUrl"
           @file-click="handleFileClick"
           @toggle-selection="toggleItemSelection"
           @refresh-files="() => emit('refresh-files')"
@@ -301,6 +354,7 @@ function toggleItemSelection(fileId: string) {
           :loading="false"
           :page-size="50"
           :selectable="true"
+          :context-menu-items="getContextMenuItems"
           @row-click="handleFileClick"
         />
       </div>

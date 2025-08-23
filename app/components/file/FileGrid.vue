@@ -232,7 +232,6 @@
 
 <script setup lang="ts">
 import { formatDate } from "~/utils/common/filter/filter-helpers";
-
 interface FileItem {
   id: string;
   type?: "image" | "video" | "document" | "audio" | "archive" | "other" | null;
@@ -251,6 +250,7 @@ interface Props {
   emptyDescription?: string;
   isSelectionMode?: boolean;
   selectedItems?: string[];
+  copyFileUrl?: (file: any) => void;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -502,16 +502,9 @@ function getContextMenuItems(file: any) {
       {
         label: "Copy URL",
         icon: "lucide:copy",
-        onSelect: async () => {
-          if (file.assetUrl) {
-            await navigator.clipboard.writeText(
-              window.location.origin + file.assetUrl
-            );
-            toast.add({
-              title: "Success",
-              description: "URL copied to clipboard",
-              color: "success",
-            });
+        onSelect: () => {
+          if (props.copyFileUrl) {
+            props.copyFileUrl(file);
           }
         },
       },
@@ -574,16 +567,9 @@ function getDropdownMenuItems(file: any) {
     {
       label: "Copy URL",
       icon: "lucide:copy",
-      onSelect: async () => {
-        if (file.assetUrl) {
-          await navigator.clipboard.writeText(
-            window.location.origin + file.assetUrl
-          );
-          toast.add({
-            title: "Success",
-            description: "URL copied to clipboard",
-            color: "success",
-          });
+      onSelect: () => {
+        if (props.copyFileUrl) {
+          props.copyFileUrl(file);
         }
       },
     },

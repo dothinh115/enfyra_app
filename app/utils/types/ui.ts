@@ -8,6 +8,7 @@ export interface DataTableProps {
   pageSize?: number;
   loading?: boolean;
   selectable?: boolean;
+  contextMenuItems?: (row: any) => any[];
 }
 
 // Tablet Card Component (renamed from MobileCard)
