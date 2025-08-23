@@ -144,7 +144,9 @@ async function handleCreate() {
     color: "success",
   });
 
-  await navigateTo(`/settings/extensions/${createData.value.data[0].id}`);
+  await navigateTo(`/settings/extensions/${createData.value.data[0].id}`, {
+    replace: true,
+  });
 }
 
 async function handleUpload(files: File | File[]) {

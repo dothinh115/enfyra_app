@@ -131,6 +131,44 @@ function handleFolderClick(folder: any) {
 function toggleItemSelection(folderId: string) {
   emit("toggle-selection", folderId);
 }
+
+// Get context menu items for folders (similar to FolderGrid)
+function getContextMenuItems(folder: any) {
+  const menuItems: any = [
+    [
+      {
+        label: "Open",
+        icon: "lucide:folder-open",
+        onSelect: () => {
+          emit("folder-click", folder);
+        },
+      },
+      {
+        label: "Details",
+        icon: "lucide:info",
+        onSelect: () => {
+          showFolderDetail(folder);
+        },
+      },
+    ],
+  ];
+
+  // Only show delete action if user has permission
+  if (canDeleteFolder) {
+    menuItems.push([
+      {
+        label: "Delete",
+        icon: "lucide:trash-2",
+        color: "error" as const,
+        onSelect: () => {
+          deleteFolder(folder);
+        },
+      },
+    ]);
+  }
+
+  return menuItems;
+}
 </script>
 
 <template>
@@ -165,6 +203,7 @@ function toggleItemSelection(folderId: string) {
           :loading="false"
           :page-size="50"
           :selectable="true"
+          :context-menu-items="getContextMenuItems"
           @row-click="handleFolderClick"
         />
       </div>

@@ -97,6 +97,8 @@ async function handleCreate() {
     color: "success",
   });
 
-  await navigateTo(`/settings/roles/${createData.value?.data[0]?.id}`);
+  await navigateTo(`/settings/roles/${createData.value?.data[0]?.id}`, {
+    replace: true,
+  });
 }
 </script>

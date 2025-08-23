@@ -186,9 +186,9 @@ async function save() {
   // Get the newly created table name from response
   const newTableName = createData.value?.data?.[0]?.name;
   if (newTableName) {
-    await navigateTo(`/collections/${newTableName}`);
+    await navigateTo(`/collections/${newTableName}`, { replace: true });
   } else {
-    await navigateTo("/collections");
+    await navigateTo("/collections", { replace: true });
   }
 }
 </script>

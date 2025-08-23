@@ -89,6 +89,8 @@ async function handleCreate() {
     color: "success",
   });
 
-  await navigateTo(`/settings/hooks/${createData.value.data[0].id}`);
+  await navigateTo(`/settings/hooks/${createData.value.data[0].id}`, {
+    replace: true,
+  });
 }
 </script>

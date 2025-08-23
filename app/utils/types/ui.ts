@@ -130,7 +130,12 @@ export interface HeaderAction {
     | ComputedRef<boolean>;
   permission?: PermissionCondition;
   onClick?: () => void;
-  to?: string;
+  to?: string | Ref<string> | Readonly<Ref<string>> | ComputedRef<string>;
+  replace?:
+    | boolean
+    | Ref<boolean>
+    | Readonly<Ref<boolean>>
+    | ComputedRef<boolean>;
   submit?: () => void;
   showOn?: string[];
   hideOn?: string[];

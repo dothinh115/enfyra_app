@@ -93,6 +93,8 @@ async function handleCreate() {
     color: "success",
   });
 
-  await navigateTo(`/settings/routings/${createData.value.data[0].id}`);
+  await navigateTo(`/settings/routings/${createData.value.data[0].id}`, {
+    replace: true,
+  });
 }
 </script>

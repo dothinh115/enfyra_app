@@ -227,14 +227,45 @@ const { isTablet } = useScreen();
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
-          <UContextMenu
-            v-for="row in table.getRowModel().rows"
-            :key="row.id"
-            :items="
-              props.contextMenuItems ? props.contextMenuItems(row.original) : []
-            "
-          >
+          <template v-for="row in table.getRowModel().rows" :key="row.id">
+            <!-- With Context Menu -->
+            <UContextMenu
+              v-if="props.contextMenuItems"
+              :items="props.contextMenuItems(row.original)"
+            >
+              <tr
+                :class="[
+                  'hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors',
+                  'cursor-pointer',
+                ]"
+                @click="emit('row-click', row.original)"
+              >
+                <td
+                  v-for="cell in row.getVisibleCells()"
+                  :key="cell.id"
+                  :class="[
+                    'px-4 py-3 text-sm text-gray-900 dark:text-gray-100',
+                    cell.column.id === 'select' ? 'w-12 min-w-12 max-w-12' : '',
+                    cell.column.id === '__actions'
+                      ? 'w-12 min-w-12 max-w-12'
+                      : '',
+                  ]"
+                >
+                  <span v-if="typeof cell.column.columnDef.cell !== 'function'">
+                    {{ cell.getValue() }}
+                  </span>
+                  <component
+                    v-else
+                    :is="cell.column.columnDef.cell"
+                    v-bind="cell.getContext()"
+                  />
+                </td>
+              </tr>
+            </UContextMenu>
+
+            <!-- Without Context Menu -->
             <tr
+              v-else
               :class="[
                 'hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors',
                 'cursor-pointer',
@@ -262,7 +293,7 @@ const { isTablet } = useScreen();
                 />
               </td>
             </tr>
-          </UContextMenu>
+          </template>
           <tr v-if="!loading && props.data.length === 0">
             <td
               :colspan="table.getFlatHeaders().length"

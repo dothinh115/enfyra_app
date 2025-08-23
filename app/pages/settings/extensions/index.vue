@@ -145,7 +145,7 @@ useHeaderActionRegistry([
     variant: "solid",
     color: "primary",
     size: "md",
-    to: "/settings/extensions/create",
+            to: "/settings/extensions/create",
     permission: {
       and: [
         {

@@ -70,7 +70,8 @@ async function handleCreate() {
   });
 
   await navigateTo(
-    `/data/${route.params.table}/${createData.value?.data[0]?.id}`
+    `/data/${route.params.table}/${createData.value?.data[0]?.id}`,
+    { replace: true }
   );
 }
 </script>
