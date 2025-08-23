@@ -61,31 +61,25 @@
       </UButton>
     </div>
 
-    <!-- Main Image with format optimization -->
-    <picture v-if="shouldLoad">
-      <!-- AVIF format (best compression, modern browsers) -->
-      <source v-if="avifSrc" :srcset="avifSrc" type="image/avif" />
-      <!-- WebP format (good compression, wide support) -->
-      <source v-if="webpSrc" :srcset="webpSrc" type="image/webp" />
-      <!-- Fallback to original format -->
-      <img
-        ref="imageRef"
-        :src="imageSrc"
-        :alt="alt"
-        :class="[
-          'w-full h-full object-cover transition-all duration-500 ease-out',
-          imageClass,
-          {
-            'opacity-0 scale-105': isLoading,
-            'opacity-100 scale-100': !isLoading && !hasError,
-          },
-        ]"
-        loading="lazy"
-        decoding="async"
-        @load="handleLoad"
-        @error="handleError"
-      />
-    </picture>
+    <!-- Main Image -->
+    <img
+      v-if="shouldLoad"
+      ref="imageRef"
+      :src="imageSrc"
+      :alt="alt"
+      :class="[
+        'w-full h-full object-cover transition-all duration-500 ease-out',
+        imageClass,
+        {
+          'opacity-0 scale-105': isLoading,
+          'opacity-100 scale-100': !isLoading && !hasError,
+        },
+      ]"
+      loading="lazy"
+      decoding="async"
+      @load="handleLoad"
+      @error="handleError"
+    />
 
     <!-- Placeholder when not loading -->
     <img
@@ -124,9 +118,6 @@ interface Props {
   allowRetry?: boolean;
   showErrorText?: boolean;
   errorText?: string;
-  // Image optimization
-  enableWebp?: boolean;
-  enableAvif?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -140,8 +131,6 @@ const props = withDefaults(defineProps<Props>(), {
   allowRetry: true,
   showErrorText: false,
   errorText: "Failed to load image",
-  enableWebp: true,
-  enableAvif: true,
 });
 
 // Refs
@@ -172,52 +161,6 @@ const imageSrc = (() => {
 
   return src;
 })();
-
-// Generate WebP source URL
-const webpSrc = computed((): string | null => {
-  if (!props.enableWebp) return null;
-
-  const src = imageSrc;
-
-  // For external services that support format conversion
-  if (src.includes("picsum.photos")) {
-    return `${src}&format=webp`;
-  }
-
-  // For your backend API - replace existing format or add new one
-  if (src.startsWith("/api/assets/")) {
-    const url = new URL(src, window.location.origin);
-    url.searchParams.set("format", "webp");
-    return url.pathname + url.search;
-  }
-
-  // For other external URLs, can't convert
-  return null;
-});
-
-// Generate AVIF source URL
-const avifSrc = computed((): string | null => {
-  if (!props.enableAvif) return null;
-
-  const src = imageSrc;
-
-  // For external services that support AVIF
-  if (src.includes("picsum.photos")) {
-    return `${src}&format=avif`;
-  }
-
-  // For your backend API - if already has format=avif, return null
-  if (src.startsWith("/api/assets/")) {
-    if (src.includes("format=avif")) {
-      return null; // Already optimized
-    }
-    const url = new URL(src, window.location.origin);
-    url.searchParams.set("format", "avif");
-    return url.pathname + url.search;
-  }
-
-  return null;
-});
 
 // Size classes
 const sizeClasses = computed(() => {
