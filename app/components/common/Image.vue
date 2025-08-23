@@ -9,20 +9,17 @@
     ]"
     :style="[aspectRatioStyle, containerStyle]"
   >
-    <!-- Loading Skeleton -->
     <div
       v-if="isLoading"
       :class="[loadingContainerClasses, shapeClasses]"
       :style="loadingAreaSize"
     >
-      <!-- Shimmer effect background -->
       <div
         class="absolute inset-0 bg-gray-200 dark:bg-gray-700"
         :class="shapeClasses"
         :style="loadingAreaSize"
       />
 
-      <!-- Animated shimmer overlay -->
       <div
         class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent dark:via-white/10"
         :class="[shapeClasses, 'animate-shimmer']"
@@ -30,7 +27,6 @@
         style="background-size: 200% 100%"
       />
 
-      <!-- Center icon for better UX -->
       <div
         class="absolute inset-0 flex items-center justify-center"
         :style="loadingAreaSize"
@@ -43,7 +39,6 @@
       </div>
     </div>
 
-    <!-- Error State -->
     <div
       v-show="hasError && !isRetrying"
       :class="[
@@ -77,15 +72,10 @@
       :src="imageSrc"
       :alt="alt"
       :class="[
-        isLoading
-          ? 'w-0 h-0 opacity-0'
-          : 'w-full h-full opacity-100 transition-opacity duration-500 ease-out',
+        isLoading ? 'image-loading' : 'image-loaded',
         'object-cover',
         imageClass,
       ]"
-      :style="{
-        opacity: isLoading ? 0 : 1,
-      }"
       loading="lazy"
       decoding="async"
       @load="handleLoad"
@@ -131,7 +121,6 @@ const props = withDefaults(defineProps<Props>(), {
   customLoadingSize: "100px",
 });
 
-// Refs
 const containerRef = ref<HTMLDivElement>();
 const imageRef = ref<HTMLImageElement>();
 const isLoading = ref(true);
@@ -140,9 +129,9 @@ const isRetrying = ref(false);
 const retryCount = ref(0);
 const isInViewport = ref(false);
 const maxRetries = 3;
+const retryTimer = ref<ReturnType<typeof setTimeout> | null>(null);
 
-// Convert assets path to /api/assets/... for backend proxy
-const imageSrc = (() => {
+const imageSrc = computed(() => {
   let src = props.src;
 
   if (src.startsWith("/assets/")) {
@@ -151,7 +140,6 @@ const imageSrc = (() => {
     src = src.replace("assets/", "/api/assets/");
   }
 
-  // Auto-add format=avif if no format specified for backend assets
   if (src.startsWith("/api/assets/") && !src.includes("format=")) {
     const url = new URL(src, window.location.origin);
     url.searchParams.set("format", "avif");
@@ -159,13 +147,15 @@ const imageSrc = (() => {
   }
 
   return src;
-})();
+});
 
-// Size classes
+const isCustomLoading = computed(() => 
+  props.loadingArea === "custom" && isLoading.value
+);
+
 const sizeClasses = computed(() => {
-  // Force container size ONLY when loading with custom loading area
-  if (props.loadingArea === "custom" && isLoading.value) {
-    return ""; // No size constraints from sizeClasses when loading
+  if (isCustomLoading.value) {
+    return "";
   }
 
   const sizes = {
@@ -179,7 +169,6 @@ const sizeClasses = computed(() => {
   return sizes[props.size];
 });
 
-// Shape classes
 const shapeClasses = computed(() => {
   const shapes = {
     square: "",
@@ -190,13 +179,11 @@ const shapeClasses = computed(() => {
   return shapes[props.shape];
 });
 
-// Aspect ratio style
 const aspectRatioStyle = computed(() => {
   if (props.aspectRatio && props.size === "custom") {
     return { aspectRatio: props.aspectRatio };
   }
 
-  // For custom size without aspect ratio, ensure stable dimensions
   if (props.size === "custom") {
     return {
       minWidth: "100px",
@@ -207,7 +194,6 @@ const aspectRatioStyle = computed(() => {
   return {};
 });
 
-// Dynamic icon sizes
 const errorIconSize = computed(() => {
   const iconSizes = {
     xs: "12",
@@ -232,97 +218,72 @@ const loadingIconSize = computed(() => {
   return iconSizes[props.size];
 });
 
-// Image class
 const imageClass = computed(() => props.class);
 
-// Loading area classes
-const loadingAreaClasses = computed(() => {
-  switch (props.loadingArea) {
-    case "center":
-      return "absolute inset-0 flex items-center justify-center";
-    case "custom":
-      return "absolute inset-0 flex items-center justify-center";
-    case "full":
-    default:
-      return "absolute inset-0";
-  }
-});
+const loadingContainerClasses = computed(() => "absolute inset-0");
 
-// Loading container classes (without positioning conflicts)
-const loadingContainerClasses = computed(() => {
-  if (props.loadingArea === "custom") {
-    return "absolute inset-0"; // Full container size for custom loading
-  }
-  return "absolute inset-0";
-});
-
-// Loading area size
 const loadingAreaSize = computed(() => {
   if (props.loadingArea === "custom") {
+    const size = props.customLoadingSize;
     return {
-      width: props.customLoadingSize + " !important",
-      height: props.customLoadingSize + " !important",
-      minWidth: props.customLoadingSize + " !important",
-      minHeight: props.customLoadingSize + " !important",
+      width: `${size} !important`,
+      height: `${size} !important`,
+      minWidth: `${size} !important`,
+      minHeight: `${size} !important`,
     };
   }
   return {};
 });
 
-// Container style to override parent constraints
 const containerStyle = computed(() => {
-  if (props.loadingArea === "custom" && isLoading.value) {
-    // Force entire container size ONLY when loading
+  if (isCustomLoading.value) {
+    const size = props.customLoadingSize;
     return {
-      width: props.customLoadingSize,
-      height: props.customLoadingSize,
-      minWidth: props.customLoadingSize,
-      minHeight: props.customLoadingSize,
+      width: size,
+      height: size,
+      minWidth: size,
+      minHeight: size,
     };
   }
   return {};
 });
 
-// Determine if we should load the image
 const shouldLoad = computed(() => {
-  // Always lazy loading - only load if in viewport
   return isInViewport.value;
 });
 
-// Handle image load success
 function handleLoad() {
   isLoading.value = false;
   hasError.value = false;
   isRetrying.value = false;
 }
 
-// Handle image load error
 function handleError() {
   isLoading.value = false;
   isRetrying.value = false;
 
   if (props.fallbackSrc && retryCount.value === 0) {
-    // Try fallback image first
     retryCount.value++;
-    if (imageRef.value && props.fallbackSrc) {
-      imageRef.value.src = props.fallbackSrc;
+    const img = imageRef.value;
+    if (img instanceof HTMLImageElement && props.fallbackSrc) {
+      img.src = props.fallbackSrc;
     }
   } else if (retryCount.value < maxRetries) {
-    // Auto retry with original src
     retryCount.value++;
-    setTimeout(() => {
+    retryTimer.value = setTimeout(() => {
       retryLoad();
-    }, 1000 * retryCount.value); // Exponential backoff
+    }, 1000 * retryCount.value);
   } else {
     hasError.value = true;
-    console.warn(
-      `Failed to load image after ${maxRetries} retries:`,
-      props.src
-    );
+    if (import.meta.dev) {
+      console.warn(
+        `Failed to load image after ${maxRetries} retries:`,
+        props.src
+      );
+    }
   }
 }
 
-// Manual retry function
 function retryLoad() {
   if (retryCount.value < maxRetries) {
     isRetrying.value = true;
@@ -330,30 +291,28 @@ function retryLoad() {
     isLoading.value = true;
     retryCount.value++;
 
-    if (imageRef.value) {
-      // Clear src and reload to trigger load event
-      imageRef.value.src = "";
+    const img = imageRef.value;
+    if (img instanceof HTMLImageElement) {
+      img.src = "";
       requestAnimationFrame(() => {
-        if (imageRef.value) {
-          imageRef.value.src = imageSrc;
+        if (imageRef.value instanceof HTMLImageElement) {
+          imageRef.value.src = imageSrc.value;
         }
       });
     }
   } else {
-    console.warn(`Max retries (${maxRetries}) reached for image:`, props.src);
+    if (import.meta.dev) {
+      console.warn(`Max retries (${maxRetries}) reached for image:`, props.src);
+    }
   }
 }
 
-// Set up intersection observer for lazy loading
 const observer = ref<IntersectionObserver>();
 
 onMounted(() => {
-  // Start with loading state
   isLoading.value = true;
 
-  // Use IntersectionObserver to detect viewport
   if ("IntersectionObserver" in window) {
-    // Small delay to ensure DOM is ready
     nextTick(() => {
       if (!containerRef.value) return;
 
@@ -361,14 +320,12 @@ onMounted(() => {
         (entries) => {
           entries.forEach((entry) => {
             if (entry.isIntersecting && !isInViewport.value) {
-              // Image is in viewport, start loading
               isInViewport.value = true;
               observer.value?.disconnect();
             }
           });
         },
         {
-          // Start loading when image is 50px before entering viewport
           rootMargin: "50px",
           threshold: 0.01,
         }
@@ -377,21 +334,29 @@ onMounted(() => {
       observer.value.observe(containerRef.value);
     });
   } else {
-    // Fallback: if no IntersectionObserver support, load immediately
     isInViewport.value = true;
   }
 });
 
-// Cleanup observer on unmount
+onBeforeUnmount(() => {
+  if (observer.value) {
+    observer.value.disconnect();
+    observer.value = undefined;
+  }
+  
+  if (retryTimer.value) {
+    clearTimeout(retryTimer.value);
+    retryTimer.value = null;
+  }
+});
+
 onUnmounted(() => {
   observer.value?.disconnect();
 });
 
-// Watch src changes
 watch(
   () => props.src,
   () => {
-    // Reset states when src changes
     isLoading.value = false;
     hasError.value = false;
     isRetrying.value = false;
