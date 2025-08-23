@@ -68,7 +68,7 @@ const visibleFields = computed(() => {
   fields = fields.filter((field: any) => {
     const key = field.name || field.propertyName;
     if (!key) return false;
-
+    console.log(field);
     // Allow relation fields to pass through (they don't need to exist in form data initially)
     if (field.fieldType === "relation") return true;
 
