@@ -305,15 +305,15 @@ const { data, pending } = await useApiLazy(() => "/api/users");
 </script>
 ```
 
-The loading state shows a `CommonLoadingState` component with table-specific styling.
+The loading state shows a `LoadingState` component with table-specific styling.
 
 ## Empty States
 
-When no data is available, DataTable displays a `CommonEmptyState` component:
+When no data is available, DataTable displays a `EmptyState` component:
 
 ```vue
 <!-- Automatically shown when data.length === 0 -->
-<CommonEmptyState
+<EmptyState
   title="No data available"
   description="There are no records to display"
   icon="lucide:database"
@@ -736,8 +736,8 @@ const columns = computed(() => [
 
 - **DataTableTabletCard** - Card layout for tablet view (internal component)
 - **DataTableBulkActions** - Bulk operation controls (internal component)
-- **CommonLoadingState** - Loading state component (internal component)
-- **CommonEmptyState** - Empty state component (internal component)
+- **LoadingState** - Loading state component (internal component)
+- **EmptyState** - Empty state component (internal component)
 
 For comprehensive documentation on related systems:
 

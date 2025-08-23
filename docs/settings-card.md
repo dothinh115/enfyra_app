@@ -15,7 +15,7 @@ Reusable card component for settings pages with consistent styling and flexible 
 ## Basic Usage
 
 ```vue
-<CommonSettingsCard
+<SettingsCard
   title="Role Name"
   description="Role description"
   icon="lucide:shield-check"
@@ -39,7 +39,7 @@ Reusable card component for settings pages with consistent styling and flexible 
 ### With Header Actions
 
 ```vue
-<CommonSettingsCard
+<SettingsCard
   title="Menu Item"
   description="Dashboard Extension"
   icon="lucide:navigation"
@@ -66,7 +66,7 @@ Reusable card component for settings pages with consistent styling and flexible 
 ### With Multiple Values per Stat
 
 ```vue
-<CommonSettingsCard
+<SettingsCard
   title="API Route"
   description="/api/users"
   icon="lucide:route"
@@ -87,7 +87,7 @@ Reusable card component for settings pages with consistent styling and flexible 
 ### With Custom Slots
 
 ```vue
-<CommonSettingsCard
+<SettingsCard
   title="User Name"
   description="user@example.com"
   icon="lucide:user"
@@ -104,7 +104,7 @@ Reusable card component for settings pages with consistent styling and flexible 
       <UButton size="sm" variant="outline">Custom Action</UButton>
     </div>
   </template>
-</CommonSettingsCard>
+</SettingsCard>
 ```
 
 ## Props
@@ -167,7 +167,7 @@ interface HeaderAction {
 
 ### Role Card
 ```vue
-<CommonSettingsCard
+<SettingsCard
   title="Admin Role"
   description="Full system access"
   icon="lucide:shield-check"
@@ -185,7 +185,7 @@ interface HeaderAction {
 
 ### Extension Card
 ```vue
-<CommonSettingsCard
+<SettingsCard
   title="Custom Extension"
   description="API integration module"
   icon="lucide:puzzle"
@@ -206,7 +206,7 @@ interface HeaderAction {
 
 ### Route Card with Multiple Methods
 ```vue
-<CommonSettingsCard
+<SettingsCard
   title="/api/users"
   description="User management endpoint"
   icon="lucide:route"
@@ -243,6 +243,6 @@ Use with responsive grid for tablet optimization:
   class="grid gap-4"
   :class="isTablet ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'"
 >
-  <CommonSettingsCard v-for="item in items" :key="item.id" v-bind="item" />
+  <SettingsCard v-for="item in items" :key="item.id" v-bind="item" />
 </div>
 ```

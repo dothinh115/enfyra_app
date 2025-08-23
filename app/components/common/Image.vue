@@ -9,30 +9,24 @@
     :style="aspectRatioStyle"
   >
     <!-- Loading Skeleton -->
-    <div
-      v-show="isLoading"
-      :class="[
-        'absolute inset-0',
-        shapeClasses,
-      ]"
-    >
+    <div v-show="isLoading" :class="['absolute inset-0', shapeClasses]">
       <!-- Shimmer effect background -->
-      <div 
+      <div
         class="absolute inset-0 bg-gray-200 dark:bg-gray-700"
         :class="shapeClasses"
       />
-      
+
       <!-- Animated shimmer overlay -->
-      <div 
+      <div
         class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent dark:via-white/10"
         :class="[shapeClasses, 'animate-shimmer']"
         style="background-size: 200% 100%"
       />
-      
+
       <!-- Center icon for better UX -->
       <div class="absolute inset-0 flex items-center justify-center">
-        <UIcon 
-          name="lucide:image" 
+        <UIcon
+          name="lucide:image"
           class="text-gray-300 dark:text-gray-600 opacity-50"
           :size="loadingIconSize"
         />
@@ -48,7 +42,11 @@
         shapeClasses,
       ]"
     >
-      <UIcon name="lucide:image-off" :size="errorIconSize" class="mb-2 opacity-50" />
+      <UIcon
+        name="lucide:image-off"
+        :size="errorIconSize"
+        class="mb-2 opacity-50"
+      />
       <span v-if="showErrorText" class="text-xs text-center px-2">
         {{ errorText }}
       </span>
@@ -66,17 +64,9 @@
     <!-- Main Image with format optimization -->
     <picture v-if="shouldLoad">
       <!-- AVIF format (best compression, modern browsers) -->
-      <source 
-        v-if="avifSrc" 
-        :srcset="avifSrc" 
-        type="image/avif"
-      />
+      <source v-if="avifSrc" :srcset="avifSrc" type="image/avif" />
       <!-- WebP format (good compression, wide support) -->
-      <source 
-        v-if="webpSrc" 
-        :srcset="webpSrc" 
-        type="image/webp"
-      />
+      <source v-if="webpSrc" :srcset="webpSrc" type="image/webp" />
       <!-- Fallback to original format -->
       <img
         ref="imageRef"
@@ -90,13 +80,13 @@
             'opacity-100 scale-100': !isLoading && !hasError,
           },
         ]"
-        :loading="loading"
+        loading="lazy"
         decoding="async"
         @load="handleLoad"
         @error="handleError"
       />
     </picture>
-    
+
     <!-- Placeholder when not loading -->
     <img
       v-else
@@ -106,9 +96,9 @@
       :class="[
         'w-full h-full object-cover transition-all duration-500 ease-out',
         imageClass,
-        'opacity-0'
+        'opacity-0',
       ]"
-      :loading="loading"
+      loading="lazy"
       decoding="async"
       @load="handleLoad"
       @error="handleError"
@@ -117,7 +107,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick } from 'vue';
+import { nextTick } from "vue";
 
 type ImageSize = "xs" | "sm" | "md" | "lg" | "xl" | "custom";
 type ImageShape = "square" | "rounded" | "circle" | "none";
@@ -127,7 +117,6 @@ interface Props {
   alt?: string;
   class?: string;
   containerClass?: string;
-  loading?: "lazy" | "eager";
   size?: ImageSize;
   shape?: ImageShape;
   aspectRatio?: string;
@@ -145,7 +134,6 @@ const props = withDefaults(defineProps<Props>(), {
   alt: "",
   class: "",
   containerClass: "",
-  loading: "lazy",
   size: "custom",
   shape: "none",
   aspectRatio: "",
@@ -170,52 +158,52 @@ const maxRetries = 3;
 // Convert assets path to /api/assets/... for backend proxy
 const imageSrc = computed(() => {
   let src = props.src;
-  
+
   if (src.startsWith("/assets/")) {
     src = src.replace("/assets/", "/api/assets/");
   } else if (src.startsWith("assets/")) {
     src = src.replace("assets/", "/api/assets/");
   }
-  
+
   return src;
 });
 
 // Generate WebP source URL
-const webpSrc = computed(() => {
+const webpSrc = computed((): string | null => {
   if (!props.enableWebp) return null;
-  
+
   const src = imageSrc.value;
-  
+
   // For external services that support format conversion
-  if (src.includes('picsum.photos')) {
+  if (src.includes("picsum.photos")) {
     return `${src}&format=webp`;
   }
-  
+
   // For your backend API - you'd implement WebP conversion
-  if (src.startsWith('/api/assets/')) {
+  if (src.startsWith("/api/assets/")) {
     return `${src}?format=webp&quality=${props.quality}`;
   }
-  
+
   // For other external URLs, can't convert
   return null;
 });
 
-// Generate AVIF source URL  
-const avifSrc = computed(() => {
+// Generate AVIF source URL
+const avifSrc = computed((): string | null => {
   if (!props.enableAvif) return null;
-  
+
   const src = imageSrc.value;
-  
+
   // For external services that support AVIF
-  if (src.includes('picsum.photos')) {
+  if (src.includes("picsum.photos")) {
     return `${src}&format=avif`;
   }
-  
+
   // For your backend API - you'd implement AVIF conversion
-  if (src.startsWith('/api/assets/')) {
+  if (src.startsWith("/api/assets/")) {
     return `${src}?format=avif&quality=${props.quality}`;
   }
-  
+
   return null;
 });
 
@@ -281,10 +269,7 @@ const imageClass = computed(() => props.class);
 
 // Determine if we should load the image
 const shouldLoad = computed(() => {
-  // For eager loading, always load
-  if (props.loading === "eager") return true;
-  
-  // For lazy loading, only load if in viewport
+  // Always lazy loading - only load if in viewport
   return isInViewport.value;
 });
 
@@ -299,11 +284,11 @@ function handleLoad() {
 function handleError() {
   isLoading.value = false;
   isRetrying.value = false;
-  
+
   if (props.fallbackSrc && retryCount.value === 0) {
     // Try fallback image first
     retryCount.value++;
-    if (imageRef.value) {
+    if (imageRef.value && props.fallbackSrc) {
       imageRef.value.src = props.fallbackSrc;
     }
   } else if (retryCount.value < maxRetries) {
@@ -314,6 +299,10 @@ function handleError() {
     }, 1000 * retryCount.value); // Exponential backoff
   } else {
     hasError.value = true;
+    console.warn(
+      `Failed to load image after ${maxRetries} retries:`,
+      props.src
+    );
   }
 }
 
@@ -324,8 +313,9 @@ function retryLoad() {
     hasError.value = false;
     isLoading.value = true;
     retryCount.value++;
-    
+
     if (imageRef.value) {
+      // Clear src and reload to trigger load event
       imageRef.value.src = "";
       requestAnimationFrame(() => {
         if (imageRef.value) {
@@ -333,84 +323,66 @@ function retryLoad() {
         }
       });
     }
+  } else {
+    console.warn(`Max retries (${maxRetries}) reached for image:`, props.src);
   }
 }
 
 // Set up intersection observer for lazy loading
+const observer = ref<IntersectionObserver>();
+
 onMounted(() => {
-  // For eager loading, load immediately
-  if (props.loading === "eager") {
-    isLoading.value = true;
-    isInViewport.value = true;
-    return;
-  }
-  
-  // For lazy loading, start with loading state but don't load until in viewport
-  isLoading.value = true;
-  
-  // For lazy loading, use IntersectionObserver to detect viewport
-  if ('IntersectionObserver' in window) {
+  // Always start with lazy loading state
+  isLoading.value = false;
+
+  // Use IntersectionObserver to detect viewport
+  if ("IntersectionObserver" in window) {
     // Small delay to ensure DOM is ready
     nextTick(() => {
       if (!imageRef.value) return;
-      
-      const observer = new IntersectionObserver(
+
+      observer.value = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
             if (entry.isIntersecting && !isInViewport.value) {
               // Reset loading state and trigger image load
               isLoading.value = true;
               isInViewport.value = true;
-              observer.disconnect();
+              observer.value?.disconnect();
             }
           });
         },
         {
           // Start loading when image is 50px before entering viewport
-          rootMargin: '50px',
-          threshold: 0.01
+          rootMargin: "50px",
+          threshold: 0.01,
         }
       );
-      
-      observer.observe(imageRef.value);
-      
-      // Cleanup on unmount
-      onUnmounted(() => {
-        observer.disconnect();
-      });
+
+      observer.value.observe(imageRef.value);
     });
   } else {
     // Fallback: if no IntersectionObserver support, load immediately
     isInViewport.value = true;
+    isLoading.value = true;
   }
+});
+
+// Cleanup observer on unmount
+onUnmounted(() => {
+  observer.value?.disconnect();
 });
 
 // Watch src changes
-watch(() => props.src, () => {
-  // Reset states when src changes
-  isLoading.value = true;
-  hasError.value = false;
-  isRetrying.value = false;
-  retryCount.value = 0;
-  
-  // For eager loading, trigger load immediately
-  if (props.loading === "eager") {
-    isInViewport.value = true;
+watch(
+  () => props.src,
+  () => {
+    // Reset states when src changes
+    isLoading.value = false;
+    hasError.value = false;
+    isRetrying.value = false;
+    retryCount.value = 0;
+    isInViewport.value = false;
   }
-});
+);
 </script>
-
-<style>
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-.animate-shimmer {
-  animation: shimmer 2s ease-in-out infinite;
-}
-</style>

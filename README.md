@@ -39,6 +39,7 @@ A modern, extensible headless CMS built with Nuxt 4, featuring dynamic table man
 ### ⚡ **UI & Interaction**
 
 - **[DataTable Component](./docs/data-table.md)** - Feature-rich table component with sorting, selection, and context menus
+- **[Image Component](./docs/image.md)** - Optimized image component with lazy loading, format optimization, and error handling
 - **[Header Action Registry](./docs/header-action-registry.md)** - Dynamic header buttons and interactive controls
 - **[Settings Card](./docs/settings-card.md)** - Consistent settings UI component patterns
 

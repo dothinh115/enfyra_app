@@ -98,6 +98,20 @@
     color: inherit !important;
   }
   
+  /* Common Image Component Animations */
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+  
+  .animate-shimmer {
+    animation: shimmer 2s ease-in-out infinite;
+  }
+  
   .cm-editor .cm-line ::selection {
     background-color: #264F78 !important;
     color: inherit !important;

@@ -24,6 +24,7 @@ import {
   CommonLoadingState,
   CommonEmptyState,
   CommonSettingsCard,
+  CommonImage,
   PermissionGate,
   FormEditor,
   CommonUploadModal,
@@ -130,10 +131,11 @@ export const useDynamicComponent = () => {
     FilterDrawer: markRaw(FilterDrawer),
 
     // Common Components
-    CommonLoadingState: markRaw(CommonLoadingState),
-    CommonEmptyState: markRaw(CommonEmptyState),
-    CommonSettingsCard: markRaw(CommonSettingsCard),
-    CommonUploadModal: markRaw(CommonUploadModal),
+    LoadingState: markRaw(CommonLoadingState),
+    EmptyState: markRaw(CommonEmptyState),
+    SettingsCard: markRaw(CommonSettingsCard),
+    Image: markRaw(CommonImage),
+    UploadModal: markRaw(CommonUploadModal),
 
     // Dynamic Components
     Widget: markRaw(DynamicWidgetComponent),

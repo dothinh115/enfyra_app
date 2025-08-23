@@ -502,7 +502,7 @@ const { execute } = useApiLazy(() => "/users", {
 
 ```vue
 <template>
-  <CommonLoadingState v-if="pending" />
+  <LoadingState v-if="pending" />
   <div v-else>
     <!-- Content -->
   </div>

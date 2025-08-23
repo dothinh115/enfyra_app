@@ -81,7 +81,7 @@ interface MenuDefinition {
       <div class="grid gap-6">
         <!-- Settings Cards Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <CommonSettingsCard
+          <SettingsCard
             title="Extension Status"
             description="Current extension configuration"
             icon="lucide:settings"
@@ -160,7 +160,7 @@ const {
   UBadge,
   UIcon,
   PermissionGate,
-  CommonSettingsCard,
+  SettingsCard,
   Widget 
 } = props.components;
 
@@ -262,14 +262,14 @@ Widget               // For embedding other widgets
 PageComponent        // For embedding pages
 FormEditor          // Dynamic form builder
 DataTable           // Advanced data table
-CommonSettingsCard   // Standardized settings cards
+SettingsCard   // Standardized settings cards
 
 // Loading States
-CommonLoadingState
-CommonEmptyState
+LoadingState
+EmptyState
 
 // Modals
-CommonUploadModal
+UploadModal
 CommonConfirmModal
 ```
 
@@ -488,7 +488,7 @@ if (isConfirmed) {
 
 ## Settings Card Component
 
-The `CommonSettingsCard` provides a consistent, tablet-optimized card layout for settings-related content in extensions.
+The `SettingsCard` provides a consistent, tablet-optimized card layout for settings-related content in extensions.
 
 > **📖 See:** [Settings Card Documentation](./settings-card.md) for complete usage guide and examples
 
@@ -497,7 +497,7 @@ The `CommonSettingsCard` provides a consistent, tablet-optimized card layout for
 ```vue
 <template>
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-    <CommonSettingsCard
+    <SettingsCard
       title="Extension Config"
       description="Manage extension settings"
       icon="lucide:settings"
@@ -537,7 +537,7 @@ const props = defineProps({
   },
 });
 
-const { CommonSettingsCard } = props.components;
+const { SettingsCard } = props.components;
 
 const openSettings = () => {
   // Extension settings logic
@@ -550,7 +550,7 @@ const openSettings = () => {
 
 ```vue
 <template>
-  <CommonSettingsCard
+  <SettingsCard
     title="User Management"
     description="Extension user controls"
     icon="lucide:users"
@@ -585,7 +585,7 @@ const openSettings = () => {
         <UButton size="xs" variant="ghost" @click="viewLogs">View Logs</UButton>
       </div>
     </template>
-  </CommonSettingsCard>
+  </SettingsCard>
 </template>
 ```
 
@@ -727,7 +727,7 @@ Extensions can build powerful filtering interfaces using the integrated filter s
 ```vue
 <template>
   <div class="extension-with-filters">
-    <CommonSettingsCard title="Data Management" description="Manage your data with advanced filtering">
+    <SettingsCard title="Data Management" description="Manage your data with advanced filtering">
       <!-- Filter Status Display -->
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold">Records</h3>
@@ -767,11 +767,11 @@ Extensions can build powerful filtering interfaces using the integrated filter s
       <!-- Data display with filtering -->
       <div class="space-y-4">
         <div v-if="loading" class="text-center py-8">
-          <CommonLoadingState title="Loading data..." />
+          <LoadingState title="Loading data..." />
         </div>
         
         <div v-else-if="filteredData.length === 0" class="text-center py-8">
-          <CommonEmptyState
+          <EmptyState
             title="No data found"
             :description="hasActiveFilters(currentFilter) ? 'No records match your filters' : 'No records available'"
             icon="lucide:database"
@@ -800,7 +800,7 @@ Extensions can build powerful filtering interfaces using the integrated filter s
         :total="totalRecords"
         class="mt-6"
       />
-    </CommonSettingsCard>
+    </SettingsCard>
 
     <!-- Filter Drawer -->
     <FilterDrawer
@@ -823,13 +823,13 @@ const props = defineProps({
 
 // Destructure injected components
 const {
-  CommonSettingsCard,
+  SettingsCard,
   UButton,
   UBadge,
   UCard,
   UPagination,
-  CommonLoadingState,
-  CommonEmptyState,
+  LoadingState,
+  EmptyState,
   FilterDrawer,
 } = props.components;
 
