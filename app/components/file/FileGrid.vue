@@ -269,8 +269,8 @@ const transformedFiles = computed(() => {
     icon: getFileIcon(file.mimetype, file.type),
     size: formatFileSize(parseInt(file.filesize || "0")),
     modifiedAt: file.updatedAt || file.createdAt || "",
-    assetUrl: `/assets/${file.id}`,
-    previewUrl: `/assets/${file.id}`,
+    assetUrl: `/api/assets/${file.id}`,
+    previewUrl: `/api/assets/${file.id}`,
   }));
 });
 
@@ -330,10 +330,6 @@ const editingName = ref("");
 const originalName = ref("");
 const editingLoading = ref(false);
 
-// File detail modal state
-const showFileDetailModal = useState("file-detail-modal", () => false);
-const selectedFile = useState<any>("file-selected", () => null);
-
 function handleFileClick(file: any) {
   if (props.isSelectionMode) {
     toggleItemSelection(file.id);
@@ -375,11 +371,6 @@ async function deleteFile(file: any) {
   });
 
   emit("refresh-files");
-}
-
-function showFileDetail(file: any) {
-  selectedFile.value = file;
-  showFileDetailModal.value = true;
 }
 
 // Inline rename functions
@@ -516,7 +507,11 @@ function getContextMenuItems(file: any) {
             await navigator.clipboard.writeText(
               window.location.origin + file.assetUrl
             );
-            console.log("URL copied to clipboard");
+            toast.add({
+              title: "Success",
+              description: "URL copied to clipboard",
+              color: "success",
+            });
           }
         },
       },
@@ -584,7 +579,11 @@ function getDropdownMenuItems(file: any) {
           await navigator.clipboard.writeText(
             window.location.origin + file.assetUrl
           );
-          console.log("URL copied to clipboard");
+          toast.add({
+            title: "Success",
+            description: "URL copied to clipboard",
+            color: "success",
+          });
         }
       },
     },

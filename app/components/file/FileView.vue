@@ -41,6 +41,15 @@ const canDeleteFile = checkPermissionCondition({
   ],
 });
 
+// Transform files data to include assetUrl
+const transformedFiles = computed(() => {
+  return props.files.map((file: any) => ({
+    ...file,
+    assetUrl: `/api/assets/${file.id}`,
+    displayName: file.filename || file.title || "Untitled",
+  }));
+});
+
 // Data table columns for list view
 const { buildColumn, buildActionsColumn } = useDataTableColumns();
 
@@ -268,11 +277,11 @@ function toggleItemSelection(fileId: string) {
       </div>
 
       <!-- Content - hiển thị ngay khi có data, không cần đợi isMounted -->
-      <div v-else-if="files.length > 0" key="content">
+      <div v-else-if="transformedFiles.length > 0" key="content">
         <!-- Grid View -->
         <FileGrid
           v-if="viewMode === 'grid'"
-          :files="files"
+          :files="transformedFiles"
           :view-mode="viewMode"
           :loading="false"
           :empty-title="emptyTitle"
@@ -287,7 +296,7 @@ function toggleItemSelection(fileId: string) {
         <!-- List View -->
         <DataTable
           v-else-if="viewMode === 'list'"
-          :data="files"
+          :data="transformedFiles"
           :columns="fileColumns"
           :loading="false"
           :page-size="50"
@@ -298,7 +307,7 @@ function toggleItemSelection(fileId: string) {
 
       <!-- Empty State - chỉ hiển thị khi không loading, không có data và đã mount -->
       <div
-        v-else-if="!loading && files.length === 0 && isMounted"
+        v-else-if="!loading && transformedFiles.length === 0 && isMounted"
         key="empty"
         class="text-center py-12"
       >

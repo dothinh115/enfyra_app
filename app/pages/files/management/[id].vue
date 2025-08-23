@@ -346,6 +346,5 @@ useHeaderActionRegistry([
 
     <!-- Detail Modals -->
     <FolderDetailModal />
-    <FileDetailModal />
   </div>
 </template>
