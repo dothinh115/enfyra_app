@@ -274,12 +274,25 @@ function getComponentConfigByKey(key: string) {
       const finalOptions = config.options || schemaOptions;
 
       return {
-        component: resolveComponent("ArraySelectEditor"),
+        component: resolveComponent("FormArraySelectEditor"),
         componentProps: {
           ...componentPropsBase,
           options: finalOptions,
           modelValue: ensureArray(props.formData[key]),
           "onUpdate:modelValue": (val: string[]) => {
+            updateFormData(key, val);
+          },
+        },
+        fieldProps,
+      };
+
+    case "array-tags":
+      return {
+        component: resolveComponent("FormArraySelectDisplay"),
+        componentProps: {
+          ...componentPropsBase,
+          modelValue: ensureString(props.formData[key]),
+          "onUpdate:modelValue": (val: string) => {
             updateFormData(key, val);
           },
         },

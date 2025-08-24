@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 const props = defineProps<{
   modelValue: any[];
 }>();
@@ -167,6 +166,18 @@ const typeMap = computed(() => {
         type: "boolean",
         disabled: true,
         default: true,
+      },
+    }),
+    // Xử lý đặc biệt cho array-select type
+    ...(currentType === "array-select" && {
+      options: {
+        type: "array-tags",
+      },
+    }),
+    // Exclude options field khi không phải array-select
+    ...(currentType !== "array-select" && {
+      options: {
+        excluded: true,
       },
     }),
   };

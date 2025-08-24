@@ -101,7 +101,7 @@ const tableName = "user_definition";
 const { confirm } = useConfirm();
 const { getIncludeFields } = useSchema(tableName);
 const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
-
+const route = useRoute();
 const { isMounted } = useMounted();
 const { isTablet } = useScreen();
 

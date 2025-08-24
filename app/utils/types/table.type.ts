@@ -8,6 +8,11 @@ export const columnTypes = [
   { label: "Text", value: "text", icon: "mdi:file-document-outline" },
   { label: "Rich Text", value: "richtext", icon: "mdi:format-text" },
   { label: "Code", value: "code", icon: "mdi:code-braces-box" },
+  {
+    label: "Array Select",
+    value: "array-select",
+    icon: "mdi:format-list-bulleted",
+  },
 ];
 
 export const relationTypes = [

@@ -47,9 +47,33 @@ const { definition, fieldMap, sortFieldsByOrder, useFormChanges } = useSchema(
 const formChanges = useFormChanges();
 const originalData = ref<Record<string, any>>({});
 
+const typeMapWithGenerated = computed(() => {
+  const result = { ...props.typeMap };
+
+  // Add disabled for generated fields
+  for (const field of definition.value) {
+    const key = field.name || field.propertyName;
+    if (key && field.isGenerated === true) {
+      if (result[key]) {
+        result[key] = {
+          ...result[key],
+          disabled: true,
+        };
+      } else {
+        result[key] = {
+          disabled: true,
+        };
+      }
+    }
+  }
+
+  return result;
+});
+
 const visibleFields = computed(() => {
   let fields = definition.value;
 
+  // Filter by includes
   if (props.includes.length > 0) {
     fields = fields.filter((field: any) => {
       const key = field.name || field.propertyName;
@@ -57,6 +81,7 @@ const visibleFields = computed(() => {
     });
   }
 
+  // Filter by excluded props
   fields = fields.filter((field: any) => {
     const key = field.name || field.propertyName;
     if (!key) return false;
@@ -65,10 +90,10 @@ const visibleFields = computed(() => {
     return true;
   });
 
+  // Filter by form data existence
   fields = fields.filter((field: any) => {
     const key = field.name || field.propertyName;
     if (!key) return false;
-    console.log(field);
     // Allow relation fields to pass through (they don't need to exist in form data initially)
     if (field.fieldType === "relation") return true;
 
@@ -96,29 +121,21 @@ const visibleFields = computed(() => {
     return hasRoute;
   });
 
-  return sortFieldsByOrder(fields);
-});
-
-const typeMapWithGenerated = computed(() => {
-  const result = { ...props.typeMap };
-
-  for (const field of visibleFields.value) {
+  // Filter by excluded in typeMap
+  fields = fields.filter((field: any) => {
     const key = field.name || field.propertyName;
-    if (key && field.isGenerated === true) {
-      if (result[key]) {
-        result[key] = {
-          ...result[key],
-          disabled: true,
-        };
-      } else {
-        result[key] = {
-          disabled: true,
-        };
-      }
-    }
-  }
+    if (!key) return false;
 
-  return result;
+    // Check if field is excluded in typeMap
+    const fieldConfig = typeMapWithGenerated.value[key];
+    if (fieldConfig && fieldConfig.excluded === true) {
+      return false;
+    }
+
+    return true;
+  });
+
+  return sortFieldsByOrder(fields);
 });
 
 function updateFormData(key: string, value: any) {
