@@ -91,7 +91,7 @@ const handleItemClick = (item: any) => {
           :class="[
             isActive(item.route)
               ? 'bg-gradient-to-br from-primary/20 to-secondary/20 rounded-xl p-1 shadow-lg border border-primary/30'
-                              : `lg:hover:!bg-gradient-to-br lg:hover:!from-muted/20 lg:hover:!to-muted/10 rounded-xl p-1 border border-transparent lg:hover:!border-muted/30 transition-all duration-200`,
+              : `lg:hover:!bg-gradient-to-br lg:hover:!from-muted/20 lg:hover:!to-muted/10 rounded-xl p-1 border border-transparent lg:hover:!border-muted/30 transition-colors duration-200`,
           ]"
         >
           <UButton
@@ -104,7 +104,7 @@ const handleItemClick = (item: any) => {
               'transition-colors duration-200',
               isActive(item.route)
                 ? 'bg-gradient-to-br from-primary/30 to-secondary/30 text-primary shadow-md'
-                : 'text-muted-foreground lg:hover:text-primary bg-gradient-to-br lg:hover:from-background lg:hover:to-muted/20',
+                : 'text-muted-foreground lg:hover:!text-primary bg-gradient-to-br lg:hover:!from-background lg:hover:!to-muted/20',
               item.class || '',
             ]"
           />
@@ -140,7 +140,7 @@ const handleItemClick = (item: any) => {
             :class="[
               isActive(item.route)
                 ? 'bg-gradient-to-br from-warning/20 to-error/20 rounded-xl p-1 shadow-lg border border-warning/30'
-                : `lg:hover:!bg-gradient-to-br lg:hover:!from-muted/20 lg:hover:!to-muted/10 rounded-xl p-1 border border-transparent lg:hover:!border-muted/30 transition-all duration-200`,
+                : `lg:hover:!bg-gradient-to-br lg:hover:!from-muted/20 lg:hover:!to-muted/10 rounded-xl p-1 border border-transparent lg:hover:!border-muted/30 transition-colors duration-200`,
             ]"
           >
             <UButton
@@ -153,7 +153,7 @@ const handleItemClick = (item: any) => {
                 'transition-colors duration-200',
                 isActive(item.route)
                   ? 'bg-gradient-to-br from-warning/30 to-error/30 text-warning shadow-md'
-                  : 'text-muted-foreground lg:hover:text-warning bg-gradient-to-br lg:hover:from-background lg:hover:to-muted/20',
+                  : 'text-muted-foreground lg:hover:!text-warning bg-gradient-to-br lg:hover:!from-background lg:hover:!to-muted/20',
                 item.class || '',
               ]"
             />
