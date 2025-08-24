@@ -4,8 +4,8 @@ import {
   UInput,
   UTextarea,
   USwitch,
-  USelect,
   FormDateField,
+  USelectMenu,
 } from "#components";
 
 const props = defineProps<{
@@ -86,10 +86,9 @@ function getComponentConfigByKey(key: string) {
         fieldProps,
       };
 
-    case "select":
+    case "array-select":
     case "enum": {
-      // Get options from config or from schema options
-      let items = config.options ?? [];
+      let items = config.options || column?.options || [];
 
       // If no options provided and field type is enum, get from schema
       if (items.length === 0) {
@@ -103,7 +102,7 @@ function getComponentConfigByKey(key: string) {
       }
 
       return {
-        component: USelect,
+        component: USelectMenu,
         componentProps: {
           ...componentPropsBase,
           items: items,
@@ -111,23 +110,11 @@ function getComponentConfigByKey(key: string) {
           "onUpdate:modelValue": (val: any) => {
             updateFormData(key, val);
           },
+          multiple: finalType === "array-select",
         },
         fieldProps,
       };
     }
-
-    case "array":
-      return {
-        component: resolveComponent("SimpleArrayEditor"),
-        componentProps: {
-          ...componentPropsBase,
-          modelValue: ensureArray(props.formData[key]),
-          "onUpdate:modelValue": (val: string[]) => {
-            updateFormData(key, val);
-          },
-        },
-        fieldProps,
-      };
 
     case "simple-json":
       // If field is disabled, show disabled input instead of code editor
@@ -267,23 +254,6 @@ function getComponentConfigByKey(key: string) {
           ...fieldProps,
           class: "col-span-2",
         },
-      };
-
-    case "array-select":
-      const schemaOptions = column?.options || [];
-      const finalOptions = config.options || schemaOptions;
-
-      return {
-        component: resolveComponent("FormArraySelectEditor"),
-        componentProps: {
-          ...componentPropsBase,
-          options: finalOptions,
-          modelValue: ensureArray(props.formData[key]),
-          "onUpdate:modelValue": (val: string[]) => {
-            updateFormData(key, val);
-          },
-        },
-        fieldProps,
       };
 
     case "array-tags":

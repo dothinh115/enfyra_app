@@ -28,9 +28,20 @@ const {
   errorContext: "Fetch Record",
 });
 
-const currentRecord = computed(() => apiData.value?.data?.[0] || {});
+const currentRecord = ref<Record<string, any>>({});
 
-onMounted(fetchRecord);
+// Initialize form data
+async function initializeForm() {
+  await fetchRecord();
+  const data = apiData.value?.data?.[0];
+  if (data) {
+    currentRecord.value = { ...data };
+  }
+}
+
+onMounted(() => {
+  initializeForm();
+});
 
 async function handleUpdate() {
   const { isValid, errors } = validate(currentRecord.value);

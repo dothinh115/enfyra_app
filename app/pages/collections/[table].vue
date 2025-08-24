@@ -27,14 +27,15 @@ const {
   errorContext: "Fetch Table Data",
 });
 
-const { pending: saving, execute: executePatchTable } = useApiLazy(
-  () => `/table_definition/${table.value?.id || "undefined"}`,
-  {
-    method: "patch",
-    body: computed(() => table.value),
-    errorContext: "Update Table",
-  }
-);
+const {
+  pending: saving,
+  execute: executePatchTable,
+  error: updateError,
+} = useApiLazy(() => `/table_definition/${table.value?.id || "undefined"}`, {
+  method: "patch",
+  body: computed(() => table.value),
+  errorContext: "Update Table",
+});
 
 const {
   pending: deleting,
@@ -109,22 +110,24 @@ async function save() {
 
 async function patchTable() {
   globalLoading.value = true;
-  try {
-    await executePatchTable();
-    globalLoading.value = false; // Turn off before fetchSchema sets it again
-    await fetchSchema();
+  await executePatchTable();
 
-    registerTableMenusWithSidebarIds(tables.value);
-
-    toast.add({
-      title: "Success",
-      color: "success",
-      description: "Table structure updated!",
-    });
-  } catch (error) {
+  // Check if there was an error
+  if (updateError.value) {
     globalLoading.value = false;
-    throw error;
+    return; // Error already handled by useApiLazy
   }
+
+  globalLoading.value = false; // Turn off before fetchSchema sets it again
+  await fetchSchema();
+
+  registerTableMenusWithSidebarIds(tables.value);
+
+  toast.add({
+    title: "Success",
+    color: "success",
+    description: "Table structure updated!",
+  });
 }
 
 async function handleDelete() {

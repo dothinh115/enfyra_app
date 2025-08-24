@@ -143,7 +143,7 @@ const typeMap = computed(() => {
 
   return {
     type: {
-      type: "select",
+      type: "enum",
       options:
         currentColumn.value?.name === "id"
           ? columnTypes.filter((colType) =>
@@ -169,13 +169,14 @@ const typeMap = computed(() => {
       },
     }),
     // Xử lý đặc biệt cho array-select type
-    ...(currentType === "array-select" && {
+    ...(["array-select", "enum"].includes(currentType) && {
       options: {
         type: "array-tags",
       },
     }),
+
     // Exclude options field khi không phải array-select
-    ...(currentType !== "array-select" && {
+    ...(!["array-select", "enum"].includes(currentType) && {
       options: {
         excluded: true,
       },

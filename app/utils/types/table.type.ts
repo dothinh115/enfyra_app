@@ -13,6 +13,7 @@ export const columnTypes = [
     value: "array-select",
     icon: "mdi:format-list-bulleted",
   },
+  { label: "Enum", value: "enum", icon: "lucide:type" },
 ];
 
 export const relationTypes = [
