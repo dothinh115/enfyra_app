@@ -120,6 +120,9 @@ async function saveFile() {
     return;
   }
 
+  // Refresh file data
+  await execute();
+
   // Show success message
   const toast = useToast();
   toast.add({
@@ -243,7 +246,7 @@ function getFileIconAndColor(mimetype: string): {
       </div>
 
       <!-- File Content -->
-      <div v-else-if="form.id" class="space-y-6">
+      <div v-else-if="form" class="space-y-6">
         <!-- File Preview -->
         <div
           class="bg-gray-800/50 rounded-xl border border-gray-700/50 shadow-xl"
