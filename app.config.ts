@@ -16,5 +16,10 @@ export default defineAppConfig({
         },
       ],
     },
+    drawer: {
+      slots: {
+        body: "flex-1 pb-4",
+      },
+    },
   },
 });
