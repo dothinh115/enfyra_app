@@ -9,7 +9,6 @@ const folderPage = ref(Number(route.query.folderPage) || 1);
 const filePage = ref(Number(route.query.filePage) || 1);
 const pageLimit = 20; // Show 20 items per page
 
-// Get current folder info
 const {
   data: folder,
   pending: folderPending,
@@ -21,53 +20,45 @@ const {
         _eq: route.params.id,
       },
     },
+    deep: {
+      children: {
+        fields: "*",
+        limit: pageLimit,
+        page: folderPage.value,
+        meta: "*",
+        sort: "-order,-createdAt",
+      },
+      files: {
+        fields: "*",
+        limit: pageLimit,
+        page: filePage.value,
+        meta: "*",
+        sort: "-createdAt",
+      },
+    },
   },
   errorContext: "Load Folder Info",
 });
 
-// Get child folders
-const {
-  data: childFolders,
-  pending: childFoldersPending,
-  execute: fetchChildFolders,
-} = useApiLazy(() => `/folder_definition`, {
-  query: {
-    limit: pageLimit,
-    page: folderPage.value,
-    meta: "*",
-    sort: "-order,-createdAt",
-    filter: {
-      parent: {
-        id: {
-          _eq: route.params.id,
-        },
-      },
-    },
-  },
-  errorContext: "Load Child Folders",
+// Prepare folders data from deep query
+const folders = computed(() => folder.value?.data?.[0]?.children || []);
+const folderTotal = computed(() => {
+  // Get meta from deep query children
+  const childrenMeta = folder.value?.meta?.children?.[0];
+  return childrenMeta?.filterCount || 0;
 });
 
-// Get files in this folder
-const {
-  data: folderFiles,
-  pending: filesPending,
-  execute: fetchFolderFiles,
-} = useApiLazy(() => `/file_definition`, {
-  query: {
-    limit: pageLimit,
-    page: filePage.value,
-    meta: "*",
-    sort: "-createdAt",
-    filter: {
-      folder: {
-        id: {
-          _eq: route.params.id,
-        },
-      },
-    },
-  },
-  errorContext: "Load Folder Files",
+// Prepare files data from deep query
+const files = computed(() => folder.value?.data?.[0]?.files || []);
+const fileTotal = computed(() => {
+  // Get meta from deep query files
+  const filesMeta = folder.value?.meta?.files?.[0];
+  return filesMeta?.filterCount || 0;
 });
+
+// Loading states - use folderPending for both since it's one API
+const childFoldersPending = computed(() => folderPending.value);
+const filesPending = computed(() => folderPending.value);
 
 // Upload files API
 const {
@@ -79,14 +70,6 @@ const {
   errorContext: "Upload Files",
 });
 
-// Prepare folders data
-const folders = computed(() => childFolders.value?.data || []);
-const folderTotal = computed(() => childFolders.value?.meta?.filterCount || 0);
-
-// Prepare files data
-const files = computed(() => folderFiles.value?.data || []);
-const fileTotal = computed(() => folderFiles.value?.meta?.filterCount || 0);
-
 // Page title computation
 const pageTitle = computed(() => {
   if (folderPending.value) return "Loading...";
@@ -95,8 +78,8 @@ const pageTitle = computed(() => {
 
 // Stats for PageHeader
 const pageStats = computed(() => {
-  const totalChildFolders = childFolders.value?.meta?.filterCount || 0;
-  const totalChildFiles = folderFiles.value?.meta?.filterCount || 0;
+  const totalChildFolders = folderTotal.value;
+  const totalChildFiles = fileTotal.value;
 
   return [
     {
@@ -128,8 +111,6 @@ function handleRefreshItems() {
   });
 
   fetchFolder();
-  fetchChildFolders();
-  fetchFolderFiles();
 }
 
 // Handle folder created
@@ -143,8 +124,7 @@ function handleFolderCreated() {
     query: { ...route.query, folderPage: "1", filePage: "1" },
   });
 
-  fetchChildFolders();
-  fetchFolderFiles();
+  fetchFolder();
 }
 
 // Handle file upload
@@ -170,7 +150,7 @@ async function handleFileUpload(files: File | File[]) {
   }
 
   // Refresh files list after successful upload
-  await fetchFolderFiles();
+  await fetchFolder();
 
   // Close modal
   showUploadModal.value = false;
@@ -187,8 +167,6 @@ async function handleFileUpload(files: File | File[]) {
 onMounted(() => {
   // Fetch all in parallel for better UX
   fetchFolder();
-  fetchChildFolders();
-  fetchFolderFiles();
 });
 
 // Watch query changes and refetch data
@@ -196,7 +174,7 @@ watch(
   () => route.query.folderPage,
   async (newVal) => {
     folderPage.value = newVal ? Number(newVal) : 1;
-    await fetchChildFolders();
+    await fetchFolder();
   }
 );
 
@@ -204,7 +182,7 @@ watch(
   () => route.query.filePage,
   async (newVal) => {
     filePage.value = newVal ? Number(newVal) : 1;
-    await fetchFolderFiles();
+    await fetchFolder();
   }
 );
 
@@ -273,8 +251,8 @@ useHeaderActionRegistry([
       empty-description="This folder doesn't contain any files or subfolders"
       :show-create-button="true"
       @refresh-items="handleRefreshItems"
-      @refresh-folders="fetchChildFolders"
-      @refresh-files="fetchFolderFiles"
+      @refresh-folders="fetchFolder"
+      @refresh-files="fetchFolder"
       @create-folder="showCreateModal = true"
     />
 
