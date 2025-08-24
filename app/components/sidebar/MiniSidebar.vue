@@ -91,7 +91,7 @@ const handleItemClick = (item: any) => {
           :class="[
             isActive(item.route)
               ? 'bg-gradient-to-br from-primary/20 to-secondary/20 rounded-xl p-1 shadow-lg border border-primary/30'
-              : `lg:hover:!bg-gradient-to-br lg:hover:!from-muted/20 lg:hover:!to-muted/10 rounded-xl p-1 border border-transparent lg:hover:!border-muted/30 transition-colors duration-200`,
+              : `lg:hover:!bg-gradient-to-br lg:hover:!from-muted/20 lg:hover:!to-muted/10 rounded-xl p-1 border border-transparent lg:hover:!border-muted/30 transition-colors duration-200 lg:active:bg-gradient-to-br lg:active:from-muted/20 lg:active:to-muted/10`,
           ]"
         >
           <UButton
@@ -140,7 +140,7 @@ const handleItemClick = (item: any) => {
             :class="[
               isActive(item.route)
                 ? 'bg-gradient-to-br from-warning/20 to-error/20 rounded-xl p-1 shadow-lg border border-warning/30'
-                : `lg:hover:!bg-gradient-to-br lg:hover:!from-muted/20 lg:hover:!to-muted/10 rounded-xl p-1 border border-transparent lg:hover:!border-muted/30 transition-colors duration-200`,
+                : `lg:hover:!bg-gradient-to-br lg:hover:!from-muted/20 lg:hover:!to-muted/10 rounded-xl p-1 border border-transparent lg:hover:!border-muted/30 transition-colors duration-200 lg:active:bg-gradient-to-br lg:active:from-muted/20 lg:active:to-muted/10`,
             ]"
           >
             <UButton
