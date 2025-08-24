@@ -95,20 +95,18 @@ useHeaderActionRegistry([
   },
 ]);
 
-// Execute API calls
-onMounted(async () => {
+// Initialize form data
+async function initializeForm() {
   await execute();
-});
+  const data = file.value?.data?.[0];
+  if (data) {
+    form.value = { ...data };
+  }
+}
 
-watch(
-  file,
-  (newData) => {
-    if (newData?.data?.[0]) {
-      form.value = { ...newData.data[0] };
-    }
-  },
-  { immediate: true }
-);
+onMounted(() => {
+  initializeForm();
+});
 
 // Handle file update
 async function saveFile() {
@@ -121,9 +119,6 @@ async function saveFile() {
   if (updateError.value) {
     return;
   }
-
-  // Refresh file data
-  await execute();
 
   // Show success message
   const toast = useToast();

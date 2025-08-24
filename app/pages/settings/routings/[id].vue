@@ -161,15 +161,14 @@ const form = ref<Record<string, any>>({});
 
 const errors = ref<Record<string, string>>({});
 
-watch(
-  routeData,
-  (newData) => {
-    if (newData?.data?.[0]) {
-      form.value = { ...newData.data[0] };
-    }
-  },
-  { immediate: true }
-);
+// Initialize form data
+async function initializeForm() {
+  await executeGetRoute();
+  const data = routeData.value?.data?.[0];
+  if (data) {
+    form.value = { ...data };
+  }
+}
 
 async function updateRoute() {
   if (!form.value) return;
@@ -224,7 +223,7 @@ async function deleteRoute() {
   await navigateTo("/settings/routings");
 }
 
-onMounted(async () => {
-  await executeGetRoute();
+onMounted(() => {
+  initializeForm();
 });
 </script>

@@ -277,12 +277,16 @@ async function handleUpload(files: File | File[]) {
   }
 }
 
-onMounted(async () => {
+// Initialize form data
+async function initializeForm() {
   await executeGetExtension();
-
-  // Initialize form after data loads
-  if (extensionData.value?.data?.[0]) {
-    form.value = { ...extensionData.value.data[0] };
+  const data = extensionData.value?.data?.[0];
+  if (data) {
+    form.value = { ...data };
   }
+}
+
+onMounted(() => {
+  initializeForm();
 });
 </script>

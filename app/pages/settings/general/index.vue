@@ -2,9 +2,13 @@
 const toast = useToast();
 const errors = ref<Record<string, string>>({});
 
-const { generateEmptyForm, validate } = useSchema("setting_definition");
+const { validate } = useSchema("setting_definition");
 
 const { isMounted } = useMounted();
+
+// Form changes tracking via FormEditor
+const hasFormChanges = ref(false);
+const formEditorRef = ref();
 
 useHeaderActionRegistry([
   {
@@ -16,6 +20,7 @@ useHeaderActionRegistry([
     size: "md",
     submit: handleSaveSetting,
     loading: computed(() => saveLoading.value),
+    disabled: computed(() => !hasFormChanges.value),
     permission: {
       and: [
         {
@@ -41,14 +46,12 @@ const {
 
 const setting = ref<Record<string, any>>({});
 
-watch(
-  apiData,
-  (newData) => {
-    const firstRecord = newData?.data?.[0];
-    setting.value = firstRecord || generateEmptyForm();
-  },
-  { immediate: true }
-);
+// Initialize form data
+async function initializeForm() {
+  await loadSetting();
+  const data = apiData.value?.data?.[0];
+  setting.value = data ? { ...data } : {};
+}
 
 const {
   execute: saveSetting,
@@ -82,10 +85,12 @@ async function handleSaveSetting() {
 
   toast.add({ title: "Configuration saved", color: "primary" });
   errors.value = {};
+
+  formEditorRef.value?.confirmChanges();
 }
 
-onMounted(async () => {
-  await loadSetting();
+onMounted(() => {
+  initializeForm();
 });
 </script>
 
@@ -117,10 +122,12 @@ onMounted(async () => {
       >
         <UForm @submit="handleSaveSetting" :state="setting">
           <FormEditorLazy
+            ref="formEditorRef"
             table-name="setting_definition"
             mode="edit"
             v-model="setting"
             v-model:errors="errors"
+            v-model:has-changes="hasFormChanges"
           />
         </UForm>
       </div>

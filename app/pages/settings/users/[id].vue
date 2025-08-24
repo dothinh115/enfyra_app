@@ -30,15 +30,14 @@ const form = ref<Record<string, any>>({});
 
 const errors = ref<Record<string, string>>({});
 
-watch(
-  apiData,
-  (newData) => {
-    if (newData?.data?.[0]) {
-      form.value = { ...newData.data[0] };
-    }
-  },
-  { immediate: true }
-);
+// Initialize form data
+async function initializeForm() {
+  await fetchUser();
+  const data = apiData.value?.data?.[0];
+  if (data) {
+    form.value = { ...data };
+  }
+}
 
 const {
   execute: updateUser,
@@ -150,32 +149,9 @@ async function deleteUser() {
   await navigateTo("/settings/users");
 }
 
-async function fetchUserDetail(userId: string) {
-  await fetchUser();
-
-  // Check if there was an error
-  if (apiData.value?.error) {
-    return;
-  }
-
-  if (!apiData.value?.data?.[0]) {
-    toast.add({
-      title: "User not found",
-      description: "Invalid ID",
-      color: "error",
-    });
-    await navigateTo("/settings/users");
-  }
-}
-
-onMounted(async () => {
-  await fetchUserDetail(route.params.id as string);
+onMounted(() => {
+  initializeForm();
 });
-
-watch(
-  () => route.params.id,
-  (newId) => fetchUserDetail(newId as string)
-);
 </script>
 
 <template>

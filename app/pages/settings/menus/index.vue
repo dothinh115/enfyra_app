@@ -11,7 +11,7 @@ const route = useRoute();
 const tableName = "menu_definition";
 const { getIncludeFields } = useSchema(tableName);
 const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
-const menus = ref<any[]>([]);
+const menus = computed(() => apiData.value?.data || []);
 const { createLoader } = useLoader();
 const { isTablet } = useScreen();
 
@@ -113,11 +113,6 @@ useHeaderActionRegistry([
     },
   },
 ]);
-
-// Update menus when data changes
-watch(menusData, (newMenus) => {
-  menus.value = newMenus;
-});
 
 // Watch for page changes in URL
 watch(

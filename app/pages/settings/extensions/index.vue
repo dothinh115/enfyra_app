@@ -108,7 +108,7 @@ const { checkPermissionCondition } = usePermissions();
 
 const { isMounted } = useMounted();
 const { isTablet } = useScreen();
-
+const route = useRoute();
 const {
   data: apiData,
   pending: loading,

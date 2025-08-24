@@ -123,15 +123,14 @@ const {
 
 const form = ref<Record<string, any>>({});
 
-watch(
-  apiData,
-  (newData) => {
-    if (newData?.data?.[0]) {
-      form.value = { ...newData.data[0] };
-    }
-  },
-  { immediate: true }
-);
+// Initialize form data
+async function initializeForm() {
+  await fetchRole();
+  const data = apiData.value?.data?.[0];
+  if (data) {
+    form.value = { ...data };
+  }
+}
 
 const {
   execute: updateRole,
@@ -201,7 +200,7 @@ async function deleteRole() {
   await navigateTo("/settings/roles");
 }
 
-onMounted(async () => {
-  await fetchRole();
+onMounted(() => {
+  initializeForm();
 });
 </script>

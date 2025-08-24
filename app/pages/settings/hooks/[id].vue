@@ -146,15 +146,14 @@ const form = ref<Record<string, any>>({});
 
 const errors = ref<Record<string, string>>({});
 
-watch(
-  hookData,
-  (newData) => {
-    if (newData?.data?.[0]) {
-      form.value = { ...newData.data[0] };
-    }
-  },
-  { immediate: true }
-);
+// Initialize form data
+async function initializeForm() {
+  await executeGetHook();
+  const data = hookData.value?.data?.[0];
+  if (data) {
+    form.value = { ...data };
+  }
+}
 
 async function updateHook() {
   if (!form.value) return;
@@ -206,7 +205,7 @@ async function deleteHook() {
   await navigateTo("/settings/hooks");
 }
 
-onMounted(async () => {
-  await executeGetHook();
+onMounted(() => {
+  initializeForm();
 });
 </script>

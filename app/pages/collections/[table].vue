@@ -52,7 +52,6 @@ useHeaderActionRegistry([
     icon: "lucide:save",
     variant: "solid",
     color: "primary",
-    size: "lg",
     loading: computed(() => saving.value || globalLoading.value),
     disabled: computed(
       () => table.value?.isSystem && !isSystemTableModifiable(table.value?.name)
@@ -73,7 +72,6 @@ useHeaderActionRegistry([
     icon: "lucide:trash",
     variant: "solid",
     color: "error",
-    size: "lg",
     loading: computed(() => deleting.value || globalLoading.value),
     disabled: computed(
       () => table.value?.isSystem && !isSystemTableModifiable(table.value?.name)
@@ -90,24 +88,14 @@ useHeaderActionRegistry([
   },
 ]);
 
-async function fetchData() {
+// Initialize form data
+async function initializeForm() {
   await fetchTableData();
-  if ((tableData.value as any)?.data) {
-    const tableDataRaw = (tableData.value as any).data[0];
-    table.value = tableDataRaw;
+  const data = tableData.value?.data?.[0];
+  if (data) {
+    table.value = data;
   }
 }
-
-watch(
-  tableData,
-  (newData) => {
-    if (newData?.data) {
-      const tableDataRaw = newData.data[0];
-      table.value = tableDataRaw;
-    }
-  },
-  { immediate: true }
-);
 
 async function save() {
   const ok = await confirm({
@@ -172,8 +160,8 @@ async function deleteTable() {
   return navigateTo(`/collections`);
 }
 
-onMounted(async () => {
-  await fetchData();
+onMounted(() => {
+  initializeForm();
 });
 </script>
 

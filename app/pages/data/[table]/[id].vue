@@ -4,7 +4,7 @@ const route = useRoute();
 const toast = useToast();
 const { validate } = useSchema(route.params.table as string);
 const updateErrors = ref<Record<string, string>>({});
-
+const { isMounted } = useMounted();
 const { confirm } = useConfirm();
 
 // Form changes tracking via FormEditor
@@ -28,21 +28,9 @@ const {
   errorContext: "Fetch Record",
 });
 
-// Form data as ref
-const currentRecord = ref<Record<string, any>>({});
+const currentRecord = computed(() => apiData.value?.data?.[0] || {});
 
-// Watch API data and update form
-watch(
-  apiData,
-  (newData) => {
-    if (newData?.data?.[0]) {
-      currentRecord.value = { ...newData.data[0] };
-    }
-  },
-  { immediate: true }
-);
-
-onMounted(async () => await fetchRecord());
+onMounted(fetchRecord);
 
 async function handleUpdate() {
   const { isValid, errors } = validate(currentRecord.value);
@@ -76,10 +64,6 @@ async function handleUpdate() {
 
   // Confirm form changes as new baseline
   formEditorRef.value?.confirmChanges();
-
-  await navigateTo(
-    `/data/${route.params.table}/${updateData.value?.data[0]?.id}`
-  );
 }
 
 // API composable for updating record
@@ -164,18 +148,21 @@ useHeaderActionRegistry([
     },
   },
 ]);
+const title = computed(() => {
+  if (loading.value || !isMounted.value) return "Loading...";
+  return `${route.params.table}: ${currentRecord.value.id}`;
+});
 </script>
 
 <template>
   <div class="space-y-6">
     <!-- Header - Full width -->
     <CommonPageHeader
-      v-if="currentRecord.id"
-      :title="`${route.params.table}: ${currentRecord.id}`"
-      title-size="lg"
+      :title
       show-background
       background-gradient="from-cyan-500/6 via-blue-400/4 to-transparent"
       padding-y="py-6"
+      title-size="md"
     />
 
     <!-- Content - Limited width -->
@@ -183,7 +170,7 @@ useHeaderActionRegistry([
       <Transition name="loading-fade" mode="out-in">
         <!-- Loading state -->
         <CommonLoadingState
-          v-if="loading || !currentRecord.id"
+          v-if="loading || !isMounted"
           type="form"
           context="page"
           size="lg"
@@ -191,7 +178,7 @@ useHeaderActionRegistry([
           :description="`Fetching record details`"
         />
         <!-- Form content -->
-        <div v-else-if="currentRecord.id">
+        <div v-else>
           <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
             <FormEditorLazy
               ref="formEditorRef"
@@ -205,13 +192,5 @@ useHeaderActionRegistry([
         </div>
       </Transition>
     </div>
-  </div>
-
-  <!-- Debug info -->
-  <div
-    class="fixed bottom-4 right-4 bg-gray-800 text-white p-2 rounded text-xs"
-  >
-    Loading: {{ loading }} | Has Data: {{ !!apiData?.data?.length }} | Record
-    ID: {{ currentRecord.id }}
   </div>
 </template>

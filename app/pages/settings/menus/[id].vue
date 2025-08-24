@@ -97,15 +97,14 @@ const typeMap = {
   },
 };
 
-watch(
-  menuData,
-  (newData) => {
-    if (newData?.data?.[0]) {
-      form.value = { ...newData.data[0] };
-    }
-  },
-  { immediate: true }
-);
+// Initialize form data
+async function initializeForm() {
+  await executeFetchMenu();
+  const data = menuData.value?.data?.[0];
+  if (data) {
+    form.value = { ...data };
+  }
+}
 
 // Watch type changes and clear conflicting fields
 watch(
@@ -283,8 +282,8 @@ async function deleteMenuDetail() {
   await navigateTo("/settings/menus");
 }
 
-onMounted(async () => {
-  await executeFetchMenu();
+onMounted(() => {
+  initializeForm();
 });
 </script>
 

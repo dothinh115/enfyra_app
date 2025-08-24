@@ -286,11 +286,6 @@ async function deleteUser(user: any) {
   }
 }
 
-watch(apiData, (newData) => {
-  if (newData?.data) {
-  }
-});
-
 onMounted(async () => {
   await fetchUsers();
 });

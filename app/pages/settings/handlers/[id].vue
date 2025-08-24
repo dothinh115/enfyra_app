@@ -133,15 +133,14 @@ const {
   errorContext: "Delete Handler",
 });
 
-watch(
-  handlerData,
-  (newData) => {
-    if (newData?.data?.[0]) {
-      form.value = { ...newData.data[0] };
-    }
-  },
-  { immediate: true }
-);
+// Initialize form data
+async function initializeForm() {
+  await executeGetHandler();
+  const data = handlerData.value?.data?.[0];
+  if (data) {
+    form.value = { ...data };
+  }
+}
 
 async function save() {
   if (!form.value) return;
@@ -193,7 +192,7 @@ async function deleteHandler() {
   await navigateTo("/settings/handlers");
 }
 
-onMounted(async () => {
-  await executeGetHandler();
+onMounted(() => {
+  initializeForm();
 });
 </script>

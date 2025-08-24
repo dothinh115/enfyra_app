@@ -9,7 +9,7 @@ const { getIncludeFields } = useSchema(tableName);
 const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
 const { createLoader } = useLoader();
 const { isTablet } = useScreen();
-const routes = ref<any[]>([]);
+
 
 const showFilterDrawer = ref(false);
 const currentFilter = ref(createEmptyFilter());
@@ -106,12 +106,7 @@ useHeaderActionRegistry([
 ]);
 
 // Update routes when data changes
-watch(
-  routesData,
-  (newRoutes) => {
-    routes.value = newRoutes;
-  }
-);
+
 
 // Handle filter apply from FilterDrawer
 async function handleFilterApply(filter: FilterGroup) {
@@ -272,7 +267,7 @@ onMounted(fetchRoutes);
       </div>
 
       <div v-else class="space-y-6">
-        <div v-if="routes.length" class="space-y-6">
+        <div v-if="routesData.length" class="space-y-6">
           <div
             class="grid gap-4"
             :class="
@@ -282,7 +277,7 @@ onMounted(fetchRoutes);
             "
           >
             <CommonSettingsCard
-              v-for="routeItem in routes"
+              v-for="routeItem in routesData"
               :key="routeItem.id"
               :title="routeItem.path"
               :description="routeItem.mainTable.name"
