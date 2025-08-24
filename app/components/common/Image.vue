@@ -1,7 +1,7 @@
 <template>
   <div
     ref="containerRef"
-    :class="['relative', shapeClasses, containerClass]"
+    :class="['relative', shapeClasses, containerClass, props.class]"
     :style="[aspectRatioStyle, containerStyle]"
   >
     <div
@@ -290,6 +290,4 @@ watch(
     isInViewport.value = false;
   }
 );
-
-console.log(containerStyle.value);
 </script>
