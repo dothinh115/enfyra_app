@@ -35,6 +35,18 @@ export default defineNuxtConfig({
         { name: "color-scheme", content: "dark" },
       ],
       title: "Enfyra App - Content Management System",
+      style: [
+        {
+          innerHTML: `
+            html, body {
+              overflow: hidden !important;
+              position: fixed !important;
+              width: 100% !important;
+              height: 100% !important;
+            }
+          `,
+        },
+      ],
     },
   },
   imports: {

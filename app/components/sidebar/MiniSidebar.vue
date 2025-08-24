@@ -103,9 +103,7 @@ const handleItemClick = (item: any) => {
             @click="handleItemClick(item)"
             :class="[
               'w-10 h-10 flex justify-center items-center rounded-lg',
-              isTablet
-                ? ''
-                : 'transition-all duration-200 lg:group-hover:scale-110',
+              isTablet ? '' : 'transition-colors duration-200',
               isActive(item.route)
                 ? 'bg-gradient-to-br from-primary/30 to-secondary/30 text-primary shadow-md'
                 : 'text-muted-foreground lg:hover:text-primary bg-gradient-to-br lg:hover:from-background lg:hover:to-muted/20',
@@ -156,9 +154,7 @@ const handleItemClick = (item: any) => {
               @click="handleItemClick(item)"
               :class="[
                 'w-10 h-10 flex justify-center items-center rounded-lg',
-                isTablet
-                  ? ''
-                  : 'transition-all duration-200 lg:group-hover:scale-110',
+                isTablet ? '' : 'transition-colors duration-200',
                 isActive(item.route)
                   ? 'bg-gradient-to-br from-warning/30 to-error/30 text-warning shadow-md'
                   : 'text-muted-foreground lg:hover:text-warning bg-gradient-to-br lg:hover:from-background lg:hover:to-muted/20',
