@@ -44,16 +44,6 @@ export default defineNuxtConfig({
               width: 100% !important;
               height: 100% !important;
             }
-            
-            /* Fix tablet-specific transition issues */
-            @media (hover: none) and (pointer: coarse) {
-              * {
-                transition: none !important;
-              }
-              .transition-colors {
-                transition: none !important;
-              }
-            }
           `,
         },
       ],
