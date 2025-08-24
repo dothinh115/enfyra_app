@@ -90,7 +90,7 @@ async function createNewRecord() {
               variant="ghost"
               color="neutral"
               size="lg"
-              class="hover:bg-error/10 hover:text-error transition-colors duration-200"
+              class="lg:hover:bg-error/10 lg:hover:text-error transition-colors duration-200"
             />
           </div>
         </div>

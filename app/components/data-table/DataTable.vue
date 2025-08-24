@@ -150,7 +150,7 @@ async function handleBulkDelete() {
   }
 }
 
-// Responsive check - tablet uses card view, desktop uses table
+// Responsive check - all devices use table view
 const { isTablet } = useScreen();
 </script>
 
@@ -168,9 +168,8 @@ const { isTablet } = useScreen();
       <CommonLoadingState type="table" size="md" context="page" />
     </div>
 
-    <!-- Desktop Table View -->
+    <!-- Table View (Desktop & Tablet) -->
     <div
-      v-else-if="!isTablet"
       class="overflow-auto rounded-lg border border-gray-200 dark:border-gray-800 transition-all duration-300 ease-in-out"
     >
       <table class="w-full table-fixed" aria-label="Data table">
@@ -185,7 +184,7 @@ const { isTablet } = useScreen();
                 header.id === 'select' ? 'w-12 min-w-12 max-w-12' : '',
                 header.id === '__actions' ? 'w-12 min-w-12 max-w-12' : '',
                 header.column.getCanSort() &&
-                  'cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-800',
+                  'cursor-pointer select-none lg:hover:bg-gray-100 dark:lg:hover:bg-gray-800',
               ]"
               @click="header.column.getToggleSortingHandler()?.($event)"
               scope="col"
@@ -235,7 +234,7 @@ const { isTablet } = useScreen();
             >
               <tr
                 :class="[
-                  'hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors',
+                  'lg:hover:bg-gray-50 dark:lg:hover:bg-gray-800/50 transition-colors',
                   'cursor-pointer',
                 ]"
                 @click="emit('row-click', row.original)"
@@ -267,7 +266,7 @@ const { isTablet } = useScreen();
             <tr
               v-else
               :class="[
-                'hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors',
+                'lg:hover:bg-gray-50 dark:lg:hover:bg-gray-800/50 transition-colors',
                 'cursor-pointer',
               ]"
               @click="emit('row-click', row.original)"
@@ -309,33 +308,6 @@ const { isTablet } = useScreen();
           </tr>
         </tbody>
       </table>
-    </div>
-
-    <!-- Tablet Card View -->
-    <div
-      v-else
-      class="grid gap-4 transition-all duration-300 ease-in-out"
-      :class="isTablet ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'"
-      aria-label="Tablet data view"
-    >
-      <DataTableTabletCard
-        v-for="row in table.getRowModel().rows"
-        :key="row.id"
-        :row="row.original"
-        :cells="row.getVisibleCells()"
-        :selectable="selectable"
-        :selected="row.getIsSelected()"
-        :on-toggle-select="() => row.getToggleSelectedHandler()?.($event)"
-        :on-click="() => emit('row-click', row.original)"
-      />
-      <div v-if="!loading && props.data.length === 0" class="py-8">
-        <CommonEmptyState
-          title="No data available"
-          description="There are no records to display"
-          icon="lucide:database"
-          size="sm"
-        />
-      </div>
     </div>
 
     <!-- Bottom Bulk Actions - positioned bottom right -->

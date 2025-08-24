@@ -1,6 +1,6 @@
 <template>
   <div
-    class="relative group transition-all duration-300 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 h-full flex flex-col overflow-hidden shadow-lg hover:shadow-2xl hover:border-primary-300 dark:hover:border-primary-600"
+    class="relative group transition-all duration-300 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 h-full flex flex-col overflow-hidden shadow-lg lg:hover:shadow-2xl lg:hover:border-primary-300 dark:lg:hover:border-primary-600"
     :class="cardClass"
   >
     <!-- Header -->

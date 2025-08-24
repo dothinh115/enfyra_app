@@ -9,7 +9,7 @@
       @click="showModal = true"
       class="w-full"
       :ui="{
-        root: 'hover:!bg-muted/50 hover:!border-primary/50 transition-colors',
+        root: 'lg:hover:!bg-muted/50 lg:hover:!border-primary/50 transition-colors',
         base: 'transition-all duration-200 !cursor-pointer',
       }"
     >
@@ -136,17 +136,26 @@ watch(
   () => showModal.value,
   (isOpen) => {
     if (isOpen) {
-      console.log('🚀 Modal opened, cloning permissionGroups:', permissionGroups.value);
+      console.log(
+        "🚀 Modal opened, cloning permissionGroups:",
+        permissionGroups.value
+      );
       // Reset apply flag
       hasApplied.value = false;
       // Make deep copies when opening modal
-      originalPermissionGroups.value = JSON.parse(JSON.stringify(permissionGroups.value));
-      localFormPermissionGroups.value = JSON.parse(JSON.stringify(permissionGroups.value));
+      originalPermissionGroups.value = JSON.parse(
+        JSON.stringify(permissionGroups.value)
+      );
+      localFormPermissionGroups.value = JSON.parse(
+        JSON.stringify(permissionGroups.value)
+      );
     } else if (!hasApplied.value) {
-      console.log('🚀 Modal closed without apply, reverting to original state');
+      console.log("🚀 Modal closed without apply, reverting to original state");
       // When modal closes without apply, ensure we haven't emitted unwanted changes
       // Reset local state to original (this prevents accidental emit)
-      localFormPermissionGroups.value = JSON.parse(JSON.stringify(originalPermissionGroups.value));
+      localFormPermissionGroups.value = JSON.parse(
+        JSON.stringify(originalPermissionGroups.value)
+      );
     }
   }
 );
@@ -156,7 +165,10 @@ watch(
   permissionGroups,
   (newGroups) => {
     if (!showModal.value) {
-      console.log('🚀 External permissionGroups changed, updating local state:', newGroups);
+      console.log(
+        "🚀 External permissionGroups changed, updating local state:",
+        newGroups
+      );
       // Only update when modal is closed to reflect external changes
       originalPermissionGroups.value = JSON.parse(JSON.stringify(newGroups));
       localFormPermissionGroups.value = JSON.parse(JSON.stringify(newGroups));
@@ -166,7 +178,10 @@ watch(
 );
 
 function updateModelValue() {
-  console.log('🔧 updateModelValue called with localFormPermissionGroups:', localFormPermissionGroups.value);
+  console.log(
+    "🔧 updateModelValue called with localFormPermissionGroups:",
+    localFormPermissionGroups.value
+  );
   // Convert groups back to PermissionCondition format
   let result;
 
@@ -188,39 +203,44 @@ function updateModelValue() {
     result = { and: andGroups };
   }
 
-  console.log('🔧 Emitting update:modelValue with result:', result);
+  console.log("🔧 Emitting update:modelValue with result:", result);
   emit("update:modelValue", result);
 }
 
 function applyFormPermissionGroups(data: any) {
-  console.log('🔧 applyFormPermissionGroups called with:', data);
+  console.log("🔧 applyFormPermissionGroups called with:", data);
   // Mark that user has applied changes
   hasApplied.value = true;
-  
+
   // This will be called from FormPermissionSelector
   if (data?.allowAll === true) {
     // Set allowAll mode
-    console.log('🔧 Emitting allowAll:', { allowAll: true });
+    console.log("🔧 Emitting allowAll:", { allowAll: true });
     emit("update:modelValue", { allowAll: true });
   } else {
     // Set normal permission groups
     localFormPermissionGroups.value = Array.isArray(data) ? [...data] : [data];
-    console.log('🔧 Calling updateModelValue with localFormPermissionGroups:', localFormPermissionGroups.value);
+    console.log(
+      "🔧 Calling updateModelValue with localFormPermissionGroups:",
+      localFormPermissionGroups.value
+    );
     updateModelValue();
   }
   showModal.value = false;
 }
 
 function closeModal() {
-  console.log('🚀 closeModal called, hasApplied:', hasApplied.value);
+  console.log("🚀 closeModal called, hasApplied:", hasApplied.value);
   // Just close modal - revert logic is handled in watch
   showModal.value = false;
 }
 
 function cancelChanges() {
-  console.log('🚀 cancelChanges called');
+  console.log("🚀 cancelChanges called");
   // Revert local changes to original state
-  localFormPermissionGroups.value = JSON.parse(JSON.stringify(originalPermissionGroups.value));
+  localFormPermissionGroups.value = JSON.parse(
+    JSON.stringify(originalPermissionGroups.value)
+  );
   showModal.value = false;
 }
 

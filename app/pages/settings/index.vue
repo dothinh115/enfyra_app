@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-2xl">
+  <div class="w-full">
     <!-- Header -->
     <CommonPageHeader
       title="System Settings"
@@ -9,7 +9,7 @@
       background-gradient="from-gray-500/5 via-gray-400/3 to-transparent"
       padding-y="py-4"
     />
-    
+
     <CommonEmptyState
       title="System Settings"
       description="Manage your system configuration, users, roles, menus, extensions, and more. Select a setting category from the sidebar to get started."

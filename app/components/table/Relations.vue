@@ -77,7 +77,7 @@ function saveRelation() {
     <div
       v-for="(rel, index) in relations"
       :key="rel.id ?? index"
-      class="flex items-center justify-between rounded-lg border border-muted hover:bg-muted/50 transition"
+      class="flex items-center justify-between rounded-lg border border-muted lg:hover:bg-muted/50 transition"
     >
       <div
         class="flex items-center gap-2 flex-1 cursor-pointer px-4 py-3"
@@ -106,7 +106,7 @@ function saveRelation() {
         variant="ghost"
         size="xs"
         :disabled="rel.isSystem"
-        class="hover:cursor-pointer mr-2"
+        class="lg:hover:cursor-pointer mr-2"
         @click.stop="relations.splice(index, 1)"
       />
     </div>
@@ -163,7 +163,7 @@ function saveRelation() {
               variant="soft"
               color="error"
               size="lg"
-              class="hover:bg-error/10 hover:text-error transition-colors duration-200"
+              class="lg:hover:bg-error/10 lg:hover:text-error transition-colors duration-200"
             />
           </div>
         </div>

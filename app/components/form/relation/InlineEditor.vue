@@ -90,7 +90,7 @@ function shortenId(id: string | number): string {
       {{ item.id ? shortenId(item.id) : "Invalid ID" }}
       <button
         @click.stop="removeId(item.id)"
-        class="ml-1 text-xs hover:text-red-500 cursor-pointer"
+        class="ml-1 text-xs lg:hover:text-red-500 cursor-pointer"
         title="Delete"
         v-if="!props.disabled"
       >

@@ -72,7 +72,7 @@
               <div
                 v-for="user in users"
                 :key="user.id"
-                class="flex items-center justify-between p-3 border border-muted rounded-lg hover:bg-muted/20 cursor-pointer transition-colors"
+                class="flex items-center justify-between p-3 border border-muted rounded-lg lg:hover:bg-muted/20 cursor-pointer transition-colors"
                 @click="selectUser(user)"
               >
                 <div class="flex items-center gap-3">

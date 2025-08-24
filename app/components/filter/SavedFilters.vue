@@ -13,12 +13,12 @@ const emit = defineEmits<{
   clearFilters: [];
 }>();
 
-const { 
-  getFilterHistory, 
-  removeFromHistory, 
+const {
+  getFilterHistory,
+  removeFromHistory,
   updateFilterName,
   incrementUseCount,
-  clearHistory
+  clearHistory,
 } = useFilterHistory(props.tableName);
 
 // State
@@ -42,18 +42,16 @@ const filteredSavedFilters = computed(() => {
   if (!searchQuery.value.trim()) {
     return savedFilters.value;
   }
-  
+
   const query = searchQuery.value.toLowerCase();
-  return savedFilters.value.filter(filter =>
+  return savedFilters.value.filter((filter) =>
     filter.name.toLowerCase().includes(query)
   );
 });
 
 const popularFilters = computed(() => {
   // Use savedFilters to ensure reactivity when filters are deleted
-  return savedFilters.value
-    .sort((a, b) => b.useCount - a.useCount)
-    .slice(0, 3);
+  return savedFilters.value.sort((a, b) => b.useCount - a.useCount).slice(0, 3);
 });
 
 // Methods
@@ -61,18 +59,18 @@ const popularFilters = computed(() => {
 const applySavedFilter = (filter: FilterHistoryItem) => {
   // Update use count immediately when clicking on saved filter
   incrementUseCount(filter.id);
-  
+
   // Reload to update popular filters
   loadSavedFilters();
-  
-  emit('applyFilter', filter.filter);
+
+  emit("applyFilter", filter.filter);
 };
 
 const removeSavedFilter = (filterId: string) => {
   if (!deleteConfirmations.value[filterId]) {
     // First click - show confirmation state
     deleteConfirmations.value[filterId] = true;
-    
+
     // Reset after 3 seconds if not confirmed
     deleteTimers.value[filterId] = setTimeout(() => {
       deleteConfirmations.value[filterId] = false;
@@ -110,7 +108,7 @@ const clearAllFilters = () => {
   if (!clearAllConfirmation.value) {
     // First click - show confirmation state
     clearAllConfirmation.value = true;
-    
+
     // Reset after 3 seconds if not confirmed
     clearAllTimer.value = setTimeout(() => {
       clearAllConfirmation.value = false;
@@ -126,7 +124,7 @@ const clearAllFilters = () => {
   }
 };
 
-import { formatDate as formatDateUtil } from '~/utils/common/filter/filter-helpers';
+import { formatDate as formatDateUtil } from "~/utils/common/filter/filter-helpers";
 
 const formatDate = (dateString: string) => {
   return formatDateUtil(dateString, true); // includeTime = true
@@ -142,15 +140,18 @@ onUnmounted(() => {
     clearTimeout(clearAllTimer.value);
   }
   // Clean up all delete timers
-  Object.values(deleteTimers.value).forEach(timer => {
+  Object.values(deleteTimers.value).forEach((timer) => {
     clearTimeout(timer);
   });
 });
 
 // Watch for external filter changes
-watch(() => props.tableName, () => {
-  loadSavedFilters();
-});
+watch(
+  () => props.tableName,
+  () => {
+    loadSavedFilters();
+  }
+);
 </script>
 
 <template>
@@ -164,9 +165,11 @@ watch(() => props.tableName, () => {
         size="md"
         :variant="clearAllConfirmation ? 'solid' : 'soft'"
         :color="clearAllConfirmation ? 'error' : 'error'"
-        :icon="clearAllConfirmation ? 'lucide:alert-triangle' : 'lucide:trash-2'"
+        :icon="
+          clearAllConfirmation ? 'lucide:alert-triangle' : 'lucide:trash-2'
+        "
       >
-        {{ clearAllConfirmation ? 'Confirm Clear All?' : 'Clear All' }}
+        {{ clearAllConfirmation ? "Confirm Clear All?" : "Clear All" }}
       </UButton>
     </div>
 
@@ -183,7 +186,9 @@ watch(() => props.tableName, () => {
 
     <!-- Popular Filters (if no search) -->
     <div v-if="!searchQuery && popularFilters.length > 0" class="mb-4">
-      <div class="text-xs font-medium text-gray-400 mb-2 flex items-center gap-1">
+      <div
+        class="text-xs font-medium text-gray-400 mb-2 flex items-center gap-1"
+      >
         <UIcon name="lucide:trending-up" class="w-3 h-3" />
         Most Used
       </div>
@@ -191,12 +196,16 @@ watch(() => props.tableName, () => {
         <div
           v-for="filter in popularFilters"
           :key="`popular-${filter.id}`"
-          class="flex items-center justify-between p-3 rounded-lg border border-amber-400/20 bg-amber-400/5 hover:border-amber-400/30 cursor-pointer transition-all duration-200 group"
+          class="flex items-center justify-between p-3 rounded-lg border border-amber-400/20 bg-amber-400/5 lg:hover:border-amber-400/30 cursor-pointer transition-all duration-200 group"
           @click="applySavedFilter(filter)"
         >
           <div class="flex-1 min-w-0">
-            <div class="text-sm font-medium text-gray-200 truncate">{{ filter.name }}</div>
-            <div class="text-xs text-gray-500 mt-1">{{ filter.useCount }} uses</div>
+            <div class="text-sm font-medium text-gray-200 truncate">
+              {{ filter.name }}
+            </div>
+            <div class="text-xs text-gray-500 mt-1">
+              {{ filter.useCount }} uses
+            </div>
           </div>
           <UIcon name="lucide:star" class="w-3 h-3 text-amber-400" />
         </div>
@@ -206,66 +215,81 @@ watch(() => props.tableName, () => {
     <!-- Saved Filters List -->
     <div v-if="filteredSavedFilters.length > 0" class="space-y-1">
       <div class="text-xs font-medium text-gray-400 mb-2">
-        {{ searchQuery ? 'Search Results' : 'All Saved Filters' }}
+        {{ searchQuery ? "Search Results" : "All Saved Filters" }}
       </div>
-      
+
       <div class="max-h-80 overflow-y-auto space-y-1">
         <div
           v-for="filter in filteredSavedFilters"
           :key="filter.id"
-          class="flex items-center justify-between p-3 rounded-lg border border-gray-800 hover:border-gray-600 hover:bg-gray-800/50 cursor-pointer transition-all duration-200 group"
+          class="flex items-center justify-between p-3 rounded-lg border border-gray-800 lg:hover:border-gray-600 lg:hover:bg-gray-800/50 cursor-pointer transition-all duration-200 group"
           @click="applySavedFilter(filter)"
         >
-        <div class="flex-1 min-w-0">
-          <div class="text-sm font-medium text-gray-200 truncate">{{ filter.name }}</div>
-          <div class="text-xs text-gray-500 mt-1">
-            {{ formatDate(filter.lastUsed) }} • {{ filter.useCount }} uses
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-medium text-gray-200 truncate">
+              {{ filter.name }}
+            </div>
+            <div class="text-xs text-gray-500 mt-1">
+              {{ formatDate(filter.lastUsed) }} • {{ filter.useCount }} uses
+            </div>
           </div>
-        </div>
-        
-        <div class="flex items-center gap-2">
-          <UButton
-            @click.stop="startRenaming(filter)"
-            icon="lucide:edit-2"
-            size="lg"
-            variant="soft"
-            color="primary"
-            class="px-3 py-2"
-          />
-          <UButton
-            @click.stop="removeSavedFilter(filter.id)"
-            :icon="deleteConfirmations[filter.id] ? 'lucide:alert-triangle' : 'lucide:trash-2'"
-            size="lg"
-            :variant="deleteConfirmations[filter.id] ? 'solid' : 'soft'"
-            color="error"
-            class="px-3 py-2"
-          >
-            {{ deleteConfirmations[filter.id] ? 'Sure?' : '' }}
-          </UButton>
-        </div>
+
+          <div class="flex items-center gap-2">
+            <UButton
+              @click.stop="startRenaming(filter)"
+              icon="lucide:edit-2"
+              size="lg"
+              variant="soft"
+              color="primary"
+              class="px-3 py-2"
+            />
+            <UButton
+              @click.stop="removeSavedFilter(filter.id)"
+              :icon="
+                deleteConfirmations[filter.id]
+                  ? 'lucide:alert-triangle'
+                  : 'lucide:trash-2'
+              "
+              size="lg"
+              :variant="deleteConfirmations[filter.id] ? 'solid' : 'soft'"
+              color="error"
+              class="px-3 py-2"
+            >
+              {{ deleteConfirmations[filter.id] ? "Sure?" : "" }}
+            </UButton>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Empty State -->
     <div v-else-if="savedFilters.length === 0" class="text-center py-8">
-      <UIcon name="lucide:bookmark" class="w-8 h-8 text-gray-500 mx-auto mb-2" />
+      <UIcon
+        name="lucide:bookmark"
+        class="w-8 h-8 text-gray-500 mx-auto mb-2"
+      />
       <div class="text-sm text-gray-400 text-center mb-3">
         No saved filters yet
       </div>
       <div class="text-xs text-gray-500 text-center">
-        Apply filters and click "Save" to bookmark your favorite filter combinations
+        Apply filters and click "Save" to bookmark your favorite filter
+        combinations
       </div>
     </div>
 
     <!-- No Search Results -->
-    <div v-else-if="searchQuery && filteredSavedFilters.length === 0" class="text-center py-8">
-      <UIcon name="lucide:search-x" class="w-8 h-8 text-gray-500 mx-auto mb-2" />
+    <div
+      v-else-if="searchQuery && filteredSavedFilters.length === 0"
+      class="text-center py-8"
+    >
+      <UIcon
+        name="lucide:search-x"
+        class="w-8 h-8 text-gray-500 mx-auto mb-2"
+      />
       <div class="text-sm text-gray-400 text-center">
         No filters found for "{{ searchQuery }}"
       </div>
     </div>
-
 
     <!-- Rename Filter Dialog -->
     <UModal v-model:open="showRenameDialog">
@@ -283,7 +307,7 @@ watch(() => props.tableName, () => {
           </UButton>
         </div>
       </template>
-      
+
       <template #body>
         <div class="space-y-4">
           <div>
@@ -299,7 +323,7 @@ watch(() => props.tableName, () => {
           </div>
         </div>
       </template>
-      
+
       <template #footer>
         <div class="w-full">
           <UButton
@@ -317,4 +341,3 @@ watch(() => props.tableName, () => {
     </UModal>
   </div>
 </template>
-

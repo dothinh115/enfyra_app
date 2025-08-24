@@ -25,18 +25,24 @@
             :class="[
               sidebarVisible
                 ? 'bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-xl p-1 shadow-lg border border-orange-500/30'
-                : 'hover:bg-gradient-to-br hover:from-orange-500/10 hover:to-red-500/10 rounded-xl p-1 border border-transparent hover:border-orange-500/20 transition-all duration-200',
+                : `lg:hover:bg-gradient-to-br lg:hover:from-orange-500/10 lg:hover:to-red-500/10 rounded-xl p-1 border border-transparent lg:hover:border-orange-500/20 ${
+                    isTablet ? '' : 'transition-colors duration-200'
+                  }`,
             ]"
           >
             <UButton
               variant="ghost"
               :icon="sidebarVisible ? 'lucide:chevron-left' : 'lucide:menu'"
               @click="toggleSidebar"
-              class="w-10 h-10 flex justify-center items-center rounded-lg transition-all duration-200 group-hover:scale-110"
+              class="transition-transform duration-200"
               :class="[
+                'w-10 h-10 flex justify-center items-center rounded-lg',
+                isTablet
+                  ? ''
+                  : 'transition-colors duration-200 lg:group-hover:scale-110',
                 sidebarVisible
                   ? 'bg-gradient-to-br from-orange-500/30 to-red-500/30 text-orange-600 shadow-md'
-                  : 'text-muted-foreground hover:text-orange-600 bg-gradient-to-br hover:from-background hover:to-muted/20',
+                  : 'text-muted-foreground lg:hover:text-orange-600 bg-gradient-to-br lg:hover:from-background lg:hover:to-muted/20',
               ]"
               :aria-label="
                 sidebarVisible ? 'Hide navigation menu' : 'Show navigation menu'
@@ -68,32 +74,24 @@
     </aside>
 
     <!-- Sidebar -->
-    <Transition :name="isTablet ? 'fade-tablet' : ''" mode="out-in">
-      <aside
-        v-if="sidebarVisible"
-        class="bg-gray-700 p-2 flex flex-col border-l border-gray-600 flex-shrink-0"
-        :class="
-          isTablet
-            ? 'fixed inset-y-0 left-16 w-80 z-50 shadow-xl'
-            : 'w-60 transition-all duration-300'
-        "
-        aria-label="Secondary navigation"
-      >
-        <CommonFull class="mb-4" />
-        <SidebarMenu />
-      </aside>
-    </Transition>
+    <aside
+      v-if="sidebarVisible"
+      class="bg-gray-700 p-2 flex flex-col border-l border-gray-600 flex-shrink-0"
+      :class="isTablet ? 'fixed inset-y-0 left-16 w-80 z-50 shadow-xl' : 'w-60'"
+      aria-label="Secondary navigation"
+    >
+      <CommonFull class="mb-4" />
+      <SidebarMenu />
+    </aside>
 
     <!-- Overlay for tablet -->
-    <Transition name="fade">
-      <div
-        v-if="sidebarVisible && isTablet"
-        class="fixed inset-0 left-16 bg-black/20 backdrop-blur-sm z-40"
-        @click="setSidebarVisible(false)"
-        role="presentation"
-        aria-hidden="true"
-      ></div>
-    </Transition>
+    <div
+      v-if="sidebarVisible && isTablet"
+      class="fixed inset-0 left-16 bg-black/20 backdrop-blur-sm z-40"
+      @click="setSidebarVisible(false)"
+      role="presentation"
+      aria-hidden="true"
+    ></div>
 
     <!-- Main Content -->
     <main
@@ -173,14 +171,20 @@ const { isMobile, isTablet } = useScreen();
 
 // Layout logic moved to LayoutSubHeader component
 
-// Auto hide sidebar on tablet (no mobile support)
+// Tablet sidebar behavior: default hidden, user can toggle
 watch(
   isTablet,
   (tablet) => {
     if (tablet) {
-      setSidebarVisible(false);
+      // On tablet: default to hidden, user can control
+      if (sidebarVisible.value) {
+        setSidebarVisible(false);
+      }
     } else {
-      setSidebarVisible(true);
+      // On desktop: default to visible
+      if (!sidebarVisible.value) {
+        setSidebarVisible(true);
+      }
     }
   },
   { immediate: true }

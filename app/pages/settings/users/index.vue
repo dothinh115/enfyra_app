@@ -22,9 +22,7 @@
         v-else-if="users.length > 0"
         class="grid gap-4"
         :class="
-          isTablet
-            ? 'grid-cols-1 lg:grid-cols-2'
-            : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+          isTablet ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
         "
       >
         <CommonSettingsCard
@@ -34,7 +32,7 @@
           :description="user.email || 'No email'"
           icon="lucide:user"
           icon-color="primary"
-          :card-class="'cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all'"
+          :card-class="'cursor-pointer lg:hover:ring-2 lg:hover:ring-primary/20 transition-all'"
           @click="navigateTo(`/settings/users/${user.id}`)"
           :stats="[
             {

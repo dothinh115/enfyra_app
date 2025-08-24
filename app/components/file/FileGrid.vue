@@ -22,7 +22,7 @@
                   ? 'border-primary-500 shadow-lg shadow-primary-500/20 scale-[1.02]'
                   : hoveredFileId === file.id
                   ? 'border-primary-300 dark:border-primary-600 shadow-xl transform -translate-y-1'
-                  : 'border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg',
+                  : 'border-gray-200 dark:border-gray-700 shadow-sm lg:hover:shadow-lg',
               ]"
               @click="handleFileClick(file)"
             >
@@ -97,7 +97,7 @@
 
                 <!-- Hover Effect Overlay -->
                 <div
-                  class="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  class="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300"
                 />
               </div>
 
@@ -164,7 +164,7 @@
                       variant="ghost"
                       color="neutral"
                       @click.stop="startRename(file)"
-                      class="opacity-0 group-hover:opacity-100 transition-opacity ml-1"
+                      class="opacity-0 lg:group-hover:opacity-100 transition-opacity ml-1"
                     />
                   </div>
                 </div>
@@ -185,7 +185,7 @@
 
                 <!-- Quick Actions (visible on hover) -->
                 <div
-                  class="flex items-center gap-2 pt-2 border-t border-gray-100 dark:border-gray-700 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                  class="flex items-center gap-2 pt-2 border-t border-gray-100 dark:border-gray-700 opacity-0 lg:group-hover:opacity-100 transition-opacity duration-200"
                 >
                   <UButton
                     icon="lucide:eye"

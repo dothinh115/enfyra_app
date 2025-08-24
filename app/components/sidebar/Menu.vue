@@ -117,17 +117,23 @@ const visibleMenuItems = computed(() => {
               variant="ghost"
               color="neutral"
               :icon="item.icon"
-              class="w-full justify-start text-left rounded-lg transition-all duration-200 group mb-1"
               :class="[
+                'w-full justify-start text-left rounded-lg group mb-1',
+                isTablet ? '' : 'transition-all duration-200',
                 isExpanded(item.id)
                   ? 'bg-gradient-to-r from-primary/20 to-secondary/20 shadow-md'
-                  : 'hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10',
+                  : 'lg:hover:bg-gradient-to-r lg:hover:from-primary/10 lg:hover:to-secondary/10',
               ]"
               @click="toggleExpanded(item.id)"
             >
               <template #leading>
                 <div
-                  class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-200"
+                  :class="[
+                    'w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center',
+                    isTablet
+                      ? ''
+                      : 'lg:group-hover:scale-110 transition-transform duration-200',
+                  ]"
                 >
                   <UIcon
                     :name="item.icon || 'lucide:box'"
@@ -144,9 +150,9 @@ const visibleMenuItems = computed(() => {
                         ? 'lucide:chevron-down'
                         : 'lucide:chevron-right'
                     "
-                    class="transition-transform duration-200"
                     :class="[
                       'text-primary',
+                      isTablet ? '' : 'transition-transform duration-200',
                       isExpanded(item.id) ? 'rotate-0 scale-125' : 'rotate-0',
                     ]"
                     size="18"
@@ -172,12 +178,12 @@ const visibleMenuItems = computed(() => {
               >
                 <NuxtLink
                   :to="child.path || child.route"
-                  class="flex items-center gap-3 w-full px-3 py-2 rounded-lg transition-all duration-200 group hover:bg-background/50"
                   :class="[
-                    'border border-transparent',
+                    'flex items-center gap-3 w-full px-3 py-2 rounded-lg group lg:hover:bg-background/50 border border-transparent',
+                    isTablet ? '' : 'transition-all duration-200',
                     isItemActive(child.path || child.route)
                       ? 'font-semibold'
-                      : 'hover:border-muted/50',
+                      : 'lg:hover:border-muted/50',
                   ]"
                   @click="handleMenuClick"
                 >
@@ -186,12 +192,13 @@ const visibleMenuItems = computed(() => {
                   >
                     <UIcon :name="child.icon" size="14" class="text-info" />
                   </div>
-                  <span 
-                    class="text-sm truncate transition-colors duration-200"
+                  <span
                     :class="[
+                      'text-sm truncate',
+                      isTablet ? '' : 'transition-colors duration-200',
                       isItemActive(child.path || child.route)
                         ? 'text-primary'
-                        : 'text-foreground'
+                        : 'text-foreground',
                     ]"
                   >
                     {{ child.label }}
@@ -204,7 +211,10 @@ const visibleMenuItems = computed(() => {
           <!-- Regular menu item (link) -->
           <div
             v-else
-            class="bg-gradient-to-r from-background to-muted/10 rounded-xl border border-muted/30 hover:shadow-lg transition-all duration-200"
+            :class="[
+              'bg-gradient-to-r from-background to-muted/10 rounded-xl border border-muted/30 lg:hover:shadow-lg',
+              isTablet ? '' : 'transition-all duration-200',
+            ]"
           >
             <UButton
               size="lg"
@@ -212,8 +222,9 @@ const visibleMenuItems = computed(() => {
               color="neutral"
               :icon="item.icon"
               :to="item.path || item.route"
-              class="w-full justify-start text-left hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 rounded-lg transition-all duration-200 group"
               :class="[
+                'w-full justify-start text-left lg:hover:bg-gradient-to-r lg:hover:from-primary/10 lg:hover:to-secondary/10 rounded-lg group',
+                isTablet ? '' : 'transition-all duration-200',
                 isItemActive(item.path || item.route)
                   ? 'bg-gradient-to-r from-primary/20 to-secondary/20 font-semibold text-primary shadow-md'
                   : '',
@@ -222,7 +233,12 @@ const visibleMenuItems = computed(() => {
             >
               <template #leading>
                 <div
-                  class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-200"
+                  :class="[
+                    'w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center',
+                    isTablet
+                      ? ''
+                      : 'lg:group-hover:scale-110 transition-transform duration-200',
+                  ]"
                 >
                   <UIcon
                     :name="item.icon || 'lucide:box'"

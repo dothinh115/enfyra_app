@@ -1,37 +1,25 @@
 <script setup lang="ts">
-// No complex logic needed for this simple page
+// Collections index page - overview only
+// Individual table management features are accessed through sidebar navigation
 </script>
 
 <template>
-  <div class="mx-auto max-w-2xl text-center space-y-8 py-12">
-    <!-- Page Header -->
+  <div class="w-full">
+    <!-- Header -->
     <CommonPageHeader
       title="Table Collections"
-      description="Manage your database table structures and schemas. Select a table from the sidebar to get started."
-      title-size="xl"
+      title-size="md"
+      variant="minimal"
       show-background
-      background-gradient="from-primary-500/8 via-primary-400/4 to-transparent"
-      padding-y="py-8"
+      background-gradient="from-primary-500/5 via-primary-400/3 to-transparent"
+      padding-y="py-4"
     />
-    
-    <!-- Icon decoration -->
-    <div class="flex justify-center">
-      <div class="p-6 bg-primary/10 rounded-full">
-        <UIcon name="lucide:database" class="w-16 h-16 text-primary" />
-      </div>
-    </div>
 
-    <!-- Simple description -->
-    <div class="p-8 bg-muted/50 rounded-lg">
-      <UIcon
-        name="lucide:database"
-        class="w-12 h-12 text-muted-foreground mx-auto mb-4"
-      />
-      <h2 class="text-xl font-semibold text-foreground mb-2">Choose a Table</h2>
-      <p class="text-muted-foreground">
-        Use the sidebar menu to select a table you want to manage or create a
-        new one.
-      </p>
-    </div>
+    <CommonEmptyState
+      title="Table Collections"
+      description="Manage your database table structures and schemas. Create, modify, and organize your data models. Select a table from the sidebar to get started."
+      icon="lucide:database"
+      size="lg"
+    />
   </div>
 </template>

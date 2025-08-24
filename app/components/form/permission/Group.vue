@@ -23,7 +23,7 @@
         <!-- Permission Rule -->
         <div
           v-if="isPermission(item)"
-          class="flex items-center justify-between p-3 border border-muted rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+          class="flex items-center justify-between p-3 border border-muted rounded-lg lg:hover:bg-muted/50 cursor-pointer transition-colors"
           @click="editPermission(index, item)"
         >
           <div class="flex items-center gap-2">
@@ -74,7 +74,7 @@
             size="xs"
             color="error"
             variant="ghost"
-            class="absolute top-2 right-2 opacity-60 hover:opacity-100"
+            class="absolute top-2 right-2 opacity-60 lg:hover:opacity-100"
           />
           <FormPermissionGroup
             :group="item"

@@ -5,7 +5,8 @@
       direction="right"
       class="w-full max-w-2xl"
       :ui="{
-        header: 'border-b border-muted text-muted pb-2 flex items-center justify-between',
+        header:
+          'border-b border-muted text-muted pb-2 flex items-center justify-between',
       }"
     >
       <template #header>
@@ -33,15 +34,25 @@
           <div class="p-4 border-b border-muted">
             <div class="flex justify-between items-center">
               <div class="text-sm text-muted-foreground">
-                {{ hasActiveFilters(currentFilter) ? 'Filtered routes' : 'All routes' }}
+                {{
+                  hasActiveFilters(currentFilter)
+                    ? "Filtered routes"
+                    : "All routes"
+                }}
               </div>
               <UButton
                 :variant="hasActiveFilters(currentFilter) ? 'solid' : 'outline'"
-                :color="hasActiveFilters(currentFilter) ? 'secondary' : 'neutral'"
+                :color="
+                  hasActiveFilters(currentFilter) ? 'secondary' : 'neutral'
+                "
                 icon="lucide:filter"
                 @click="showFilterDrawer = true"
               >
-                {{ hasActiveFilters(currentFilter) ? `Filter (${currentFilter.conditions.length})` : 'Filter' }}
+                {{
+                  hasActiveFilters(currentFilter)
+                    ? `Filter (${currentFilter.conditions.length})`
+                    : "Filter"
+                }}
               </UButton>
             </div>
           </div>
@@ -49,34 +60,53 @@
           <!-- Routes List Section -->
           <div class="p-4">
             <!-- Loading State -->
-            <CommonLoadingState v-if="loading" type="form" context="inline" size="md" />
+            <CommonLoadingState
+              v-if="loading"
+              type="form"
+              context="inline"
+              size="md"
+            />
 
             <!-- Routes List -->
             <div v-else-if="routes.length > 0" class="space-y-2">
-            <div
-              v-for="route in routes"
-              :key="route.id"
-              class="flex items-center justify-between p-3 border border-muted rounded-lg hover:bg-muted/20 cursor-pointer transition-colors"
-              @click="selectRoute(route)"
-            >
-              <div class="flex items-center gap-3">
-                <UIcon name="lucide:route" class="w-5 h-5 text-primary" />
-                <div>
-                  <p class="font-mono text-sm">{{ route.path }}</p>
-                  <p v-if="route.description" class="text-xs text-muted-foreground mt-1">
-                    {{ route.description }}
-                  </p>
+              <div
+                v-for="route in routes"
+                :key="route.id"
+                class="flex items-center justify-between p-3 border border-muted rounded-lg lg:hover:bg-muted/20 cursor-pointer transition-colors"
+                @click="selectRoute(route)"
+              >
+                <div class="flex items-center gap-3">
+                  <UIcon name="lucide:route" class="w-5 h-5 text-primary" />
+                  <div>
+                    <p class="font-mono text-sm">{{ route.path }}</p>
+                    <p
+                      v-if="route.description"
+                      class="text-xs text-muted-foreground mt-1"
+                    >
+                      {{ route.description }}
+                    </p>
+                  </div>
                 </div>
+                <UIcon
+                  name="lucide:chevron-right"
+                  class="w-4 h-4 text-muted-foreground"
+                />
               </div>
-              <UIcon name="lucide:chevron-right" class="w-4 h-4 text-muted-foreground" />
             </div>
-          </div>
 
             <!-- Empty State -->
             <CommonEmptyState
               v-else
-              :title="hasActiveFilters(currentFilter) ? 'No routes found' : 'No routes available'"
-              :description="hasActiveFilters(currentFilter) ? 'Try adjusting your filters' : 'No routes are available'"
+              :title="
+                hasActiveFilters(currentFilter)
+                  ? 'No routes found'
+                  : 'No routes available'
+              "
+              :description="
+                hasActiveFilters(currentFilter)
+                  ? 'Try adjusting your filters'
+                  : 'No routes are available'
+              "
               icon="lucide:route"
               size="md"
               type="form"
@@ -95,10 +125,16 @@
           </div>
 
           <!-- Pagination Section -->
-          <div v-if="!loading && total > limit" class="px-4 pb-4 pt-0 border-t border-muted">
+          <div
+            v-if="!loading && total > limit"
+            class="px-4 pb-4 pt-0 border-t border-muted"
+          >
             <div class="flex items-center justify-between pt-4">
               <div class="text-sm text-muted-foreground">
-                Showing {{ (page - 1) * limit + 1 }}-{{ Math.min(page * limit, total) }} of {{ total }}
+                Showing {{ (page - 1) * limit + 1 }}-{{
+                  Math.min(page * limit, total)
+                }}
+                of {{ total }}
               </div>
               <div class="flex items-center gap-2">
                 <UButton
@@ -108,7 +144,9 @@
                   :disabled="page <= 1"
                   @click="page--"
                 />
-                <span class="text-sm px-3 py-1 bg-muted rounded">{{ page }}</span>
+                <span class="text-sm px-3 py-1 bg-muted rounded">{{
+                  page
+                }}</span>
                 <UButton
                   icon="lucide:chevron-right"
                   variant="outline"
@@ -124,12 +162,7 @@
 
       <template #footer>
         <div class="flex justify-end">
-          <UButton
-            variant="outline"
-            @click="close"
-          >
-            Cancel
-          </UButton>
+          <UButton variant="outline" @click="close"> Cancel </UButton>
         </div>
       </template>
     </UDrawer>
@@ -150,20 +183,20 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  'update:modelValue': [value: boolean];
-  'select': [route: any];
+  "update:modelValue": [value: boolean];
+  select: [route: any];
 }>();
 
 const isOpen = computed({
   get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value)
+  set: (value) => emit("update:modelValue", value),
 });
 
 const page = ref(1);
 const limit = 7;
 
 // Get schema fields for route_definition
-const { getIncludeFields } = useSchema('route_definition');
+const { getIncludeFields } = useSchema("route_definition");
 
 // Filter system
 const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
@@ -175,7 +208,7 @@ const {
   data: apiData,
   pending: loading,
   execute: fetchRoutes,
-} = useApiLazy(() => '/route_definition', {
+} = useApiLazy(() => "/route_definition", {
   query: computed(() => {
     const filterQuery = hasActiveFilters(currentFilter.value)
       ? buildQuery(currentFilter.value)
@@ -185,12 +218,12 @@ const {
       fields: getIncludeFields(),
       page: page.value,
       limit,
-      meta: 'totalCount,filterCount',
-      sort: 'path',
+      meta: "totalCount,filterCount",
+      sort: "path",
       ...(Object.keys(filterQuery).length > 0 && { filter: filterQuery }),
     };
   }),
-  errorContext: 'Fetch Routes',
+  errorContext: "Fetch Routes",
 });
 
 const routes = computed(() => apiData.value?.data || []);
@@ -215,19 +248,22 @@ async function clearFilter() {
 }
 
 // Fetch routes when drawer opens
-watch(() => props.modelValue, (isOpen) => {
-  if (isOpen) {
-    fetchRoutes();
+watch(
+  () => props.modelValue,
+  (isOpen) => {
+    if (isOpen) {
+      fetchRoutes();
+    }
   }
-});
+);
 
 function selectRoute(route: any) {
-  emit('select', route);
+  emit("select", route);
   close();
 }
 
 function close() {
-  emit('update:modelValue', false);
+  emit("update:modelValue", false);
   // Reset state
   page.value = 1;
 }

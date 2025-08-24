@@ -21,7 +21,7 @@
         <div class="space-y-3">
           <div
             ref="dropZone"
-            class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-10 text-center transition-all duration-200 hover:border-primary-400"
+            class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-10 text-center transition-all duration-200 lg:hover:border-primary-400"
             :class="{
               'border-primary-500 bg-primary-50 dark:bg-primary-950 scale-105':
                 isDragOver && !isLoading,

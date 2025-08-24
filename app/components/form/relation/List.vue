@@ -117,12 +117,13 @@ function getDisplayLabel(
     const firstField = foundFields[0]!;
     const secondField = foundFields[1]!;
     const combined = `${firstField} - ${secondField}`;
-    
+
     if (combined.length > MAX_LABEL_LENGTH) {
       // Nếu quá dài, ưu tiên field đầu tiên và cắt ngắn field thứ hai
       const separator = " - ";
-      const remainingLength = MAX_LABEL_LENGTH - firstField.length - separator.length - 1; // -1 for ellipsis
-      
+      const remainingLength =
+        MAX_LABEL_LENGTH - firstField.length - separator.length - 1; // -1 for ellipsis
+
       if (remainingLength > 5) {
         const truncatedSecond = truncateString(secondField, remainingLength);
         result = `${firstField}${separator}${truncatedSecond}`;
@@ -151,35 +152,44 @@ function shortenId(id: string | number): string {
     <UButton
       v-for="item in data"
       :key="item.id"
-      class="w-full px-4 py-3 hover:bg-muted flex items-center justify-between"
+      class="w-full px-4 py-3 lg:hover:bg-muted flex items-center justify-between"
       @click.stop="toggle(item.id)"
       variant="outline"
       :color="isSelected(item.id) ? 'primary' : 'neutral'"
     >
-    <div class="flex items-center gap-2 min-w-0 flex-1" :title="`${shortenId(item.id)} - ${getDisplayLabel(item)}`">
-      <UIcon v-if="isSelected(item.id)" name="lucide:check" class="w-4 h-4 flex-shrink-0" />
-      <span class="truncate">{{ shortenId(item.id) }} - {{ getDisplayLabel(item) }}</span>
-    </div>
-    <div class="flex gap-1 flex-shrink-0">
-      <UButton
-        icon="lucide:info"
-        size="md"
-        variant="outline"
-        @click.stop="viewDetails(item)"
-      />
+      <div
+        class="flex items-center gap-2 min-w-0 flex-1"
+        :title="`${shortenId(item.id)} - ${getDisplayLabel(item)}`"
+      >
+        <UIcon
+          v-if="isSelected(item.id)"
+          name="lucide:check"
+          class="w-4 h-4 flex-shrink-0"
+        />
+        <span class="truncate"
+          >{{ shortenId(item.id) }} - {{ getDisplayLabel(item) }}</span
+        >
+      </div>
+      <div class="flex gap-1 flex-shrink-0">
+        <UButton
+          icon="lucide:info"
+          size="md"
+          variant="outline"
+          @click.stop="viewDetails(item)"
+        />
 
-      <UButton
-        :icon="
-          confirmingDeleteId === item.id ? 'lucide:check' : 'lucide:trash-2'
-        "
-        size="md"
-        :color="confirmingDeleteId === item.id ? 'primary' : 'error'"
-        variant="outline"
-        v-if="canDelete"
-        @click.stop="handleDeleteClick(item)"
-        :label="confirmingDeleteId === item.id ? 'Confirm' : undefined"
-      />
-    </div>
+        <UButton
+          :icon="
+            confirmingDeleteId === item.id ? 'lucide:check' : 'lucide:trash-2'
+          "
+          size="md"
+          :color="confirmingDeleteId === item.id ? 'primary' : 'error'"
+          variant="outline"
+          v-if="canDelete"
+          @click.stop="handleDeleteClick(item)"
+          :label="confirmingDeleteId === item.id ? 'Confirm' : undefined"
+        />
+      </div>
     </UButton>
   </div>
 </template>

@@ -107,9 +107,7 @@ onMounted(fetchRouteHandlers);
         v-else-if="routeHandlers.length"
         class="grid gap-4"
         :class="
-          isTablet
-            ? 'grid-cols-1 lg:grid-cols-2'
-            : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+          isTablet ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
         "
       >
         <CommonSettingsCard
@@ -119,7 +117,7 @@ onMounted(fetchRouteHandlers);
           :description="handler.description || 'No description'"
           icon="lucide:command"
           icon-color="primary"
-          :card-class="'cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all'"
+          :card-class="'cursor-pointer lg:hover:ring-2 lg:hover:ring-primary/20 transition-all'"
           @click="navigateTo(`/settings/handlers/${handler.id}`)"
           :stats="[
             {

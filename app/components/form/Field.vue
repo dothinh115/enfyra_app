@@ -59,10 +59,10 @@ const isRelationField = computed(() => {
 // Copy raw value function
 async function copyRawValue() {
   const rawValue = props.formData[props.keyName];
-  
+
   // Handle different value types for copy
   let textToCopy: string;
-  if (typeof rawValue === 'string') {
+  if (typeof rawValue === "string") {
     textToCopy = rawValue; // Don't stringify strings to avoid quotes
   } else if (rawValue === null || rawValue === undefined) {
     textToCopy = String(rawValue);
@@ -173,7 +173,7 @@ const dropdownItems = computed(() => [
           <UDropdownMenu
             v-if="!isRelationField"
             :items="dropdownItems"
-            class="opacity-0 group-hover:opacity-100 transition-opacity"
+            class="opacity-0 lg:group-hover:opacity-100 transition-opacity"
           >
             <UButton
               icon="i-lucide-chevron-down"

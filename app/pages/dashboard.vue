@@ -1,16 +1,18 @@
 <template>
-  <div class="container mx-auto p-6">
+  <div class="w-full">
+    <!-- Header -->
     <CommonPageHeader
       title="Dashboard"
       title-size="md"
+      variant="minimal"
       show-background
-      background-gradient="from-green-500/6 via-emerald-400/3 to-transparent"
-      padding-y="py-6"
+      background-gradient="from-green-500/5 via-emerald-400/3 to-transparent"
+      padding-y="py-4"
     />
 
     <CommonEmptyState
-      title="Welcome to Dashboard"
-      description="Dashboard content will be provided by extensions"
+      title="Dashboard"
+      description="Welcome to your dashboard. Content and widgets will be provided by extensions. Select a category from the sidebar to get started."
       icon="lucide:layout-dashboard"
       size="lg"
     />
@@ -18,5 +20,6 @@
 </template>
 
 <script setup lang="ts">
-// Dashboard page - content will be provided by extensions
+// Dashboard page - overview only
+// Content and widgets will be provided by extensions
 </script>

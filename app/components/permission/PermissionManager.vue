@@ -39,7 +39,7 @@
         >
           <div
             @click="editPermission(permission)"
-            class="flex items-center justify-between cursor-pointer hover:bg-gray-700/50 rounded-lg p-2 -m-2"
+            class="flex items-center justify-between cursor-pointer lg:hover:bg-gray-700/50 rounded-lg p-2 -m-2"
           >
             <div class="flex items-center gap-3 flex-1">
               <UIcon name="lucide:shield" class="w-4 h-4 text-green-400" />
