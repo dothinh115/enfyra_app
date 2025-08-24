@@ -70,9 +70,7 @@
                 >
                   <CommonImage
                     :src="file.assetUrl"
-                    :alt="file.displayName"
                     class="w-full h-full object-cover"
-                    loading="lazy"
                     @error="handleImageError"
                   />
                   <!-- Dark overlay for better text readability -->

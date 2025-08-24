@@ -1,7 +1,7 @@
 <template>
   <div
     ref="containerRef"
-    :class="['relative overflow-hidden', shapeClasses, containerClass]"
+    :class="['relative', shapeClasses, containerClass]"
     :style="[aspectRatioStyle, containerStyle]"
   >
     <div
@@ -290,4 +290,6 @@ watch(
     isInViewport.value = false;
   }
 );
+
+console.log(containerStyle.value);
 </script>
