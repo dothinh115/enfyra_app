@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 const route = useRoute();
 const { tables, fetchSchema, globalLoading } = useGlobalState();
 const { confirm } = useConfirm();
@@ -37,13 +36,14 @@ const { pending: saving, execute: executePatchTable } = useApiLazy(
   }
 );
 
-const { pending: deleting, execute: executeDeleteTable, error: deleteError } = useApiLazy(
-  () => `/table_definition/${table.value?.id || "undefined"}`,
-  {
-    method: "delete",
-    errorContext: "Delete Table",
-  }
-);
+const {
+  pending: deleting,
+  execute: executeDeleteTable,
+  error: deleteError,
+} = useApiLazy(() => `/table_definition/${table.value?.id || "undefined"}`, {
+  method: "delete",
+  errorContext: "Delete Table",
+});
 
 useHeaderActionRegistry([
   {
@@ -123,7 +123,7 @@ async function patchTable() {
   globalLoading.value = true;
   try {
     await executePatchTable();
-    globalLoading.value = false;  // Turn off before fetchSchema sets it again
+    globalLoading.value = false; // Turn off before fetchSchema sets it again
     await fetchSchema();
 
     registerTableMenusWithSidebarIds(tables.value);
@@ -159,7 +159,7 @@ async function deleteTable() {
     return; // Error already handled by useApiLazy
   }
 
-  globalLoading.value = false;  // Turn off before fetchSchema sets it again
+  globalLoading.value = false; // Turn off before fetchSchema sets it again
   await fetchSchema();
 
   registerTableMenusWithSidebarIds(tables.value);
@@ -198,22 +198,27 @@ onMounted(async () => {
       />
 
       <UForm v-else-if="table" @submit.prevent="save" :state="table">
-        <div class="mx-auto">
-          <TableForm v-model="table" @save="save">
-            <div class="space-y-6">
-              <TableConstraints
-                v-model="table"
-                :column-names="table.columns?.map((c:any) => c?.name)"
-              />
-              <TableColumns v-model="table.columns" />
-              <TableRelations
-                v-model="table.relations"
-                :table-options="
-                  tables?.map((t) => ({ label: t?.name, value: { id: t.id } }))
-                "
-              />
-            </div>
-          </TableForm>
+        <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
+          <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
+            <TableForm v-model="table" @save="save">
+              <div class="space-y-6">
+                <TableConstraints
+                  v-model="table"
+                  :column-names="table.columns?.map((c:any) => c?.name)"
+                />
+                <TableColumns v-model="table.columns" />
+                <TableRelations
+                  v-model="table.relations"
+                  :table-options="
+                    tables?.map((t) => ({
+                      label: t?.name,
+                      value: { id: t.id },
+                    }))
+                  "
+                />
+              </div>
+            </TableForm>
+          </div>
         </div>
       </UForm>
 

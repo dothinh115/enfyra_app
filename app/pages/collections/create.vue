@@ -205,34 +205,38 @@ async function save() {
     />
 
     <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
-      <TableForm v-model="table" :new="true">
-        <template #tableName>
-          <div class="mb-6">
-            <UFormField
-              :error="nameError && nameError !== '' ? nameError : undefined"
-              label="Table Name"
-            >
-              <UInput
-                v-model="table.name"
-                placeholder="Enter table name"
-                class="w-full"
-                size="lg"
-              />
-            </UFormField>
+      <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
+        <TableForm v-model="table" :new="true">
+          <template #tableName>
+            <div class="mb-6">
+              <UFormField
+                :error="nameError && nameError !== '' ? nameError : undefined"
+                label="Table Name"
+              >
+                <UInput
+                  v-model="table.name"
+                  placeholder="Enter table name"
+                  class="w-full"
+                  size="lg"
+                />
+              </UFormField>
+            </div>
+          </template>
+          <div class="space-y-6">
+            <TableConstraints
+              v-model="table"
+              :column-names="table.columns.map((c: any) => c.name)"
+            />
+            <TableColumns v-model="table.columns" />
+            <TableRelations
+              v-model="table.relations"
+              :table-options="
+                tables.map((t) => ({ label: t.name, value: t.id }))
+              "
+            />
           </div>
-        </template>
-        <div class="space-y-6">
-          <TableConstraints
-            v-model="table"
-            :column-names="table.columns.map((c: any) => c.name)"
-          />
-          <TableColumns v-model="table.columns" />
-          <TableRelations
-            v-model="table.relations"
-            :table-options="tables.map((t) => ({ label: t.name, value: t.id }))"
-          />
-        </div>
-      </TableForm>
+        </TableForm>
+      </div>
     </div>
   </div>
 </template>
