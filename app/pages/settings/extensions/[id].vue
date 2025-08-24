@@ -34,19 +34,21 @@
 
       <!-- Content - Limited width -->
       <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
-        <UForm :state="form" @submit="updateExtension">
-          <FormEditorLazy
-            ref="formEditorRef"
-            v-model="form"
-            v-model:errors="errors"
-            v-model:has-changes="hasFormChanges"
-            :table-name="tableName"
-            :excluded="['createdAt', 'updatedAt', 'isSystem', 'compiledCode']"
-            :type-map="{
-              code: { type: 'code', language: 'vue', height: '400px' },
-            }"
-          />
-        </UForm>
+        <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
+          <UForm :state="form" @submit="updateExtension">
+            <FormEditorLazy
+              ref="formEditorRef"
+              v-model="form"
+              v-model:errors="errors"
+              v-model:has-changes="hasFormChanges"
+              :table-name="tableName"
+              :excluded="['createdAt', 'updatedAt', 'isSystem', 'compiledCode']"
+              :type-map="{
+                code: { type: 'code', language: 'vue', height: '400px' },
+              }"
+            />
+          </UForm>
+        </div>
       </div>
     </div>
 

@@ -33,16 +33,18 @@
 
       <!-- Content - Limited width -->
       <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
-        <UForm :state="form" @submit="updateHook">
-          <FormEditorLazy
-            ref="formEditorRef"
-            v-model="form"
-            v-model:errors="errors"
-            v-model:has-changes="hasFormChanges"
-            :table-name="'hook_definition'"
-            :excluded="['isSystem']"
-          />
-        </UForm>
+        <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
+          <UForm :state="form" @submit="updateHook">
+            <FormEditorLazy
+              ref="formEditorRef"
+              v-model="form"
+              v-model:errors="errors"
+              v-model:has-changes="hasFormChanges"
+              :table-name="'hook_definition'"
+              :excluded="['isSystem']"
+            />
+          </UForm>
+        </div>
       </div>
     </div>
 

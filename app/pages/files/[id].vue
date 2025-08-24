@@ -286,7 +286,9 @@ function getFileIconAndColor(mimetype: string): {
         </div>
 
         <!-- File Editor Section -->
-        <div class="space-y-4">
+        <div
+          class="space-y-4 bg-gray-800/50 rounded-xl border border-gray-700/50 p-6"
+        >
           <div class="flex items-center gap-3">
             <UIcon name="lucide:edit-3" class="w-5 h-5" />
             <h3 class="text-lg font-semibold">Edit File Information</h3>
@@ -299,9 +301,19 @@ function getFileIconAndColor(mimetype: string): {
               v-model:errors="errors"
               v-model:has-changes="hasFormChanges"
               table-name="file_definition"
-              :excluded="['id', 'createdAt', 'updatedAt']"
+              :excluded="['id', 'createdAt', 'updatedAt', 'permissions']"
             />
           </UForm>
+        </div>
+
+        <!-- File Permissions Section -->
+        <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
+          <PermissionManager
+            table-name="file_permission_definition"
+            :current-field-id="{ field: 'file', value: fileId }"
+            icon="lucide:shield"
+            title="File Permissions"
+          />
         </div>
       </div>
     </Transition>

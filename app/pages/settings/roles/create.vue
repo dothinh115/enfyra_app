@@ -10,20 +10,22 @@
     />
 
     <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
-      <UForm :state="createForm" @submit="handleCreate">
-        <FormEditorLazy
-          v-model="createForm"
-          :table-name="tableName"
-          v-model:errors="createErrors"
-          :type-map="{
-            routePermissions: {
-              componentProps: {
-                allowDelete: true,
+      <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
+        <UForm :state="createForm" @submit="handleCreate">
+          <FormEditorLazy
+            v-model="createForm"
+            :table-name="tableName"
+            v-model:errors="createErrors"
+            :type-map="{
+              routePermissions: {
+                componentProps: {
+                  allowDelete: true,
+                },
               },
-            },
-          }"
-        />
-      </UForm>
+            }"
+          />
+        </UForm>
+      </div>
     </div>
   </div>
 </template>

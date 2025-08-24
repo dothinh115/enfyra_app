@@ -278,15 +278,17 @@ async function saveMenu() {
     />
 
     <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
-      <UForm :state="form" @submit="saveMenu">
-        <FormEditorLazy
-          v-model="form"
-          v-model:errors="errors"
-          :table-name="tableName"
-          :excluded="excludedFields"
-          :type-map="typeMap"
-        />
-      </UForm>
+      <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
+        <UForm :state="form" @submit="saveMenu">
+          <FormEditorLazy
+            v-model="form"
+            v-model:errors="errors"
+            :table-name="tableName"
+            :excluded="excludedFields"
+            :type-map="typeMap"
+          />
+        </UForm>
+      </div>
     </div>
   </div>
 </template>

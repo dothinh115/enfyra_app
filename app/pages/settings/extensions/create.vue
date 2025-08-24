@@ -10,18 +10,20 @@
     />
 
     <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
-      <UForm :state="createForm" @submit="handleCreate">
-        <FormEditorLazy
-          v-model="createForm"
-          :table-name="tableName"
-          :errors="createErrors"
-          :excluded="['compiledCode']"
-          :type-map="{
-            code: { type: 'code', language: 'vue', height: '400px' },
-          }"
-          @update:errors="(errors) => (createErrors = errors)"
-        />
-      </UForm>
+      <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
+        <UForm :state="createForm" @submit="handleCreate">
+          <FormEditorLazy
+            v-model="createForm"
+            :table-name="tableName"
+            :errors="createErrors"
+            :excluded="['compiledCode']"
+            :type-map="{
+              code: { type: 'code', language: 'vue', height: '400px' },
+            }"
+            @update:errors="(errors) => (createErrors = errors)"
+          />
+        </UForm>
+      </div>
     </div>
 
     <!-- Upload Modal -->

@@ -201,16 +201,18 @@ watch(
 
       <!-- Content - Limited width -->
       <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
-        <UForm :state="form" @submit="saveUser">
-          <FormEditorLazy
-            ref="formEditorRef"
-            v-model="form"
-            v-model:errors="errors"
-            v-model:has-changes="hasFormChanges"
-            table-name="user_definition"
-            :excluded="['isRootAdmin', 'isSystem']"
-          />
-        </UForm>
+        <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
+          <UForm :state="form" @submit="saveUser">
+            <FormEditorLazy
+              ref="formEditorRef"
+              v-model="form"
+              v-model:errors="errors"
+              v-model:has-changes="hasFormChanges"
+              table-name="user_definition"
+              :excluded="['isRootAdmin', 'isSystem']"
+            />
+          </UForm>
+        </div>
       </div>
     </div>
 

@@ -10,13 +10,15 @@
     />
 
     <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
-      <UForm :state="form" @submit="handleCreate">
-        <FormEditorLazy
-          v-model="form"
-          v-model:errors="errors"
-          :table-name="tableName"
-        />
-      </UForm>
+      <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
+        <UForm :state="form" @submit="handleCreate">
+          <FormEditorLazy
+            v-model="form"
+            v-model:errors="errors"
+            :table-name="tableName"
+          />
+        </UForm>
+      </div>
     </div>
   </div>
 </template>

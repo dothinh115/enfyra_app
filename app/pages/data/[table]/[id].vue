@@ -192,14 +192,16 @@ useHeaderActionRegistry([
         />
         <!-- Form content -->
         <div v-else-if="currentRecord.id">
-          <FormEditorLazy
-            ref="formEditorRef"
-            :table-name="(route.params.table as string)"
-            mode="edit"
-            v-model="currentRecord"
-            v-model:errors="updateErrors"
-            v-model:has-changes="hasFormChanges"
-          />
+          <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
+            <FormEditorLazy
+              ref="formEditorRef"
+              :table-name="(route.params.table as string)"
+              mode="edit"
+              v-model="currentRecord"
+              v-model:errors="updateErrors"
+              v-model:has-changes="hasFormChanges"
+            />
+          </div>
         </div>
       </Transition>
     </div>
