@@ -267,64 +267,129 @@ watch(
     </div>
   </div>
 
-  <!-- Edit Column Modal -->
+  <!-- Edit Column Drawer -->
   <Teleport to="body">
-    <UModal
+    <UDrawer
       v-model:open="isEditing"
-      v-if="currentColumn"
-      close-icon="i-lucide-arrow-right"
+      direction="right"
+      class="min-w-xl"
+      :ui="{
+        header:
+          'border-b border-muted text-muted pb-2 flex items-center justify-between',
+      }"
     >
-      <!-- Modal Header -->
       <template #header>
-        <div class="flex justify-between items-center w-full">
-          <div class="text-base font-semibold">
-            {{ editingIndex !== null ? "Edit Column: " : "" }}
-            {{ currentColumn?.name || "New Column" }}
+        <div
+          class="bg-gradient-to-r from-background/90 to-muted/20 rounded-t-xl w-full"
+        >
+          <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-3">
+              <div
+                class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg"
+              >
+                <UIcon name="lucide:columns" class="text-sm text-white" />
+              </div>
+              <div>
+                <h2 class="text-xl font-semibold text-foreground">
+                  {{ editingIndex !== null ? "Edit Column" : "New Column" }}
+                </h2>
+                <p class="text-sm text-muted-foreground">
+                  {{ currentColumn?.name || "Configure column properties" }}
+                </p>
+              </div>
+            </div>
+            <UButton
+              icon="lucide:x"
+              @click="
+                isEditing = false;
+                currentColumn = null;
+              "
+              variant="soft"
+              color="error"
+              size="lg"
+              class="hover:bg-error/10 hover:text-error transition-colors duration-200"
+            />
           </div>
-          <UButton
-            icon="lucide:x"
-            color="error"
-            variant="soft"
-            @click="
-              isEditing = false;
-              currentColumn = null;
-            "
-          >
-            Cancel
-          </UButton>
         </div>
       </template>
 
-      <!-- Modal Body -->
       <template #body>
-        <FormEditorLazy
-          v-model="currentColumn"
-          tableName="column_definition"
-          v-model:errors="errors"
-          :includes="currentColumn.name === 'id' ? ['name', 'type'] : undefined"
-          :excluded="[
-            'isSystem',
-            'id',
-            'createdAt',
-            'updatedAt',
-            'isPrimary',
-            'table',
-          ]"
-          :type-map="typeMap"
-        />
-      </template>
-
-      <!-- Modal Footer -->
-      <template #footer>
-        <div class="flex w-full space-x-2 justify-end">
-          <UButton
-            icon="lucide:check"
-            label="Save"
-            @click="saveColumn()"
-            color="primary"
-          />
+        <div class="space-y-6" v-if="currentColumn">
+          <!-- Form Section -->
+          <div
+            class="bg-gradient-to-r from-background/50 to-muted/10 rounded-xl border border-muted/30 p-6"
+          >
+            <div class="flex items-center gap-2 mb-4">
+              <UIcon name="lucide:edit-3" class="text-info" size="18" />
+              <h3 class="text-lg font-semibold text-foreground">
+                Column Properties
+              </h3>
+            </div>
+            <FormEditorLazy
+              v-model="currentColumn"
+              tableName="column_definition"
+              v-model:errors="errors"
+              :includes="
+                currentColumn.name === 'id' ? ['name', 'type'] : undefined
+              "
+              :excluded="[
+                'isSystem',
+                'id',
+                'createdAt',
+                'updatedAt',
+                'isPrimary',
+                'table',
+              ]"
+              :type-map="typeMap"
+            />
+          </div>
         </div>
       </template>
-    </UModal>
+
+      <template #footer>
+        <!-- Actions Section -->
+        <div
+          class="bg-gradient-to-r from-muted/10 to-background/50 rounded-xl border border-muted/30 p-4"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <UIcon
+                name="lucide:info"
+                class="text-muted-foreground"
+                size="16"
+              />
+              <span class="text-sm text-muted-foreground">
+                {{
+                  editingIndex !== null
+                    ? "Ready to update column?"
+                    : "Ready to create new column?"
+                }}
+              </span>
+            </div>
+            <div class="flex gap-3">
+              <UButton
+                variant="ghost"
+                color="neutral"
+                @click="
+                  isEditing = false;
+                  currentColumn = null;
+                "
+                :disabled="false"
+              >
+                Cancel
+              </UButton>
+              <UButton
+                icon="lucide:check"
+                @click="saveColumn()"
+                color="primary"
+                :loading="false"
+              >
+                {{ editingIndex !== null ? "Update Column" : "Create Column" }}
+              </UButton>
+            </div>
+          </div>
+        </div>
+      </template>
+    </UDrawer>
   </Teleport>
 </template>

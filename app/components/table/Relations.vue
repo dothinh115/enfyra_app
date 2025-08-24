@@ -21,10 +21,11 @@ function createEmptyRelation(): any {
 }
 
 const currentRelationErrors = computed({
-  get: () => relationErrors.value[editingIndex.value ?? relations.value.length] || {},
+  get: () =>
+    relationErrors.value[editingIndex.value ?? relations.value.length] || {},
   set: (val) => {
     relationErrors.value[editingIndex.value ?? relations.value.length] = val;
-  }
+  },
 });
 
 function openNewRelationModal() {
@@ -40,7 +41,6 @@ function editRelation(rel: any, index: number) {
   editingIndex.value = index;
   currentRelation.value = { ...toRaw(rel) };
 }
-
 
 function saveRelation() {
   const rel = currentRelation.value;
@@ -123,62 +123,133 @@ function saveRelation() {
     </div>
   </div>
 
-  <!-- Edit Relation Modal -->
+  <!-- Edit Relation Drawer -->
   <Teleport to="body">
-    <UModal v-model:open="isEditing" v-if="currentRelation">
+    <UDrawer
+      v-model:open="isEditing"
+      direction="right"
+      class="min-w-xl"
+      :ui="{
+        header:
+          'border-b border-muted text-muted pb-2 flex items-center justify-between',
+      }"
+    >
       <template #header>
-        <div class="flex justify-between items-center w-full">
-          <div class="text-base font-semibold">
-            {{ isNew ? "Add Relation" : "Edit Relation" }}
+        <div
+          class="bg-gradient-to-r from-background/90 to-muted/20 rounded-t-xl w-full"
+        >
+          <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-3">
+              <div
+                class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg"
+              >
+                <UIcon name="lucide:git-branch" class="text-sm text-white" />
+              </div>
+              <div>
+                <h2 class="text-xl font-semibold text-foreground">
+                  {{ isNew ? "Add Relation" : "Edit Relation" }}
+                </h2>
+                <p class="text-sm text-muted-foreground">
+                  {{
+                    currentRelation?.propertyName ||
+                    "Configure relation properties"
+                  }}
+                </p>
+              </div>
+            </div>
+            <UButton
+              icon="lucide:x"
+              @click="isEditing = false"
+              variant="soft"
+              color="error"
+              size="lg"
+              class="hover:bg-error/10 hover:text-error transition-colors duration-200"
+            />
           </div>
-          <UButton
-            icon="lucide:x"
-            color="error"
-            variant="soft"
-            @click="isEditing = false"
-          >
-            Cancel
-          </UButton>
         </div>
       </template>
 
       <template #body>
-        <FormEditorLazy
-          v-model="currentRelation"
-          v-model:errors="currentRelationErrors"
-          tableName="relation_definition"
-          :excluded="[
-            'id',
-            'createdAt',
-            'updatedAt',
-            'isSystem',
-            'isEager',
-            'isInverseEager',
-            'sourceTable',
-          ]"
-          :type-map="{
-            targetTable: {
-              type: 'select',
-              options: tableOptions,
-            },
-            type: {
-              type: 'select',
-              options: relationTypes,
-            },
-          }"
-        />
+        <div class="space-y-6" v-if="currentRelation">
+          <!-- Form Section -->
+          <div
+            class="bg-gradient-to-r from-background/50 to-muted/10 rounded-xl border border-muted/30 p-6"
+          >
+            <div class="flex items-center gap-2 mb-4">
+              <UIcon name="lucide:git-branch" class="text-info" size="18" />
+              <h3 class="text-lg font-semibold text-foreground">
+                Relation Properties
+              </h3>
+            </div>
+            <FormEditorLazy
+              v-model="currentRelation"
+              v-model:errors="currentRelationErrors"
+              tableName="relation_definition"
+              :excluded="[
+                'id',
+                'createdAt',
+                'updatedAt',
+                'isSystem',
+                'isEager',
+                'isInverseEager',
+                'sourceTable',
+              ]"
+              :type-map="{
+                targetTable: {
+                  type: 'select',
+                  options: tableOptions,
+                },
+                type: {
+                  type: 'select',
+                  options: relationTypes,
+                },
+              }"
+            />
+          </div>
+        </div>
       </template>
 
       <template #footer>
-        <div class="flex w-full px-4 pb-4 space-x-2 justify-end">
-          <UButton
-            icon="lucide:check"
-            label="Save"
-            @click="saveRelation()"
-            color="primary"
-          />
+        <!-- Actions Section -->
+        <div
+          class="bg-gradient-to-r from-muted/10 to-background/50 rounded-xl border border-muted/30 p-4 w-full"
+        >
+          <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-2">
+              <UIcon
+                name="lucide:info"
+                class="text-muted-foreground"
+                size="16"
+              />
+              <span class="text-sm text-muted-foreground">
+                {{
+                  isNew
+                    ? "Ready to create new relation?"
+                    : "Ready to update relation?"
+                }}
+              </span>
+            </div>
+            <div class="flex gap-3">
+              <UButton
+                variant="ghost"
+                color="neutral"
+                @click="isEditing = false"
+                :disabled="false"
+              >
+                Cancel
+              </UButton>
+              <UButton
+                icon="lucide:check"
+                @click="saveRelation()"
+                color="primary"
+                :loading="false"
+              >
+                {{ isNew ? "Create Relation" : "Update Relation" }}
+              </UButton>
+            </div>
+          </div>
         </div>
       </template>
-    </UModal>
+    </UDrawer>
   </Teleport>
 </template>
