@@ -230,6 +230,52 @@ watch(
     }
   }
 );
+
+// Watcher để sanitize defaultValue khi options thay đổi
+watch(
+  () => currentColumn.value?.options,
+  (newOptions, oldOptions) => {
+    if (!currentColumn.value) return;
+
+    const currentType = currentColumn.value.type;
+    if (!["array-select", "enum"].includes(currentType)) return;
+
+    // Nếu không có options, ẩn defaultValue
+    if (!newOptions || newOptions.length === 0) {
+      if (currentColumn.value.defaultValue) {
+        delete currentColumn.value.defaultValue;
+      }
+      return;
+    }
+
+    // Sanitize defaultValue để chỉ giữ những giá trị còn tồn tại trong options
+    if (currentColumn.value.defaultValue) {
+      if (currentType === "array-select") {
+        // Với array-select, defaultValue là array
+        if (Array.isArray(currentColumn.value.defaultValue)) {
+          currentColumn.value.defaultValue =
+            currentColumn.value.defaultValue.filter((value: any) => {
+              // Nếu value là object, check value.value
+              const val = typeof value === "object" ? value.value : value;
+              return newOptions.includes(val);
+            });
+        }
+      } else if (currentType === "enum") {
+        // Với enum, defaultValue là single value
+        const val =
+          typeof currentColumn.value.defaultValue === "object"
+            ? currentColumn.value.defaultValue.value
+            : currentColumn.value.defaultValue;
+
+        if (!newOptions.includes(val)) {
+          // Nếu giá trị không còn tồn tại trong options, reset về null
+          currentColumn.value.defaultValue = null;
+        }
+      }
+    }
+  },
+  { deep: true }
+);
 </script>
 
 <template>
