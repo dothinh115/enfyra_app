@@ -108,7 +108,9 @@ function getComponentConfigByKey(key: string) {
           items: items,
           modelValue: ensureNotNull(props.formData[key]),
           "onUpdate:modelValue": (val: any) => {
-            updateFormData(key, val);
+            // USelectMenu emit ra object, chỉ lấy value
+            const value = typeof val === "object" ? val?.value : val;
+            updateFormData(key, value);
           },
           multiple: finalType === "array-select",
         },
