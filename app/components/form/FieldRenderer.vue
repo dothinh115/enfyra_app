@@ -182,20 +182,6 @@ function getComponentConfigByKey(key: string) {
         },
       };
 
-    case "textarea":
-      return {
-        component: UTextarea,
-        componentProps: {
-          ...componentPropsBase,
-          rows: 3,
-          modelValue: ensureString(props.formData[key]),
-          "onUpdate:modelValue": (val: string) => {
-            updateFormData(key, val);
-          },
-        },
-        fieldProps,
-      };
-
     case "number":
       return {
         component: UInput,
@@ -211,7 +197,6 @@ function getComponentConfigByKey(key: string) {
       };
 
     case "code":
-      // If field is disabled, show disabled input instead of code editor
       if (disabled) {
         return {
           component: UInput,

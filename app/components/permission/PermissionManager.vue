@@ -239,6 +239,15 @@ const {
   pending: loading,
   execute: fetchPermissions,
 } = useApiLazy(() => `/${permissionTableName.value}`, {
+  query: props.currentFieldId
+    ? {
+        filter: {
+          [props.currentFieldId.field]: {
+            id: { _eq: props.currentFieldId.value },
+          },
+        },
+      }
+    : undefined,
   errorContext: "Fetch Permissions",
 });
 
@@ -308,38 +317,38 @@ function closeDrawer() {
 }
 
 async function savePermission() {
-  try {
-    if (isEditing.value && currentPermission.value) {
-      // Update existing permission
-      await updatePermission({
-        body: permissionForm.value,
-        id: currentPermission.value.id,
-      });
-    } else {
-      // Create new permission
-      await createPermission({
-        body: permissionForm.value,
-      });
-    }
-
-    // Refresh permissions list
-    await fetchPermissions();
-
-    // Close drawer
-    closeDrawer();
-
-    // Show success message
-    const toast = useToast();
-    toast.add({
-      title: "Success",
-      description: `Permission ${
-        isEditing.value ? "updated" : "created"
-      } successfully!`,
-      color: "success",
+  if (isEditing.value && currentPermission.value) {
+    // Update existing permission
+    await updatePermission({
+      body: permissionForm.value,
+      id: currentPermission.value.id,
     });
-  } catch (error) {
-    console.error("Error saving permission:", error);
+
+    if (updateError.value) return; // Error occurred, don't proceed
+  } else {
+    // Create new permission
+    await createPermission({
+      body: permissionForm.value,
+    });
+
+    if (createError.value) return; // Error occurred, don't proceed
   }
+
+  // Refresh permissions list
+  await fetchPermissions();
+
+  // Close drawer
+  closeDrawer();
+
+  // Show success message
+  const toast = useToast();
+  toast.add({
+    title: "Success",
+    description: `Permission ${
+      isEditing.value ? "updated" : "created"
+    } successfully!`,
+    color: "success",
+  });
 }
 
 async function deletePermission(permission: Permission) {
@@ -353,27 +362,19 @@ async function deletePermission(permission: Permission) {
 
   if (!confirmed) return;
 
-  try {
-    deleting.value = permission.id;
-    await deletePermissionApi({ id: permission.id });
+  deleting.value = permission.id;
+  await deletePermissionApi({ id: permission.id });
 
-    toast.add({
-      title: "Permission Deleted",
-      description: "Permission has been deleted successfully",
-      color: "success",
-    });
+  if (deleteError.value) return; // Error occurred, don't proceed
 
-    await fetchPermissions();
-  } catch (error) {
-    console.error("Error deleting permission:", error);
-    toast.add({
-      title: "Error",
-      description: "Failed to delete permission",
-      color: "error",
-    });
-  } finally {
-    deleting.value = null;
-  }
+  toast.add({
+    title: "Permission Deleted",
+    description: "Permission has been deleted successfully",
+    color: "success",
+  });
+
+  await fetchPermissions();
+  deleting.value = null;
 }
 
 // Lifecycle
