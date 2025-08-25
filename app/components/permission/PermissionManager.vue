@@ -166,8 +166,9 @@
           <h2>{{ isEditing ? "Edit Permission" : "Create Permission" }}</h2>
           <UButton
             icon="lucide:x"
-            variant="ghost"
+            variant="soft"
             color="error"
+            size="lg"
             @click="closeDrawer"
           />
         </template>
@@ -182,16 +183,12 @@
               :table-name="permissionTableName"
               :excluded="[props.currentFieldId?.field as string]"
             />
-
-            <!-- Action Buttons -->
           </div>
+        </template>
+        <template #footer>
           <div
-            class="flex justify-end gap-3 pt-4 border border-muted/50 rounded-lg p-4 bg-gradient-to-r from-background to-muted/20 mt-4 bg-gray-800/50"
+            class="flex justify-end border border-muted/50 rounded-lg p-4 bg-gray-800/50"
           >
-            <UButton @click="closeDrawer" variant="outline" color="error">
-              Cancel
-            </UButton>
-
             <UButton @click="savePermission" :loading="saving" color="primary">
               {{ isEditing ? "Update" : "Create" }}
             </UButton>

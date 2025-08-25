@@ -4,7 +4,9 @@
     <div class="flex items-center justify-between p-3 bg-muted/20 rounded-lg">
       <div>
         <label class="text-sm font-medium">Allow All Access</label>
-        <p class="text-xs text-muted-foreground mt-1">Skip all permission checks</p>
+        <p class="text-xs text-muted-foreground mt-1">
+          Skip all permission checks
+        </p>
       </div>
       <USwitch
         v-model="isAllowAll"
@@ -12,7 +14,6 @@
         @update:model-value="handleAllowAllChange"
       />
     </div>
-
 
     <!-- Current Permission Structure -->
     <div v-if="!isAllowAll" class="space-y-3">
@@ -32,19 +33,6 @@
         />
       </div>
     </div>
-
-    <!-- Apply Button -->
-    <div class="flex justify-end pt-4 border-t border-muted">
-      <UButton
-        icon="lucide:check"
-        variant="solid"
-        color="primary"
-        @click="applyGroups"
-        :disabled="props.disabled"
-      >
-        Apply
-      </UButton>
-    </div>
   </div>
 </template>
 
@@ -55,7 +43,7 @@ const props = defineProps<{
   allowAll?: boolean;
 }>();
 
-const emit = defineEmits(["apply"]);
+const emit = defineEmits(["update"]);
 
 const currentGroups = ref<any[]>([]);
 const isAllowAll = ref(false);
@@ -69,11 +57,13 @@ watch(
       currentGroups.value = [...newGroups];
     } else {
       // Create default group if none exists
-      currentGroups.value = [{
-        id: Math.random().toString(36).substring(2, 9),
-        type: "and",
-        conditions: []
-      }];
+      currentGroups.value = [
+        {
+          id: Math.random().toString(36).substring(2, 9),
+          type: "and",
+          conditions: [],
+        },
+      ];
     }
   },
   { immediate: true }
@@ -87,7 +77,6 @@ watch(
   },
   { immediate: true }
 );
-
 
 function updateGroup(groupIndex: number, updatedGroup: any) {
   currentGroups.value[groupIndex] = updatedGroup;
@@ -104,21 +93,28 @@ function handleAllowAllChange(value: boolean) {
     currentGroups.value = [];
   } else {
     // Create default group when disabling allowAll
-    currentGroups.value = [{
-      id: Math.random().toString(36).substring(2, 9),
-      type: "and",
-      conditions: []
-    }];
+    currentGroups.value = [
+      {
+        id: Math.random().toString(36).substring(2, 9),
+        type: "and",
+        conditions: [],
+      },
+    ];
   }
 }
 
 function applyGroups() {
-  console.log('🚀 Selector applyGroups called with isAllowAll:', isAllowAll.value, 'currentGroups:', currentGroups.value);
+  console.log(
+    "🚀 Selector applyGroups called with isAllowAll:",
+    isAllowAll.value,
+    "currentGroups:",
+    currentGroups.value
+  );
   if (isAllowAll.value) {
-    emit("apply", { allowAll: true });
+    emit("update", { allowAll: true });
   } else if (currentGroups.value.length > 0) {
     // Return the single root group (which may contain nested groups)
-    emit("apply", currentGroups.value[0]);
+    emit("update", currentGroups.value[0]);
   }
 }
 </script>

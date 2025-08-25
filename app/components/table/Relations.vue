@@ -171,10 +171,7 @@ function saveRelation() {
 
       <template #body>
         <div class="space-y-6" v-if="currentRelation">
-          <!-- Form Section -->
-          <div
-            class="bg-gradient-to-r from-background/50 to-muted/10 rounded-xl border border-muted/30 p-6"
-          >
+          <div class="bg-gray-800/50 rounded-xl border border-muted/30 p-6">
             <div class="flex items-center gap-2 mb-4">
               <UIcon name="lucide:git-branch" class="text-info" size="18" />
               <h3 class="text-lg font-semibold text-foreground">
@@ -212,7 +209,7 @@ function saveRelation() {
       <template #footer>
         <!-- Actions Section -->
         <div
-          class="bg-gradient-to-r from-muted/10 to-background/50 rounded-xl border border-muted/30 p-4 w-full"
+          class="bg-gray-800/50 rounded-xl border border-muted/30 p-4 w-full"
         >
           <div class="flex items-center justify-between w-full">
             <div class="flex items-center gap-2">

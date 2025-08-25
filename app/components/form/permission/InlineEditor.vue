@@ -51,8 +51,32 @@
           <FormPermissionSelector
             :permission-groups="localFormPermissionGroups"
             :allow-all="isAllowAll"
-            @apply="applyFormPermissionGroups"
+            @update="updateLocalPermissionGroups"
           />
+        </template>
+
+        <template #footer>
+          <div
+            class="flex justify-end gap-3 rounded-xl border border-muted/30 p-4 bg-gray-800/50"
+          >
+            <UButton
+              @click="closeModal"
+              variant="outline"
+              color="neutral"
+              :disabled="props.disabled"
+            >
+              Cancel
+            </UButton>
+            <UButton
+              icon="lucide:check"
+              variant="solid"
+              color="primary"
+              @click="applyFormPermissionGroups"
+              :disabled="props.disabled"
+            >
+              Apply
+            </UButton>
+          </div>
         </template>
       </UDrawer>
     </Teleport>
@@ -207,19 +231,30 @@ function updateModelValue() {
   emit("update:modelValue", result);
 }
 
-function applyFormPermissionGroups(data: any) {
-  console.log("🔧 applyFormPermissionGroups called with:", data);
+function updateLocalPermissionGroups(data: any) {
+  console.log("🔧 updateLocalPermissionGroups called with:", data);
+  // Update local state when user makes changes
+  if (data?.allowAll === true) {
+    // Update local allowAll state
+    localFormPermissionGroups.value = [];
+  } else {
+    // Update local permission groups
+    localFormPermissionGroups.value = Array.isArray(data) ? [...data] : [data];
+  }
+}
+
+function applyFormPermissionGroups() {
+  console.log("🔧 applyFormPermissionGroups called");
   // Mark that user has applied changes
   hasApplied.value = true;
 
-  // This will be called from FormPermissionSelector
-  if (data?.allowAll === true) {
+  // Apply the current local state
+  if (localFormPermissionGroups.value.length === 0) {
     // Set allowAll mode
     console.log("🔧 Emitting allowAll:", { allowAll: true });
     emit("update:modelValue", { allowAll: true });
   } else {
     // Set normal permission groups
-    localFormPermissionGroups.value = Array.isArray(data) ? [...data] : [data];
     console.log(
       "🔧 Calling updateModelValue with localFormPermissionGroups:",
       localFormPermissionGroups.value

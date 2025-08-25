@@ -180,7 +180,10 @@ const typeMap = computed(() => {
       },
       defaultValue: {
         type: currentType,
-        options: currentColumn.value.options,
+        options: currentColumn.value?.options,
+        ...(!currentColumn.value?.options?.length && {
+          excluded: true,
+        }),
       },
     }),
 
@@ -324,7 +327,7 @@ watch(
       </template>
 
       <template #body>
-        <div class="space-y-6" v-if="currentColumn">
+        <div class="space-y-6 bg-gray-800/50" v-if="currentColumn">
           <!-- Form Section -->
           <div
             class="bg-gradient-to-r from-background/50 to-muted/10 rounded-xl border border-muted/30 p-6"
@@ -358,9 +361,7 @@ watch(
 
       <template #footer>
         <!-- Actions Section -->
-        <div
-          class="bg-gradient-to-r from-muted/10 to-background/50 rounded-xl border border-muted/30 p-4"
-        >
+        <div class="bg-gray-800/50 rounded-xl border border-muted/30 p-4">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <UIcon

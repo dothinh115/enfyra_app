@@ -4,9 +4,10 @@ const props = defineProps<{
   selectedIds: any[];
   multiple?: boolean;
   disabled?: boolean;
+  open?: boolean;
 }>();
 
-const emit = defineEmits(["apply"]);
+const emit = defineEmits(["apply", "update:open"]);
 
 const selected = ref<any[]>([...props.selectedIds]);
 const page = ref(1);
@@ -153,110 +154,144 @@ watch(page, async (newPage, oldPage) => {
 </script>
 
 <template>
-  <div class="space-y-6">
-    <!-- Header Section -->
-    <div class="rounded-xl border border-muted/30 p-6 shadow-sm bg-gray-800/50">
-      <div class="flex items-center justify-between mb-4">
-        <div class="flex items-center gap-3">
+  <!-- Main Drawer -->
+  <Teleport to="body">
+    <UDrawer
+      v-model:open="props.open"
+      direction="right"
+      class="min-w-xl"
+      :ui="{
+        header:
+          'border-b border-muted text-muted pb-2 flex items-center justify-between',
+      }"
+      @update:open="emit('update:open', $event)"
+    >
+      <template #header>
+        <h2>
+          {{ props.relationMeta.propertyName }}
+        </h2>
+        <UButton
+          @click="emit('update:open', false)"
+          icon="lucide:x"
+          color="error"
+          variant="ghost"
+          size="xl"
+        />
+      </template>
+      <template #body>
+        <div class="space-y-6">
+          <!-- Header Section -->
           <div
-            class="w-8 h-8 rounded-lg bg-gradient-to-br from-info to-success flex items-center justify-center shadow-md"
+            class="rounded-xl border border-muted/30 p-6 shadow-sm bg-gray-800/50"
           >
-            <UIcon name="lucide:git-fork" class="text-xs text-white" />
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-8 h-8 rounded-lg bg-gradient-to-br from-info to-success flex items-center justify-center shadow-md"
+                >
+                  <UIcon name="lucide:git-fork" class="text-xs text-white" />
+                </div>
+                <div>
+                  <h3 class="text-lg font-semibold text-foreground">
+                    Relations
+                  </h3>
+                  <p class="text-sm text-muted-foreground">
+                    {{ targetTable?.name || "Unknown" }} records
+                  </p>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <FormRelationActions
+                :has-active-filters="hasActiveFilters(currentFilter)"
+                :filter-count="currentFilter.conditions.length"
+                :disabled="props.disabled"
+                @open-filter="openFilterDrawer"
+                @open-create="showCreateDrawer = true"
+              />
+            </div>
+
+            <!-- Selected Count -->
+            <div v-if="selected.length > 0" class="flex items-center gap-2">
+              <UBadge variant="soft" color="primary" size="sm">
+                {{ selected.length }} selected
+              </UBadge>
+              <span class="text-xs text-muted-foreground">
+                {{
+                  props.multiple
+                    ? "Multiple selection enabled"
+                    : "Single selection"
+                }}
+              </span>
+            </div>
           </div>
-          <div>
-            <h3 class="text-lg font-semibold text-foreground">Relations</h3>
-            <p class="text-sm text-muted-foreground">
-              {{ targetTable?.name || "Unknown" }} records
-            </p>
+
+          <!-- Content Section -->
+          <div
+            class="bg-gradient-to-r from-background/50 to-muted/10 rounded-xl border border-muted/30 p-6 bg-gray-800/50"
+          >
+            <!-- Loading State -->
+            <CommonLoadingState
+              v-if="!isMounted || loading"
+              type="form"
+              context="inline"
+              size="md"
+            />
+
+            <!-- Empty State -->
+            <CommonEmptyState
+              v-else-if="isMounted && !loading && data.length === 0"
+              :title="
+                hasActiveFilters(currentFilter)
+                  ? 'No relations found'
+                  : 'No relations available'
+              "
+              :description="
+                hasActiveFilters(currentFilter)
+                  ? 'Try adjusting your filters'
+                  : 'No relations have been created yet'
+              "
+              icon="lucide:database"
+              size="sm"
+              :action="
+                hasActiveFilters(currentFilter)
+                  ? {
+                      label: 'Clear filters',
+                      onClick: clearFilter,
+                      icon: 'lucide:x',
+                    }
+                  : undefined
+              "
+            />
+
+            <!-- Data List -->
+            <FormRelationList
+              v-else
+              :data="data"
+              :selected="selected"
+              :multiple="props.multiple"
+              :disabled="props.disabled"
+              @toggle="toggle"
+              @view-details="viewDetails"
+            />
           </div>
         </div>
-
-        <!-- Action Buttons -->
-        <FormRelationActions
-          :has-active-filters="hasActiveFilters(currentFilter)"
-          :filter-count="currentFilter.conditions.length"
-          :disabled="props.disabled"
-          @open-filter="openFilterDrawer"
-          @open-create="showCreateDrawer = true"
-        />
-      </div>
-
-      <!-- Selected Count -->
-      <div v-if="selected.length > 0" class="flex items-center gap-2">
-        <UBadge variant="soft" color="primary" size="sm">
-          {{ selected.length }} selected
-        </UBadge>
-        <span class="text-xs text-muted-foreground">
-          {{
-            props.multiple ? "Multiple selection enabled" : "Single selection"
-          }}
-        </span>
-      </div>
-    </div>
-
-    <!-- Content Section -->
-    <div
-      class="bg-gradient-to-r from-background/50 to-muted/10 rounded-xl border border-muted/30 p-6 bg-gray-800/50"
-    >
-      <!-- Loading State -->
-      <CommonLoadingState
-        v-if="!isMounted || loading"
-        type="form"
-        context="inline"
-        size="md"
-      />
-
-      <!-- Empty State -->
-      <CommonEmptyState
-        v-else-if="isMounted && !loading && data.length === 0"
-        :title="
-          hasActiveFilters(currentFilter)
-            ? 'No relations found'
-            : 'No relations available'
-        "
-        :description="
-          hasActiveFilters(currentFilter)
-            ? 'Try adjusting your filters'
-            : 'No relations have been created yet'
-        "
-        icon="lucide:database"
-        size="sm"
-        :action="
-          hasActiveFilters(currentFilter)
-            ? {
-                label: 'Clear filters',
-                onClick: clearFilter,
-                icon: 'lucide:x',
-              }
-            : undefined
-        "
-      />
-
-      <!-- Data List -->
-      <FormRelationList
-        v-else
-        :data="data"
-        :selected="selected"
-        :multiple="props.multiple"
-        :disabled="props.disabled"
-        @toggle="toggle"
-        @view-details="viewDetails"
-      />
-    </div>
-
-    <!-- Pagination Section -->
-    <div class="rounded-xl border border-muted/30 p-4 bg-gray-800/50">
-      <FormRelationPagination
-        :page="page"
-        :total="total"
-        :limit="limit"
-        :loading="loading"
-        :disabled="props.disabled"
-        @update:page="page = $event"
-        @apply="apply"
-      />
-    </div>
-  </div>
+      </template>
+      <template #footer>
+        <div class="rounded-xl border border-muted/30 p-4 bg-gray-800/50">
+          <FormRelationPagination
+            :page="page"
+            :total="total"
+            :limit="limit"
+            :loading="loading"
+            :disabled="props.disabled"
+            @update:page="page = $event"
+            @apply="apply"
+          />
+        </div>
+      </template>
+    </UDrawer>
+  </Teleport>
 
   <FormRelationCreateDrawer
     v-model="showCreateDrawer"

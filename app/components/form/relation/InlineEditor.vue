@@ -106,40 +106,16 @@ function shortenId(id: string | number): string {
       class="rounded-full"
     />
   </div>
-  <Teleport to="body">
-    <UDrawer
-      v-model:open="showModal"
-      direction="right"
-      class="min-w-xl"
-      :ui="{
-        header:
-          'border-b border-muted text-muted pb-2 flex items-center justify-between',
-      }"
-    >
-      <template #header>
-        <h2>
-          {{ props.relationMeta.propertyName }}
-        </h2>
-        <UButton
-          @click="showModal = false"
-          icon="lucide:x"
-          color="error"
-          variant="ghost"
-          size="xl"
-        />
-      </template>
-      <template #body>
-        <FormRelationSelector
-          :relationMeta="relationMeta"
-          :selected-ids="selectedIds"
-          :multiple="
-            relationMeta.type === 'many-to-many' ||
-            relationMeta.type === 'one-to-many'
-          "
-          @apply="applySelection"
-          :disabled="props.disabled"
-        />
-      </template>
-    </UDrawer>
-  </Teleport>
+
+  <FormRelationSelector
+    v-model:open="showModal"
+    :relationMeta="relationMeta"
+    :selected-ids="selectedIds"
+    :multiple="
+      relationMeta.type === 'many-to-many' ||
+      relationMeta.type === 'one-to-many'
+    "
+    @apply="applySelection"
+    :disabled="props.disabled"
+  />
 </template>
