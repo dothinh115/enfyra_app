@@ -29,13 +29,7 @@
               v-model:errors="errors"
               v-model:has-changes="hasFormChanges"
               :table-name="tableName"
-              :type-map="{
-                routePermissions: {
-                  componentProps: {
-                    allowDelete: true,
-                  },
-                },
-              }"
+              :excluded="['routePermissions']"
             />
           </UForm>
         </div>
