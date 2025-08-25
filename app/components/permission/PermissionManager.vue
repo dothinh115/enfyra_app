@@ -26,20 +26,82 @@
     </div>
 
     <!-- Permissions List -->
-    <div v-if="permissions.length > 0" class="space-y-3">
-      <div
-        v-for="permission in permissions"
-        :key="permission.id"
-        class="bg-gray-800/50 rounded-lg p-4 transition-colors border border-gray-700/50"
-      >
-        <PermissionGate
-          :condition="{
-            or: [{ route: `/${permissionTableName}`, actions: ['update'] }],
-          }"
+    <Transition name="loading-fade" mode="out-in">
+      <CommonLoadingState
+        v-if="!isMounted || loading"
+        title="Loading permissions..."
+        description="Fetching permission data"
+        size="sm"
+        type="form"
+        context="page"
+      />
+
+      <div v-else-if="permissions.length > 0" class="space-y-3">
+        <div
+          v-for="permission in permissions"
+          :key="permission.id"
+          class="bg-gray-800/50 rounded-lg p-4 transition-all duration-200 border border-gray-700/50"
         >
+          <PermissionGate
+            :condition="{
+              or: [{ route: `/${permissionTableName}`, actions: ['update'] }],
+            }"
+          >
+            <div
+              @click="editPermission(permission)"
+              class="flex items-center justify-between cursor-pointer lg:hover:bg-gray-700/50 rounded-lg p-2 -m-2"
+            >
+              <div class="flex items-center gap-3 flex-1">
+                <UIcon name="lucide:shield" class="w-4 h-4 text-green-400" />
+                <div class="flex-1 min-w-0">
+                  <div class="font-medium text-gray-100">
+                    {{ permission.description || "No description" }}
+                  </div>
+                  <div class="text-sm text-gray-400 mt-1">
+                    ID: {{ permission.id }}
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <UBadge
+                  :color="permission.isEnabled ? 'success' : 'neutral'"
+                  variant="soft"
+                  size="sm"
+                >
+                  {{ permission.isEnabled ? "Enabled" : "Disabled" }}
+                </UBadge>
+                <PermissionGate
+                  :condition="{
+                    or: [
+                      { route: `/${permissionTableName}`, actions: ['delete'] },
+                    ],
+                  }"
+                >
+                  <UButton
+                    icon="lucide:trash"
+                    color="error"
+                    variant="ghost"
+                    size="sm"
+                    @click.stop="deletePermission(permission)"
+                    :loading="deleting === permission.id"
+                  />
+                </PermissionGate>
+                <UIcon
+                  name="lucide:chevron-right"
+                  class="w-4 h-4 text-gray-400"
+                />
+              </div>
+            </div>
+          </PermissionGate>
+
+          <!-- Fallback for users without update permission -->
           <div
-            @click="editPermission(permission)"
-            class="flex items-center justify-between cursor-pointer lg:hover:bg-gray-700/50 rounded-lg p-2 -m-2"
+            v-if="
+              !checkPermissionCondition({
+                or: [{ route: `/${permissionTableName}`, actions: ['update'] }],
+              })
+            "
+            class="flex items-center justify-between"
           >
             <div class="flex items-center gap-3 flex-1">
               <UIcon name="lucide:shield" class="w-4 h-4 text-green-400" />
@@ -76,73 +138,18 @@
                   :loading="deleting === permission.id"
                 />
               </PermissionGate>
-              <UIcon
-                name="lucide:chevron-right"
-                class="w-4 h-4 text-gray-400"
-              />
             </div>
-          </div>
-        </PermissionGate>
-
-        <!-- Fallback for users without update permission -->
-        <div
-          v-if="
-            !checkPermissionCondition({
-              or: [{ route: `/${permissionTableName}`, actions: ['update'] }],
-            })
-          "
-          class="flex items-center justify-between"
-        >
-          <div class="flex items-center gap-3 flex-1">
-            <UIcon name="lucide:shield" class="w-4 h-4 text-green-400" />
-            <div class="flex-1 min-w-0">
-              <div class="font-medium text-gray-100">
-                {{ permission.description || "No description" }}
-              </div>
-              <div class="text-sm text-gray-400 mt-1">
-                ID: {{ permission.id }}
-              </div>
-            </div>
-          </div>
-          <div class="flex items-center gap-3">
-            <UBadge
-              :color="permission.isEnabled ? 'success' : 'neutral'"
-              variant="soft"
-              size="sm"
-            >
-              {{ permission.isEnabled ? "Enabled" : "Disabled" }}
-            </UBadge>
-            <PermissionGate
-              :condition="{
-                or: [{ route: `/${permissionTableName}`, actions: ['delete'] }],
-              }"
-            >
-              <UButton
-                icon="lucide:trash"
-                color="error"
-                variant="ghost"
-                size="sm"
-                @click.stop="deletePermission(permission)"
-                :loading="deleting === permission.id"
-              />
-            </PermissionGate>
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- Empty State -->
-    <div
-      v-if="permissions.length === 0"
-      class="text-center py-8 text-muted-foreground"
-    >
-      <UIcon
-        name="lucide:shield-off"
-        class="w-12 h-12 mx-auto mb-3 opacity-50"
+      <CommonEmptyState
+        v-else
+        title="No permissions found"
+        description="No permissions found for this table. Click 'Add Permission' to create one."
+        icon="lucide:shield-off"
+        size="sm"
       />
-      <p>No permissions found for this table.</p>
-      <p class="text-sm">Click "Add Permission" to create one.</p>
-    </div>
+    </Transition>
 
     <!-- Permission Editor Drawer -->
     <Teleport to="body">
@@ -201,6 +208,7 @@ import { UIcon } from "#components";
 const toast = useToast();
 const { confirm } = useConfirm();
 const { checkPermissionCondition } = usePermissions();
+const { isMounted } = useMounted();
 
 interface Permission {
   id: string;
@@ -212,7 +220,7 @@ interface Permission {
 
 interface Props {
   tableName: string;
-  currentFieldId?: { field: string; value: string | number };
+  currentFieldId: { field: string; value: string | number };
   icon?: string;
   title?: string;
 }
@@ -239,15 +247,13 @@ const {
   pending: loading,
   execute: fetchPermissions,
 } = useApiLazy(() => `/${permissionTableName.value}`, {
-  query: props.currentFieldId
-    ? {
-        filter: {
-          [props.currentFieldId.field]: {
-            id: { _eq: props.currentFieldId.value },
-          },
-        },
-      }
-    : undefined,
+  query: {
+    filter: {
+      [props.currentFieldId.field]: {
+        id: { _eq: props.currentFieldId.value },
+      },
+    },
+  },
   errorContext: "Fetch Permissions",
 });
 
@@ -284,18 +290,26 @@ const saving = computed(() => creating.value || updating.value);
 
 // Methods
 function createNewPermission() {
+  // Validate currentFieldId is required
+  if (!props.currentFieldId) {
+    toast.add({
+      title: "Error",
+      description: "Cannot create permission: missing field ID context",
+      color: "error",
+    });
+    return; // Stop function execution
+  }
+
   isEditing.value = false;
   currentPermission.value = null;
 
   // Generate empty form from schema
   permissionForm.value = generateEmptyForm();
 
-  // Set current field ID if provided
-  if (props.currentFieldId) {
-    permissionForm.value[props.currentFieldId.field] = {
-      id: props.currentFieldId.value,
-    };
-  }
+  // Set current field ID (required)
+  permissionForm.value[props.currentFieldId.field] = {
+    id: props.currentFieldId.value,
+  };
 
   permissionErrors.value = {};
   showDrawer.value = true;
