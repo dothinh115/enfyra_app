@@ -129,6 +129,7 @@
 
       <template #footer>
         <div class="w-full">
+          <slot name="warning" />
           <UButton
             color="primary"
             variant="solid"
@@ -147,7 +148,6 @@
 </template>
 
 <script setup lang="ts">
-
 import type { UploadModalProps, UploadModalEmits } from "../../utils/types";
 
 const props = withDefaults(defineProps<UploadModalProps>(), {
@@ -249,7 +249,7 @@ const handleFileSelect = (event: Event) => {
       if (!file) continue;
       const error = validateFile(file);
       if (error) {
-        errors.push(`${file.name || 'Unknown file'}: ${error}`);
+        errors.push(`${file.name || "Unknown file"}: ${error}`);
       } else {
         newFiles.push(file);
       }
@@ -305,7 +305,7 @@ const handleDrop = (e: DragEvent) => {
       if (!file) continue;
       const error = validateFile(file);
       if (error) {
-        errors.push(`${file.name || 'Unknown file'}: ${error}`);
+        errors.push(`${file.name || "Unknown file"}: ${error}`);
       } else {
         newFiles.push(file);
       }

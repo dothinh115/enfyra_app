@@ -9,6 +9,12 @@ const props = defineProps<{
 
 const emit = defineEmits(["apply", "update:open"]);
 
+// Local state for drawer open/close
+const isDrawerOpen = computed({
+  get: () => props.open || false,
+  set: (value) => emit("update:open", value),
+});
+
 const selected = ref<any[]>([...props.selectedIds]);
 const page = ref(1);
 const limit = 10;
@@ -157,14 +163,13 @@ watch(page, async (newPage, oldPage) => {
   <!-- Main Drawer -->
   <Teleport to="body">
     <UDrawer
-      v-model:open="props.open"
+      v-model:open="isDrawerOpen"
       direction="right"
       class="min-w-xl"
       :ui="{
         header:
           'border-b border-muted text-muted pb-2 flex items-center justify-between',
       }"
-      @update:open="emit('update:open', $event)"
     >
       <template #header>
         <h2>

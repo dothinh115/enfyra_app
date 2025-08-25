@@ -54,6 +54,9 @@ const {
   errorContext: "Delete File",
 });
 
+// Replace file modal state
+const showReplaceModal = ref(false);
+
 // Header actions
 useHeaderActionRegistry([
   {
@@ -75,6 +78,7 @@ useHeaderActionRegistry([
       ],
     },
   },
+
   {
     id: "delete-file",
     label: "Delete",
@@ -89,6 +93,26 @@ useHeaderActionRegistry([
         {
           route: "/file_definition",
           actions: ["delete"],
+        },
+      ],
+    },
+  },
+]);
+
+useSubHeaderActionRegistry([
+  {
+    id: "replace-file",
+    label: "Replace File",
+    icon: "lucide:upload",
+    variant: "outline",
+    color: "secondary",
+    size: "md",
+    onClick: () => (showReplaceModal.value = true),
+    permission: {
+      and: [
+        {
+          route: "/file_definition",
+          actions: ["update"],
         },
       ],
     },
@@ -152,6 +176,40 @@ async function deleteFile() {
 
   toast.add({ title: "File deleted", color: "success" });
   await navigateTo("/files");
+}
+
+// Handle replace file success
+async function handleReplaceFileSuccess(files: File | File[]) {
+  const fileArray = Array.isArray(files) ? files : [files];
+  if (fileArray.length === 0) return;
+
+  const newFile = fileArray[0];
+  if (!newFile) return;
+
+  // Create FormData with only the file field
+  const formData = new FormData();
+  formData.append("file", newFile);
+
+  // Patch to file_definition with FormData
+  await executeUpdateFile({
+    id: fileId,
+    body: formData,
+  });
+
+  // Check if there was an error
+  if (updateError.value) {
+    return;
+  }
+
+  showReplaceModal.value = false;
+  await initializeForm();
+
+  // Show success message
+  toast.add({
+    title: "Success",
+    description: "File replaced successfully!",
+    color: "success",
+  });
 }
 
 // Page title computation
@@ -257,7 +315,9 @@ function getFileIconAndColor(mimetype: string): {
               class="max-w-132 max-h-132"
             >
               <CommonImage
-                :src="`/assets/${form.id}`"
+                :src="`/assets/${file?.data?.[0]?.id}?t=${
+                  file?.data?.[0]?.updatedAt || Date.now()
+                }`"
                 :alt="form.filename"
                 class="object-contain h-full w-132 h-132"
                 loading-area="custom"
@@ -299,7 +359,13 @@ function getFileIconAndColor(mimetype: string): {
               v-model:errors="errors"
               v-model:has-changes="hasFormChanges"
               table-name="file_definition"
-              :excluded="['id', 'createdAt', 'updatedAt', 'permissions']"
+              :excluded="[
+                'id',
+                'createdAt',
+                'updatedAt',
+                'permissions',
+                'uploaded_by',
+              ]"
             />
           </UForm>
         </div>
@@ -315,5 +381,27 @@ function getFileIconAndColor(mimetype: string): {
         </div>
       </div>
     </Transition>
+
+    <!-- Replace File Modal -->
+    <CommonUploadModal
+      v-model="showReplaceModal"
+      :title="`Replace ${form.filename || 'File'}`"
+      :multiple="false"
+      :loading="updateLoading"
+      @upload="handleReplaceFileSuccess"
+    >
+      <template #warning>
+        <UAlert
+          description="This action will replace the current file immediately when you click Upload. The old file will be permanently lost."
+          icon="lucide:alert-triangle"
+          color="warning"
+          variant="soft"
+          class="mb-4"
+          :ui="{
+            icon: 'text-[36px]',
+          }"
+        />
+      </template>
+    </CommonUploadModal>
   </div>
 </template>
