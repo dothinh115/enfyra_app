@@ -16,13 +16,6 @@
             v-model="createForm"
             :table-name="tableName"
             v-model:errors="createErrors"
-            :type-map="{
-              routePermissions: {
-                componentProps: {
-                  allowDelete: true,
-                },
-              },
-            }"
           />
         </UForm>
       </div>

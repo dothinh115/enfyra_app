@@ -3,7 +3,6 @@ const props = defineProps<{
   relationMeta: any;
   modelValue: any;
   disabled?: boolean;
-  allowDelete?: boolean;
 }>();
 defineOptions({ inheritAttrs: false });
 
@@ -139,7 +138,6 @@ function shortenId(id: string | number): string {
           "
           @apply="applySelection"
           :disabled="props.disabled"
-          :allowDelete
         />
       </template>
     </UDrawer>

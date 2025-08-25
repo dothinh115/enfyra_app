@@ -4,8 +4,7 @@ const props = defineProps<{
   selected: any[];
   multiple?: boolean;
   disabled?: boolean;
-  allowDelete?: boolean;
-  confirmingDeleteId: any;
+
   deletePermission?: {
     and?: { route: string; actions: string[] }[];
     or?: { route: string; actions: string[] }[];
@@ -15,7 +14,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   toggle: [id: any];
   "view-details": [item: any];
-  "delete-click": [item: any];
 }>();
 
 function toggle(id: any) {
@@ -31,17 +29,7 @@ function viewDetails(item: any) {
   emit("view-details", item);
 }
 
-function handleDeleteClick(item: any) {
-  emit("delete-click", item);
-}
-
 const { checkPermissionCondition } = usePermissions();
-
-const canDelete = computed(() => {
-  if (!props.allowDelete) return false;
-  if (!props.deletePermission) return true; // Allow delete if no permission specified
-  return checkPermissionCondition(props.deletePermission);
-});
 
 function getDisplayLabel(
   item: Record<string, any>,
@@ -176,18 +164,6 @@ function shortenId(id: string | number): string {
           size="md"
           variant="outline"
           @click.stop="viewDetails(item)"
-        />
-
-        <UButton
-          :icon="
-            confirmingDeleteId === item.id ? 'lucide:check' : 'lucide:trash-2'
-          "
-          size="md"
-          :color="confirmingDeleteId === item.id ? 'primary' : 'error'"
-          variant="outline"
-          v-if="canDelete"
-          @click.stop="handleDeleteClick(item)"
-          :label="confirmingDeleteId === item.id ? 'Confirm' : undefined"
         />
       </div>
     </UButton>

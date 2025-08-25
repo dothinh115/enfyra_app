@@ -24,10 +24,18 @@ function updateValue(newValue: any) {
 }
 
 function onFieldSelectChange(selectedValue: string) {
-  const { onFieldSelectChange: handleFieldSelect } = useFieldSelection(props.schemas, props.tableName);
-  
-  const result = handleFieldSelect(selectedValue, props.condition, props.parentGroup, emit);
-  
+  const { onFieldSelectChange: handleFieldSelect } = useFieldSelection(
+    props.schemas,
+    props.tableName
+  );
+
+  const result = handleFieldSelect(
+    selectedValue,
+    props.condition,
+    props.parentGroup,
+    emit
+  );
+
   if (result && result.convertToGroup) {
     emit("convert-to-group", result.newGroup, props.conditionIndex);
   }
@@ -47,7 +55,9 @@ const enumOptions = computed(() => {
 </script>
 
 <template>
-  <div class="flex items-center gap-2 p-3 border border-muted rounded-lg">
+  <div
+    class="flex items-center gap-2 p-3 border border-muted rounded-lg bg-gray-800/50"
+  >
     <!-- Field Select -->
     <div v-if="!readonly" class="flex items-center gap-2">
       <USelect

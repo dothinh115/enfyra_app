@@ -98,9 +98,7 @@ async function createNewRecord() {
       <template #body>
         <div class="space-y-6">
           <!-- Form Section -->
-          <div
-            class="bg-gradient-to-r from-background/50 to-muted/10 rounded-xl border border-muted/30 p-6"
-          >
+          <div class="bg-gray-800/50 rounded-xl border border-muted/30 p-6">
             <div class="flex items-center gap-2 mb-4">
               <UIcon name="lucide:edit-3" class="text-info" size="18" />
               <h3 class="text-lg font-semibold text-foreground">Form Fields</h3>
@@ -113,9 +111,7 @@ async function createNewRecord() {
           </div>
 
           <!-- Actions Section -->
-          <div
-            class="bg-gradient-to-r from-muted/10 to-background/50 rounded-xl border border-muted/30 p-4"
-          >
+          <div class="bg-gray-800/50 rounded-xl border border-muted/30 p-4">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <UIcon

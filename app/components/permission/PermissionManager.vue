@@ -156,27 +156,26 @@
       <UDrawer
         v-model:open="showDrawer"
         direction="right"
-        class="w-full max-w-4xl"
+        :class="isTablet ? 'w-full' : 'min-w-xl'"
         :ui="{
           header:
             'border-b border-muted text-muted pb-2 flex items-center justify-between',
         }"
       >
         <template #header>
-          <h2 class="text-lg font-semibold">
-            {{ isEditing ? "Edit Permission" : "Create Permission" }}
-          </h2>
+          <h2>{{ isEditing ? "Edit Permission" : "Create Permission" }}</h2>
           <UButton
-            @click="closeDrawer"
             icon="lucide:x"
-            color="error"
             variant="ghost"
-            size="lg"
+            color="error"
+            @click="closeDrawer"
           />
         </template>
 
         <template #body>
-          <div class="p-6">
+          <div
+            class="bg-gray-800/50 border border-muted/50 rounded-lg p-4 bg-gradient-to-r from-background to-muted/20"
+          >
             <FormEditorLazy
               v-model="permissionForm"
               v-model:errors="permissionErrors"
@@ -185,16 +184,17 @@
             />
 
             <!-- Action Buttons -->
-            <div class="flex justify-end gap-3 pt-6 border-t border-muted">
-              <UButton variant="outline" @click="closeDrawer"> Cancel </UButton>
-              <UButton
-                color="primary"
-                :loading="saving"
-                @click="savePermission"
-              >
-                {{ isEditing ? "Update" : "Create" }}
-              </UButton>
-            </div>
+          </div>
+          <div
+            class="flex justify-end gap-3 pt-4 border border-muted/50 rounded-lg p-4 bg-gradient-to-r from-background to-muted/20 mt-4 bg-gray-800/50"
+          >
+            <UButton @click="closeDrawer" variant="outline" color="error">
+              Cancel
+            </UButton>
+
+            <UButton @click="savePermission" :loading="saving" color="primary">
+              {{ isEditing ? "Update" : "Create" }}
+            </UButton>
           </div>
         </template>
       </UDrawer>
@@ -209,6 +209,7 @@ const toast = useToast();
 const { confirm } = useConfirm();
 const { checkPermissionCondition } = usePermissions();
 const { isMounted } = useMounted();
+const { isTablet } = useScreen();
 
 interface Permission {
   id: string;
