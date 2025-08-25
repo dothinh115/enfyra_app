@@ -120,22 +120,18 @@ function getDefaultValueType(columnType: string) {
     };
   }
 
-  // Long text types
   if (columnType === "text" || columnType === "richtext") {
-    return { type: "textarea" };
+    return { type: "text" };
   }
 
-  // Code type
   if (columnType === "code") {
     return { type: "code" };
   }
 
-  // Array-select type
   if (columnType === "array-select") {
     return { type: "array-select" };
   }
 
-  // Enum type
   if (columnType === "enum") {
     return { type: "enum" };
   }
@@ -178,7 +174,6 @@ const typeMap = computed(() => {
         default: true,
       },
     }),
-    // Xử lý đặc biệt cho array-select và enum type
     ...(["array-select", "enum"].includes(currentType) && {
       options: {
         type: "array-tags",

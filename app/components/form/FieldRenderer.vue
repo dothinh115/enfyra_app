@@ -6,6 +6,7 @@ import {
   USwitch,
   FormDateField,
   USelectMenu,
+  USelect,
 } from "#components";
 
 const props = defineProps<{
@@ -85,34 +86,35 @@ function getComponentConfigByKey(key: string) {
         },
         fieldProps,
       };
-
-    case "array-select":
     case "enum": {
       let items = config.options || column?.options || [];
 
-      // If no options provided and field type is enum, get from schema
-      if (items.length === 0) {
-        const column = props.columnMap.get(key);
-        if (column?.type === "enum" && column?.options) {
-          items = column.options.map((opt: string) => ({
-            label: opt,
-            value: opt,
-          }));
-        }
-      }
-
       return {
-        component: USelectMenu,
+        component: USelect,
         componentProps: {
           ...componentPropsBase,
           items: items,
           modelValue: ensureNotNull(props.formData[key]),
           "onUpdate:modelValue": (val: any) => {
-            // USelectMenu emit ra object, chỉ lấy value
-            const value = typeof val === "object" ? val?.value : val;
-            updateFormData(key, value);
+            updateFormData(key, val);
           },
-          multiple: finalType === "array-select",
+        },
+        fieldProps,
+      };
+    }
+    case "array-select": {
+      let items = config.options || column?.options || [];
+
+      return {
+        component: USelect,
+        componentProps: {
+          ...componentPropsBase,
+          items: items,
+          modelValue: ensureNotNull(props.formData[key]),
+          "onUpdate:modelValue": (val: any) => {
+            updateFormData(key, val);
+          },
+          multiple: true,
         },
         fieldProps,
       };
