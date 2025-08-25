@@ -130,6 +130,16 @@ function getDefaultValueType(columnType: string) {
     return { type: "code" };
   }
 
+  // Array-select type
+  if (columnType === "array-select") {
+    return { type: "array-select" };
+  }
+
+  // Enum type
+  if (columnType === "enum") {
+    return { type: "enum" };
+  }
+
   if (columnType === "varchar" || columnType === "uuid") {
     return { type: "text" };
   }
@@ -168,14 +178,18 @@ const typeMap = computed(() => {
         default: true,
       },
     }),
-    // Xử lý đặc biệt cho array-select type
+    // Xử lý đặc biệt cho array-select và enum type
     ...(["array-select", "enum"].includes(currentType) && {
       options: {
         type: "array-tags",
       },
+      defaultValue: {
+        type: currentType,
+        options: currentColumn.value.options,
+      },
     }),
 
-    // Exclude options field khi không phải array-select
+    // Exclude options field khi không phải array-select hoặc enum
     ...(!["array-select", "enum"].includes(currentType) && {
       options: {
         excluded: true,
