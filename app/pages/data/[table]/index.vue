@@ -70,8 +70,23 @@ const { execute: executeDelete, error: deleteError } = useApiLazy(
   }
 );
 
-// Column visibility state with localStorage support
-const visibleColumns = ref<Set<string>>(new Set());
+// Column visibility state with localStorage support - lưu hidden columns thay vì visible
+const hiddenColumns = ref<Set<string>>(new Set());
+
+// Computed để tính visible columns từ hidden columns
+const visibleColumns = computed(() => {
+  const schema = schemas.value[tableName];
+  if (!schema?.definition) return new Set();
+
+  const columnFields = schema.definition
+    .filter((field: any) => field.fieldType === "column")
+    .map((field: any) => field.name);
+
+  // Visible = tất cả columns trừ đi hidden columns
+  return new Set(
+    columnFields.filter((field: string) => !hiddenColumns.value.has(field))
+  );
+});
 
 // Load saved column visibility from localStorage
 const loadColumnVisibility = (
@@ -81,26 +96,26 @@ const loadColumnVisibility = (
   try {
     const saved = localStorage.getItem(`columnVisibility_${tableName}`);
     if (saved) {
-      const savedColumns = JSON.parse(saved);
-      // Only include columns that still exist in the schema
-      const validColumns = savedColumns.filter((col: string) =>
+      const savedHiddenColumns = JSON.parse(saved);
+      // Only include hidden columns that still exist in the schema
+      const validHiddenColumns = savedHiddenColumns.filter((col: string) =>
         columnFields.includes(col)
       );
-      return new Set(validColumns);
+      return new Set(validHiddenColumns);
     }
   } catch (error) {
     console.warn("Failed to load column visibility from localStorage:", error);
   }
-  // Default: all columns visible
-  return new Set(columnFields);
+  // Default: no columns hidden (all visible)
+  return new Set();
 };
 
 // Save column visibility to localStorage
-const saveColumnVisibility = (tableName: string, columns: Set<string>) => {
+const saveColumnVisibility = (tableName: string, hiddenCols: Set<string>) => {
   try {
     localStorage.setItem(
       `columnVisibility_${tableName}`,
-      JSON.stringify(Array.from(columns))
+      JSON.stringify(Array.from(hiddenCols))
     );
   } catch (error) {
     console.warn("Failed to save column visibility to localStorage:", error);
@@ -116,8 +131,8 @@ watch(
         .filter((field: any) => field.fieldType === "column")
         .map((field: any) => field.name);
 
-      // Load from localStorage or default to all visible
-      visibleColumns.value = loadColumnVisibility(tableName, columnFields);
+      // Load from localStorage or default to no hidden columns (all visible)
+      hiddenColumns.value = loadColumnVisibility(tableName, columnFields);
     }
   },
   { immediate: true }
@@ -134,7 +149,7 @@ const columnDropdownItems = computed(() => {
       label: field.label || field.name,
       type: "checkbox" as const,
       get checked() {
-        return visibleColumns.value.has(field.name);
+        return !hiddenColumns.value.has(field.name); // checked = not hidden
       },
       onToggle: () => {
         toggleColumnVisibility(field.name);
@@ -146,17 +161,17 @@ const columnDropdownItems = computed(() => {
 
 // Toggle column visibility
 function toggleColumnVisibility(columnName: string) {
-  if (visibleColumns.value.has(columnName)) {
-    visibleColumns.value.delete(columnName);
+  if (hiddenColumns.value.has(columnName)) {
+    hiddenColumns.value.delete(columnName); // Show column
   } else {
-    visibleColumns.value.add(columnName);
+    hiddenColumns.value.add(columnName); // Hide column
   }
 
   // Trigger reactivity
-  visibleColumns.value = new Set(visibleColumns.value);
+  hiddenColumns.value = new Set(hiddenColumns.value);
 
   // Save to localStorage
-  saveColumnVisibility(tableName, visibleColumns.value);
+  saveColumnVisibility(tableName, hiddenColumns.value);
 }
 
 useSubHeaderActionRegistry([
@@ -165,7 +180,7 @@ useSubHeaderActionRegistry([
     id: "column-picker-component",
     component: ColumnSelector,
     get key() {
-      return `column-picker-${Array.from(visibleColumns.value).join("-")}`;
+      return `column-picker-${Array.from(hiddenColumns.value).join("-")}`;
     },
     get props() {
       return {
