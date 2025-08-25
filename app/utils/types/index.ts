@@ -5,3 +5,4 @@ export * from "./ui";
 export * from "./extensions";
 export * from "./menu";
 export * from "./permissions";
+export * from "./file.type";

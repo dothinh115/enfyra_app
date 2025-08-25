@@ -230,16 +230,7 @@
 
 <script setup lang="ts">
 import { formatDate } from "~/utils/common/filter/filter-helpers";
-interface FileItem {
-  id: string;
-  type?: "image" | "video" | "document" | "audio" | "archive" | "other" | null;
-  displayName: string;
-  icon: string;
-  size?: string | null;
-  modifiedAt: string;
-  assetUrl?: string;
-  mimetype: string;
-}
+import type { FileItem } from "~/utils/types";
 
 interface Props {
   files: FileItem[];
@@ -264,7 +255,7 @@ const transformedFiles = computed(() => {
   return props.files.map((file: any) => ({
     ...file,
     displayName: file.filename || file.title || "Untitled",
-    icon: getFileIcon(file.mimetype, file.type),
+    icon: getFileIcon(file.mimetype),
     size: formatFileSize(parseInt(file.filesize || "0")),
     modifiedAt: file.updatedAt || file.createdAt || "",
     assetUrl: `/api/assets/${file.id}`,
@@ -273,7 +264,7 @@ const transformedFiles = computed(() => {
 });
 
 // File utilities
-function getFileIcon(mimetype: string, type: string): string {
+function getFileIcon(mimetype: string): string {
   if (mimetype?.startsWith("image/")) return "lucide:image";
   if (mimetype?.startsWith("video/")) return "lucide:video";
   if (mimetype?.startsWith("audio/")) return "lucide:music";
@@ -281,7 +272,7 @@ function getFileIcon(mimetype: string, type: string): string {
   if (mimetype?.includes("zip") || mimetype?.includes("archive"))
     return "lucide:archive";
   if (mimetype?.startsWith("text/")) return "lucide:file-text";
-  if (type === "document") return "lucide:file-text";
+  if (mimetype?.startsWith("application/")) return "lucide:file-text";
   return "lucide:file";
 }
 
@@ -438,27 +429,33 @@ async function saveEdit(file: any) {
   }
 }
 
-// Check if file is an image using type field
+// Check if file is an image using mimetype for accuracy
 function isImageFile(file: FileItem): boolean {
-  return file?.type === "image";
+  // Check mimetype for accuracy
+  if (file?.mimetype) {
+    return file.mimetype.startsWith("image/");
+  }
+  return false;
 }
 
-// Get file color based on type
+// Get file color based on mimetype
 function getFileColor(file: FileItem): string {
-  switch (file.type) {
-    case "image":
-      return "text-green-500 dark:text-green-400";
-    case "video":
-      return "text-purple-500 dark:text-purple-400";
-    case "audio":
-      return "text-orange-500 dark:text-orange-400";
-    case "document":
-      return "text-red-500 dark:text-red-400";
-    case "archive":
-      return "text-yellow-500 dark:text-yellow-400";
-    default:
-      return "text-gray-500 dark:text-gray-400";
+  if (file.mimetype?.startsWith("image/")) {
+    return "text-green-500 dark:text-green-400";
   }
+  if (file.mimetype?.startsWith("video/")) {
+    return "text-purple-500 dark:text-purple-400";
+  }
+  if (file.mimetype?.startsWith("audio/")) {
+    return "text-orange-500 dark:text-orange-400";
+  }
+  if (file.mimetype?.includes("pdf") || file.mimetype?.startsWith("text/")) {
+    return "text-red-500 dark:text-red-400";
+  }
+  if (file.mimetype?.includes("zip") || file.mimetype?.includes("archive")) {
+    return "text-yellow-500 dark:text-yellow-400";
+  }
+  return "text-gray-500 dark:text-gray-400";
 }
 
 // Handle image loading errors
