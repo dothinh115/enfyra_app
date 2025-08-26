@@ -23,9 +23,26 @@
                   : hoveredFolderId === folder.id
                   ? 'border-primary-300 dark:border-primary-600 shadow-xl transform -translate-y-1'
                   : 'border-gray-200 dark:border-gray-700 shadow-sm lg:hover:shadow-lg',
+                isFolderDisabled(folder.id)
+                  ? 'opacity-60 cursor-not-allowed'
+                  : '',
               ]"
               @click="handleFolderClick(folder)"
             >
+              <!-- Disabled overlay when folder is part of moving selection -->
+              <div
+                v-if="isFolderDisabled(folder.id)"
+                class="absolute inset-0 z-10 bg-black/20 flex items-center justify-center"
+                aria-disabled="true"
+                title="Selected folder cannot be destination"
+              >
+                <span
+                  class="inline-flex items-center gap-2 text-xs font-medium text-white/95 bg-amber-600/80 px-2.5 py-1 rounded-md"
+                >
+                  <UIcon name="lucide:lock" class="w-3.5 h-3.5" />
+                  Selected - cannot move here
+                </span>
+              </div>
               <!-- Selection Checkbox -->
               <div
                 v-if="isSelectionMode"
@@ -186,6 +203,12 @@
                     size="xs"
                     variant="soft"
                     color="primary"
+                    :disabled="isFolderDisabled(folder.id)"
+                    :class="
+                      isFolderDisabled(folder.id)
+                        ? 'opacity-60 cursor-not-allowed'
+                        : ''
+                    "
                     @click.stop="handleFolderClick(folder)"
                     class="flex-1"
                   >
@@ -249,6 +272,19 @@ const transformedFolders = computed(() => {
     fileCount: folder.children?.length || folder.files?.length || 0,
   }));
 });
+
+// Access global move state to disable folders under move
+const moveState = useState("file-move-state", () => ({
+  moveMode: false as boolean,
+  selectedFolderIds: [] as string[],
+}));
+
+function isFolderDisabled(folderId: string) {
+  return !!(
+    moveState.value.moveMode &&
+    moveState.value.selectedFolderIds?.includes(folderId)
+  );
+}
 
 const emit = defineEmits<{
   "folder-click": [folder: any];

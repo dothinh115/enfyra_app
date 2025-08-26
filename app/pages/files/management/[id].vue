@@ -100,30 +100,33 @@ const pageStats = computed(() => {
 });
 
 // Handle refresh
-function handleRefreshItems() {
-  // Reset to first page
-  folderPage.value = 1;
-  filePage.value = 1;
-
-  // Update query
-  router.push({
-    query: { ...route.query, folderPage: "1", filePage: "1" },
-  });
-
-  fetchFolder();
+async function handleRefreshItems() {
+  await fetchFolder();
+  
+  let newQuery = { ...route.query };
+  
+  // Check folders independently
+  if (folders.value.length === 0 && folderPage.value > 1) {
+    folderPage.value = 1;
+    delete newQuery.folderPage;
+  }
+  
+  // Check files independently  
+  if (files.value.length === 0 && filePage.value > 1) {
+    filePage.value = 1;
+    delete newQuery.filePage;
+  }
+  
+  // Update URL if any pagination changed
+  // Watchers will handle the refetch automatically
+  if (newQuery !== route.query) {
+    await router.replace({ query: newQuery });
+  }
 }
 
-// Handle folder created
 function handleFolderCreated() {
-  // Reset to first page
   folderPage.value = 1;
   filePage.value = 1;
-
-  // Update query
-  router.push({
-    query: { ...route.query, folderPage: "1", filePage: "1" },
-  });
-
   fetchFolder();
 }
 
@@ -149,13 +152,10 @@ async function handleFileUpload(files: File | File[]) {
     return; // Error already handled by useApiLazy
   }
 
-  // Refresh files list after successful upload
   await fetchFolder();
 
-  // Close modal
   showUploadModal.value = false;
 
-  // Show success message
   useToast().add({
     title: "Success",
     description: `${fileArray.length} file(s) uploaded successfully`,
@@ -163,13 +163,10 @@ async function handleFileUpload(files: File | File[]) {
   });
 }
 
-// Execute API calls when component mounts
 onMounted(() => {
-  // Fetch all in parallel for better UX
   fetchFolder();
 });
 
-// Watch query changes and refetch data
 watch(
   () => route.query.folderPage,
   async (newVal) => {

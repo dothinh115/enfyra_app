@@ -36,10 +36,6 @@ const route = useRoute();
 const router = useRouter();
 
 const getInitialViewMode = (): "grid" | "list" => {
-  if (route.query.view) {
-    return route.query.view as "grid" | "list";
-  }
-
   if (process.client) {
     const saved = localStorage.getItem("file-manager-view-mode");
     if (saved === "grid" || saved === "list") {
@@ -55,10 +51,35 @@ const viewMode = ref<"grid" | "list">(getInitialViewMode());
 const isSelectionMode = ref(false);
 const selectedItems = ref<string[]>([]);
 
+// Persisted move state across navigation
+const moveState = useState("file-move-state", () => ({
+  moveMode: false as boolean,
+  sourceFolderId: null as string | null,
+  selectedItems: [] as string[],
+  selectedFileIds: [] as string[],
+  selectedFolderIds: [] as string[],
+}));
+
+const isMoveMode = computed(() => moveState.value.moveMode);
+const sourceFolderId = computed(() => moveState.value.sourceFolderId);
+
 const selectedFolders = useState<string[]>("folder-selected-list", () => []);
 const { confirm } = useConfirm();
 
 function handleFolderClick(folder: any) {
+  // When in move mode, prevent navigating into a folder that is being moved
+  if (
+    moveState.value.moveMode &&
+    (moveState.value.selectedFolderIds || []).includes(folder.id)
+  ) {
+    const toast = useToast();
+    toast.add({
+      title: "Cannot navigate",
+      description: "You cannot move a folder into itself.",
+      color: "warning",
+    });
+    return;
+  }
   navigateTo(`/files/management/${folder.id}`);
 }
 
@@ -75,6 +96,183 @@ function toggleItemSelection(itemId: string) {
     selectedItems.value.push(itemId);
   }
 }
+
+// Ensure selection is restored when returning while in move mode
+onMounted(() => {
+  if (moveState.value.moveMode && moveState.value.selectedItems.length > 0) {
+    selectedItems.value = [...moveState.value.selectedItems];
+    isSelectionMode.value = true; // Cũng cần restore cái này
+  }
+});
+
+function startMoveMode() {
+  if (selectedItems.value.length === 0) return;
+  // Capture current folder as source
+  if (!moveState.value.sourceFolderId) {
+    moveState.value.sourceFolderId =
+      props.parentId || (route.params.id as string);
+  }
+  moveState.value.selectedItems = [...selectedItems.value];
+  // Split ids by type for stable counts display across navigation
+  moveState.value.selectedFolderIds = selectedItems.value.filter((id) =>
+    props.folders.find((f) => f.id === id)
+  );
+  moveState.value.selectedFileIds = selectedItems.value.filter((id) =>
+    props.files.find((f) => f.id === id)
+  );
+  moveState.value.moveMode = true;
+  // Allow navigation between folders while in move mode
+  isSelectionMode.value = false;
+}
+
+function cancelMoveMode() {
+  moveState.value.moveMode = false;
+  moveState.value.selectedItems = [];
+  moveState.value.selectedFileIds = [];
+  moveState.value.selectedFolderIds = [];
+  moveState.value.sourceFolderId = null;
+  // keep local selection so user can continue if they want
+  selectedItems.value = [];
+}
+
+function clearAllFileManagerState() {
+  // Clear move state
+  moveState.value.moveMode = false;
+  moveState.value.selectedItems = [];
+  moveState.value.selectedFileIds = [] as string[];
+  moveState.value.selectedFolderIds = [] as string[];
+  moveState.value.sourceFolderId = null;
+  // Clear local selections and flags
+  selectedItems.value = [];
+  isSelectionMode.value = false;
+  // Any persisted selected folders for bulk delete
+  selectedFolders.value = [];
+}
+
+const currentFolderId = computed(
+  () => props.parentId || (route.params.id as string | undefined)
+);
+
+const isMoveHereDisabled = computed(() => {
+  // Disabled if not in move mode, or destination equals source (including root↔root)
+  return (
+    !moveState.value.moveMode ||
+    currentFolderId.value === moveState.value.sourceFolderId
+  );
+});
+
+// API instances defined in setup (per AI_MEMORY_FE convention)
+const {
+  execute: patchFiles,
+  error: patchFilesError,
+  pending: patchFilesPending,
+} = useApiLazy(() => "/file_definition", {
+  method: "patch",
+  errorContext: "Move Files",
+});
+const {
+  execute: patchFolders,
+  error: patchFoldersError,
+  pending: patchFoldersPending,
+} = useApiLazy(() => "/folder_definition", {
+  method: "patch",
+  errorContext: "Move Folders",
+});
+
+const isAnyMovePending = computed(
+  () => !!(patchFilesPending.value || patchFoldersPending.value)
+);
+
+async function handleMoveHere() {
+  if (isMoveHereDisabled.value) {
+    console.debug("Move here disabled", {
+      moveMode: moveState.value.moveMode,
+      currentFolderId: currentFolderId.value,
+      sourceFolderId: moveState.value.sourceFolderId,
+    });
+    return;
+  }
+
+  const folderIds = [...(moveState.value.selectedFolderIds || [])];
+  const fileIds = [...(moveState.value.selectedFileIds || [])];
+
+  if (folderIds.length === 0 && fileIds.length === 0) return;
+
+  const destinationId =
+    props.parentId || (route.params.id as string | undefined);
+
+  const totalCount = fileIds.length + folderIds.length;
+  const isConfirmed = await confirm({
+    title: "Move items",
+    content: `Are you sure you want to move ${totalCount} item(s) here?`,
+    confirmText: "Move",
+    cancelText: "Cancel",
+  });
+  if (!isConfirmed) return;
+
+  if (destinationId && folderIds.includes(destinationId)) {
+    const toast = useToast();
+    toast.add({
+      title: "Invalid move",
+      description: "A folder cannot be moved into itself.",
+      color: "warning",
+    });
+    return;
+  }
+
+  let hasError = false;
+
+  if (fileIds.length > 0) {
+    const fileBody = destinationId
+      ? { folder: { id: destinationId } }
+      : { folder: null };
+    await patchFiles({ ids: fileIds, body: fileBody });
+    if (patchFilesError.value) {
+      hasError = true;
+    }
+  }
+
+  if (folderIds.length > 0 && !hasError) {
+    const folderBody = destinationId
+      ? { parent: { id: destinationId } }
+      : { parent: null };
+    await patchFolders({ ids: folderIds, body: folderBody });
+    if (patchFoldersError.value) {
+      hasError = true;
+    }
+  }
+
+  if (!hasError) {
+    const toast = useToast();
+    const totalCount = moveState.value.selectedItems.length;
+    toast.add({
+      title: "Success",
+      description: `${totalCount} item(s) moved successfully!`,
+      color: "success",
+    });
+
+    emit("refreshItems");
+
+    // Clear state
+    selectedItems.value = [];
+    cancelMoveMode();
+    isSelectionMode.value = false;
+  }
+  if (hasError) {
+    const toast = useToast();
+    toast.add({
+      title: "Move failed",
+      description: "Please try again.",
+      color: "error",
+    });
+  }
+}
+
+// onBeforeRouteLeave((to) => {
+//   if (!to.path.startsWith("/files/management")) {
+//     clearAllFileManagerState();
+//   }
+// });
 
 async function handleBulkDelete() {
   if (selectedItems.value.length === 0) return;
@@ -171,11 +369,7 @@ useSubHeaderActionRegistry([
       if (process.client) {
         localStorage.setItem("file-manager-view-mode", newViewMode);
       }
-
-      router.push({
-        query: { ...route.query, view: newViewMode },
-        replace: true,
-      });
+      // Do not persist view mode on URL query to avoid breaking back button behavior
     },
     side: "left",
   },
@@ -194,7 +388,7 @@ useSubHeaderActionRegistry([
       }
     },
     side: "right",
-    show: computed(() => viewMode.value === "grid"),
+    show: computed(() => viewMode.value === "grid" && !isMoveMode.value),
     permission: {
       and: [
         {
@@ -220,8 +414,53 @@ useSubHeaderActionRegistry([
       () =>
         viewMode.value === "grid" &&
         isSelectionMode.value &&
-        selectedItems.value.length > 0
+        selectedItems.value.length > 0 &&
+        !isMoveMode.value
     ),
+  },
+  {
+    id: "start-move",
+    label: "Move",
+    icon: "lucide:arrow-right-left",
+    variant: "outline",
+    onClick: startMoveMode,
+    side: "right",
+    show: computed(
+      () =>
+        viewMode.value === "grid" &&
+        isSelectionMode.value &&
+        selectedItems.value.length > 0 &&
+        !isMoveMode.value
+    ),
+  },
+  {
+    id: "move-here",
+    label: computed(() => {
+      const files = moveState.value.selectedFileIds?.length || 0;
+      const folders = moveState.value.selectedFolderIds?.length || 0;
+      const countLabel =
+        files + folders > 0 ? ` (${files} files, ${folders} folders)` : "";
+      return (isAnyMovePending.value ? "Moving..." : "Move here") + countLabel;
+    }),
+    icon: "lucide:folder-input",
+    variant: "solid",
+    color: "primary",
+    loading: computed(() => isAnyMovePending.value),
+    disabled: computed(
+      () => isMoveHereDisabled.value || isAnyMovePending.value
+    ),
+    onClick: handleMoveHere,
+    side: "right",
+    show: computed(() => viewMode.value === "grid" && isMoveMode.value),
+  },
+  {
+    id: "cancel-move",
+    label: "Cancel",
+    icon: "lucide:x",
+    variant: "ghost",
+    onClick: cancelMoveMode,
+    side: "right",
+    show: computed(() => viewMode.value === "grid" && isMoveMode.value),
   },
   {
     id: "select-all",

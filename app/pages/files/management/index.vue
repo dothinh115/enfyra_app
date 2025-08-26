@@ -30,7 +30,6 @@ const {
   errorContext: "Load Root Folders",
 });
 
-// Get root files (files without folder)
 const {
   data: rootFiles,
   pending: filesPending,
@@ -142,9 +141,28 @@ function handleFolderCreated() {
 }
 
 // Handle refresh items
-function handleRefreshItems() {
-  fetchRootFolders();
-  fetchRootFiles();
+async function handleRefreshItems() {
+  await Promise.all([fetchRootFolders(), fetchRootFiles()]);
+
+  let newQuery = { ...route.query };
+
+  // Check folders independently
+  if (folders.value.length === 0 && folderPage.value > 1) {
+    folderPage.value = 1;
+    delete newQuery.folderPage;
+  }
+
+  // Check files independently
+  if (files.value.length === 0 && filePage.value > 1) {
+    filePage.value = 1;
+    delete newQuery.filePage;
+  }
+
+  // Update URL if any pagination changed
+  // Watchers will handle the refetch automatically
+  if (newQuery !== route.query) {
+    await router.replace({ query: newQuery });
+  }
 }
 
 // Handle file upload
