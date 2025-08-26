@@ -7,8 +7,6 @@ const router = useRouter();
 const toast = useToast();
 const { confirm } = useConfirm();
 
-const { isMounted } = useMounted();
-
 // Get ID from route params
 const fileId = route.params.id as string;
 
@@ -297,90 +295,84 @@ function getFileIconAndColor(mimetype: string): {
       </template>
     </CommonPageHeader>
 
-    <Transition name="loading-fade" mode="out-in">
-      <!-- Loading State -->
-      <div v-if="!isMounted || pending" class="flex justify-center py-12">
-        <CommonLoadingState type="form" />
-      </div>
+    <!-- File Content -->
+    <div class="space-y-6">
+      <!-- File Preview -->
+      <div
+        class="bg-gray-800/50 rounded-xl border border-gray-700/50 shadow-xl"
+      >
+        <div class="flex justify-center">
+          <div
+            v-if="form.mimetype?.startsWith('image/')"
+            class="max-w-132 max-h-132"
+          >
+            <CommonImage
+              :src="`/assets/${file?.data?.[0]?.id}?t=${
+                file?.data?.[0]?.updatedAt || Date.now()
+              }`"
+              :alt="form.filename"
+              class="object-contain h-full w-132 h-132"
+              loading-area="custom"
+              custom-loading-size="300px"
+            />
+          </div>
 
-      <!-- File Content -->
-      <div v-else-if="form" class="space-y-6">
-        <!-- File Preview -->
-        <div
-          class="bg-gray-800/50 rounded-xl border border-gray-700/50 shadow-xl"
-        >
-          <div class="flex justify-center">
+          <!-- File Icon for non-images -->
+          <div v-else class="text-center">
             <div
-              v-if="form.mimetype?.startsWith('image/')"
-              class="max-w-132 max-h-132"
+              :class="[
+                getFileIconAndColor(form.mimetype).background,
+                'w-100 h-100 rounded-2xl flex items-center justify-center mx-auto',
+              ]"
             >
-              <CommonImage
-                :src="`/assets/${file?.data?.[0]?.id}?t=${
-                  file?.data?.[0]?.updatedAt || Date.now()
-                }`"
-                :alt="form.filename"
-                class="object-contain h-full w-132 h-132"
-                loading-area="custom"
-                custom-loading-size="300px"
+              <UIcon
+                :name="getFileIconAndColor(form.mimetype).icon"
+                :class="getFileIconAndColor(form.mimetype).color"
+                size="192"
               />
             </div>
-
-            <!-- File Icon for non-images -->
-            <div v-else class="text-center">
-              <div
-                :class="[
-                  getFileIconAndColor(form.mimetype).background,
-                  'w-100 h-100 rounded-2xl flex items-center justify-center mx-auto',
-                ]"
-              >
-                <UIcon
-                  :name="getFileIconAndColor(form.mimetype).icon"
-                  :class="getFileIconAndColor(form.mimetype).color"
-                  size="192"
-                />
-              </div>
-            </div>
           </div>
-        </div>
-
-        <!-- File Editor Section -->
-        <div
-          class="space-y-4 bg-gray-800/50 rounded-xl border border-gray-700/50 p-6"
-        >
-          <div class="flex items-center gap-3">
-            <UIcon name="lucide:edit-3" class="w-5 h-5" />
-            <h3 class="text-lg font-semibold">Edit File Information</h3>
-          </div>
-
-          <UForm :state="form" @submit="saveFile">
-            <FormEditorLazy
-              ref="formEditorRef"
-              v-model="form"
-              v-model:errors="errors"
-              v-model:has-changes="hasFormChanges"
-              table-name="file_definition"
-              :excluded="[
-                'id',
-                'createdAt',
-                'updatedAt',
-                'permissions',
-                'uploaded_by',
-              ]"
-            />
-          </UForm>
-        </div>
-
-        <!-- File Permissions Section -->
-        <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
-          <PermissionManager
-            table-name="file_permission_definition"
-            :current-field-id="{ field: 'file', value: fileId }"
-            icon="lucide:shield"
-            title="File Permissions"
-          />
         </div>
       </div>
-    </Transition>
+
+      <!-- File Editor Section -->
+      <div
+        class="space-y-4 bg-gray-800/50 rounded-xl border border-gray-700/50 p-6"
+      >
+        <div class="flex items-center gap-3">
+          <UIcon name="lucide:edit-3" class="w-5 h-5" />
+          <h3 class="text-lg font-semibold">Edit File Information</h3>
+        </div>
+
+        <UForm :state="form" @submit="saveFile">
+          <FormEditorLazy
+            ref="formEditorRef"
+            v-model="form"
+            v-model:errors="errors"
+            v-model:has-changes="hasFormChanges"
+            table-name="file_definition"
+            :excluded="[
+              'id',
+              'createdAt',
+              'updatedAt',
+              'permissions',
+              'uploaded_by',
+            ]"
+            :loading="pending"
+          />
+        </UForm>
+      </div>
+
+      <!-- File Permissions Section -->
+      <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
+        <PermissionManager
+          table-name="file_permission_definition"
+          :current-field-id="{ field: 'file', value: fileId }"
+          icon="lucide:shield"
+          title="File Permissions"
+        />
+      </div>
+    </div>
 
     <!-- Replace File Modal -->
     <CommonUploadModal

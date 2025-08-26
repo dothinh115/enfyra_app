@@ -4,7 +4,7 @@ const route = useRoute();
 const toast = useToast();
 const { validate } = useSchema(route.params.table as string);
 const updateErrors = ref<Record<string, string>>({});
-const { isMounted } = useMounted();
+
 const { confirm } = useConfirm();
 
 // Form changes tracking via FormEditor
@@ -160,7 +160,7 @@ useHeaderActionRegistry([
   },
 ]);
 const title = computed(() => {
-  if (loading.value || !isMounted.value) return "Loading...";
+  if (loading.value) return "Loading...";
   return `${route.params.table}: ${currentRecord.value.id}`;
 });
 </script>
@@ -178,30 +178,17 @@ const title = computed(() => {
 
     <!-- Content - Limited width -->
     <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
-      <Transition name="loading-fade" mode="out-in">
-        <!-- Loading state -->
-        <CommonLoadingState
-          v-if="loading || !isMounted"
-          type="form"
-          context="page"
-          size="lg"
-          :title="`Loading ${route.params.table}...`"
-          :description="`Fetching record details`"
+      <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
+        <FormEditorLazy
+          ref="formEditorRef"
+          :table-name="(route.params.table as string)"
+          mode="edit"
+          v-model="currentRecord"
+          v-model:errors="updateErrors"
+          v-model:has-changes="hasFormChanges"
+          :loading="loading"
         />
-        <!-- Form content -->
-        <div v-else>
-          <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
-            <FormEditorLazy
-              ref="formEditorRef"
-              :table-name="(route.params.table as string)"
-              mode="edit"
-              v-model="currentRecord"
-              v-model:errors="updateErrors"
-              v-model:has-changes="hasFormChanges"
-            />
-          </div>
-        </div>
-      </Transition>
+      </div>
     </div>
   </div>
 </template>

@@ -5,9 +5,10 @@ import {
   UTextarea,
   USwitch,
   FormDateField,
-  USelectMenu,
   USelect,
 } from "#components";
+
+import FieldLoadingSkeleton from "./FieldLoadingSkeleton.vue";
 
 const props = defineProps<{
   keyName: string;
@@ -16,6 +17,7 @@ const props = defineProps<{
   typeMap?: Record<string, any>;
   errors: Record<string, string>;
   readonly?: boolean;
+  loading?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -367,11 +369,71 @@ function getComponentConfigByKey(key: string) {
 }
 
 const componentConfig = computed(() => getComponentConfigByKey(props.keyName));
+
+// Get component type for loading skeleton
+function getComponentType(): string {
+  const column = props.columnMap.get(props.keyName);
+  const manualConfig = props.typeMap?.[props.keyName];
+  const config =
+    typeof manualConfig === "string"
+      ? { type: manualConfig }
+      : manualConfig || {};
+  return config.type || column?.type || "text";
+}
+
+// Debug: Log loading state changes
+watch(
+  () => props.loading,
+  (newVal, oldVal) => {
+    console.log(`FieldRenderer [${props.keyName}] loading:`, {
+      oldVal,
+      newVal,
+    });
+    // Check if transition classes are being applied
+    nextTick(() => {
+      const wrapper = document.querySelector(".field-renderer-wrapper");
+      if (wrapper) {
+        const transitionElements = wrapper.querySelectorAll(
+          '[class*="loading-fade"]'
+        );
+        console.log("Transition elements:", transitionElements);
+      }
+    });
+  }
+);
 </script>
 
 <template>
-  <component
-    :is="componentConfig.component"
-    v-bind="componentConfig.componentProps"
-  />
+  <div>
+    <!-- Loading skeleton với fadeout -->
+    <div v-if="props.loading">
+      <FieldLoadingSkeleton :type="getComponentType()" />
+    </div>
+
+    <!-- Component chính -->
+    <div v-else class="field-input">
+      <component
+        :is="componentConfig.component"
+        v-bind="componentConfig.componentProps"
+      />
+    </div>
+  </div>
 </template>
+
+<style>
+.field-input {
+  opacity: 0;
+  animation: fadeIn 0.8s ease forwards;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>

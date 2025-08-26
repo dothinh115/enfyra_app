@@ -1,6 +1,6 @@
 <script setup lang="ts">
 defineOptions({
-  inheritAttrs: false
+  inheritAttrs: false,
 });
 
 const props = defineProps<{
@@ -10,36 +10,37 @@ const props = defineProps<{
   excluded?: string[];
   includes?: string[];
   typeMap?: Record<string, any>;
+  loading?: boolean;
 }>();
 
 const emit = defineEmits<{
-  'update:modelValue': [value: Record<string, any>];
-  'update:errors': [errors: Record<string, string>];
-  'update:hasChanges': [hasChanges: boolean];
+  "update:modelValue": [value: Record<string, any>];
+  "update:errors": [errors: Record<string, string>];
+  "update:hasChanges": [hasChanges: boolean];
 }>();
 
 const formEditorRef = ref();
 
-const FormEditor = defineAsyncComponent(() => 
-  import('./Editor.vue')
-);
+const FormEditor = defineAsyncComponent(() => import("./Editor.vue"));
 
 // Expose confirm method
 defineExpose({
   confirmChanges: () => {
     formEditorRef.value?.confirmChanges();
-  }
+  },
 });
 </script>
 
 <template>
   <Suspense>
-    <FormEditor 
+    <FormEditor
       ref="formEditorRef"
-      v-bind="props" 
+      v-bind="props"
       @update:model-value="(value) => emit('update:modelValue', value)"
       @update:errors="(errors) => emit('update:errors', errors)"
-      @update:has-changes="(hasChanges) => emit('update:hasChanges', hasChanges)"
+      @update:has-changes="
+        (hasChanges) => emit('update:hasChanges', hasChanges)
+      "
     />
     <template #fallback>
       <CommonLoadingState

@@ -4,8 +4,6 @@ const errors = ref<Record<string, string>>({});
 
 const { validate } = useSchema("setting_definition");
 
-const { isMounted } = useMounted();
-
 // Form changes tracking via FormEditor
 const hasFormChanges = ref(false);
 const formEditorRef = ref();
@@ -95,8 +93,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
-    <!-- Header -->
+  <div class="space-y-6">
+    <!-- Header - Full width -->
     <CommonPageHeader
       title="General Settings"
       title-size="md"
@@ -105,21 +103,9 @@ onMounted(() => {
       padding-y="py-6"
     />
 
-    <Transition name="loading-fade" mode="out-in">
-      <div v-if="!isMounted || loading">
-        <CommonLoadingState
-          title="Loading settings..."
-          description="Fetching system configuration"
-          size="sm"
-          type="form"
-          context="page"
-        />
-      </div>
-
-      <div
-        v-else
-        class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6"
-      >
+    <!-- Content - Limited width -->
+    <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
+      <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
         <UForm @submit="handleSaveSetting" :state="setting">
           <FormEditorLazy
             ref="formEditorRef"
@@ -128,9 +114,10 @@ onMounted(() => {
             v-model="setting"
             v-model:errors="errors"
             v-model:has-changes="hasFormChanges"
+            :loading="loading"
           />
         </UForm>
       </div>
-    </Transition>
+    </div>
   </div>
 </template>

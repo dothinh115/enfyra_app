@@ -6,8 +6,6 @@ const { confirm } = useConfirm();
 
 const tableName = "menu_definition";
 
-const { isMounted } = useMounted();
-
 // Form changes tracking via FormEditor
 const hasFormChanges = ref(false);
 const formEditorRef = ref();
@@ -288,64 +286,46 @@ onMounted(() => {
 </script>
 
 <template>
-  <Transition name="loading-fade" mode="out-in">
-    <CommonLoadingState
-      v-if="!isMounted || loading"
-      title="Loading menu..."
-      description="Fetching menu details"
-      size="sm"
-      type="form"
-      context="page"
-    />
-
-    <div v-else-if="menuData?.data?.[0]" class="space-y-6">
-      <!-- Header - Full width -->
-      <CommonPageHeader
-        :title="`Menu: ${menuData?.data?.[0]?.label}`"
-        title-size="lg"
-        show-background
-        background-gradient="from-violet-500/6 via-purple-400/4 to-transparent"
-        padding-y="py-6"
-      >
-        <template #badges>
-          <!-- Menu Status Badges -->
-          <div class="flex items-center gap-3">
-            <UIcon
-              :name="menuData?.data?.[0]?.icon || 'lucide:circle'"
-              class="text-xl text-primary mr-2"
-            />
-            <UBadge color="primary" v-if="menuData?.data?.[0]?.isSystem"
-              >System Menu</UBadge
-            >
-            <UBadge color="secondary" v-if="menuData?.data?.[0]?.isEnabled"
-              >Enabled</UBadge
-            >
-          </div>
-        </template>
-      </CommonPageHeader>
-
-      <!-- Content - Limited width -->
-      <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
-        <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
-          <FormEditorLazy
-            ref="formEditorRef"
-            v-model="form"
-            v-model:errors="errors"
-            v-model:has-changes="hasFormChanges"
-            :table-name="tableName"
-            :excluded="excludedFields"
-            :type-map="typeMap"
+  <div class="space-y-6">
+    <!-- Header - Full width -->
+    <CommonPageHeader
+      :title="`Menu: ${menuData?.data?.[0]?.label || 'Loading...'}`"
+      title-size="lg"
+      show-background
+      background-gradient="from-violet-500/6 via-purple-400/4 to-transparent"
+      padding-y="py-6"
+    >
+      <template #badges>
+        <!-- Menu Status Badges -->
+        <div class="flex items-center gap-3">
+          <UIcon
+            :name="menuData?.data?.[0]?.icon || 'lucide:circle'"
+            class="text-xl text-primary mr-2"
           />
+          <UBadge color="primary" v-if="menuData?.data?.[0]?.isSystem"
+            >System Menu</UBadge
+          >
+          <UBadge color="secondary" v-if="menuData?.data?.[0]?.isEnabled"
+            >Enabled</UBadge
+          >
         </div>
+      </template>
+    </CommonPageHeader>
+
+    <!-- Content - Limited width -->
+    <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
+      <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
+        <FormEditorLazy
+          ref="formEditorRef"
+          v-model="form"
+          v-model:errors="errors"
+          v-model:has-changes="hasFormChanges"
+          :table-name="tableName"
+          :excluded="excludedFields"
+          :type-map="typeMap"
+          :loading="loading"
+        />
       </div>
     </div>
-
-    <CommonEmptyState
-      v-else
-      title="Menu not found"
-      description="The requested menu could not be loaded"
-      icon="lucide:menu"
-      size="sm"
-    />
-  </Transition>
+  </div>
 </template>

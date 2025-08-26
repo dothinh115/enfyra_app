@@ -4,8 +4,6 @@ const toast = useToast();
 const { confirm } = useConfirm();
 const { validate } = useSchema("user_definition");
 
-const { isMounted } = useMounted();
-
 // Form changes tracking via FormEditor
 const hasFormChanges = ref(false);
 const formEditorRef = ref();
@@ -155,49 +153,39 @@ onMounted(() => {
 </script>
 
 <template>
-  <Transition name="loading-fade" mode="out-in">
-    <CommonLoadingState
-      v-if="!isMounted || loading"
-      title="Loading user..."
-      description="Fetching user details"
-      size="sm"
-      type="form"
-      context="page"
+  <div class="space-y-6">
+    <!-- Header - Full width -->
+    <CommonPageHeader
+      :title="loading ? 'Loading...' : apiData?.data?.[0]?.email"
+      title-size="lg"
+      show-background
+      background-gradient="from-blue-500/6 via-indigo-400/4 to-transparent"
+      padding-y="py-6"
     />
 
-    <div v-else-if="apiData?.data?.[0]" class="space-y-6">
-      <!-- Header - Full width -->
-      <CommonPageHeader
-        :title="apiData?.data?.[0]?.email"
-        title-size="lg"
-        show-background
-        background-gradient="from-blue-500/6 via-indigo-400/4 to-transparent"
-        padding-y="py-6"
-      />
-
-      <!-- Content - Limited width -->
-      <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
-        <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
-          <UForm :state="form" @submit="saveUser">
-            <FormEditorLazy
-              ref="formEditorRef"
-              v-model="form"
-              v-model:errors="errors"
-              v-model:has-changes="hasFormChanges"
-              table-name="user_definition"
-              :excluded="['isRootAdmin', 'isSystem']"
-            />
-          </UForm>
-        </div>
+    <!-- Content - Limited width -->
+    <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
+      <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
+        <UForm :state="form" @submit="saveUser">
+          <FormEditorLazy
+            ref="formEditorRef"
+            v-model="form"
+            v-model:errors="errors"
+            v-model:has-changes="hasFormChanges"
+            table-name="user_definition"
+            :excluded="['isRootAdmin', 'isSystem']"
+            :loading="loading"
+          />
+        </UForm>
       </div>
     </div>
+  </div>
 
-    <CommonEmptyState
-      v-else
-      title="User not found"
-      description="The requested user could not be loaded"
-      icon="lucide:user-x"
-      size="sm"
-    />
-  </Transition>
+  <CommonEmptyState
+    v-if="!loading && !apiData?.data?.[0]"
+    title="User not found"
+    description="The requested user could not be loaded"
+    icon="lucide:user-x"
+    size="sm"
+  />
 </template>

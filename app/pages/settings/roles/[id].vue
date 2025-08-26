@@ -1,48 +1,38 @@
 <template>
   <div class="space-y-6">
-    <Transition name="loading-fade" mode="out-in">
-      <CommonLoadingState
-        v-if="!isMounted || loading"
-        title="Loading role..."
-        description="Fetching role details"
-        size="sm"
-        type="form"
-        context="page"
+    <div class="space-y-6">
+      <!-- Header - Full width -->
+      <CommonPageHeader
+        title="Role Details"
+        title-size="md"
+        show-background
+        background-gradient="from-amber-500/6 via-yellow-400/4 to-transparent"
+        padding-y="py-4"
       />
 
-      <div v-else-if="apiData?.data?.[0]" class="space-y-6">
-        <!-- Header - Full width -->
-        <CommonPageHeader
-          title="Role Details"
-          title-size="md"
-          show-background
-          background-gradient="from-amber-500/6 via-yellow-400/4 to-transparent"
-          padding-y="py-4"
-        />
-
-        <!-- Content - Limited width -->
-        <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
-          <UForm :state="form" @submit="save">
-            <FormEditorLazy
-              ref="formEditorRef"
-              v-model="form"
-              v-model:errors="errors"
-              v-model:has-changes="hasFormChanges"
-              :table-name="tableName"
-              :excluded="['routePermissions']"
-            />
-          </UForm>
-        </div>
+      <!-- Content - Limited width -->
+      <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
+        <UForm :state="form" @submit="save">
+          <FormEditorLazy
+            ref="formEditorRef"
+            v-model="form"
+            v-model:errors="errors"
+            v-model:has-changes="hasFormChanges"
+            :table-name="tableName"
+            :excluded="['routePermissions']"
+            :loading="loading"
+          />
+        </UForm>
       </div>
+    </div>
 
-      <CommonEmptyState
-        v-else
-        title="Role not found"
-        description="The requested role could not be loaded"
-        icon="lucide:shield-x"
-        size="sm"
-      />
-    </Transition>
+    <CommonEmptyState
+      v-if="!loading && !apiData?.data?.[0]"
+      title="Role not found"
+      description="The requested role could not be loaded"
+      icon="lucide:shield-x"
+      size="sm"
+    />
   </div>
 </template>
 
@@ -54,8 +44,6 @@ const { confirm } = useConfirm();
 const id = route.params.id as string;
 const tableName = "role_definition";
 const { getIncludeFields } = useSchema(tableName);
-
-const { isMounted } = useMounted();
 
 // Form changes tracking via FormEditor
 const hasFormChanges = ref(false);

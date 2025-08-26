@@ -7,6 +7,7 @@ const props = defineProps<{
   columnMap: Map<string, any>;
   typeMap?: Record<string, any>;
   errors: Record<string, string>;
+  loading?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -199,6 +200,7 @@ const dropdownItems = computed(() => [
       :errors="errors"
       @update:form-data="updateFormData"
       @update:errors="updateErrors"
+      :loading="props.loading"
     />
   </UFormField>
 </template>

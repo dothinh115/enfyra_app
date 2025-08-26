@@ -14,7 +14,7 @@ const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
 const menus = computed(() => apiData.value?.data || []);
 const { createLoader } = useLoader();
 const { isTablet } = useScreen();
-
+const { isMounted } = useMounted();
 const showFilterDrawer = ref(false);
 const currentFilter = ref(createEmptyFilter());
 
@@ -247,7 +247,7 @@ onMounted(fetchMenus);
     />
     <Transition name="loading-fade" mode="out-in">
       <CommonLoadingState
-        v-if="loading"
+        v-if="loading || !isMounted"
         title="Loading menus..."
         description="Fetching menu configuration"
         size="sm"

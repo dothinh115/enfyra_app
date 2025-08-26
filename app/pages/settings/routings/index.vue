@@ -9,7 +9,7 @@ const { getIncludeFields } = useSchema(tableName);
 const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
 const { createLoader } = useLoader();
 const { isTablet } = useScreen();
-
+const { isMounted } = useMounted();
 
 const showFilterDrawer = ref(false);
 const currentFilter = ref(createEmptyFilter());
@@ -256,7 +256,7 @@ onMounted(fetchRoutes);
       padding-y="py-6"
     />
     <Transition name="loading-fade" mode="out-in">
-      <div v-if="loading">
+      <div v-if="loading || !isMounted">
         <CommonLoadingState
           title="Loading routes..."
           description="Fetching routing configuration"

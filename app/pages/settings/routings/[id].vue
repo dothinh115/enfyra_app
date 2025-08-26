@@ -1,75 +1,65 @@
 <template>
-  <Transition name="loading-fade" mode="out-in">
-    <CommonLoadingState
-      v-if="!isMounted || loading"
-      title="Loading route..."
-      description="Fetching route details"
-      size="sm"
-      type="form"
-      context="page"
-    />
-
-    <div v-else-if="routeData?.data?.[0]" class="space-y-6">
-      <!-- Header - Full width -->
-      <CommonPageHeader
-        :title="`Route: ${routeData?.data?.[0]?.path}`"
-        title-size="lg"
-        show-background
-        background-gradient="from-lime-500/6 via-green-400/4 to-transparent"
-        padding-y="py-6"
-      >
-        <template #badges>
-          <!-- Route Status Badges -->
-          <div class="flex items-center gap-3">
-            <UIcon
-              :name="routeData?.data?.[0]?.icon || 'lucide:circle'"
-              class="text-xl text-primary mr-2"
-            />
-            <UBadge color="primary" v-if="routeData?.data?.[0].isSystem"
-              >System Route</UBadge
-            >
-            <UBadge color="secondary" v-if="routeData?.data?.[0].isEnabled"
-              >Enabled</UBadge
-            >
-          </div>
-        </template>
-      </CommonPageHeader>
-
-      <!-- Content - Limited width -->
-      <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full space-y-6">
-        <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
-          <UForm :state="form" @submit="updateRoute">
-            <FormEditorLazy
-              ref="formEditorRef"
-              v-model="form"
-              v-model:errors="errors"
-              v-model:has-changes="hasFormChanges"
-              :table-name="tableName"
-              :excluded="['routePermissions']"
-            />
-          </UForm>
-        </div>
-
-        <!-- Route Permissions Section -->
-        <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
-          <PermissionManager
-            table-name="route_permission_definition"
-            :current-field-id="{ field: 'route', value: route.params.id as string }"
-            icon="lucide:shield"
-            title="Route Permissions"
+  <div class="space-y-6">
+    <!-- Header - Full width -->
+    <CommonPageHeader
+      :title="`Route: ${routeData?.data?.[0]?.path}`"
+      title-size="lg"
+      show-background
+      background-gradient="from-lime-500/6 via-green-400/4 to-transparent"
+      padding-y="py-6"
+    >
+      <template #badges>
+        <!-- Route Status Badges -->
+        <div class="flex items-center gap-3">
+          <UIcon
+            :name="routeData?.data?.[0]?.icon || 'lucide:circle'"
+            class="text-xl text-primary mr-2"
           />
+          <UBadge color="primary" v-if="routeData?.data?.[0].isSystem"
+            >System Route</UBadge
+          >
+          <UBadge color="secondary" v-if="routeData?.data?.[0].isEnabled"
+            >Enabled</UBadge
+          >
         </div>
+      </template>
+    </CommonPageHeader>
+
+    <!-- Content - Limited width -->
+    <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full space-y-6">
+      <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
+        <UForm :state="form" @submit="updateRoute">
+          <FormEditorLazy
+            ref="formEditorRef"
+            v-model="form"
+            v-model:errors="errors"
+            v-model:has-changes="hasFormChanges"
+            :table-name="tableName"
+            :excluded="['routePermissions']"
+            :loading="loading"
+          />
+        </UForm>
+      </div>
+
+      <!-- Route Permissions Section -->
+      <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
+        <PermissionManager
+          table-name="route_permission_definition"
+          :current-field-id="{ field: 'route', value: route.params.id as string }"
+          icon="lucide:shield"
+          title="Route Permissions"
+        />
       </div>
     </div>
+  </div>
 
-    <CommonEmptyState
-      v-else
-      title="Route not found"
-      description="The requested route could not be loaded"
-      icon="lucide:route"
-      size="sm"
-    />
-  </Transition>
+  <CommonEmptyState
+    v-if="!loading && !routeData?.data?.[0]"
+    title="Route not found"
+    description="The requested route could not be loaded"
+    icon="lucide:route"
+    size="sm"
+  />
 </template>
 
 <script setup lang="ts">
@@ -78,8 +68,6 @@ const toast = useToast();
 const { confirm } = useConfirm();
 
 const tableName = "route_definition";
-
-const { isMounted } = useMounted();
 
 // Form changes tracking via FormEditor
 const hasFormChanges = ref(false);

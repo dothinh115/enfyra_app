@@ -1,49 +1,39 @@
 <template>
   <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full space-y-6">
-    <Transition name="loading-fade" mode="out-in">
-      <CommonLoadingState
-        v-if="!isMounted || loading"
-        title="Loading handler..."
-        description="Fetching handler details"
-        size="sm"
-        type="form"
-        context="page"
+    <div class="space-y-6">
+      <!-- Header - Full width -->
+      <CommonPageHeader
+        title="Handler Details"
+        title-size="lg"
+        show-background
+        background-gradient="from-emerald-500/6 via-teal-400/4 to-transparent"
+        padding-y="py-6"
       />
 
-      <div v-else-if="handlerData?.data?.[0]" class="space-y-6">
-        <!-- Header - Full width -->
-        <CommonPageHeader
-          title="Handler Details"
-          title-size="lg"
-          show-background
-          background-gradient="from-emerald-500/6 via-teal-400/4 to-transparent"
-          padding-y="py-6"
-        />
-
-        <!-- Content - Limited width -->
-        <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
-          <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
-            <UForm :state="form" @submit="save">
-              <FormEditorLazy
-                ref="formEditorRef"
-                v-model="form"
-                v-model:errors="errors"
-                v-model:has-changes="hasFormChanges"
-                :table-name="tableName"
-              />
-            </UForm>
-          </div>
+      <!-- Content - Limited width -->
+      <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
+        <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
+          <UForm :state="form" @submit="save">
+            <FormEditorLazy
+              ref="formEditorRef"
+              v-model="form"
+              v-model:errors="errors"
+              v-model:has-changes="hasFormChanges"
+              :table-name="tableName"
+              :loading="loading"
+            />
+          </UForm>
         </div>
       </div>
+    </div>
 
-      <CommonEmptyState
-        v-else
-        title="Handler not found"
-        description="The requested handler could not be loaded"
-        icon="lucide:command-x"
-        size="sm"
-      />
-    </Transition>
+    <CommonEmptyState
+      v-if="!loading && !handlerData?.data?.[0]"
+      title="Handler not found"
+      description="The requested handler could not be loaded"
+      icon="lucide:command-x"
+      size="sm"
+    />
   </div>
 </template>
 
@@ -56,8 +46,6 @@ const id = route.params.id as string;
 const tableName = "route_handler_definition";
 const form = ref<Record<string, any>>({});
 const errors = ref<Record<string, string>>({});
-
-const { isMounted } = useMounted();
 
 // Form changes tracking via FormEditor
 const hasFormChanges = ref(false);

@@ -1,61 +1,51 @@
 <template>
-  <Transition name="loading-fade" mode="out-in">
-    <CommonLoadingState
-      v-if="!isMounted || loading"
-      title="Loading hook..."
-      description="Fetching hook details"
-      size="sm"
-      type="form"
-      context="page"
-    />
-
-    <div v-else-if="hookData?.data?.[0]" class="space-y-6">
-      <!-- Header - Full width -->
-      <CommonPageHeader
-        :title="`Hook: ${hookData?.data?.[0]?.name || '(no name)'}`"
-        title-size="lg"
-        show-background
-        background-gradient="from-red-500/6 via-orange-400/4 to-transparent"
-        padding-y="py-6"
-      >
-        <template #badges>
-          <!-- Hook Status Badges -->
-          <div class="flex items-center gap-3">
-            <UBadge color="primary" v-if="hookData?.data?.[0]?.isSystem"
-              >System Hook</UBadge
-            >
-            <UBadge color="secondary" v-if="hookData?.data?.[0]?.isEnabled"
-              >Enabled</UBadge
-            >
-          </div>
-        </template>
-      </CommonPageHeader>
-
-      <!-- Content - Limited width -->
-      <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
-        <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
-          <UForm :state="form" @submit="updateHook">
-            <FormEditorLazy
-              ref="formEditorRef"
-              v-model="form"
-              v-model:errors="errors"
-              v-model:has-changes="hasFormChanges"
-              :table-name="'hook_definition'"
-              :excluded="['isSystem']"
-            />
-          </UForm>
+  <div class="space-y-6">
+    <!-- Header - Full width -->
+    <CommonPageHeader
+      :title="`Hook: ${hookData?.data?.[0]?.name || '(no name)'}`"
+      title-size="lg"
+      show-background
+      background-gradient="from-red-500/6 via-orange-400/4 to-transparent"
+      padding-y="py-6"
+    >
+      <template #badges>
+        <!-- Hook Status Badges -->
+        <div class="flex items-center gap-3">
+          <UBadge color="primary" v-if="hookData?.data?.[0]?.isSystem"
+            >System Hook</UBadge
+          >
+          <UBadge color="secondary" v-if="hookData?.data?.[0]?.isEnabled"
+            >Enabled</UBadge
+          >
         </div>
+      </template>
+    </CommonPageHeader>
+
+    <!-- Content - Limited width -->
+    <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
+      <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
+        <UForm :state="form" @submit="updateHook">
+          <FormEditorLazy
+            ref="formEditorRef"
+            v-model="form"
+            v-model:errors="errors"
+            v-model:has-changes="hasFormChanges"
+            :table-name="'hook_definition'"
+            :excluded="['isSystem']"
+            :loading="loading"
+          />
+        </UForm>
       </div>
     </div>
+  </div>
 
-    <CommonEmptyState
-      v-else
-      title="Hook not found"
-      description="The requested hook could not be loaded"
-      icon="lucide:zap"
-      size="sm"
-    />
-  </Transition>
+  <CommonEmptyState
+    v-if="!loading && !hookData?.data?.[0]"
+    title="Hook not found"
+    description="The requested hook could not be loaded"
+    icon="lucide:zap"
+    size="sm"
+  />
 </template>
 
 <script setup lang="ts">
@@ -66,8 +56,6 @@ const tableName = "hook_definition";
 const { confirm } = useConfirm();
 
 const id = route.params.id as string;
-
-const { isMounted } = useMounted();
 
 // Form changes tracking via FormEditor
 const hasFormChanges = ref(false);

@@ -1,65 +1,55 @@
 <template>
-  <Transition name="loading-fade" mode="out-in">
-    <CommonLoadingState
-      v-if="!isMounted || loading"
-      title="Loading extension..."
-      description="Fetching extension details"
-      size="sm"
-      type="form"
-      context="page"
-    />
-
-    <div v-else-if="extensionData?.data?.[0]" class="space-y-6">
-      <!-- Header - Full width -->
-      <CommonPageHeader
-        :title="`Extension: ${extensionData?.data?.[0]?.name}`"
-        title-size="lg"
-        show-background
-        background-gradient="from-purple-500/6 via-violet-400/4 to-transparent"
-        padding-y="py-6"
-      >
-        <template #badges>
-          <!-- Extension Status Badges -->
-          <div class="flex items-center gap-3">
-            <UBadge color="primary" v-if="extensionData?.data?.[0]?.isSystem"
-              >System Extension</UBadge
-            >
-            <UBadge color="secondary" v-if="extensionData?.data?.[0]?.isEnabled"
-              >Enabled</UBadge
-            >
-            <UBadge color="info">{{ extensionData?.data?.[0]?.type }}</UBadge>
-          </div>
-        </template>
-      </CommonPageHeader>
-
-      <!-- Content - Limited width -->
-      <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
-        <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
-          <UForm :state="form" @submit="updateExtension">
-            <FormEditorLazy
-              ref="formEditorRef"
-              v-model="form"
-              v-model:errors="errors"
-              v-model:has-changes="hasFormChanges"
-              :table-name="tableName"
-              :excluded="['createdAt', 'updatedAt', 'isSystem', 'compiledCode']"
-              :type-map="{
-                code: { type: 'code', language: 'vue', height: '400px' },
-              }"
-            />
-          </UForm>
+  <div class="space-y-6">
+    <!-- Header - Full width -->
+    <CommonPageHeader
+      :title="`Extension: ${extensionData?.data?.[0]?.name}`"
+      title-size="lg"
+      show-background
+      background-gradient="from-purple-500/6 via-violet-400/4 to-transparent"
+      padding-y="py-6"
+    >
+      <template #badges>
+        <!-- Extension Status Badges -->
+        <div class="flex items-center gap-3">
+          <UBadge color="primary" v-if="extensionData?.data?.[0]?.isSystem"
+            >System Extension</UBadge
+          >
+          <UBadge color="secondary" v-if="extensionData?.data?.[0]?.isEnabled"
+            >Enabled</UBadge
+          >
+          <UBadge color="info">{{ extensionData?.data?.[0]?.type }}</UBadge>
         </div>
+      </template>
+    </CommonPageHeader>
+
+    <!-- Content - Limited width -->
+    <div class="max-w-[1000px] lg:max-w-[1000px] md:w-full">
+      <div class="bg-gray-800/50 rounded-xl border border-gray-700/50 p-6">
+        <UForm :state="form" @submit="updateExtension">
+          <FormEditorLazy
+            ref="formEditorRef"
+            v-model="form"
+            v-model:errors="errors"
+            v-model:has-changes="hasFormChanges"
+            :table-name="tableName"
+            :excluded="['createdAt', 'updatedAt', 'isSystem', 'compiledCode']"
+            :type-map="{
+              code: { type: 'code', language: 'vue', height: '400px' },
+            }"
+            :loading="loading"
+          />
+        </UForm>
       </div>
     </div>
+  </div>
 
-    <CommonEmptyState
-      v-else
-      title="Extension not found"
-      description="The requested extension could not be loaded"
-      icon="lucide:puzzle"
-      size="sm"
-    />
-  </Transition>
+  <CommonEmptyState
+    v-if="!loading && !extensionData?.data?.[0]"
+    title="Extension not found"
+    description="The requested extension could not be loaded"
+    icon="lucide:puzzle"
+    size="sm"
+  />
 
   <!-- Upload Modal -->
   <CommonUploadModalLazy
@@ -96,8 +86,6 @@ const toast = useToast();
 const { confirm } = useConfirm();
 
 const tableName = "extension_definition";
-
-const { isMounted } = useMounted();
 
 const showUploadModal = ref(false);
 const uploadLoading = ref(false);

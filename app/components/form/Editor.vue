@@ -9,6 +9,7 @@
         :column-map="fieldMap"
         :type-map="typeMapWithGenerated"
         :errors="errors"
+        :loading="props.loading"
         @update:form-data="updateFormData"
         @update:errors="updateErrors"
         class="relative group"
@@ -26,11 +27,13 @@ const props = withDefaults(
     excluded?: string[];
     includes?: string[];
     typeMap?: Record<string, any>;
+    loading?: boolean;
   }>(),
   {
     excluded: () => [],
     includes: () => [],
     typeMap: () => ({}),
+    loading: false,
   }
 );
 
@@ -90,11 +93,11 @@ const visibleFields = computed(() => {
     return true;
   });
 
-  // Filter by form data existence
+  // Filter by form data existence - but always show fields when loading
   fields = fields.filter((field: any) => {
     const key = field.name || field.propertyName;
     if (!key) return false;
-    // Allow relation fields to pass through (they don't need to exist in form data initially)
+    if (props.loading) return true;
     if (field.fieldType === "relation") return true;
 
     const hasKey = key in props.modelValue;
