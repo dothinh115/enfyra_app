@@ -49,13 +49,37 @@ const currentGroups = ref<any[]>([]);
 const isAllowAll = ref(false);
 const groupsOperator = ref("and");
 
-// Watch for changes in permissionGroups prop
+// Initialize from props
+onMounted(() => {
+  // Set allowAll from prop
+  if (props.allowAll !== undefined) {
+    isAllowAll.value = props.allowAll;
+  }
+  
+  // Set permission groups from prop
+  if (props.permissionGroups && props.permissionGroups.length > 0) {
+    currentGroups.value = [...props.permissionGroups];
+  } else if (!isAllowAll.value) {
+    // Create default group if none exists and not allowAll
+    currentGroups.value = [
+      {
+        id: Math.random().toString(36).substring(2, 9),
+        type: "and",
+        conditions: [],
+      },
+    ];
+  }
+  
+  // Don't emit on mount - parent should already have the data
+});
+
+// Watch for changes in permissionGroups prop (after mount)
 watch(
   () => props.permissionGroups,
   (newGroups) => {
     if (newGroups && newGroups.length > 0) {
       currentGroups.value = [...newGroups];
-    } else {
+    } else if (!isAllowAll.value) {
       // Create default group if none exists
       currentGroups.value = [
         {
@@ -65,25 +89,27 @@ watch(
         },
       ];
     }
-  },
-  { immediate: true }
+  }
 );
 
-// Watch for allowAll prop
+// Watch for allowAll prop changes (after mount)
 watch(
   () => props.allowAll,
   (newValue) => {
-    isAllowAll.value = newValue || false;
-  },
-  { immediate: true }
+    if (newValue !== undefined && newValue !== isAllowAll.value) {
+      isAllowAll.value = newValue;
+    }
+  }
 );
 
 function updateGroup(groupIndex: number, updatedGroup: any) {
   currentGroups.value[groupIndex] = updatedGroup;
+  emitUpdate();
 }
 
 function removeGroup(groupIndex: number) {
   currentGroups.value.splice(groupIndex, 1);
+  emitUpdate();
 }
 
 function handleAllowAllChange(value: boolean) {
@@ -101,15 +127,10 @@ function handleAllowAllChange(value: boolean) {
       },
     ];
   }
+  emitUpdate();
 }
 
-function applyGroups() {
-  console.log(
-    "🚀 Selector applyGroups called with isAllowAll:",
-    isAllowAll.value,
-    "currentGroups:",
-    currentGroups.value
-  );
+function emitUpdate() {
   if (isAllowAll.value) {
     emit("update", { allowAll: true });
   } else if (currentGroups.value.length > 0) {

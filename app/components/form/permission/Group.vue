@@ -142,7 +142,6 @@ function addPermission() {
     id: Math.random().toString(36).substring(2, 9),
     route: "",
     actions: [],
-    allowedUsers: [],
   };
   props.group.conditions.push(newPermission);
   updateGroup();
@@ -176,7 +175,6 @@ function editPermission(index: number, item: any) {
   editingPermission.value = {
     ...item,
     actions: [...(item.actions || [])],
-    allowedUsers: [...(item.allowedUsers || [])],
     allowAll: item.allowAll || false,
   };
   editingIndex.value = index;

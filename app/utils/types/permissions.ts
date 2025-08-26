@@ -1,7 +1,7 @@
 export type PermissionRule = {
   route: string;
   actions: string[];
-  allowedUsers?: string[]; // Array of user UUIDs for direct access
+  allowAll?: boolean;
 };
 
 export type PermissionCondition = {

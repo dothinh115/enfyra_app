@@ -50,7 +50,7 @@
         <template #body>
           <FormPermissionSelector
             :permission-groups="localFormPermissionGroups"
-            :allow-all="isAllowAll"
+            :allow-all="localAllowAll"
             @update="updateLocalPermissionGroups"
           />
         </template>
@@ -97,8 +97,10 @@ const hasApplied = ref(false);
 const originalPermissionGroups = ref<any[]>([]);
 // Working state for editing
 const localFormPermissionGroups = ref<any[]>([]);
+// Track local allowAll state
+const localAllowAll = ref(false);
 
-// Check if permission is allowAll
+// Check if permission is allowAll from props
 const isAllowAll = computed(() => {
   return props.modelValue?.allowAll === true;
 });
@@ -184,7 +186,7 @@ watch(
   }
 );
 
-// Initialize on mount
+// Initialize on mount and when external changes occur
 watch(
   permissionGroups,
   (newGroups) => {
@@ -196,10 +198,28 @@ watch(
       // Only update when modal is closed to reflect external changes
       originalPermissionGroups.value = JSON.parse(JSON.stringify(newGroups));
       localFormPermissionGroups.value = JSON.parse(JSON.stringify(newGroups));
+      // Initialize localAllowAll from current props
+      localAllowAll.value = props.modelValue?.allowAll === true;
     }
   },
   { immediate: true, deep: true }
 );
+
+// Reset local state when modal opens
+watch(showModal, (isOpen) => {
+  if (isOpen) {
+    console.log("🚀 Modal opening, initializing local state");
+    // Reset hasApplied flag
+    hasApplied.value = false;
+    // Initialize local state from current model value
+    localAllowAll.value = props.modelValue?.allowAll === true;
+    if (localAllowAll.value) {
+      localFormPermissionGroups.value = [];
+    } else {
+      localFormPermissionGroups.value = [...permissionGroups.value];
+    }
+  }
+});
 
 function updateModelValue() {
   console.log(
@@ -233,33 +253,40 @@ function updateModelValue() {
 
 function updateLocalPermissionGroups(data: any) {
   console.log("🔧 updateLocalPermissionGroups called with:", data);
-  // Update local state when user makes changes
+  // Update local state when user makes changes in the selector
   if (data?.allowAll === true) {
-    // Update local allowAll state
+    // Set local allowAll flag
+    localAllowAll.value = true;
     localFormPermissionGroups.value = [];
-  } else {
-    // Update local permission groups
+  } else if (data) {
+    // Clear allowAll and set permission groups
+    localAllowAll.value = false;
     localFormPermissionGroups.value = Array.isArray(data) ? [...data] : [data];
   }
+  // DO NOT emit here - only store locally until Apply is clicked
 }
 
 function applyFormPermissionGroups() {
-  console.log("🔧 applyFormPermissionGroups called");
+  console.log("🔧 applyFormPermissionGroups called, localAllowAll:", localAllowAll.value);
   // Mark that user has applied changes
   hasApplied.value = true;
 
-  // Apply the current local state
-  if (localFormPermissionGroups.value.length === 0) {
-    // Set allowAll mode
+  // Apply based on the local allowAll state
+  if (localAllowAll.value) {
+    // User explicitly selected allowAll
     console.log("🔧 Emitting allowAll:", { allowAll: true });
     emit("update:modelValue", { allowAll: true });
-  } else {
-    // Set normal permission groups
+  } else if (localFormPermissionGroups.value.length > 0) {
+    // User has configured permission groups
     console.log(
       "🔧 Calling updateModelValue with localFormPermissionGroups:",
       localFormPermissionGroups.value
     );
     updateModelValue();
+  } else {
+    // No permissions configured - emit null
+    console.log("🔧 No permissions configured, emitting null");
+    emit("update:modelValue", null);
   }
   showModal.value = false;
 }

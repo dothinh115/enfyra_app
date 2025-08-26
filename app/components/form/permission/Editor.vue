@@ -98,11 +98,6 @@
             </p>
           </div>
 
-          <!-- Allowed Users -->
-          <FormPermissionAllowedUsers
-            v-model="localPermission.allowedUsers"
-            :disabled="disabled"
-          />
 
           <!-- Buttons -->
           <div class="flex justify-end gap-2 pt-4 border-t border-muted">
@@ -147,7 +142,6 @@ const isOpen = computed({
 const localPermission = ref<any>({
   route: "",
   actions: [],
-  allowedUsers: [],
 });
 
 const showRoutePicker = ref(false);
@@ -167,7 +161,6 @@ watch(
       localPermission.value = {
         ...newPermission,
         actions: [...(newPermission.actions || [])],
-        allowedUsers: [...(newPermission.allowedUsers || [])],
       };
     }
   },
