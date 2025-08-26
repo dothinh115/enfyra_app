@@ -241,10 +241,9 @@ watch(
             >
               <tr
                 :class="[
-                  'lg:hover:bg-gray-50 dark:lg:hover:bg-gray-800/50 transition-colors',
-                  'cursor-pointer',
+                  'cursor-pointer lg:hover:bg-gray-50 dark:lg:hover:bg-gray-800/30',
                   selectedRows.some((selectedRow: any) => selectedRow.id === row.original.id)
-                    ? 'bg-primary-50 dark:bg-primary-900/20'
+                    ? 'border-r-4 border-r-primary-500'
                     : '',
                 ]"
                 @click="handleRowClick(row.original)"
@@ -276,10 +275,9 @@ watch(
             <tr
               v-else
               :class="[
-                'lg:hover:bg-gray-50 dark:lg:hover:bg-gray-800/50 transition-colors',
-                'cursor-pointer',
+                'cursor-pointer lg:hover:bg-gray-50 dark:lg:hover:bg-gray-800/30',
                 selectedRows.some((selectedRow: any) => selectedRow.id === row.original.id)
-                  ? 'bg-primary-50 dark:bg-primary-900/20 '
+                  ? 'border-r-4 border-r-primary-500'
                   : '',
               ]"
               @click="handleRowClick(row.original)"

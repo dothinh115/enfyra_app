@@ -187,16 +187,25 @@ function toggleItemSelection(fileId: string) {
 function handleSelectionChange(selectedRows: any[]) {
   const selectedIds = selectedRows.map((row) => row.id);
   const currentSelected = [...props.selectedItems];
+  
+  // Only sync file selections, don't touch folder selections
+  const currentFileSelections = currentSelected.filter(id => 
+    props.files.some(file => file.id === id)
+  );
 
-  currentSelected.forEach((itemId) => {
+  console.log('FileView handleSelectionChange - DataTable selectedIds:', selectedIds, 'currentFileSelections:', currentFileSelections);
+
+  currentFileSelections.forEach((itemId) => {
     if (!selectedIds.includes(itemId)) {
+      console.log('Emitting toggle-selection to remove file:', itemId);
       emit("toggle-selection", itemId);
     }
   });
 
   // Add newly selected items
   selectedIds.forEach((itemId) => {
-    if (!currentSelected.includes(itemId)) {
+    if (!currentFileSelections.includes(itemId)) {
+      console.log('Emitting toggle-selection to add file:', itemId);
       emit("toggle-selection", itemId);
     }
   });

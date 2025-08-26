@@ -34,11 +34,21 @@ const emit = defineEmits<Emits>();
 
 // Use composables for better organization
 const { viewMode, toggleViewMode } = useFileManagerViewMode();
-const { isSelectionMode, selectedItems, toggleItemSelection, clearSelection } = useFileManagerSelection();
-const { isMoveMode, isAnyMovePending, moveState, startMoveMode, cancelMoveMode, isMoveHereDisabled, handleMoveHere } = useFileManagerMove();
+const { isSelectionMode, selectedItems, toggleItemSelection, clearSelection } =
+  useFileManagerSelection();
+const {
+  isMoveMode,
+  isAnyMovePending,
+  moveState,
+  startMoveMode,
+  cancelMoveMode,
+  isMoveHereDisabled,
+  handleMoveHere,
+} = useFileManagerMove();
 
 // Get remaining global state and services
-const { selectedFoldersForDelete: selectedFolders, clearFileManagerState } = useGlobalState();
+const { selectedFoldersForDelete: selectedFolders, clearFileManagerState } =
+  useGlobalState();
 const { confirm } = useConfirm();
 
 function handleFolderClick(folder: any) {
@@ -69,7 +79,7 @@ function handleFileClick(file: any) {
     });
     return;
   }
-  
+
   // Navigate to file detail page
   navigateTo(`/files/${file.id}`);
 }
@@ -77,9 +87,14 @@ function handleFileClick(file: any) {
 // Wrapper for toggleItemSelection to handle auto-enable logic
 function handleToggleItemSelection(itemId: string) {
   toggleItemSelection(itemId);
-  
+
   // Auto-enable selection mode when items are selected (only in grid view)
-  if (selectedItems.value.length > 0 && !isSelectionMode.value && !isMoveMode.value && viewMode.value === "grid") {
+  if (
+    selectedItems.value.length > 0 &&
+    !isSelectionMode.value &&
+    !isMoveMode.value &&
+    viewMode.value === "grid"
+  ) {
     isSelectionMode.value = true;
   }
   // Note: We don't auto-disable selection mode when no items selected
@@ -102,7 +117,12 @@ function clearAllState() {
 
 // Wrapper for move functions with proper parameters
 function handleStartMoveMode() {
-  startMoveMode(selectedItems.value, props.folders, props.files, props.parentId);
+  startMoveMode(
+    selectedItems.value,
+    props.folders,
+    props.files,
+    props.parentId
+  );
   isSelectionMode.value = false;
 }
 
@@ -112,7 +132,9 @@ function handleCancelMoveMode() {
 }
 
 async function handleMoveHereWrapper() {
-  const success = await handleMoveHere(props.parentId, () => emit("refreshItems"));
+  const success = await handleMoveHere(props.parentId, () =>
+    emit("refreshItems")
+  );
   if (success) {
     clearSelection();
     handleCancelMoveMode();
@@ -122,7 +144,10 @@ async function handleMoveHereWrapper() {
 // Clear state when leaving file management area
 onBeforeRouteLeave((to, from) => {
   // Only clear if leaving /files/management routes
-  if (from.path.includes('/files/management') && !to.path.includes('/files/management')) {
+  if (
+    from.path.includes("/files/management") &&
+    !to.path.includes("/files/management")
+  ) {
     clearAllState();
   }
 });
@@ -257,11 +282,7 @@ useSubHeaderActionRegistry([
     color: "error",
     onClick: handleBulkDelete,
     side: "right",
-    show: computed(
-      () =>
-        selectedItems.value.length > 0 &&
-        !isMoveMode.value
-    ),
+    show: computed(() => selectedItems.value.length > 0 && !isMoveMode.value),
   },
   {
     id: "start-move",
@@ -271,11 +292,7 @@ useSubHeaderActionRegistry([
     color: "info",
     onClick: handleStartMoveMode,
     side: "right",
-    show: computed(
-      () =>
-        selectedItems.value.length > 0 &&
-        !isMoveMode.value
-    ),
+    show: computed(() => selectedItems.value.length > 0 && !isMoveMode.value),
   },
   {
     id: "move-here",
@@ -312,7 +329,9 @@ useSubHeaderActionRegistry([
     label: computed(() => {
       const totalCount =
         (props.folders?.length || 0) + (props.files?.length || 0);
-      return selectedItems.value.length === totalCount
+      const selectedCount = selectedItems.value.length;
+      console.log('Label computed - selectedCount:', selectedCount, 'totalCount:', totalCount, 'label:', selectedCount === totalCount ? "Deselect All" : "Select All");
+      return selectedCount === totalCount
         ? "Deselect All"
         : "Select All";
     }),
@@ -331,15 +350,24 @@ useSubHeaderActionRegistry([
     onClick: () => {
       const totalCount =
         (props.folders?.length || 0) + (props.files?.length || 0);
+      console.log('Select All clicked - View Mode:', viewMode.value);
+      console.log('Before click - selectedItems.length:', selectedItems.value.length, 'totalCount:', totalCount);
+      
       if (selectedItems.value.length === totalCount) {
+        // Clear all selections but keep selection mode active
+        console.log('Clearing all selections');
         selectedItems.value = [];
       } else {
+        // Select all items
+        console.log('Selecting all items');
         const allItems = [...props.folders, ...props.files];
         selectedItems.value = allItems.map((item) => item.id);
       }
+      
+      console.log('After click - selectedItems.length:', selectedItems.value.length);
     },
     side: "right",
-    show: computed(() => viewMode.value === "grid" && isSelectionMode.value),
+    show: computed(() => isSelectionMode.value),
   },
 ]);
 </script>

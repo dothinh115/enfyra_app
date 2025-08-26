@@ -139,8 +139,13 @@ function toggleItemSelection(folderId: string) {
 function handleSelectionChange(selectedRows: any[]) {
   const selectedIds = selectedRows.map((row) => row.id);
   const currentSelected = [...props.selectedItems];
+  
+  // Only sync folder selections, don't touch file selections  
+  const currentFolderSelections = currentSelected.filter(id => 
+    props.folders.some(folder => folder.id === id)
+  );
 
-  currentSelected.forEach((itemId) => {
+  currentFolderSelections.forEach((itemId) => {
     if (!selectedIds.includes(itemId)) {
       emit("toggle-selection", itemId);
     }
@@ -148,7 +153,7 @@ function handleSelectionChange(selectedRows: any[]) {
 
   // Add newly selected items
   selectedIds.forEach((itemId) => {
-    if (!currentSelected.includes(itemId)) {
+    if (!currentFolderSelections.includes(itemId)) {
       emit("toggle-selection", itemId);
     }
   });
