@@ -17,7 +17,6 @@
       <div
         class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent dark:via-white/10"
         :class="[shapeClasses, 'animate-shimmer']"
-        style="background-size: 200% 100%"
       />
 
       <div class="absolute inset-0 flex items-center justify-center">

@@ -6,7 +6,7 @@ const route = useRoute();
 const router = useRouter();
 const toast = useToast();
 const { confirm } = useConfirm();
-
+const { isMounted } = useMounted();
 // Get ID from route params
 const fileId = route.params.id as string;
 
@@ -300,6 +300,7 @@ function getFileIconAndColor(mimetype: string): {
       <!-- File Preview -->
       <div
         class="bg-gray-800/50 rounded-xl border border-gray-700/50 shadow-xl"
+        v-if="!pending || !isMounted"
       >
         <div class="flex justify-center">
           <div
