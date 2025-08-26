@@ -92,46 +92,22 @@ const pageStats = computed(() => {
   ];
 });
 
-// Execute API calls when component mounts
-onMounted(() => {
-  fetchRootFolders();
-  fetchRootFiles();
-});
-
-// Watch page changes and refetch data
-watch(folderPage, (newPage) => {
-  // Update query
-  router.push({
-    query: { ...route.query, folderPage: newPage.toString() },
-  });
-});
-
-watch(filePage, (newPage) => {
-  // Update query
-  router.push({
-    query: { ...route.query, filePage: newPage.toString() },
-  });
-});
-
-// Watch query changes and refetch data
 watch(
   () => route.query.folderPage,
   async (newPage) => {
-    if (newPage) {
-      folderPage.value = Number(newPage);
-      await fetchRootFolders();
-    }
-  }
+    folderPage.value = Number(newPage) || 1;
+    await fetchRootFolders();
+  },
+  { immediate: true }
 );
 
 watch(
   () => route.query.filePage,
   async (newPage) => {
-    if (newPage) {
-      filePage.value = Number(newPage);
-      await fetchRootFiles();
-    }
-  }
+    filePage.value = Number(newPage) || 1;
+    await fetchRootFiles();
+  },
+  { immediate: true }
 );
 
 // Handle folder created - refresh both folders and files

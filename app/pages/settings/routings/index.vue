@@ -120,7 +120,8 @@ watch(
   async (newVal) => {
     page.value = newVal ? Number(newVal) : 1;
     await fetchRoutes();
-  }
+  },
+  { immediate: true }
 );
 
 // Update API at setup level
@@ -242,7 +243,6 @@ async function deleteRoute(routeItem: any) {
   }
 }
 
-onMounted(fetchRoutes);
 </script>
 
 <template>

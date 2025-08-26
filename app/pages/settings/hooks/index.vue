@@ -71,7 +71,8 @@ watch(
   async (newVal) => {
     page.value = newVal ? Number(newVal) : 1;
     await fetchHooks();
-  }
+  },
+  { immediate: true }
 );
 
 async function toggleEnabled(hook: any, value?: boolean) {
@@ -114,7 +115,6 @@ async function deleteHook(hook: any) {
   }
 }
 
-onMounted(fetchHooks);
 </script>
 
 <template>

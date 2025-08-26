@@ -78,10 +78,9 @@ watch(
   async (newVal) => {
     page.value = newVal ? Number(newVal) : 1;
     await fetchRoles();
-  }
+  },
+  { immediate: true }
 );
-
-onMounted(fetchRoles);
 </script>
 
 <template>

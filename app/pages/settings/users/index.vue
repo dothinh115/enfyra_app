@@ -286,7 +286,12 @@ async function deleteUser(user: any) {
   }
 }
 
-onMounted(async () => {
-  await fetchUsers();
-});
+watch(
+  () => route.query.page,
+  async (newVal) => {
+    page.value = newVal ? Number(newVal) : 1;
+    await fetchUsers();
+  },
+  { immediate: true }
+);
 </script>

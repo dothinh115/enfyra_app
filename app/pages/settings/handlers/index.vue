@@ -77,10 +77,9 @@ watch(
   async (newVal) => {
     page.value = newVal ? Number(newVal) : 1;
     await fetchRouteHandlers();
-  }
+  },
+  { immediate: true }
 );
-
-onMounted(fetchRouteHandlers);
 </script>
 
 <template>

@@ -6,7 +6,6 @@ import ColumnSelector from "~/components/data-table/ColumnSelector.vue";
 const route = useRoute();
 const tableName = route.params.table as string;
 const { tables, schemas } = useGlobalState();
-const { isTablet } = useScreen();
 const total = ref(1);
 const page = ref(1);
 const pageLimit = 10;
@@ -444,9 +443,14 @@ async function handleBulkDelete(rows: any[]) {
   });
 }
 
-onMounted(async () => {
-  await fetchData();
-});
+watch(
+  () => route.query.page,
+  async (newVal) => {
+    page.value = newVal ? Number(newVal) : 1;
+    await fetchData();
+  },
+  { immediate: true }
+);
 
 // Register header actions with component test (after all variables are defined)
 useHeaderActionRegistry([

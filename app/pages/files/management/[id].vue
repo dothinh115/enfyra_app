@@ -102,21 +102,21 @@ const pageStats = computed(() => {
 // Handle refresh
 async function handleRefreshItems() {
   await fetchFolder();
-  
+
   let newQuery = { ...route.query };
-  
+
   // Check folders independently
   if (folders.value.length === 0 && folderPage.value > 1) {
     folderPage.value = 1;
     delete newQuery.folderPage;
   }
-  
-  // Check files independently  
+
+  // Check files independently
   if (files.value.length === 0 && filePage.value > 1) {
     filePage.value = 1;
     delete newQuery.filePage;
   }
-  
+
   // Update URL if any pagination changed
   // Watchers will handle the refetch automatically
   if (newQuery !== route.query) {

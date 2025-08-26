@@ -300,7 +300,12 @@ const deleteExtension = async (extension: ExtensionDefinition) => {
   }
 };
 
-onMounted(async () => {
-  await fetchExtensions();
-});
+watch(
+  () => route.query.page,
+  async (newVal) => {
+    page.value = newVal ? Number(newVal) : 1;
+    await fetchExtensions();
+  },
+  { immediate: true }
+);
 </script>

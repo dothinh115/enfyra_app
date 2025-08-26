@@ -115,13 +115,6 @@ useHeaderActionRegistry([
 ]);
 
 // Watch for page changes in URL
-watch(
-  () => route.query.page,
-  async (newVal) => {
-    page.value = newVal ? Number(newVal) : 1;
-    await fetchMenus();
-  }
-);
 
 // Create loaders for each menu toggle button
 const menuLoaders = ref<Record<string, any>>({});
@@ -232,7 +225,14 @@ async function deleteMenu(menuItem: any) {
   }
 }
 
-onMounted(fetchMenus);
+watch(
+  () => route.query.page,
+  async (newVal) => {
+    page.value = newVal ? Number(newVal) : 1;
+    await fetchMenus();
+  },
+  { immediate: true }
+);
 </script>
 
 <template>
@@ -279,9 +279,14 @@ onMounted(fetchMenus);
                 component: 'UBadge',
                 props: {
                   variant: 'soft',
-                  color: menu.type === 'mini' ? 'primary' : 'secondary',
+                  color: menu.type === 'Mini Sidebar' ? 'primary' 
+                    : menu.type === 'Dropdown Menu' ? 'secondary'
+                    : 'neutral',
                 },
-                value: menu.type === 'mini' ? 'Sidebar' : 'Menu Item',
+                value: menu.type === 'Mini Sidebar' ? 'Mini Sidebar'
+                  : menu.type === 'Dropdown Menu' ? 'Dropdown Menu'
+                  : menu.type === 'Menu' ? 'Menu'
+                  : 'Unknown',
               },
               {
                 label: 'Status',
