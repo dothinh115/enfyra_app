@@ -276,7 +276,11 @@ async function deleteMenuDetail() {
   await fetchMenuDefinitions();
   await reregisterAllMenus(fetchMenuDefinitions as any);
 
-  toast.add({ title: "Menu deleted", color: "success" });
+  toast.add({ 
+    title: "Success",
+    description: "Menu deleted successfully", 
+    color: "success" 
+  });
   await navigateTo("/settings/menus");
 }
 

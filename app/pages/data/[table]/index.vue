@@ -4,6 +4,7 @@ import type { DataTableColumnConfig } from "~/composables/useDataTableColumns";
 import ColumnSelector from "~/components/data-table/ColumnSelector.vue";
 
 const route = useRoute();
+const router = useRouter();
 const tableName = route.params.table as string;
 const { tables, schemas } = useGlobalState();
 const total = ref(1);
@@ -160,7 +161,7 @@ const columnDropdownItems = computed(() => {
   return items;
 });
 
-// Toggle column visibility
+// Toggle column visibility (called when user clicks Apply)
 function toggleColumnVisibility(columnName: string) {
   if (hiddenColumns.value.has(columnName)) {
     hiddenColumns.value.delete(columnName); // Show column
@@ -188,8 +189,11 @@ useSubHeaderActionRegistry([
     variant: computed(() => (isSelectionMode.value ? "ghost" : "outline")),
     color: computed(() => (isSelectionMode.value ? "secondary" : "primary")),
     onClick: () => {
-      isSelectionMode.value = !isSelectionMode.value;
-      if (!isSelectionMode.value) {
+      const wasSelectionMode = isSelectionMode.value;
+      isSelectionMode.value = !wasSelectionMode;
+
+      // Clear selection when exiting selection mode
+      if (wasSelectionMode) {
         selectedRows.value = [];
       }
     },
@@ -332,7 +336,6 @@ watch(
   (newData) => {
     if (newData?.data) {
       data.value = newData.data;
-      // Use filterCount when there are active filters, otherwise use totalCount
       const hasFilters = hasActiveFilters(currentFilter.value);
       total.value = hasFilters
         ? newData.meta?.filterCount || newData.meta?.totalCount || 0
@@ -345,8 +348,19 @@ watch(
 // Handle filter apply from FilterDrawer
 async function handleFilterApply(filter: FilterGroup) {
   currentFilter.value = filter;
-  page.value = 1;
-  await fetchData();
+  
+  if (page.value === 1) {
+    // Already on page 1 → fetch directly
+    await fetchData();
+  } else {
+    // On other page → go to page 1, watch will trigger
+    const newQuery = { ...route.query };
+    delete newQuery.page;
+    
+    await router.replace({
+      query: newQuery,
+    });
+  }
 }
 
 // Clear filters function
@@ -405,6 +419,11 @@ async function handleBulkDeleteIfAllowed(selectedRows: any[]) {
 
 function handleSelectionChange(rows: any[]) {
   selectedRows.value = rows;
+
+  // Auto-exit selection mode if no data available
+  if (isSelectionMode.value && data.value.length === 0) {
+    isSelectionMode.value = false;
+  }
 }
 
 async function handleBulkDelete(rows: any[]) {

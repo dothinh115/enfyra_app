@@ -8,6 +8,7 @@ const { confirm } = useConfirm();
 const page = ref(1);
 const pageLimit = 9;
 const route = useRoute();
+const router = useRouter();
 const tableName = "menu_definition";
 const { getIncludeFields } = useSchema(tableName);
 const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
@@ -129,8 +130,19 @@ function getMenuLoader(menuId: string) {
 // Handle filter apply from FilterDrawer
 async function handleFilterApply(filter: FilterGroup) {
   currentFilter.value = filter;
-  page.value = 1;
-  await fetchMenus();
+  
+  if (page.value === 1) {
+    // Already on page 1 → fetch directly
+    await fetchMenus();
+  } else {
+    // On other page → go to page 1, watch will trigger
+    const newQuery = { ...route.query };
+    delete newQuery.page;
+    
+    await router.replace({
+      query: newQuery,
+    });
+  }
 }
 
 async function toggleEnabled(menuItem: any, value?: boolean) {

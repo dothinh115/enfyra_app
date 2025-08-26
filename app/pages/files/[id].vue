@@ -172,7 +172,11 @@ async function deleteFile() {
     return;
   }
 
-  toast.add({ title: "File deleted", color: "success" });
+  toast.add({ 
+    title: "Success",
+    description: "File deleted successfully", 
+    color: "success" 
+  });
   await navigateTo("/files");
 }
 

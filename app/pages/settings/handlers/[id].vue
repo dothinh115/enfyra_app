@@ -176,7 +176,11 @@ async function deleteHandler() {
     return;
   }
 
-  toast.add({ title: "Handler deleted", color: "success" });
+  toast.add({ 
+    title: "Success",
+    description: "Handler deleted successfully", 
+    color: "success" 
+  });
   await navigateTo("/settings/handlers");
 }
 

@@ -14,7 +14,7 @@ const {
   pending: folderPending,
   execute: fetchFolder,
 } = useApiLazy(() => `/folder_definition`, {
-  query: {
+  query: computed(() => ({
     filter: {
       id: {
         _eq: route.params.id,
@@ -36,7 +36,7 @@ const {
         sort: "-createdAt",
       },
     },
-  },
+  })),
   errorContext: "Load Folder Info",
 });
 
@@ -163,24 +163,15 @@ async function handleFileUpload(files: File | File[]) {
   });
 }
 
-onMounted(() => {
-  fetchFolder();
-});
-
+// Combined watcher for both pagination parameters
 watch(
-  () => route.query.folderPage,
-  async (newVal) => {
-    folderPage.value = newVal ? Number(newVal) : 1;
+  [() => route.query.folderPage, () => route.query.filePage],
+  async ([newFolderPage, newFilePage]) => {
+    folderPage.value = newFolderPage ? Number(newFolderPage) : 1;
+    filePage.value = newFilePage ? Number(newFilePage) : 1;
     await fetchFolder();
-  }
-);
-
-watch(
-  () => route.query.filePage,
-  async (newVal) => {
-    filePage.value = newVal ? Number(newVal) : 1;
-    await fetchFolder();
-  }
+  },
+  { immediate: true }
 );
 
 // Register header actions

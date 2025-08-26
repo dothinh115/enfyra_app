@@ -100,6 +100,7 @@ const { confirm } = useConfirm();
 const { getIncludeFields } = useSchema(tableName);
 const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
 const route = useRoute();
+const router = useRouter();
 const { isMounted } = useMounted();
 const { isTablet } = useScreen();
 
@@ -192,8 +193,19 @@ useHeaderActionRegistry([
 // Handle filter apply from FilterDrawer
 async function handleFilterApply(filter: FilterGroup) {
   currentFilter.value = filter;
-  page.value = 1;
-  await fetchUsers();
+  
+  if (page.value === 1) {
+    // Already on page 1 → fetch directly
+    await fetchUsers();
+  } else {
+    // On other page → go to page 1, watch will trigger
+    const newQuery = { ...route.query };
+    delete newQuery.page;
+    
+    await router.replace({
+      query: newQuery,
+    });
+  }
 }
 
 function getHeaderActions(user: any) {

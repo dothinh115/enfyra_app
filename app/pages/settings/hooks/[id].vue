@@ -189,7 +189,11 @@ async function deleteHook() {
     return;
   }
 
-  toast.add({ title: "Hook deleted", color: "success" });
+  toast.add({ 
+    title: "Success",
+    description: "Hook deleted successfully", 
+    color: "success" 
+  });
   await navigateTo("/settings/hooks");
 }
 

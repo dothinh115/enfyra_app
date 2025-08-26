@@ -3,6 +3,7 @@ const toast = useToast();
 const page = ref(1);
 const pageLimit = 9;
 const route = useRoute();
+const router = useRouter();
 const tableName = "route_definition";
 const { confirm } = useConfirm();
 const { getIncludeFields } = useSchema(tableName);
@@ -111,8 +112,19 @@ useHeaderActionRegistry([
 // Handle filter apply from FilterDrawer
 async function handleFilterApply(filter: FilterGroup) {
   currentFilter.value = filter;
-  page.value = 1;
-  await fetchRoutes();
+  
+  if (page.value === 1) {
+    // Already on page 1 → fetch directly
+    await fetchRoutes();
+  } else {
+    // On other page → go to page 1, watch will trigger
+    const newQuery = { ...route.query };
+    delete newQuery.page;
+    
+    await router.replace({
+      query: newQuery,
+    });
+  }
 }
 
 watch(

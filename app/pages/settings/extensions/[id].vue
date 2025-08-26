@@ -233,7 +233,11 @@ async function deleteExtension() {
     return;
   }
 
-  toast.add({ title: "Extension deleted", color: "success" });
+  toast.add({ 
+    title: "Success",
+    description: "Extension deleted successfully", 
+    color: "success" 
+  });
   await navigateTo("/settings/extensions");
 }
 

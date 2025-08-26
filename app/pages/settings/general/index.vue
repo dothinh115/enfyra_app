@@ -81,7 +81,11 @@ async function handleSaveSetting() {
     return;
   }
 
-  toast.add({ title: "Configuration saved", color: "primary" });
+  toast.add({ 
+    title: "Success",
+    description: "Configuration saved successfully", 
+    color: "success" 
+  });
   errors.value = {};
 
   formEditorRef.value?.confirmChanges();

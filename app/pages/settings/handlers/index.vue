@@ -68,7 +68,11 @@ async function deleteHandler(id: number) {
     return;
   }
 
-  toast.add({ title: "Deleted", color: "success" });
+  toast.add({ 
+    title: "Success",
+    description: "Handler deleted successfully", 
+    color: "success" 
+  });
   await fetchRouteHandlers();
 }
 

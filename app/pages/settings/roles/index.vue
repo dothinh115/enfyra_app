@@ -69,7 +69,11 @@ async function deleteRole(id: string) {
     return;
   }
 
-  toast.add({ title: "Role deleted", color: "success" });
+  toast.add({ 
+    title: "Success",
+    description: "Role deleted successfully", 
+    color: "success" 
+  });
   await fetchRoles();
 }
 

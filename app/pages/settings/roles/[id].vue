@@ -178,7 +178,11 @@ async function deleteRole() {
     return;
   }
 
-  toast.add({ title: "Role deleted", color: "success" });
+  toast.add({ 
+    title: "Success",
+    description: "Role deleted successfully", 
+    color: "success" 
+  });
   await navigateTo("/settings/roles");
 }
 

@@ -207,7 +207,11 @@ async function deleteRoute() {
     return;
   }
 
-  toast.add({ title: "Route deleted", color: "success" });
+  toast.add({ 
+    title: "Success",
+    description: "Route deleted successfully", 
+    color: "success" 
+  });
   await navigateTo("/settings/routings");
 }
 
