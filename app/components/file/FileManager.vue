@@ -185,11 +185,6 @@ const isAnyMovePending = computed(
 
 async function handleMoveHere() {
   if (isMoveHereDisabled.value) {
-    console.debug("Move here disabled", {
-      moveMode: moveState.value.moveMode,
-      currentFolderId: currentFolderId.value,
-      sourceFolderId: moveState.value.sourceFolderId,
-    });
     return;
   }
 
