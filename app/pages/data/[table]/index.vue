@@ -12,6 +12,7 @@ const page = ref(1);
 const pageLimit = 10;
 const data = ref([]);
 const selectedRows = ref<any[]>([]);
+const isSelectionMode = ref(false);
 const table = computed(() => tables.value.find((t) => t.name === tableName));
 const { confirm } = useConfirm();
 const toast = useToast();
@@ -176,17 +177,24 @@ function toggleColumnVisibility(columnName: string) {
 }
 
 useSubHeaderActionRegistry([
-  // Left side - Bulk delete button (when items selected)
+  // Selection mode toggle button - only show when user has delete permission
   {
-    id: "bulk-delete-selected",
-    label: computed(() => `Delete Selected (${selectedRows.value.length})`),
-    icon: "lucide:trash-2",
-    variant: "solid",
-    color: "error",
-    size: isTablet.value ? "sm" : "md",
+    id: "toggle-selection",
+    label: computed(() =>
+      isSelectionMode.value ? "Cancel Selection" : "Select Items"
+    ),
+    icon: computed(() =>
+      isSelectionMode.value ? "lucide:x" : "lucide:check-square"
+    ),
+    variant: computed(() => (isSelectionMode.value ? "ghost" : "outline")),
+    color: computed(() => (isSelectionMode.value ? "secondary" : "primary")),
+    onClick: () => {
+      isSelectionMode.value = !isSelectionMode.value;
+      if (!isSelectionMode.value) {
+        selectedRows.value = [];
+      }
+    },
     side: "right",
-    onClick: () => handleBulkDeleteIfAllowed(selectedRows.value),
-    disabled: computed(() => selectedRows.value.length <= 0),
     permission: {
       and: [
         {
@@ -196,7 +204,28 @@ useSubHeaderActionRegistry([
       ],
     },
   },
-  // Right side - Column picker (default side)
+  // Bulk delete button (only visible in selection mode with items selected)
+  {
+    id: "bulk-delete-selected",
+    label: computed(() => `Delete Selected (${selectedRows.value.length})`),
+    icon: "lucide:trash-2",
+    variant: "solid",
+    color: "error",
+    side: "right",
+    onClick: () => handleBulkDeleteIfAllowed(selectedRows.value),
+    show: computed(
+      () => isSelectionMode.value && selectedRows.value.length > 0
+    ),
+    permission: {
+      and: [
+        {
+          route: `/${route.params.table}`,
+          actions: ["delete"],
+        },
+      ],
+    },
+  },
+  // Column picker (default side)
   {
     id: "column-picker-component",
     component: ColumnSelector,
@@ -206,10 +235,10 @@ useSubHeaderActionRegistry([
     get props() {
       return {
         items: columnDropdownItems.value,
-        size: isTablet.value ? "sm" : "md", // Same as back button
         variant: "soft",
       };
     },
+    side: "right",
     permission: {
       and: [
         {
@@ -504,7 +533,7 @@ useHeaderActionRegistry([
         :columns="columns"
         :loading="false"
         :page-size="pageLimit"
-        :selectable="true"
+        :selectable="isSelectionMode"
         @selection-change="handleSelectionChange"
         @row-click="(row: any) => navigateTo(`/data/${tableName}/${row.id}`)"
       >

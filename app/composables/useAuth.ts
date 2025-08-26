@@ -1,6 +1,35 @@
 export function useAuth() {
   const me = useState<any | null>("global:me", () => null);
 
+  // Define fields for user profile query - optimized to fetch only necessary fields
+  const userProfileFields = [
+    // User basic fields
+    "id",
+    "email",
+    "isRootAdmin",
+    "isSystem",
+    
+    // Role and its permissions (for role-based access)
+    "role.id",
+    "role.name",
+    "role.routePermissions.id",
+    "role.routePermissions.isEnabled",
+    "role.routePermissions.allowedUsers",
+    "role.routePermissions.methods.id",
+    "role.routePermissions.methods.method",
+    "role.routePermissions.route.id",
+    "role.routePermissions.route.path",
+    
+    // Direct user permissions (bypasses role)
+    "allowedRoutePermissions.id",
+    "allowedRoutePermissions.isEnabled",
+    "allowedRoutePermissions.allowedUsers.id",
+    "allowedRoutePermissions.methods.id",
+    "allowedRoutePermissions.methods.method",
+    "allowedRoutePermissions.route.id",
+    "allowedRoutePermissions.route.path",
+  ];
+
   // API composable for fetching user profile
   const {
     data: userData,
@@ -8,8 +37,7 @@ export function useAuth() {
     error: fetchUserError,
   } = useApiLazy(() => "/me", {
     query: {
-      fields:
-        "*,role.*,role.routePermissions.*,role.routePermissions.methods.*,role.routePermissions.route.*",
+      fields: userProfileFields.join(","),
     },
     errorContext: "Fetch User Profile",
   });

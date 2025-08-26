@@ -256,18 +256,6 @@ export function useMenuRegistry() {
           route: `/data/${tableName}`,
           icon: table.icon || "lucide:database",
           sidebarId: dataSidebarId,
-          permission: {
-            and: [
-              { route: `/table_definition`, actions: ["read"] },
-              {
-                or: [
-                  { route: `/table_definition`, actions: ["create"] },
-                  { route: `/table_definition`, actions: ["update"] },
-                  { route: `/table_definition`, actions: ["delete"] },
-                ],
-              },
-            ],
-          },
         });
       });
     }

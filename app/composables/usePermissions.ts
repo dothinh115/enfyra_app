@@ -12,13 +12,44 @@ export function usePermissions() {
       return true;
     }
 
-    // Check if user has role and route permissions
-    if (!me.value.role?.routePermissions) return false;
-
     // Normalize route path - ensure it starts with /
     const normalizedRoutePath = routePath.startsWith("/")
       ? routePath
       : `/${routePath}`;
+
+    // First, check direct user route permissions (bypasses role check)
+    if (me.value.allowedRoutePermissions) {
+      const directPermissions = me.value.allowedRoutePermissions.filter(
+        (permission: any) =>
+          permission.route?.path === normalizedRoutePath && 
+          permission.isEnabled &&
+          permission.allowedUsers?.some((user: any) => user.id === me.value.id)
+      );
+
+      if (directPermissions.length > 0) {
+        // Check if any direct permission has the required method
+        const hasDirectMethodPermission = directPermissions.some((permission: any) => {
+          // If methods array exists and has items, check for the specific method
+          if (permission.methods && permission.methods.length > 0) {
+            const hasMethod = permission.methods.some((methodObj: any) => methodObj.method === method);
+            return hasMethod;
+          }
+          // If methods is empty or doesn't exist, this permission doesn't grant the requested method
+          return false;
+        });
+        
+        // Only return true if the method is explicitly allowed
+        if (hasDirectMethodPermission) {
+          return true;
+        }
+        // If user has direct permission but not for this method, return false
+        // Don't fall through to role check
+        return false;
+      }
+    }
+
+    // If no direct permission, check role-based permissions
+    if (!me.value.role?.routePermissions) return false;
 
     // Find all route permissions that match the route path
     const routePermissions = me.value.role.routePermissions.filter(
