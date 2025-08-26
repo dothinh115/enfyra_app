@@ -11,13 +11,8 @@ const total = ref(1);
 const page = ref(1);
 const pageLimit = 10;
 const data = ref([]);
-const selectedRows = ref<any[]>([]);
-const isSelectionMode = ref(false);
 const table = computed(() => tables.value.find((t) => t.name === tableName));
-const { confirm } = useConfirm();
-const toast = useToast();
 const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
-const { createLoader } = useLoader();
 const { checkPermissionCondition } = usePermissions();
 
 // Mounted state để đánh dấu first render
@@ -62,119 +57,22 @@ const {
   errorContext: "Fetch Data",
 });
 
-// Delete single record composable
-const deleteId = ref<string>("");
-const { execute: executeDelete, error: deleteError } = useApiLazy(
-  () => `/${tableName}`,
-  {
-    method: "delete",
-    errorContext: "Delete Record",
-  }
-);
+// Use composables for column visibility and table actions
+const { 
+  hiddenColumns, 
+  visibleColumns, 
+  toggleColumnVisibility, 
+  columnDropdownItems 
+} = useDataTableVisibility(tableName, schemas);
 
-// Column visibility state with localStorage support - lưu hidden columns thay vì visible
-const hiddenColumns = ref<Set<string>>(new Set());
+const {
+  selectedRows,
+  isSelectionMode,
+  handleDelete,
+  handleBulkDelete,
+  handleSelectionChange,
+} = useDataTableActions(tableName, fetchData, data);
 
-// Computed để tính visible columns từ hidden columns
-const visibleColumns = computed(() => {
-  const schema = schemas.value[tableName];
-  if (!schema?.definition) return new Set();
-
-  const columnFields = schema.definition
-    .filter((field: any) => field.fieldType === "column")
-    .map((field: any) => field.name);
-
-  // Visible = tất cả columns trừ đi hidden columns
-  return new Set(
-    columnFields.filter((field: string) => !hiddenColumns.value.has(field))
-  );
-});
-
-// Load saved column visibility from localStorage
-const loadColumnVisibility = (
-  tableName: string,
-  columnFields: string[]
-): Set<string> => {
-  try {
-    const saved = localStorage.getItem(`columnVisibility_${tableName}`);
-    if (saved) {
-      const savedHiddenColumns = JSON.parse(saved);
-      // Only include hidden columns that still exist in the schema
-      const validHiddenColumns = savedHiddenColumns.filter((col: string) =>
-        columnFields.includes(col)
-      );
-      return new Set(validHiddenColumns);
-    }
-  } catch (error) {
-    console.warn("Failed to load column visibility from localStorage:", error);
-  }
-  // Default: no columns hidden (all visible)
-  return new Set();
-};
-
-// Save column visibility to localStorage
-const saveColumnVisibility = (tableName: string, hiddenCols: Set<string>) => {
-  try {
-    localStorage.setItem(
-      `columnVisibility_${tableName}`,
-      JSON.stringify(Array.from(hiddenCols))
-    );
-  } catch (error) {
-    console.warn("Failed to save column visibility to localStorage:", error);
-  }
-};
-
-// Initialize visible columns when schema changes
-watch(
-  () => schemas.value[tableName],
-  (schema) => {
-    if (schema?.definition) {
-      const columnFields = schema.definition
-        .filter((field: any) => field.fieldType === "column")
-        .map((field: any) => field.name);
-
-      // Load from localStorage or default to no hidden columns (all visible)
-      hiddenColumns.value = loadColumnVisibility(tableName, columnFields);
-    }
-  },
-  { immediate: true }
-);
-
-// Column visibility dropdown items
-const columnDropdownItems = computed(() => {
-  const schema = schemas.value[tableName];
-  if (!schema?.definition) return [];
-
-  const items = schema.definition
-    .filter((field: any) => field.fieldType === "column")
-    .map((field: any) => ({
-      label: field.label || field.name,
-      type: "checkbox" as const,
-      get checked() {
-        return !hiddenColumns.value.has(field.name); // checked = not hidden
-      },
-      onToggle: () => {
-        toggleColumnVisibility(field.name);
-      },
-    }));
-
-  return items;
-});
-
-// Toggle column visibility (called when user clicks Apply)
-function toggleColumnVisibility(columnName: string) {
-  if (hiddenColumns.value.has(columnName)) {
-    hiddenColumns.value.delete(columnName); // Show column
-  } else {
-    hiddenColumns.value.add(columnName); // Hide column
-  }
-
-  // Trigger reactivity
-  hiddenColumns.value = new Set(hiddenColumns.value);
-
-  // Save to localStorage
-  saveColumnVisibility(tableName, hiddenColumns.value);
-}
 
 useSubHeaderActionRegistry([
   // Selection mode toggle button - only show when user has delete permission
@@ -215,7 +113,7 @@ useSubHeaderActionRegistry([
     variant: "solid",
     color: "error",
     side: "right",
-    onClick: () => handleBulkDeleteIfAllowed(selectedRows.value),
+    onClick: () => handleBulkDelete(selectedRows.value),
     show: computed(
       () => isSelectionMode.value && selectedRows.value.length > 0
     ),
@@ -368,99 +266,7 @@ async function clearFilters() {
   await handleFilterApply(createEmptyFilter());
 }
 
-async function handleDelete(id: string) {
-  const result = await confirm({
-    title: "Delete Record",
-    content: "Are you sure you want to delete this record?",
-    confirmText: "Delete",
-    cancelText: "Cancel",
-  });
-
-  if (!result) return;
-
-  const deleteLoader = createLoader();
-
-  await deleteLoader.withLoading(async () => {
-    // Set the id and execute pre-defined composable
-    deleteId.value = id;
-    await executeDelete({ id });
-
-    // Check if there was an error
-    if (deleteError.value) {
-      return;
-    }
-
-    toast.add({
-      title: "Success",
-      description: "Record deleted successfully",
-      color: "success",
-    });
-    await fetchData();
-  });
-}
-
-async function handleBulkDeleteIfAllowed(selectedRows: any[]) {
-  // Check permission first
-  if (
-    !checkPermissionCondition({
-      and: [
-        {
-          route: `/${route.params.table}`,
-          actions: ["delete"],
-        },
-      ],
-    })
-  ) {
-    return;
-  }
-
-  return handleBulkDelete(selectedRows);
-}
-
-function handleSelectionChange(rows: any[]) {
-  selectedRows.value = rows;
-
-  // Auto-exit selection mode if no data available
-  if (isSelectionMode.value && data.value.length === 0) {
-    isSelectionMode.value = false;
-  }
-}
-
-async function handleBulkDelete(rows: any[]) {
-  const result = await confirm({
-    title: "Delete Records",
-    content: `Are you sure you want to delete ${rows.length} record(s)?`,
-    confirmText: "Delete All",
-    cancelText: "Cancel",
-  });
-
-  if (!result) return;
-
-  const deleteLoader = createLoader();
-
-  await deleteLoader.withLoading(async () => {
-    // Extract IDs from selected rows
-    const ids = rows.map((row) => row.id);
-
-    // Use batch delete with ids parameter
-    await executeDelete({ ids });
-
-    // Check if there was an error
-    if (deleteError.value) {
-      return;
-    }
-
-    toast.add({
-      title: "Success",
-      description: `${rows.length} record(s) deleted successfully`,
-      color: "success",
-    });
-
-    // Clear selection after successful delete
-    selectedRows.value = [];
-    await fetchData();
-  });
-}
+// Delete handlers are now in useDataTableActions composable
 
 watch(
   () => route.query.page,
