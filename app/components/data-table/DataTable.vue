@@ -16,12 +16,17 @@ const props = withDefaults(defineProps<DataTableProps>(), {
   loading: false,
   selectable: false,
   contextMenuItems: undefined,
+  selectedItems: () => [],
 });
 
 const emit = defineEmits<{
   "row-click": [row: any];
-  "bulk-delete": [selectedRows: any[]];
+  "selection-change": [selectedRows: any[]];
 }>();
+
+function handleRowClick(row: any) {
+  emit("row-click", row);
+}
 
 // Table state
 const sorting = ref<SortingState>([]);
@@ -116,52 +121,54 @@ const table = useVueTable({
   },
 });
 
-// Column visibility dropdown
-const columnDropdownItems = computed(() =>
-  table
-    .getAllColumns()
-    .filter((col) => col.getCanHide())
-    .map((col) => ({
-      label:
-        typeof col.columnDef.header === "string"
-          ? col.columnDef.header
-          : col.id,
-      type: "checkbox" as const,
-      checked: col.getIsVisible(),
-      onSelect: (e: Event) => {
-        col.toggleVisibility();
-        e.preventDefault();
-      },
-    }))
-);
-
 // Selected rows for bulk operations
 const selectedRows = computed(() => {
   return table.getSelectedRowModel().rows.map((row) => row.original);
 });
 
-// Bulk actions
-async function handleBulkDelete() {
-  if (selectedRows.value.length > 0) {
-    emit("bulk-delete", selectedRows.value);
-    // Clear selection after delete
-    rowSelection.value = {};
-  }
-}
+// Sync external selectedItems with internal rowSelection
+watch(
+  () => props.selectedItems,
+  (newSelectedItems) => {
+    if (!newSelectedItems) return;
+    
+    // Build row selection map based on current data indices
+    const newRowSelection: Record<string, boolean> = {};
+    newSelectedItems.forEach(id => {
+      const rowIndex = props.data.findIndex(row => row.id === id);
+      if (rowIndex >= 0) {
+        newRowSelection[rowIndex] = true;
+      }
+    });
+    
+    // Only update if different to avoid unnecessary re-renders
+    const currentKeys = Object.keys(rowSelection.value);
+    const newKeys = Object.keys(newRowSelection);
+    
+    if (currentKeys.length !== newKeys.length || 
+        !newKeys.every(key => (rowSelection.value as Record<string, boolean>)[key])) {
+      rowSelection.value = newRowSelection;
+    }
+  },
+  { immediate: true }
+);
 
-// Responsive check - all devices use table view
-const { isTablet } = useScreen();
+// Emit selection changes to parent (with debounce to prevent rapid firing)
+let emitTimeout: NodeJS.Timeout;
+watch(
+  selectedRows,
+  (newSelection) => {
+    clearTimeout(emitTimeout);
+    emitTimeout = setTimeout(() => {
+      emit("selection-change", newSelection);
+    }, 10);
+  },
+  { deep: true }
+);
 </script>
 
 <template>
   <div class="w-full space-y-4">
-    <!-- Header Controls -->
-    <div class="flex items-center justify-between gap-2">
-      <div class="flex items-center gap-2">
-        <slot name="header-actions" />
-      </div>
-    </div>
-
     <!-- Loading State -->
     <div v-if="loading" class="w-full">
       <CommonLoadingState type="table" size="md" context="page" />
@@ -236,8 +243,11 @@ const { isTablet } = useScreen();
                 :class="[
                   'lg:hover:bg-gray-50 dark:lg:hover:bg-gray-800/50 transition-colors',
                   'cursor-pointer',
+                  selectedRows.some((selectedRow: any) => selectedRow.id === row.original.id)
+                    ? 'bg-primary-50 dark:bg-primary-900/20'
+                    : '',
                 ]"
-                @click="emit('row-click', row.original)"
+                @click="handleRowClick(row.original)"
               >
                 <td
                   v-for="cell in row.getVisibleCells()"
@@ -268,8 +278,11 @@ const { isTablet } = useScreen();
               :class="[
                 'lg:hover:bg-gray-50 dark:lg:hover:bg-gray-800/50 transition-colors',
                 'cursor-pointer',
+                selectedRows.some((selectedRow: any) => selectedRow.id === row.original.id)
+                  ? 'bg-primary-50 dark:bg-primary-900/20 '
+                  : '',
               ]"
-              @click="emit('row-click', row.original)"
+              @click="handleRowClick(row.original)"
             >
               <td
                 v-for="cell in row.getVisibleCells()"
@@ -308,17 +321,6 @@ const { isTablet } = useScreen();
           </tr>
         </tbody>
       </table>
-    </div>
-
-    <!-- Bottom Bulk Actions - positioned bottom right -->
-    <div
-      v-show="selectable && selectedRows.length > 0"
-      class="flex justify-end"
-    >
-      <DataTableBulkActions
-        :selected-count="selectedRows.length"
-        :on-delete="handleBulkDelete"
-      />
     </div>
   </div>
 </template>

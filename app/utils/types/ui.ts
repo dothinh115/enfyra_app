@@ -9,6 +9,7 @@ export interface DataTableProps {
   loading?: boolean;
   selectable?: boolean;
   contextMenuItems?: (row: any) => any[];
+  selectedItems?: string[];
 }
 
 // Column Selector Component

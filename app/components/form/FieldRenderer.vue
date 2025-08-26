@@ -381,26 +381,6 @@ function getComponentType(): string {
   return config.type || column?.type || "text";
 }
 
-// Debug: Log loading state changes
-watch(
-  () => props.loading,
-  (newVal, oldVal) => {
-    console.log(`FieldRenderer [${props.keyName}] loading:`, {
-      oldVal,
-      newVal,
-    });
-    // Check if transition classes are being applied
-    nextTick(() => {
-      const wrapper = document.querySelector(".field-renderer-wrapper");
-      if (wrapper) {
-        const transitionElements = wrapper.querySelectorAll(
-          '[class*="loading-fade"]'
-        );
-        console.log("Transition elements:", transitionElements);
-      }
-    });
-  }
-);
 </script>
 
 <template>

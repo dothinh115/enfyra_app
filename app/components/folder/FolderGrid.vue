@@ -189,7 +189,7 @@
                     <span>{{ formatDate(folder.createdAt) }}</span>
                   </div>
                   <div class="flex items-center gap-1">
-                    <UIcon name="lucide:folder" class="w-3 h-3" />
+                    <UIcon :name="getDefaultFolderIcon()" class="w-3 h-3" />
                     <span>{{ folder.fileCount || 0 }} items</span>
                   </div>
                 </div>
@@ -199,7 +199,7 @@
                   class="flex items-center gap-2 pt-2 border-t border-gray-100 dark:border-gray-700 opacity-0 lg:group-hover:opacity-100 transition-opacity duration-200 mt-auto"
                 >
                   <UButton
-                    icon="lucide:folder-open"
+                    :icon="getFolderOpenIcon()"
                     size="xs"
                     variant="soft"
                     color="primary"
@@ -233,7 +233,7 @@
       <!-- Empty State -->
       <div v-else class="col-span-full text-center py-12">
         <UIcon
-          name="lucide:folder"
+          :name="getDefaultFolderIcon()"
           class="w-16 h-16 text-muted-foreground mx-auto mb-4"
         />
         <p class="text-lg font-medium text-muted-foreground">
@@ -249,6 +249,7 @@
 
 <script setup lang="ts">
 import { formatDate } from "~/utils/common/filter/filter-helpers";
+import { getFolderIcon, getDefaultFolderIcon, getFolderOpenIcon } from "~/utils/file-management/folder-icons";
 
 interface Props {
   folders: any[];
@@ -425,7 +426,7 @@ function getContextMenuItems(folder: any) {
     [
       {
         label: "Open",
-        icon: "lucide:folder-open",
+        icon: getFolderOpenIcon(),
         onSelect: () => {
           emit("folder-click", folder);
         },
@@ -506,18 +507,4 @@ function getDropdownMenuItems(folder: any) {
   return menuItems;
 }
 
-// Get folder icon with color
-function getFolderIcon(folder: any) {
-  if (folder.isSystem) {
-    return {
-      name: folder.icon || "lucide:shield",
-      color: "text-amber-500 dark:text-amber-400",
-    };
-  }
-
-  return {
-    name: folder.icon || "lucide:folder",
-    color: "text-blue-500 dark:text-blue-400",
-  };
-}
 </script>

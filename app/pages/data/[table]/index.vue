@@ -11,6 +11,7 @@ const total = ref(1);
 const page = ref(1);
 const pageLimit = 10;
 const data = ref([]);
+const selectedRows = ref<any[]>([]);
 const table = computed(() => tables.value.find((t) => t.name === tableName));
 const { confirm } = useConfirm();
 const toast = useToast();
@@ -175,6 +176,26 @@ function toggleColumnVisibility(columnName: string) {
 }
 
 useSubHeaderActionRegistry([
+  // Left side - Bulk delete button (when items selected)
+  {
+    id: "bulk-delete-selected",
+    label: computed(() => `Delete Selected (${selectedRows.value.length})`),
+    icon: "lucide:trash-2",
+    variant: "solid",
+    color: "error",
+    size: isTablet.value ? "sm" : "md",
+    side: "right",
+    onClick: () => handleBulkDeleteIfAllowed(selectedRows.value),
+    disabled: computed(() => selectedRows.value.length <= 0),
+    permission: {
+      and: [
+        {
+          route: `/${route.params.table}`,
+          actions: ["delete"],
+        },
+      ],
+    },
+  },
   // Right side - Column picker (default side)
   {
     id: "column-picker-component",
@@ -354,10 +375,14 @@ async function handleBulkDeleteIfAllowed(selectedRows: any[]) {
   return handleBulkDelete(selectedRows);
 }
 
-async function handleBulkDelete(selectedRows: any[]) {
+function handleSelectionChange(rows: any[]) {
+  selectedRows.value = rows;
+}
+
+async function handleBulkDelete(rows: any[]) {
   const result = await confirm({
     title: "Delete Records",
-    content: `Are you sure you want to delete ${selectedRows.length} record(s)?`,
+    content: `Are you sure you want to delete ${rows.length} record(s)?`,
     confirmText: "Delete All",
     cancelText: "Cancel",
   });
@@ -368,7 +393,7 @@ async function handleBulkDelete(selectedRows: any[]) {
 
   await deleteLoader.withLoading(async () => {
     // Extract IDs from selected rows
-    const ids = selectedRows.map((row) => row.id);
+    const ids = rows.map((row) => row.id);
 
     // Use batch delete with ids parameter
     await executeDelete({ ids });
@@ -380,10 +405,12 @@ async function handleBulkDelete(selectedRows: any[]) {
 
     toast.add({
       title: "Success",
-      description: `${selectedRows.length} record(s) deleted successfully`,
+      description: `${rows.length} record(s) deleted successfully`,
       color: "success",
     });
 
+    // Clear selection after successful delete
+    selectedRows.value = [];
     await fetchData();
   });
 }
@@ -478,7 +505,7 @@ useHeaderActionRegistry([
         :loading="false"
         :page-size="pageLimit"
         :selectable="true"
-        @bulk-delete="handleBulkDeleteIfAllowed"
+        @selection-change="handleSelectionChange"
         @row-click="(row: any) => navigateTo(`/data/${tableName}/${row.id}`)"
       >
         <template #header-actions>

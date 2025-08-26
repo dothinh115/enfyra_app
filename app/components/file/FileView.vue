@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { UIcon } from "#components";
 import { h } from "vue";
+import { getFileIconAndColor } from "~/utils/file-management/file-icons";
 
 interface Props {
   files: any[];
@@ -27,6 +28,9 @@ const emit = defineEmits<{
 }>();
 
 const { isMounted } = useMounted();
+
+// Get move state to disable selection during move mode
+const { fileMoveState: moveState } = useGlobalState();
 
 // Import permissions
 const { checkPermissionCondition } = usePermissions();
@@ -86,90 +90,6 @@ function deleteFile(file: any) {
   deleteFile(file, () => emit("refresh-files"));
 }
 
-// Function to get file icon and color based on mimetype
-function getFileIconAndColor(mimetype: string): {
-  icon: string;
-  color: string;
-  background: string;
-} {
-  if (!mimetype)
-    return {
-      icon: "lucide:file",
-      color: "text-gray-300",
-      background: "bg-gray-800",
-    };
-
-  if (mimetype.startsWith("image/"))
-    return {
-      icon: "lucide:image",
-      color: "text-blue-300",
-      background: "bg-blue-900/30",
-    };
-  if (mimetype.startsWith("video/"))
-    return {
-      icon: "lucide:video",
-      color: "text-purple-300",
-      background: "bg-purple-900/30",
-    };
-  if (mimetype.startsWith("audio/"))
-    return {
-      icon: "lucide:music",
-      color: "text-green-300",
-      background: "bg-green-900/30",
-    };
-  if (mimetype.includes("pdf"))
-    return {
-      icon: "lucide:file-text",
-      color: "text-red-300",
-      background: "bg-red-900/30",
-    };
-  if (mimetype.includes("word") || mimetype.includes("document"))
-    return {
-      icon: "lucide:file-text",
-      color: "text-blue-300",
-      background: "bg-blue-900/30",
-    };
-  if (mimetype.includes("excel") || mimetype.includes("spreadsheet"))
-    return {
-      icon: "lucide:table",
-      color: "text-green-300",
-      background: "bg-green-900/30",
-    };
-  if (mimetype.includes("powerpoint") || mimetype.includes("presentation"))
-    return {
-      icon: "lucide:presentation",
-      color: "text-orange-300",
-      background: "bg-orange-900/30",
-    };
-  if (
-    mimetype.includes("zip") ||
-    mimetype.includes("rar") ||
-    mimetype.includes("7z")
-  )
-    return {
-      icon: "lucide:archive",
-      color: "text-yellow-300",
-      background: "bg-yellow-900/30",
-    };
-  if (mimetype.includes("text/"))
-    return {
-      icon: "lucide:file-text",
-      color: "text-gray-300",
-      background: "bg-gray-800",
-    };
-  if (mimetype.includes("code") || mimetype.includes("script"))
-    return {
-      icon: "lucide:code",
-      color: "text-indigo-300",
-      background: "bg-indigo-900/30",
-    };
-
-  return {
-    icon: "lucide:file",
-    color: "text-gray-300",
-    background: "bg-gray-800",
-  };
-}
 
 // Build file columns for DataTable
 const fileColumns = computed(() => [
@@ -264,6 +184,24 @@ function toggleItemSelection(fileId: string) {
   emit("toggle-selection", fileId);
 }
 
+function handleSelectionChange(selectedRows: any[]) {
+  const selectedIds = selectedRows.map((row) => row.id);
+  const currentSelected = [...props.selectedItems];
+
+  currentSelected.forEach((itemId) => {
+    if (!selectedIds.includes(itemId)) {
+      emit("toggle-selection", itemId);
+    }
+  });
+
+  // Add newly selected items
+  selectedIds.forEach((itemId) => {
+    if (!currentSelected.includes(itemId)) {
+      emit("toggle-selection", itemId);
+    }
+  });
+}
+
 // Get context menu items for files (similar to FileGrid)
 function getContextMenuItems(file: any) {
   const menuItems: any = [
@@ -347,15 +285,17 @@ function getContextMenuItems(file: any) {
         />
 
         <!-- List View -->
-        <DataTable
+        <DataTableLazy
           v-else-if="viewMode === 'list'"
           :data="transformedFiles"
           :columns="fileColumns"
           :loading="false"
           :page-size="50"
-          :selectable="true"
-          :context-menu-items="getContextMenuItems"
+          :selectable="!moveState.moveMode && isSelectionMode"
+          :context-menu-items="!isSelectionMode && !moveState.moveMode ? getContextMenuItems : undefined"
+          :selected-items="selectedItems"
           @row-click="handleFileClick"
+          @selection-change="handleSelectionChange"
         />
       </div>
 

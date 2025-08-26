@@ -32,28 +32,13 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>();
 
-const route = useRoute();
+// Use composables for better organization
+const { viewMode, toggleViewMode } = useFileManagerViewMode();
+const { isSelectionMode, selectedItems, toggleItemSelection, clearSelection } = useFileManagerSelection();
+const { isMoveMode, isAnyMovePending, moveState, startMoveMode, cancelMoveMode, isMoveHereDisabled, handleMoveHere } = useFileManagerMove();
 
-const getInitialViewMode = (): "grid" | "list" => {
-  if (process.client) {
-    const saved = localStorage.getItem("file-manager-view-mode");
-    if (saved === "grid" || saved === "list") {
-      return saved;
-    }
-  }
-
-  return "grid";
-};
-
-const viewMode = ref<"grid" | "list">(getInitialViewMode());
-
-const isSelectionMode = ref(false);
-const selectedItems = ref<string[]>([]);
-
-// Get file manager states from global state
-const { fileMoveState: moveState, selectedFoldersForDelete: selectedFolders, clearFileManagerState } = useGlobalState();
-
-const isMoveMode = computed(() => moveState.value.moveMode);
+// Get remaining global state and services
+const { selectedFoldersForDelete: selectedFolders, clearFileManagerState } = useGlobalState();
 const { confirm } = useConfirm();
 
 function handleFolderClick(folder: any) {
@@ -89,172 +74,48 @@ function handleFileClick(file: any) {
   navigateTo(`/files/${file.id}`);
 }
 
-function toggleItemSelection(itemId: string) {
-  const index = selectedItems.value.indexOf(itemId);
-  if (index > -1) {
-    selectedItems.value.splice(index, 1);
-  } else {
-    selectedItems.value.push(itemId);
+// Wrapper for toggleItemSelection to handle auto-enable logic
+function handleToggleItemSelection(itemId: string) {
+  toggleItemSelection(itemId);
+  
+  // Auto-enable selection mode when items are selected (only in grid view)
+  if (selectedItems.value.length > 0 && !isSelectionMode.value && !isMoveMode.value && viewMode.value === "grid") {
+    isSelectionMode.value = true;
   }
+  // Note: We don't auto-disable selection mode when no items selected
+  // User should manually disable it via "Cancel Selection" button
 }
 
 // Ensure selection is restored when returning while in move mode
 onMounted(() => {
   if (moveState.value.moveMode && moveState.value.selectedItems.length > 0) {
     selectedItems.value = [...moveState.value.selectedItems];
-    // Don't enable selection mode when in move mode
     isSelectionMode.value = false;
   }
 });
-
-function startMoveMode() {
-  if (selectedItems.value.length === 0) return;
-  // Capture current folder as source
-  if (!moveState.value.sourceFolderId) {
-    moveState.value.sourceFolderId =
-      props.parentId || (route.params.id as string);
-  }
-  moveState.value.selectedItems = [...selectedItems.value];
-  // Split ids by type for stable counts display across navigation
-  moveState.value.selectedFolderIds = selectedItems.value.filter((id) =>
-    props.folders.find((f) => f.id === id)
-  );
-  moveState.value.selectedFileIds = selectedItems.value.filter((id) =>
-    props.files.find((f) => f.id === id)
-  );
-  moveState.value.moveMode = true;
-  // Allow navigation between folders while in move mode
-  isSelectionMode.value = false;
-}
-
-function cancelMoveMode() {
-  moveState.value.moveMode = false;
-  moveState.value.selectedItems = [];
-  moveState.value.selectedFileIds = [];
-  moveState.value.selectedFolderIds = [];
-  moveState.value.sourceFolderId = null;
-  // keep local selection so user can continue if they want
-  selectedItems.value = [];
-}
 
 // Clear all file manager state (global + local)
 function clearAllState() {
-  clearFileManagerState(); // Clear global state
-  selectedItems.value = []; // Clear local selection
-  isSelectionMode.value = false; // Reset selection mode
+  clearFileManagerState();
+  clearSelection();
 }
 
-const currentFolderId = computed(
-  () => props.parentId || (route.params.id as string | undefined)
-);
+// Wrapper for move functions with proper parameters
+function handleStartMoveMode() {
+  startMoveMode(selectedItems.value, props.folders, props.files, props.parentId);
+  isSelectionMode.value = false;
+}
 
-const isMoveHereDisabled = computed(() => {
-  // Disabled if not in move mode, or destination equals source (including root↔root)
-  return (
-    !moveState.value.moveMode ||
-    currentFolderId.value === moveState.value.sourceFolderId
-  );
-});
+function handleCancelMoveMode() {
+  const clearedSelection = cancelMoveMode();
+  selectedItems.value = clearedSelection;
+}
 
-// API instances defined in setup (per AI_MEMORY_FE convention)
-const {
-  execute: patchFiles,
-  error: patchFilesError,
-  pending: patchFilesPending,
-} = useApiLazy(() => "/file_definition", {
-  method: "patch",
-  errorContext: "Move Files",
-});
-const {
-  execute: patchFolders,
-  error: patchFoldersError,
-  pending: patchFoldersPending,
-} = useApiLazy(() => "/folder_definition", {
-  method: "patch",
-  errorContext: "Move Folders",
-});
-
-const isAnyMovePending = computed(
-  () => !!(patchFilesPending.value || patchFoldersPending.value)
-);
-
-async function handleMoveHere() {
-  if (isMoveHereDisabled.value) {
-    return;
-  }
-
-  const folderIds = [...(moveState.value.selectedFolderIds || [])];
-  const fileIds = [...(moveState.value.selectedFileIds || [])];
-
-  if (folderIds.length === 0 && fileIds.length === 0) return;
-
-  const destinationId =
-    props.parentId || (route.params.id as string | undefined);
-
-  const totalCount = fileIds.length + folderIds.length;
-  const isConfirmed = await confirm({
-    title: "Move items",
-    content: `Are you sure you want to move ${totalCount} item(s) here?`,
-    confirmText: "Move",
-    cancelText: "Cancel",
-  });
-  if (!isConfirmed) return;
-
-  if (destinationId && folderIds.includes(destinationId)) {
-    const toast = useToast();
-    toast.add({
-      title: "Invalid move",
-      description: "A folder cannot be moved into itself.",
-      color: "warning",
-    });
-    return;
-  }
-
-  let hasError = false;
-
-  if (fileIds.length > 0) {
-    const fileBody = destinationId
-      ? { folder: { id: destinationId } }
-      : { folder: null };
-    await patchFiles({ ids: fileIds, body: fileBody });
-    if (patchFilesError.value) {
-      hasError = true;
-    }
-  }
-
-  if (folderIds.length > 0 && !hasError) {
-    const folderBody = destinationId
-      ? { parent: { id: destinationId } }
-      : { parent: null };
-    await patchFolders({ ids: folderIds, body: folderBody });
-    if (patchFoldersError.value) {
-      hasError = true;
-    }
-  }
-
-  if (!hasError) {
-    const toast = useToast();
-    const totalCount = moveState.value.selectedItems.length;
-    toast.add({
-      title: "Success",
-      description: `${totalCount} item(s) moved successfully!`,
-      color: "success",
-    });
-
-    emit("refreshItems");
-
-    // Clear state
-    selectedItems.value = [];
-    cancelMoveMode();
-    isSelectionMode.value = false;
-  }
-  if (hasError) {
-    const toast = useToast();
-    toast.add({
-      title: "Move failed",
-      description: "Please try again.",
-      color: "error",
-    });
+async function handleMoveHereWrapper() {
+  const success = await handleMoveHere(props.parentId, () => emit("refreshItems"));
+  if (success) {
+    clearSelection();
+    handleCancelMoveMode();
   }
 }
 
@@ -354,15 +215,7 @@ useSubHeaderActionRegistry([
     icon: computed(() =>
       viewMode.value === "grid" ? "lucide:layout-list" : "lucide:layout-grid"
     ),
-    onClick: () => {
-      const newViewMode = viewMode.value === "grid" ? "list" : "grid";
-      viewMode.value = newViewMode;
-
-      if (process.client) {
-        localStorage.setItem("file-manager-view-mode", newViewMode);
-      }
-      // Do not persist view mode on URL query to avoid breaking back button behavior
-    },
+    onClick: toggleViewMode,
     side: "left",
   },
   {
@@ -378,11 +231,11 @@ useSubHeaderActionRegistry([
     onClick: () => {
       isSelectionMode.value = !isSelectionMode.value;
       if (!isSelectionMode.value) {
-        selectedItems.value = [];
+        clearSelection();
       }
     },
     side: "right",
-    show: computed(() => viewMode.value === "grid" && !isMoveMode.value),
+    show: computed(() => !isMoveMode.value),
     permission: {
       and: [
         {
@@ -406,8 +259,6 @@ useSubHeaderActionRegistry([
     side: "right",
     show: computed(
       () =>
-        viewMode.value === "grid" &&
-        isSelectionMode.value &&
         selectedItems.value.length > 0 &&
         !isMoveMode.value
     ),
@@ -418,12 +269,10 @@ useSubHeaderActionRegistry([
     icon: "lucide:arrow-right-left",
     variant: "solid",
     color: "info",
-    onClick: startMoveMode,
+    onClick: handleStartMoveMode,
     side: "right",
     show: computed(
       () =>
-        viewMode.value === "grid" &&
-        isSelectionMode.value &&
         selectedItems.value.length > 0 &&
         !isMoveMode.value
     ),
@@ -442,11 +291,11 @@ useSubHeaderActionRegistry([
     color: "primary",
     loading: computed(() => isAnyMovePending.value),
     disabled: computed(
-      () => isMoveHereDisabled.value || isAnyMovePending.value
+      () => isMoveHereDisabled(props.parentId) || isAnyMovePending.value
     ),
-    onClick: handleMoveHere,
+    onClick: handleMoveHereWrapper,
     side: "right",
-    show: computed(() => viewMode.value === "grid" && isMoveMode.value),
+    show: computed(() => isMoveMode.value),
   },
   {
     id: "cancel-move",
@@ -454,9 +303,9 @@ useSubHeaderActionRegistry([
     icon: "lucide:x",
     variant: "ghost",
     color: "secondary",
-    onClick: cancelMoveMode,
+    onClick: handleCancelMoveMode,
     side: "right",
-    show: computed(() => viewMode.value === "grid" && isMoveMode.value),
+    show: computed(() => isMoveMode.value),
   },
   {
     id: "select-all",
@@ -518,7 +367,7 @@ useSubHeaderActionRegistry([
             :is-selection-mode="isSelectionMode"
             :selected-items="selectedItems"
             @folder-click="handleFolderClick"
-            @toggle-selection="toggleItemSelection"
+            @toggle-selection="handleToggleItemSelection"
             @refresh-folders="() => emit('refreshFolders')"
           />
         </div>
@@ -541,7 +390,7 @@ useSubHeaderActionRegistry([
             :is-selection-mode="isSelectionMode"
             :selected-items="selectedItems"
             @file-click="handleFileClick"
-            @toggle-selection="toggleItemSelection"
+            @toggle-selection="handleToggleItemSelection"
             @refresh-files="() => emit('refreshFiles')"
           />
         </div>

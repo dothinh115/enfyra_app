@@ -76,7 +76,6 @@ export function useFileManager(parentFilter?: any) {
 
   function showFolderDetail(folder: any) {
     selectedFolder.value = folder;
-    console.log(selectedFolder.value);
     showDetailModal.value = true;
   }
 

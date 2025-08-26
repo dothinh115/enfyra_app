@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { UIcon } from "#components";
 import { h } from "vue";
+import { getFolderIconName, getDefaultFolderIcon, getFolderOpenIcon } from "~/utils/file-management/folder-icons";
 
 interface Props {
   folders: any[];
@@ -27,6 +28,9 @@ const emit = defineEmits<{
 }>();
 
 const { isMounted } = useMounted();
+
+// Get move state to disable selection during move mode
+const { fileMoveState: moveState } = useGlobalState();
 
 // Import permissions
 const { checkPermissionCondition } = usePermissions();
@@ -71,7 +75,7 @@ const folderColumns = computed(() => [
           },
           [
             h(UIcon, {
-              name: folder.icon || "lucide:folder",
+              name: getFolderIconName(folder),
               class: "w-4 h-4 text-blue-600 dark:text-blue-400",
             }),
           ]
@@ -132,13 +136,31 @@ function toggleItemSelection(folderId: string) {
   emit("toggle-selection", folderId);
 }
 
+function handleSelectionChange(selectedRows: any[]) {
+  const selectedIds = selectedRows.map((row) => row.id);
+  const currentSelected = [...props.selectedItems];
+
+  currentSelected.forEach((itemId) => {
+    if (!selectedIds.includes(itemId)) {
+      emit("toggle-selection", itemId);
+    }
+  });
+
+  // Add newly selected items
+  selectedIds.forEach((itemId) => {
+    if (!currentSelected.includes(itemId)) {
+      emit("toggle-selection", itemId);
+    }
+  });
+}
+
 // Get context menu items for folders (similar to FolderGrid)
 function getContextMenuItems(folder: any) {
   const menuItems: any = [
     [
       {
         label: "Open",
-        icon: "lucide:folder-open",
+        icon: getFolderOpenIcon(),
         onSelect: () => {
           emit("folder-click", folder);
         },
@@ -196,26 +218,28 @@ function getContextMenuItems(folder: any) {
         />
 
         <!-- List View -->
-        <DataTable
+        <DataTableLazy
           v-else-if="viewMode === 'list'"
           :data="folders"
           :columns="folderColumns"
           :loading="false"
           :page-size="50"
-          :selectable="true"
-          :context-menu-items="getContextMenuItems"
+          :selectable="!moveState.moveMode && isSelectionMode"
+          :context-menu-items="!isSelectionMode && !moveState.moveMode ? getContextMenuItems : undefined"
+          :selected-items="selectedItems"
           @row-click="handleFolderClick"
+          @selection-change="handleSelectionChange"
         />
       </div>
 
-      <!-- Empty State - chỉ hiển thị khi không loading, không có data và đã mount -->
+      <!-- Empty State -->
       <div
         v-else-if="!loading && folders.length === 0"
         key="empty"
         class="text-center py-12"
       >
         <UIcon
-          name="lucide:folder"
+          :name="getDefaultFolderIcon()"
           class="w-16 h-16 text-muted-foreground mx-auto mb-4"
         />
         <p class="text-lg font-medium text-muted-foreground">

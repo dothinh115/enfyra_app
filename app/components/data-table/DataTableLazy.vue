@@ -9,7 +9,7 @@ const props = defineProps<DataTableProps>();
 
 defineEmits<{
   "row-click": [row: any];
-  "bulk-delete": [selectedRows: any[]];
+  "selection-change": [selectedRows: any[]];
 }>();
 
 const DataTable = defineAsyncComponent(() => import("./DataTable.vue"));
@@ -24,8 +24,12 @@ const DataTable = defineAsyncComponent(() => import("./DataTable.vue"));
         :page-size="props.pageSize"
         :loading="props.loading"
         :selectable="props.selectable"
+        :selected-items="props.selectedItems"
+        :context-menu-items="props.contextMenuItems"
         @row-click="(row) => $emit('row-click', row)"
-        @bulk-delete="(selectedRows) => $emit('bulk-delete', selectedRows)"
+        @selection-change="
+          (selectedRows) => $emit('selection-change', selectedRows)
+        "
       />
       <template #fallback>
         <CommonLoadingState

@@ -93,7 +93,7 @@
                     :size="96"
                     class="transition-all duration-300"
                     :class="[
-                      getFileColor(file),
+                      getFileColor(file.mimetype),
                       hoveredFileId === file.id ? 'scale-110 rotate-3' : '',
                     ]"
                   />
@@ -248,6 +248,8 @@
 
 <script setup lang="ts">
 import { formatDate } from "~/utils/common/filter/filter-helpers";
+import { getFileIconAndColor, getFileColor } from "~/utils/file-management/file-icons";
+import { formatFileSize } from "~/utils/file-management/file-utils";
 import type { FileItem } from "~/utils/types";
 
 interface Props {
@@ -270,37 +272,21 @@ const props = withDefaults(defineProps<Props>(), {
 
 // Transform files data for display
 const transformedFiles = computed(() => {
-  return props.files.map((file: any) => ({
-    ...file,
-    displayName: file.filename || file.title || "Untitled",
-    icon: getFileIcon(file.mimetype),
-    size: formatFileSize(parseInt(file.filesize || "0")),
-    modifiedAt: file.updatedAt || file.createdAt || "",
-    assetUrl: `/api/assets/${file.id}`,
-    previewUrl: `/api/assets/${file.id}`,
-  }));
+  return props.files.map((file: any) => {
+    const iconConfig = getFileIconAndColor(file.mimetype);
+    return {
+      ...file,
+      displayName: file.filename || file.title || "Untitled",
+      icon: iconConfig.icon,
+      iconColor: iconConfig.color,
+      iconBackground: iconConfig.background,
+      size: formatFileSize(parseInt(file.filesize || "0")),
+      modifiedAt: file.updatedAt || file.createdAt || "",
+      assetUrl: `/api/assets/${file.id}`,
+      previewUrl: `/api/assets/${file.id}`,
+    };
+  });
 });
-
-// File utilities
-function getFileIcon(mimetype: string): string {
-  if (mimetype?.startsWith("image/")) return "lucide:image";
-  if (mimetype?.startsWith("video/")) return "lucide:video";
-  if (mimetype?.startsWith("audio/")) return "lucide:music";
-  if (mimetype?.includes("pdf")) return "lucide:file-text";
-  if (mimetype?.includes("zip") || mimetype?.includes("archive"))
-    return "lucide:archive";
-  if (mimetype?.startsWith("text/")) return "lucide:file-text";
-  if (mimetype?.startsWith("application/")) return "lucide:file-text";
-  return "lucide:file";
-}
-
-function formatFileSize(bytes: number): string {
-  if (bytes === 0) return "0 B";
-  const k = 1024;
-  const sizes = ["B", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
-}
 
 const emit = defineEmits<{
   "file-click": [file: any];
@@ -310,7 +296,6 @@ const emit = defineEmits<{
 const { checkPermissionCondition } = usePermissions();
 const { confirm } = useConfirm();
 const toast = useToast();
-const router = useRouter();
 
 // Access global move state
 const { fileMoveState: moveState } = useGlobalState();
@@ -467,25 +452,6 @@ function isImageFile(file: FileItem): boolean {
   return false;
 }
 
-// Get file color based on mimetype
-function getFileColor(file: FileItem): string {
-  if (file.mimetype?.startsWith("image/")) {
-    return "text-green-500 dark:text-green-400";
-  }
-  if (file.mimetype?.startsWith("video/")) {
-    return "text-purple-500 dark:text-purple-400";
-  }
-  if (file.mimetype?.startsWith("audio/")) {
-    return "text-orange-500 dark:text-orange-400";
-  }
-  if (file.mimetype?.includes("pdf") || file.mimetype?.startsWith("text/")) {
-    return "text-red-500 dark:text-red-400";
-  }
-  if (file.mimetype?.includes("zip") || file.mimetype?.includes("archive")) {
-    return "text-yellow-500 dark:text-yellow-400";
-  }
-  return "text-gray-500 dark:text-gray-400";
-}
 
 // Handle image loading errors
 function handleImageError(event: Event) {

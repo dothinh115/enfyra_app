@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { getFolderIconName, getFolderIconColor } from "~/utils/file-management/folder-icons";
+
 // Use useState to get global state from composable
 const showDetailModal = useState("folder-detail-modal", () => false);
 const selectedFolder = useState<any>("folder-selected", () => null);
@@ -32,13 +34,9 @@ function formatDate(dateString: string) {
           <div class="flex items-center gap-3">
             <div class="p-3 rounded-lg bg-blue-100 dark:bg-blue-900/30">
               <UIcon
-                :name="
-                  selectedFolder.isSystem ? 'lucide:shield' : 'lucide:folder'
-                "
+                :name="getFolderIconName(selectedFolder)"
                 class="w-8 h-8"
-                :class="
-                  selectedFolder.isSystem ? 'text-amber-500' : 'text-blue-500'
-                "
+                :class="getFolderIconColor(selectedFolder)"
               />
             </div>
             <div>
