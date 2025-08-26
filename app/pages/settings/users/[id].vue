@@ -156,7 +156,9 @@ onMounted(() => {
   <div class="space-y-6">
     <!-- Header - Full width -->
     <CommonPageHeader
-      :title="loading ? 'Loading...' : apiData?.data?.[0]?.email"
+      :title="
+        loading ? 'Loading...' : apiData?.data?.[0]?.email || 'User Details'
+      "
       title-size="lg"
       show-background
       background-gradient="from-blue-500/6 via-indigo-400/4 to-transparent"
@@ -173,7 +175,7 @@ onMounted(() => {
             v-model:errors="errors"
             v-model:has-changes="hasFormChanges"
             table-name="user_definition"
-            :excluded="['isRootAdmin', 'isSystem']"
+            :excluded="['isRootAdmin', 'isSystem', 'allowedRoutePermissions']"
             :loading="loading"
           />
         </UForm>

@@ -16,6 +16,7 @@
             v-model="form"
             v-model:errors="errors"
             :table-name="tableName"
+            :excluded="['allowedRoutePermissions']"
           />
         </UForm>
       </div>

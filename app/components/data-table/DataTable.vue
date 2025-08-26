@@ -10,7 +10,6 @@ import {
   type VisibilityState,
 } from "@tanstack/vue-table";
 import type { DataTableProps } from "../../utils/types";
-// Vue functions are auto-imported
 
 const props = withDefaults(defineProps<DataTableProps>(), {
   pageSize: 10,
@@ -231,6 +230,7 @@ const { isTablet } = useScreen();
             <UContextMenu
               v-if="props.contextMenuItems"
               :items="props.contextMenuItems(row.original)"
+              :disabled="props.contextMenuItems(row.original).length === 0"
             >
               <tr
                 :class="[

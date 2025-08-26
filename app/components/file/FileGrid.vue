@@ -14,15 +14,21 @@
           @mouseleave="hoveredFileId = null"
         >
           <!-- Card Container with Context Menu -->
-          <UContextMenu :items="getContextMenuItems(file)">
+          <UContextMenu 
+            :items="moveState.moveMode ? [] : getContextMenuItems(file)"
+            :disabled="moveState.moveMode"
+          >
             <div
-              class="relative bg-white dark:bg-gray-800 rounded-xl border transition-all duration-300 cursor-pointer overflow-hidden"
+              class="relative bg-white dark:bg-gray-800 rounded-xl border transition-all duration-300 overflow-hidden"
               :class="[
                 selectedItems.includes(file.id)
                   ? 'border-primary-500 shadow-lg shadow-primary-500/20 scale-[1.02]'
                   : hoveredFileId === file.id
                   ? 'border-primary-300 dark:border-primary-600 shadow-xl transform -translate-y-1'
                   : 'border-gray-200 dark:border-gray-700 shadow-sm lg:hover:shadow-lg',
+                moveState.moveMode
+                  ? 'opacity-60 cursor-not-allowed'
+                  : 'cursor-pointer',
               ]"
               @click="handleFileClick(file)"
             >
@@ -183,6 +189,7 @@
 
                 <!-- Quick Actions (visible on hover) -->
                 <div
+                  v-if="!moveState.moveMode"
                   class="flex items-center gap-2 pt-2 border-t border-gray-100 dark:border-gray-700 opacity-0 lg:group-hover:opacity-100 transition-opacity duration-200"
                 >
                   <UButton
@@ -204,6 +211,17 @@
                       @click.stop
                     />
                   </UDropdownMenu>
+                </div>
+                
+                <!-- Move mode indicator -->
+                <div
+                  v-else
+                  class="flex items-center justify-center pt-2 border-t border-gray-100 dark:border-gray-700"
+                >
+                  <span class="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                    <UIcon name="lucide:move" class="w-3 h-3" />
+                    Move mode active
+                  </span>
                 </div>
               </div>
             </div>
@@ -294,6 +312,9 @@ const { confirm } = useConfirm();
 const toast = useToast();
 const router = useRouter();
 
+// Access global move state
+const { fileMoveState: moveState } = useGlobalState();
+
 // Check delete permission for files
 const canDeleteFile = checkPermissionCondition({
   and: [
@@ -322,6 +343,14 @@ const editingLoading = ref(false);
 function handleFileClick(file: any) {
   if (props.isSelectionMode) {
     toggleItemSelection(file.id);
+  } else if (moveState.value.moveMode) {
+    // In move mode, show toast and don't navigate
+    toast.add({
+      title: "Cannot open file",
+      description: "Cancel move mode to access files.",
+      color: "info",
+    });
+    return;
   } else {
     emit("file-click", file);
   }

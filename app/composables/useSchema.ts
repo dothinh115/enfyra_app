@@ -1,11 +1,164 @@
-// useGlobalState is auto-imported
+// Convert raw table data to Enfyra schema format
+function convertToEnfyraSchema(input: any[]): Record<string, any> {
+  const schema: Record<string, any> = {};
+  const seenRelationKeys = new Set<string>();
 
-export function useSchema(tableName: string | Ref<string>) {
-  const { schemas } = useGlobalState();
+  // 1. Normalize tables
+  for (const t of input) {
+    schema[t.name] = {
+      ...t,
+      definition: [],
+    };
+    delete schema[t.name].columns;
+    delete schema[t.name].relations;
+  }
+
+  // 2. Process columns
+  for (const t of input) {
+    for (const col of t.columns || []) {
+      schema[t.name].definition.push({
+        ...col,
+        fieldType: "column",
+      });
+    }
+  }
+
+  for (const tableName in schema) {
+    const def = schema[tableName].definition;
+
+    const shouldInject = (name: string) =>
+      !def.some((d: any) => d.name === name && d.fieldType === "column");
+
+    if (shouldInject("createdAt")) {
+      def.push({
+        name: "createdAt",
+        type: "timestamp",
+        isNullable: false,
+        isSystem: true,
+        isUpdatable: false,
+        isHidden: false,
+        fieldType: "column",
+        isVirtual: true,
+      });
+    }
+
+    if (shouldInject("updatedAt")) {
+      def.push({
+        name: "updatedAt",
+        type: "timestamp",
+        isNullable: false,
+        isSystem: true,
+        isUpdatable: false,
+        isHidden: false,
+        fieldType: "column",
+        isVirtual: true,
+      });
+    }
+  }
+
+  // 3. Process relations and inverses
+  for (const t of input) {
+    for (const rel of t.relations || []) {
+      const sourceTable = t.name;
+      if (!rel.propertyName || !rel.targetTable || !rel.sourceTable) continue;
+
+      const directKey = `${sourceTable}:${rel.propertyName}`;
+      if (!seenRelationKeys.has(directKey)) {
+        schema[sourceTable].definition.push({
+          ...rel,
+          name: rel.propertyName,
+          fieldType: "relation",
+        });
+        seenRelationKeys.add(directKey);
+      }
+
+      // If has inverse → generate reverse relation with target keeping object format
+      if (rel.inversePropertyName) {
+        const targetTableName = input.find(
+          (t) => t.id === rel.targetTable.id
+        )?.name;
+        const inverseKey = `${targetTableName}:${rel.inversePropertyName}`;
+        if (!seenRelationKeys.has(inverseKey)) {
+          const inverseRel = {
+            ...rel,
+            name: rel.inversePropertyName,
+            propertyName: rel.inversePropertyName,
+            inversePropertyName: rel.propertyName,
+            sourceTable: rel.targetTable,
+            targetTable: rel.sourceTable,
+            type: inverseRelationType(rel.type),
+            fieldType: "relation",
+            isNullable: true,
+          };
+          delete inverseRel.id;
+          schema[targetTableName].definition.push(inverseRel);
+          seenRelationKeys.add(inverseKey);
+        }
+      }
+    }
+  }
+
+  return schema;
+}
+
+function inverseRelationType(type: string): string {
+  switch (type) {
+    case "one-to-many":
+      return "many-to-one";
+    case "many-to-one":
+      return "one-to-many";
+    default:
+      return type;
+  }
+}
+
+// Function overloads for TypeScript
+export function useSchema(): {
+  schemas: Readonly<Ref<any>>;
+  updateSchemas: (tables: any[]) => void;
+  convertToEnfyraSchema: typeof convertToEnfyraSchema;
+  getSchemas: () => any;
+};
+export function useSchema(tableName: string | Ref<string>): {
+  definition: ComputedRef<any[]>;
+  fieldMap: ComputedRef<Map<string, any>>;
+  generateEmptyForm: (options?: { excluded?: string[] }) => Record<string, any>;
+  validate: (record: Record<string, any>) => { isValid: boolean; errors: Record<string, string> };
+  getIncludeFields: () => string;
+  sortFieldsByOrder: (fields: any[]) => any[];
+  useFormChanges: () => any;
+  updateSchemas: (tables: any[]) => void;
+};
+export function useSchema(tableName?: string | Ref<string>): any {
+  // Schema state management - must be inside the function
+  const schemas = useState<any>("schemas:data", () => ({}));
   
+  // Update schemas with new table data
+  function updateSchemas(tables: any[]) {
+    schemas.value = convertToEnfyraSchema(tables);
+  }
+
+  // Get all schemas
+  function getSchemas() {
+    return schemas.value;
+  }
+
+  // If no tableName provided, return schema management functions
+  if (!tableName) {
+    return {
+      schemas: readonly(schemas),
+      updateSchemas,
+      convertToEnfyraSchema,
+      getSchemas,
+    };
+  }
+
+  // Original useSchema functionality for specific table
   const tableNameRef = isRef(tableName) ? tableName : ref(tableName);
 
-  const definition = computed(() => schemas.value[tableNameRef.value]?.definition || []);
+  const definition = computed(
+    () => schemas.value[tableNameRef.value]?.definition || []
+  );
 
   // Helper function to sort fields by standard order
   function sortFieldsByOrder(fields: any[]): any[] {
@@ -193,7 +346,8 @@ export function useSchema(tableName: string | Ref<string>) {
     generateEmptyForm,
     validate,
     getIncludeFields,
-    sortFieldsByOrder, // Export helper function for external use
-    useFormChanges, // Form change tracking
+    sortFieldsByOrder,
+    useFormChanges,
+    updateSchemas,
   };
 }

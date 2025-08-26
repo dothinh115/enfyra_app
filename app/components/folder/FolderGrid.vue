@@ -274,10 +274,7 @@ const transformedFolders = computed(() => {
 });
 
 // Access global move state to disable folders under move
-const moveState = useState("file-move-state", () => ({
-  moveMode: false as boolean,
-  selectedFolderIds: [] as string[],
-}));
+const { fileMoveState: moveState } = useGlobalState();
 
 function isFolderDisabled(folderId: string) {
   return !!(

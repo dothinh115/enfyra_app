@@ -33,7 +33,6 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<Emits>();
 
 const route = useRoute();
-const router = useRouter();
 
 const getInitialViewMode = (): "grid" | "list" => {
   if (process.client) {
@@ -51,19 +50,10 @@ const viewMode = ref<"grid" | "list">(getInitialViewMode());
 const isSelectionMode = ref(false);
 const selectedItems = ref<string[]>([]);
 
-// Persisted move state across navigation
-const moveState = useState("file-move-state", () => ({
-  moveMode: false as boolean,
-  sourceFolderId: null as string | null,
-  selectedItems: [] as string[],
-  selectedFileIds: [] as string[],
-  selectedFolderIds: [] as string[],
-}));
+// Get file manager states from global state
+const { fileMoveState: moveState, selectedFoldersForDelete: selectedFolders, clearFileManagerState } = useGlobalState();
 
 const isMoveMode = computed(() => moveState.value.moveMode);
-const sourceFolderId = computed(() => moveState.value.sourceFolderId);
-
-const selectedFolders = useState<string[]>("folder-selected-list", () => []);
 const { confirm } = useConfirm();
 
 function handleFolderClick(folder: any) {
@@ -84,6 +74,17 @@ function handleFolderClick(folder: any) {
 }
 
 function handleFileClick(file: any) {
+  // Prevent file navigation in move mode
+  if (moveState.value.moveMode) {
+    const toast = useToast();
+    toast.add({
+      title: "Cannot open file",
+      description: "Cancel move mode to access files.",
+      color: "info",
+    });
+    return;
+  }
+  
   // Navigate to file detail page
   navigateTo(`/files/${file.id}`);
 }
@@ -101,7 +102,8 @@ function toggleItemSelection(itemId: string) {
 onMounted(() => {
   if (moveState.value.moveMode && moveState.value.selectedItems.length > 0) {
     selectedItems.value = [...moveState.value.selectedItems];
-    isSelectionMode.value = true; // Cũng cần restore cái này
+    // Don't enable selection mode when in move mode
+    isSelectionMode.value = false;
   }
 });
 
@@ -135,18 +137,11 @@ function cancelMoveMode() {
   selectedItems.value = [];
 }
 
-function clearAllFileManagerState() {
-  // Clear move state
-  moveState.value.moveMode = false;
-  moveState.value.selectedItems = [];
-  moveState.value.selectedFileIds = [] as string[];
-  moveState.value.selectedFolderIds = [] as string[];
-  moveState.value.sourceFolderId = null;
-  // Clear local selections and flags
-  selectedItems.value = [];
-  isSelectionMode.value = false;
-  // Any persisted selected folders for bulk delete
-  selectedFolders.value = [];
+// Clear all file manager state (global + local)
+function clearAllState() {
+  clearFileManagerState(); // Clear global state
+  selectedItems.value = []; // Clear local selection
+  isSelectionMode.value = false; // Reset selection mode
 }
 
 const currentFolderId = computed(
@@ -263,11 +258,13 @@ async function handleMoveHere() {
   }
 }
 
-// onBeforeRouteLeave((to) => {
-//   if (!to.path.startsWith("/files/management")) {
-//     clearAllFileManagerState();
-//   }
-// });
+// Clear state when leaving file management area
+onBeforeRouteLeave((to, from) => {
+  // Only clear if leaving /files/management routes
+  if (from.path.includes('/files/management') && !to.path.includes('/files/management')) {
+    clearAllState();
+  }
+});
 
 async function handleBulkDelete() {
   if (selectedItems.value.length === 0) return;
@@ -376,6 +373,8 @@ useSubHeaderActionRegistry([
     icon: computed(() =>
       isSelectionMode.value ? "lucide:x" : "lucide:check-square"
     ),
+    variant: computed(() => (isSelectionMode.value ? "ghost" : "outline")),
+    color: computed(() => (isSelectionMode.value ? "secondary" : "primary")),
     onClick: () => {
       isSelectionMode.value = !isSelectionMode.value;
       if (!isSelectionMode.value) {
@@ -401,7 +400,7 @@ useSubHeaderActionRegistry([
     id: "bulk-delete",
     label: "Delete Selected",
     icon: "lucide:trash-2",
-    variant: "outline",
+    variant: "solid",
     color: "error",
     onClick: handleBulkDelete,
     side: "right",
@@ -417,7 +416,8 @@ useSubHeaderActionRegistry([
     id: "start-move",
     label: "Move",
     icon: "lucide:arrow-right-left",
-    variant: "outline",
+    variant: "solid",
+    color: "info",
     onClick: startMoveMode,
     side: "right",
     show: computed(
@@ -453,6 +453,7 @@ useSubHeaderActionRegistry([
     label: "Cancel",
     icon: "lucide:x",
     variant: "ghost",
+    color: "secondary",
     onClick: cancelMoveMode,
     side: "right",
     show: computed(() => viewMode.value === "grid" && isMoveMode.value),
