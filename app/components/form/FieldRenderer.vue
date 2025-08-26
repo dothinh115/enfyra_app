@@ -423,7 +423,7 @@ watch(
 <style>
 .field-input {
   opacity: 0;
-  animation: fadeIn 0.8s ease forwards;
+  animation: fadeIn 0.5s ease forwards;
 }
 
 @keyframes fadeIn {
