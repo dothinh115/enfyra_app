@@ -9,12 +9,24 @@ const props = defineProps<{
 const table = useModel(props, "modelValue");
 
 function addGroup(list: string[][]) {
-  list.push([""]);
+  list?.push([""]);
+}
+
+function addUniqueGroup() {
+  if (!table.value.uniques) table.value.uniques = [];
+  table.value.uniques.push([""]);
+}
+
+function addIndexGroup() {
+  if (!table.value.indexes) table.value.indexes = [];
+  table.value.indexes.push([""]);
 }
 function addFieldToGroup(list: string[][], groupIndex: number) {
-  list[groupIndex]?.push("");
+  if (!list || !list[groupIndex]) return;
+  list[groupIndex].push("");
 }
 function removeGroup(list: string[][], groupIndex: number) {
+  if (!list) return;
   list.splice(groupIndex, 1);
 }
 </script>
@@ -30,7 +42,7 @@ function removeGroup(list: string[][], groupIndex: number) {
           icon="lucide:plus"
           size="sm"
           color="primary"
-          @click="addGroup(table.uniques)"
+          @click="addUniqueGroup()"
           :disabled="table.isSystem"
         />
       </div>
@@ -74,7 +86,7 @@ function removeGroup(list: string[][], groupIndex: number) {
           icon="lucide:plus"
           size="sm"
           color="primary"
-          @click="addGroup(table.indexes)"
+          @click="addIndexGroup()"
           :disabled="table.isSystem"
         />
       </div>
