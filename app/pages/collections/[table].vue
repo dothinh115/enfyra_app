@@ -6,7 +6,7 @@ const toast = useToast();
 const { registerTableMenusWithSidebarIds } = useMenuRegistry();
 const tableName = "table_definition";
 const { getIncludeFields } = useSchema(tableName);
-
+const { isTablet } = useScreen();
 const { isMounted } = useMounted();
 
 const table = ref<any>();
@@ -86,6 +86,20 @@ useHeaderActionRegistry([
         },
       ],
     },
+  },
+]);
+
+const showSchemaViewer = ref(false);
+
+useSubHeaderActionRegistry([
+  {
+    id: "view-schema",
+    label: "View Schema",
+    icon: "lucide:database",
+    variant: "outline",
+    color: "secondary",
+    size: "md",
+    onClick: () => (showSchemaViewer.value = true),
   },
 ]);
 
@@ -220,5 +234,44 @@ onMounted(() => {
         size="sm"
       />
     </Transition>
+
+    <!-- Schema Viewer Modal -->
+    <Teleport to="body">
+      <UDrawer
+        v-model:open="showSchemaViewer"
+        direction="right"
+        :class="isTablet ? 'w-full' : 'min-w-2xl'"
+      >
+        <template #header>
+          <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-3">
+              <div
+                class="w-10 h-10 rounded-xl bg-gradient-to-br from-info to-primary flex items-center justify-center shadow-lg"
+              >
+                <UIcon name="lucide:database" class="text-sm text-white" />
+              </div>
+              <div>
+                <h2 class="text-xl font-semibold text-foreground">
+                  {{ table?.name }} Schema
+                </h2>
+                <p class="text-sm text-muted-foreground">
+                  API Documentation & Structure
+                </p>
+              </div>
+            </div>
+            <UButton
+              icon="lucide:x"
+              @click="showSchemaViewer = false"
+              variant="soft"
+              color="error"
+              size="lg"
+            />
+          </div>
+        </template>
+        <template #body>
+          <CollectionSchemaViewer v-if="table?.name" :table-name="table.name" />
+        </template>
+      </UDrawer>
+    </Teleport>
   </div>
 </template>
