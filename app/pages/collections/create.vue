@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { tables, fetchSchema } = useGlobalState();
+const { tables, fetchSchema, schemaLoading } = useGlobalState();
 const { confirm } = useConfirm();
 const toast = useToast();
 const { registerTableMenusWithSidebarIds } = useMenuRegistry();
@@ -134,8 +134,9 @@ useHeaderActionRegistry([
     variant: "solid",
     color: "primary",
     size: "md",
-    loading: computed(() => createLoading.value),
+    loading: computed(() => createLoading.value || schemaLoading.value),
     submit: save,
+    disabled: computed(() => schemaLoading.value),
     permission: {
       and: [
         {

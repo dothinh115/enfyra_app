@@ -24,10 +24,8 @@ export const useGlobalState = () => {
     () => []
   );
 
-  const toast = useToast();
 
-  // API composable for fetching tables
-  const { data: tablesData, execute: executeFetchTables } = useApiLazy(
+  const { data: tablesData, pending: tablesPending, execute: executeFetchTables } = useApiLazy(
     () => "/table_definition",
     {
       query: {
@@ -40,20 +38,12 @@ export const useGlobalState = () => {
   );
 
   async function fetchTable() {
-    try {
-      await executeFetchTables();
-      tables.value = tablesData.value?.data || [];
-    } catch (error) {
-      toast.add({
-        title: "Error",
-        description: "Cannot fetch tables...",
-        color: "error",
-      });
-    }
+    await executeFetchTables();
+    tables.value = tablesData.value?.data || [];
   }
 
   // API composable for fetching routes
-  const { data: routesData, execute: executeFetchRoutes } = useApiLazy(
+  const { data: routesData, pending: routesPending, execute: executeFetchRoutes } = useApiLazy(
     () => "/route_definition",
     {
       query: {
@@ -72,20 +62,12 @@ export const useGlobalState = () => {
   );
 
   async function fetchRoute() {
-    try {
-      await executeFetchRoutes();
-      routes.value = routesData.value?.data || [];
-    } catch (error) {
-      toast.add({
-        title: "Error",
-        description: "Cannot fetch routes...",
-        color: "error",
-      });
-    }
+    await executeFetchRoutes();
+    routes.value = routesData.value?.data || [];
   }
 
   // API composable for fetching settings
-  const { data: settingsData, execute: executeFetchSettings } = useApiLazy(
+  const { data: settingsData, pending: settingsPending, execute: executeFetchSettings } = useApiLazy(
     () => "/setting_definition",
     {
       query: {
@@ -97,21 +79,16 @@ export const useGlobalState = () => {
   );
 
   async function fetchSetting() {
-    try {
-      await executeFetchSettings();
-      settings.value = settingsData.value?.data[0] || {};
-    } catch (error) {
-      toast.add({
-        title: "Error",
-        description: "Cannot fetch settings...",
-        color: "error",
-      });
-    }
+    await executeFetchSettings();
+    settings.value = settingsData.value?.data[0] || {};
   }
+
+  const schemaLoading = computed(() => {
+    return tablesPending.value || routesPending.value || settingsPending.value;
+  });
 
   async function fetchSchema() {
     await Promise.all([fetchTable(), fetchRoute(), fetchSetting()]);
-    // Use useSchema to update schemas
     updateSchemas(tables.value);
   }
 
@@ -144,6 +121,7 @@ export const useGlobalState = () => {
     schemas, // Pass through from useSchema for backward compatibility
     routes,
     fetchSchema,
+    schemaLoading,
     sidebarVisible,
     routeLoading,
     toggleSidebar,

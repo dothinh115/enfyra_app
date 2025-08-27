@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const route = useRoute();
-const { tables, fetchSchema } = useGlobalState();
+const { tables, fetchSchema, schemaLoading } = useGlobalState();
 const { confirm } = useConfirm();
 const toast = useToast();
 const { registerTableMenusWithSidebarIds } = useMenuRegistry();
@@ -31,7 +31,7 @@ const {
   pending: saving,
   execute: executePatchTable,
   error: updateError,
-} = useApiLazy(() => `/table_definition/${table.value?.id || "undefined"}`, {
+} = useApiLazy(() => `/table_definition`, {
   method: "patch",
   body: computed(() => table.value),
   errorContext: "Update Table",
@@ -41,7 +41,7 @@ const {
   pending: deleting,
   execute: executeDeleteTable,
   error: deleteError,
-} = useApiLazy(() => `/table_definition/${table.value?.id || "undefined"}`, {
+} = useApiLazy(() => `/table_definition`, {
   method: "delete",
   errorContext: "Delete Table",
 });
@@ -53,9 +53,9 @@ useHeaderActionRegistry([
     icon: "lucide:save",
     variant: "solid",
     color: "primary",
-    loading: computed(() => saving.value),
+    loading: computed(() => saving.value || schemaLoading.value),
     disabled: computed(
-      () => table.value?.isSystem && !isSystemTableModifiable(table.value?.name)
+      () => (table.value?.isSystem && !isSystemTableModifiable(table.value?.name)) || schemaLoading.value
     ),
     submit: save,
     permission: {
@@ -73,9 +73,9 @@ useHeaderActionRegistry([
     icon: "lucide:trash",
     variant: "solid",
     color: "error",
-    loading: computed(() => deleting.value),
+    loading: computed(() => deleting.value || schemaLoading.value),
     disabled: computed(
-      () => table.value?.isSystem && !isSystemTableModifiable(table.value?.name)
+      () => (table.value?.isSystem && !isSystemTableModifiable(table.value?.name)) || schemaLoading.value
     ),
     onClick: handleDelete,
     permission: {
@@ -123,7 +123,7 @@ async function save() {
 }
 
 async function patchTable() {
-  await executePatchTable();
+  await executePatchTable({ id: table.value?.id });
 
   if (updateError.value) {
     return; // Error already handled by useApiLazy
@@ -152,7 +152,7 @@ async function handleDelete() {
 }
 
 async function deleteTable() {
-  await executeDeleteTable();
+  await executeDeleteTable({ id: table.value?.id });
 
   if (deleteError.value) {
     return; // Error already handled by useApiLazy
