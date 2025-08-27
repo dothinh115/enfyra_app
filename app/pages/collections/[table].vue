@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const route = useRoute();
-const { tables, fetchSchema, globalLoading } = useGlobalState();
+const { tables, fetchSchema } = useGlobalState();
 const { confirm } = useConfirm();
 const toast = useToast();
 const { registerTableMenusWithSidebarIds } = useMenuRegistry();
@@ -53,7 +53,7 @@ useHeaderActionRegistry([
     icon: "lucide:save",
     variant: "solid",
     color: "primary",
-    loading: computed(() => saving.value || globalLoading.value),
+    loading: computed(() => saving.value),
     disabled: computed(
       () => table.value?.isSystem && !isSystemTableModifiable(table.value?.name)
     ),
@@ -73,7 +73,7 @@ useHeaderActionRegistry([
     icon: "lucide:trash",
     variant: "solid",
     color: "error",
-    loading: computed(() => deleting.value || globalLoading.value),
+    loading: computed(() => deleting.value),
     disabled: computed(
       () => table.value?.isSystem && !isSystemTableModifiable(table.value?.name)
     ),
@@ -123,15 +123,12 @@ async function save() {
 }
 
 async function patchTable() {
-  globalLoading.value = true;
   await executePatchTable();
 
   if (updateError.value) {
-    globalLoading.value = false;
     return; // Error already handled by useApiLazy
   }
 
-  globalLoading.value = false; // Turn off before fetchSchema sets it again
   await fetchSchema();
 
   registerTableMenusWithSidebarIds(tables.value);
@@ -155,15 +152,12 @@ async function handleDelete() {
 }
 
 async function deleteTable() {
-  globalLoading.value = true;
   await executeDeleteTable();
 
   if (deleteError.value) {
-    globalLoading.value = false;
     return; // Error already handled by useApiLazy
   }
 
-  globalLoading.value = false; // Turn off before fetchSchema sets it again
   await fetchSchema();
 
   registerTableMenusWithSidebarIds(tables.value);

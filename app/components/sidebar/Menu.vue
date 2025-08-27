@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { globalLoading, setSidebarVisible } = useGlobalState();
+const { setSidebarVisible } = useGlobalState();
 const route = useRoute();
 const { isMobile, isTablet } = useScreen();
 const { getMenuItemsBySidebar, miniSidebars } = useMenuRegistry();

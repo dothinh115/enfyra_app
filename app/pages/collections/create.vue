@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { tables, globalLoading, fetchSchema } = useGlobalState();
+const { tables, fetchSchema } = useGlobalState();
 const { confirm } = useConfirm();
 const toast = useToast();
 const { registerTableMenusWithSidebarIds } = useMenuRegistry();
@@ -125,10 +125,6 @@ const {
   errorContext: "Create Table",
 });
 
-// Watch createLoading state to sync with globalLoading
-watch(createLoading, (newCreateLoading) => {
-  globalLoading.value = newCreateLoading;
-});
 
 useHeaderActionRegistry([
   {
@@ -138,7 +134,7 @@ useHeaderActionRegistry([
     variant: "solid",
     color: "primary",
     size: "md",
-    loading: computed(() => createLoading.value || globalLoading.value),
+    loading: computed(() => createLoading.value),
     submit: save,
     permission: {
       and: [

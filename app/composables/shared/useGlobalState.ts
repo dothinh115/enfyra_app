@@ -2,7 +2,6 @@ export const useGlobalState = () => {
   const tables = useState<any[]>("global:tables", () => []);
   const routes = useState<any[]>("global:routes", () => []);
   const settings = useState<any>("global:settings", () => {});
-  const globalLoading = useState<boolean>("global:loading", () => false);
 
   const sidebarVisible = useState<boolean>(
     "global:sidebar:visible",
@@ -111,11 +110,9 @@ export const useGlobalState = () => {
   }
 
   async function fetchSchema() {
-    globalLoading.value = true;
     await Promise.all([fetchTable(), fetchRoute(), fetchSetting()]);
     // Use useSchema to update schemas
     updateSchemas(tables.value);
-    globalLoading.value = false;
   }
 
   function toggleSidebar() {
@@ -146,7 +143,6 @@ export const useGlobalState = () => {
     tables,
     schemas, // Pass through from useSchema for backward compatibility
     routes,
-    globalLoading,
     fetchSchema,
     sidebarVisible,
     routeLoading,
