@@ -111,7 +111,6 @@ async function saveUser() {
 
   await updateUser({ body: form.value });
 
-  // Check if there was an error
   if (updateError.value) {
     return;
   }
@@ -135,7 +134,6 @@ async function deleteUser() {
 
   await removeUser();
 
-  // Check if there was an error
   if (deleteError.value) {
     return;
   }

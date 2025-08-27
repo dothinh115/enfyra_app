@@ -33,7 +33,6 @@ const createErrors = ref<Record<string, string>>({});
 
 const { generateEmptyForm, validate } = useSchema(tableName);
 
-// Register header actions
 useHeaderActionRegistry([
   {
     id: "save-routing",
@@ -85,7 +84,6 @@ async function handleCreate() {
 
   await executeCreateRoute({ body: createForm.value });
 
-  // Check if there was an error
   if (createError.value) {
     return;
   }

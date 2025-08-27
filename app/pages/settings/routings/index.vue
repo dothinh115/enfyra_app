@@ -28,7 +28,6 @@ const filterColor = computed(() => {
   return hasActiveFilters(currentFilter.value) ? "secondary" : "neutral";
 });
 
-// API composable for fetching routes
 const {
   data: apiData,
   pending: loading,
@@ -60,7 +59,6 @@ const total = computed(() => {
     : apiData.value?.meta?.totalCount || 0;
 });
 
-// Register header actions
 useHeaderActionRegistry([
   {
     id: "filter-routings",

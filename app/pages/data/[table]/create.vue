@@ -6,7 +6,6 @@ const newRecord = ref<Record<string, any>>({});
 const { generateEmptyForm, validate } = useSchema(route.params.table as string);
 const createErrors = ref<Record<string, string>>({});
 
-// API composable for creating record
 const {
   data: createData,
   pending: createLoading,
@@ -17,7 +16,6 @@ const {
   errorContext: "Create Record",
 });
 
-// Register header actions
 useHeaderActionRegistry([
   {
     id: "save-data-entry",
@@ -58,7 +56,6 @@ async function handleCreate() {
 
   await createRecord({ body: newRecord.value });
 
-  // Check if there was an error
   if (createError.value) {
     return;
   }

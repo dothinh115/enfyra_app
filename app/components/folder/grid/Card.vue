@@ -4,7 +4,6 @@
     @mouseenter="hoveredFolderId = folder.id"
     @mouseleave="hoveredFolderId = null"
   >
-    <!-- Card Container with Context Menu -->
     <UContextMenu :items="getContextMenuItems()" :disabled="isFolderDisabled">
       <div
         class="relative bg-white dark:bg-gray-800 rounded-xl border transition-all duration-300 cursor-pointer overflow-hidden h-full flex flex-col"
@@ -20,7 +19,6 @@
         ]"
         @click="handleFolderClick"
       >
-        <!-- Disabled overlay when folder is part of moving selection -->
         <div
           v-if="isFolderDisabled"
           class="absolute inset-0 z-10 bg-black/20 flex items-center justify-center"
@@ -35,7 +33,6 @@
           </span>
         </div>
 
-        <!-- Selection Checkbox -->
         <div
           v-if="isSelectionMode"
           class="absolute top-3 right-3 z-20 bg-white dark:bg-gray-800 rounded-lg p-1 shadow-md"
@@ -48,12 +45,9 @@
           />
         </div>
 
-        <!-- Card Header with Icon -->
         <FolderGridPreview :folder="folder" :hovered="hoveredFolderId === folder.id" />
 
-        <!-- Card Body -->
         <div class="p-4 space-y-3 flex-1 flex flex-col">
-          <!-- Folder Name with Edit -->
           <FolderGridEditableName
             :folder="folder"
             :editing-folder-id="editingFolderId"
@@ -66,7 +60,6 @@
             @cancel-edit="cancelEdit"
           />
 
-          <!-- Folder Stats -->
           <div
             class="flex items-center justify-between text-xs text-gray-400 dark:text-gray-500"
           >
@@ -80,7 +73,6 @@
             </div>
           </div>
 
-          <!-- Quick Actions -->
           <FolderGridActions
             :folder="folder"
             :move-mode="moveMode"

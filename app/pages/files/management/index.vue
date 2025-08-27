@@ -177,7 +177,6 @@ async function handleFileUpload(files: File | File[]) {
   });
 }
 
-// Register header actions
 useHeaderActionRegistry([
   {
     id: "upload-files",

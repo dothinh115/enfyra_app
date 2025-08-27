@@ -135,7 +135,6 @@ const fetchAndLoadExtension = async () => {
   try {
     await executeFetchMenu();
 
-    // Check if there was an error
     if (menuError.value) {
       error.value = `API Error: ${menuError.value}`;
       componentLoading.value = false;

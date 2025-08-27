@@ -148,7 +148,6 @@ async function save() {
 
   await updateRole({ body: form.value });
 
-  // Check if there was an error
   if (updateError.value) {
     return;
   }
@@ -173,7 +172,6 @@ async function deleteRole() {
 
   await deleteRoleApi();
 
-  // Check if there was an error
   if (deleteError.value) {
     return;
   }

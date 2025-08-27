@@ -7,11 +7,9 @@ const updateErrors = ref<Record<string, string>>({});
 
 const { confirm } = useConfirm();
 
-// Form changes tracking via FormEditor
 const hasFormChanges = ref(false);
 const formEditorRef = ref();
 
-// API composable for fetching record
 const {
   data: apiData,
   pending: loading,
@@ -30,7 +28,6 @@ const {
 
 const currentRecord = ref<Record<string, any>>({});
 
-// Initialize form data
 async function initializeForm() {
   await fetchRecord();
   const data = apiData.value?.data?.[0];
@@ -61,7 +58,6 @@ async function handleUpdate() {
     body: currentRecord.value,
   });
 
-  // Check if there was an error
   if (updateError.value) {
     return;
   }
@@ -73,11 +69,9 @@ async function handleUpdate() {
   });
   updateErrors.value = {};
 
-  // Confirm form changes as new baseline
   formEditorRef.value?.confirmChanges();
 }
 
-// API composable for updating record
 const {
   data: updateData,
   pending: updateLoading,
@@ -88,7 +82,6 @@ const {
   errorContext: "Update Record",
 });
 
-// API composable for deleting record
 const {
   error: deleteError,
   execute: executeDeleteRecord,
@@ -107,7 +100,6 @@ async function deleteRecord() {
 
   await executeDeleteRecord({ id: route.params.id as string });
 
-  // Check if there was an error
   if (deleteError.value) {
     return;
   }
@@ -119,7 +111,6 @@ async function deleteRecord() {
   await navigateTo(`/data/${route.params.table}`);
 }
 
-// Register header actions
 useHeaderActionRegistry([
   {
     id: "save-data-entry",

@@ -4,7 +4,6 @@
     @mouseenter="hoveredFileId = file.id"
     @mouseleave="hoveredFileId = null"
   >
-    <!-- Card Container with Context Menu -->
     <UContextMenu
       :items="moveState.moveMode ? [] : getContextMenuItems()"
       :disabled="moveState.moveMode"
@@ -23,7 +22,6 @@
         ]"
         @click="handleFileClick"
       >
-        <!-- Selection Checkbox -->
         <div
           v-if="isSelectionMode"
           class="absolute top-3 right-3 z-20 bg-white dark:bg-gray-800 rounded-lg p-1 shadow-md"
@@ -36,12 +34,9 @@
           />
         </div>
 
-        <!-- Card Header with Preview -->
         <Preview :file="file" :hovered="hoveredFileId === file.id" />
 
-        <!-- Card Body -->
         <div class="p-4 space-y-3">
-          <!-- File Name with Edit -->
           <EditableName
             :file="file"
             :editing-file-id="editingFileId"
@@ -54,7 +49,6 @@
             @cancel-edit="cancelEdit"
           />
 
-          <!-- File Stats -->
           <div
             class="flex items-center justify-between text-xs text-gray-400 dark:text-gray-500"
           >
@@ -68,7 +62,6 @@
             </div>
           </div>
 
-          <!-- Quick Actions -->
           <Actions
             :file="file"
             :move-mode="moveState.moveMode"

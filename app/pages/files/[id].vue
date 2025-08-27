@@ -4,10 +4,8 @@ const router = useRouter();
 const toast = useToast();
 const { confirm } = useConfirm();
 const { isMounted } = useMounted();
-// Get ID from route params
 const fileId = route.params.id as string;
 
-// Fetch file data
 const {
   data: file,
   pending,
@@ -24,13 +22,11 @@ const {
   errorContext: "Fetch File",
 });
 
-// Form state
 const form = ref<Record<string, any>>({});
 const errors = ref<Record<string, string>>({});
 const hasFormChanges = ref(false);
 const formEditorRef = ref();
 
-// API calls for update and delete
 const {
   error: updateError,
   execute: executeUpdateFile,
@@ -49,7 +45,6 @@ const {
   errorContext: "Delete File",
 });
 
-// Replace file modal state
 const showReplaceModal = ref(false);
 
 // Header actions
@@ -134,7 +129,6 @@ async function saveFile() {
     body: form.value,
   });
 
-  // Check if there was an error
   if (updateError.value) {
     return;
   }
@@ -164,7 +158,6 @@ async function deleteFile() {
 
   await executeDeleteFile({ id: fileId });
 
-  // Check if there was an error
   if (deleteError.value) {
     return;
   }
@@ -195,7 +188,6 @@ async function handleReplaceFileSuccess(files: File | File[]) {
     body: formData,
   });
 
-  // Check if there was an error
   if (updateError.value) {
     return;
   }

@@ -1,5 +1,4 @@
 <template>
-  <!-- Quick Actions (visible on hover) -->
   <div
     v-if="!moveMode"
     class="flex items-center gap-2 pt-2 border-t border-gray-100 dark:border-gray-700 opacity-0 lg:group-hover:opacity-100 transition-opacity duration-200 mt-auto"
@@ -25,7 +24,6 @@
     </UDropdownMenu>
   </div>
   
-  <!-- Move mode indicator -->
   <div
     v-else
     class="flex items-center justify-center pt-2 border-t border-gray-100 dark:border-gray-700 mt-auto"

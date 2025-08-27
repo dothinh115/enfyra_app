@@ -70,7 +70,6 @@ const uploadLoading = ref(false);
 
 const { generateEmptyForm, validate } = useSchema(tableName);
 
-// Register header actions
 useHeaderActionRegistry({
   id: "save-extension",
   label: "Save",
@@ -136,7 +135,6 @@ async function handleCreate() {
 
   await executeCreateExtension({ body: createForm.value });
 
-  // Check if there was an error
   if (createError.value) {
     return;
   }

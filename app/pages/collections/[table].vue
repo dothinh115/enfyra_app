@@ -112,7 +112,6 @@ async function patchTable() {
   globalLoading.value = true;
   await executePatchTable();
 
-  // Check if there was an error
   if (updateError.value) {
     globalLoading.value = false;
     return; // Error already handled by useApiLazy

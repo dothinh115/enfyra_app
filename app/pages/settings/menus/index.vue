@@ -29,7 +29,6 @@ const filterColor = computed(() => {
   return hasActiveFilters(currentFilter.value) ? "secondary" : "neutral";
 });
 
-// API composable for fetching menus
 const {
   data: apiData,
   pending: loading,
@@ -61,7 +60,6 @@ const total = computed(() => {
     : apiData.value?.meta?.totalCount || 0;
 });
 
-// Register header actions
 useHeaderActionRegistry([
   {
     id: "filter-menus",
@@ -170,7 +168,6 @@ async function toggleEnabled(menuItem: any, value?: boolean) {
     updateSpecificMenu({ body: { isEnabled: newEnabled } })
   );
 
-  // Check if there was an error
   if (updateError.value) {
     // Revert optimistic update on error
     if (apiData.value?.data) {

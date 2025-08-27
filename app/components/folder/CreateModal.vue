@@ -14,7 +14,6 @@ const newFolder = ref<Record<string, any>>({});
 const { generateEmptyForm, validate } = useSchema("folder_definition");
 const createErrors = ref<Record<string, string>>({});
 
-// API composable for creating folder
 const {
   pending: createLoading,
   execute: createFolder,
@@ -58,7 +57,6 @@ async function handleCreate() {
 
   await createFolder({ body: newFolder.value });
 
-  // Check if there was an error
   if (createError.value) {
     return;
   }

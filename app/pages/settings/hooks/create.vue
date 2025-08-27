@@ -81,7 +81,6 @@ async function handleCreate() {
 
   await executeCreateHook({ body: createForm.value });
 
-  // Check if there was an error
   if (createError.value) {
     return;
   }

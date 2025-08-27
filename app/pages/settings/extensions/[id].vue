@@ -205,7 +205,6 @@ async function updateExtension() {
     body: form.value,
   });
 
-  // Check if there was an error
   if (updateError.value) {
     return;
   }
@@ -228,7 +227,6 @@ async function deleteExtension() {
 
   await executeDeleteExtension({ id: route.params.id as string });
 
-  // Check if there was an error
   if (deleteError.value) {
     return;
   }

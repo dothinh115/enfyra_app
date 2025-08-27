@@ -7,7 +7,6 @@
         : '',
     ]"
   >
-    <!-- Background Pattern -->
     <div class="absolute inset-0 opacity-10">
       <svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
         <pattern
@@ -22,7 +21,6 @@
       </svg>
     </div>
 
-    <!-- Image preview for image files -->
     <div
       v-if="isImageFile(file)"
       class="absolute inset-0 w-full h-full"
@@ -32,11 +30,9 @@
         class="w-full h-full object-cover"
         @error="handleImageError"
       />
-      <!-- Dark overlay for better text readability -->
       <div class="absolute inset-0 bg-black/20" />
     </div>
 
-    <!-- Icon for other files -->
     <div
       v-if="!isImageFile(file)"
       class="flex justify-center items-center p-4 relative z-10"
@@ -52,7 +48,6 @@
       />
     </div>
 
-    <!-- Hover Effect Overlay -->
     <div
       class="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300"
     />

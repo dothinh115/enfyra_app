@@ -285,7 +285,6 @@ const deleteExtension = async (extension: ExtensionDefinition) => {
   if (isConfirmed) {
     await deleteExtensionApi({ id: extension.id });
 
-    // Check if there was an error
     if (deleteError.value) {
       return;
     }

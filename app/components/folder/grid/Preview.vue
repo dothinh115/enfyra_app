@@ -2,7 +2,6 @@
   <div
     class="relative h-32 p-6 flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20"
   >
-    <!-- Background Pattern -->
     <div class="absolute inset-0 opacity-10">
       <svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
         <pattern
@@ -17,7 +16,6 @@
       </svg>
     </div>
 
-    <!-- Folder Icon -->
     <div class="flex justify-center items-center p-4">
       <UIcon
         :name="folder.icon"
@@ -30,7 +28,6 @@
       />
     </div>
 
-    <!-- Hover Effect Overlay -->
     <div
       class="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300"
     />

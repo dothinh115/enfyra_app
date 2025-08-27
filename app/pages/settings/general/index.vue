@@ -76,7 +76,6 @@ async function handleSaveSetting() {
 
   await saveSetting({ body: setting.value });
 
-  // Check if there was an error
   if (saveError.value) {
     return;
   }

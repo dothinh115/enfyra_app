@@ -162,7 +162,6 @@ async function save() {
   const payload = getCleanTablePayload();
   await createTable({ body: payload });
 
-  // Check if there was an error
   if (createError.value) {
     return;
   }

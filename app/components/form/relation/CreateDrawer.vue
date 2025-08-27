@@ -17,7 +17,6 @@ const targetTable = tables.value.find(
 );
 const { generateEmptyForm, validate } = useSchema(targetTable?.name);
 
-// API composable for creating record
 const {
   data: createData,
   pending: creating,

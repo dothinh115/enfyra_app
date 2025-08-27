@@ -43,7 +43,6 @@ watch(
   }
 );
 
-// API composable for fetching relation data
 const {
   data: apiData,
   pending: loading,

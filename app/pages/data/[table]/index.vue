@@ -14,10 +14,7 @@ const table = computed(() => tables.value.find((t) => t.name === tableName));
 const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
 const { checkPermissionCondition } = usePermissions();
 
-// Mounted state để đánh dấu first render
 const { isMounted } = useMounted();
-
-// Filter state (move up before use)
 const showFilterDrawer = ref(false);
 const currentFilter = ref(createEmptyFilter());
 
@@ -34,7 +31,6 @@ const filterColor = computed(() => {
   return hasActiveFilters(currentFilter.value) ? "secondary" : "neutral";
 });
 
-// API composables - all at setup level
 const {
   data: apiData,
   pending: loading,
@@ -56,7 +52,6 @@ const {
   errorContext: "Fetch Data",
 });
 
-// Use composables for column visibility and table actions
 const {
   hiddenColumns,
   visibleColumns,
@@ -73,7 +68,6 @@ const {
 } = useDataTableActions(tableName, fetchData, data);
 
 useSubHeaderActionRegistry([
-  // Selection mode toggle button - only show when user has delete permission
   {
     id: "toggle-selection",
     label: computed(() =>
@@ -88,7 +82,6 @@ useSubHeaderActionRegistry([
       const wasSelectionMode = isSelectionMode.value;
       isSelectionMode.value = !wasSelectionMode;
 
-      // Clear selection when exiting selection mode
       if (wasSelectionMode) {
         selectedRows.value = [];
       }
@@ -103,7 +96,6 @@ useSubHeaderActionRegistry([
       ],
     },
   },
-  // Bulk delete button (only visible in selection mode with items selected)
   {
     id: "bulk-delete-selected",
     label: computed(() => `Delete Selected (${selectedRows.value.length})`),
@@ -124,7 +116,6 @@ useSubHeaderActionRegistry([
       ],
     },
   },
-  // Column picker (default side)
   {
     id: "column-picker-component",
     component: ColumnSelector,
@@ -149,10 +140,8 @@ useSubHeaderActionRegistry([
   },
 ]);
 
-// Use DataTable composable system
 const { buildColumn, buildActionsColumn } = useDataTableColumns();
 
-// Build columns from schema using composable
 const columns = computed<ColumnDef<any>[]>(() => {
   const schema = schemas.value[tableName];
   if (!schema?.definition) return [];
@@ -168,7 +157,6 @@ const columns = computed<ColumnDef<any>[]>(() => {
         header: field.label || field.name,
       };
 
-      // Use built-in formatters when possible
       if (field.type === "datetime") {
         config.format = "datetime";
       } else if (field.type === "date") {
@@ -181,7 +169,6 @@ const columns = computed<ColumnDef<any>[]>(() => {
           badgeMap: { true: "Yes", false: "No" },
         };
       } else {
-        // Custom formatter for text truncation
         config.format = "custom";
         config.formatOptions = {
           formatter: (value: any) => {
@@ -195,7 +182,6 @@ const columns = computed<ColumnDef<any>[]>(() => {
       return buildColumn(config);
     });
 
-  // Add actions column using composable
   const actionsConfig = {
     actions: [
       {
@@ -226,7 +212,6 @@ const columns = computed<ColumnDef<any>[]>(() => {
   return [...dataColumns, actionsColumn];
 });
 
-// Watch for API data changes
 watch(
   apiData,
   (newData) => {
@@ -241,15 +226,12 @@ watch(
   { immediate: true }
 );
 
-// Handle filter apply from FilterDrawer
 async function handleFilterApply(filter: FilterGroup) {
   currentFilter.value = filter;
 
   if (page.value === 1) {
-    // Already on page 1 → fetch directly
     await fetchData();
   } else {
-    // On other page → go to page 1, watch will trigger
     const newQuery = { ...route.query };
     delete newQuery.page;
 
@@ -259,12 +241,10 @@ async function handleFilterApply(filter: FilterGroup) {
   }
 }
 
-// Clear filters function
 async function clearFilters() {
   await handleFilterApply(createEmptyFilter());
 }
 
-// Delete handlers are now in useDataTableActions composable
 
 watch(
   () => route.query.page,
@@ -275,7 +255,6 @@ watch(
   { immediate: true }
 );
 
-// Register header actions with component test (after all variables are defined)
 useHeaderActionRegistry([
   {
     id: "filter-data-entries",
@@ -326,7 +305,6 @@ useHeaderActionRegistry([
   },
 ]);
 
-// Remove auto-watch - FilterDrawer handles apply/clear events
 </script>
 
 <template>

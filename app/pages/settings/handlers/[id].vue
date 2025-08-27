@@ -146,7 +146,6 @@ async function save() {
 
   await executeSaveHandler({ id, body: form.value });
 
-  // Check if there was an error
   if (saveError.value) {
     return;
   }
@@ -171,7 +170,6 @@ async function deleteHandler() {
 
   await executeDeleteHandler({ id });
 
-  // Check if there was an error
   if (deleteError.value) {
     return;
   }

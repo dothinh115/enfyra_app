@@ -240,7 +240,6 @@ async function updateMenuDetail() {
 
   await executeUpdateMenu({ id: Number(route.params.id), body: form.value });
 
-  // Check if there was an error
   if (updateError.value) {
     return;
   }
@@ -268,7 +267,6 @@ async function deleteMenuDetail() {
 
   await executeDeleteMenu({ id: Number(route.params.id) });
 
-  // Check if there was an error
   if (deleteError.value) {
     return;
   }

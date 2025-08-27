@@ -159,7 +159,6 @@ async function updateHook() {
 
   await executeUpdateHook({ id, body: form.value });
 
-  // Check if there was an error
   if (updateError.value) {
     return;
   }
@@ -184,7 +183,6 @@ async function deleteHook() {
 
   await executeDeleteHook({ id });
 
-  // Check if there was an error
   if (deleteError.value) {
     return;
   }

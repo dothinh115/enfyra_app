@@ -177,7 +177,6 @@ async function updateRoute() {
     body: form.value,
   });
 
-  // Check if there was an error
   if (updateError.value) {
     return;
   }
@@ -202,7 +201,6 @@ async function deleteRoute() {
 
   await executeDeleteRoute({ id: route.params.id as string });
 
-  // Check if there was an error
   if (deleteError.value) {
     return;
   }

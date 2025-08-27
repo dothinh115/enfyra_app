@@ -174,7 +174,6 @@ watch(
   { immediate: true }
 );
 
-// Register header actions
 useHeaderActionRegistry([
   {
     id: "upload-files",

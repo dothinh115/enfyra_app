@@ -1,6 +1,5 @@
 <template>
   <div class="flex items-start justify-between gap-2">
-    <!-- Inline Edit Mode -->
     <div
       v-if="editingFileId === file.id"
       class="flex items-center gap-1 flex-1"
@@ -41,7 +40,6 @@
       </div>
     </div>
 
-    <!-- Normal Display Mode -->
     <div
       v-else
       class="flex items-center justify-between gap-2 flex-1"

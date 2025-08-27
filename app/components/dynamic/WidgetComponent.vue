@@ -120,7 +120,6 @@ const fetchAndLoadWidget = async () => {
   try {
     await executeFetchExtension();
 
-    // Check if there was an error
     if (extensionError.value) {
       error.value = `API Error: ${extensionError.value}`;
       componentLoading.value = false;

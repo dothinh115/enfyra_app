@@ -44,7 +44,6 @@ const {
   errorContext: "Create Role",
 });
 
-// Register header actions
 useHeaderActionRegistry({
   id: "save-role",
   label: "Save",
@@ -82,7 +81,6 @@ async function handleCreate() {
 
   await createRole({ body: createForm.value });
 
-  // Check if there was an error
   if (createError.value) {
     return;
   }

@@ -34,7 +34,6 @@ const errors = ref<Record<string, string>>({});
 
 const { generateEmptyForm, validate } = useSchema(tableName);
 
-// API composable for creating user
 const {
   data: createData,
   pending: createLoading,
@@ -45,7 +44,6 @@ const {
   errorContext: "Create User",
 });
 
-// Register header actions
 useHeaderActionRegistry({
   id: "save-user",
   label: "Save",
@@ -83,7 +81,6 @@ async function handleCreate() {
 
   await createUser({ body: form.value });
 
-  // Check if there was an error
   if (createError.value) {
     return;
   }
