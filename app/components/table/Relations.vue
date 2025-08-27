@@ -192,12 +192,8 @@ function saveRelation() {
                 'sourceTable',
               ]"
               :type-map="{
-                targetTable: {
-                  type: 'select',
-                  options: tableOptions,
-                },
                 type: {
-                  type: 'select',
+                  type: 'enum',
                   options: relationTypes,
                 },
               }"
