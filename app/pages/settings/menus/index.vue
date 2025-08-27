@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { useLoader } from "~/composables/useLoader";
-import { useMenuRegistry } from "~/composables/useMenuRegistry";
-import { useMenuApi } from "~/composables/useMenuApi";
 
 const toast = useToast();
 const { confirm } = useConfirm();

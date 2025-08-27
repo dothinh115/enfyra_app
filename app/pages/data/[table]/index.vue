@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ColumnDef } from "@tanstack/vue-table";
-import type { DataTableColumnConfig } from "~/composables/useDataTableColumns";
 import ColumnSelector from "~/components/data-table/ColumnSelector.vue";
 
 const route = useRoute();

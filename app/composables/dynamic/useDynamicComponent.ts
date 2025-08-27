@@ -63,7 +63,7 @@ import {
   useSeoMeta,
 } from "#imports";
 
-import { EXTENSION_VUE_FUNCTIONS } from "../utils/extension/globals";
+import { EXTENSION_VUE_FUNCTIONS } from "../../utils/extension/globals";
 
 // Extension cache with version-based invalidation
 const extensionCache = new Map<string, any>();

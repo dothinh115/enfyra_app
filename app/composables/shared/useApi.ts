@@ -1,4 +1,4 @@
-import { useLoader } from "./useLoader";
+import { useLoader } from "../dynamic/useLoader";
 
 // Extend ApiOptions for useApi-specific features
 interface UseApiOptions<T>

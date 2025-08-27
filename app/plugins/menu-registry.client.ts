@@ -1,8 +1,3 @@
-import { useMenuRegistry } from "~/composables/useMenuRegistry";
-import { useMenuApi } from "~/composables/useMenuApi";
-import { useGlobalState } from "~/composables/useGlobalState";
-import { useAuth } from "~/composables/useAuth";
-
 export default defineNuxtPlugin(async () => {
   const { logout } = useAuth();
 

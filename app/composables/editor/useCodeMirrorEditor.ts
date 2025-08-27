@@ -1,6 +1,5 @@
 import { EditorView } from "@codemirror/view";
 import { StateEffect } from "@codemirror/state";
-import { ensureString } from "../utils/components/form";
 
 interface UseCodeMirrorEditorOptions {
   modelValue?: string;

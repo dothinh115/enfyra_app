@@ -32,11 +32,11 @@ function onFieldSelectChange(selectedValue: string) {
   const result = handleFieldSelect(
     selectedValue,
     props.condition,
-    props.parentGroup,
+    props.parentGroup!,
     emit
   );
 
-  if (result && result.convertToGroup) {
+  if (result && result.convertToGroup && result.newGroup) {
     emit("convert-to-group", result.newGroup, props.conditionIndex);
   }
 }

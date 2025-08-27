@@ -1,7 +1,7 @@
-import { defineEventHandler, H3Event } from "h3";
+import { defineEventHandler } from "h3";
 import { refreshToken } from "../../app/utils/server/auth/refresh-token";
 
-export default defineEventHandler(async (event: H3Event) => {
+export default defineEventHandler(async (event) => {
   // ✅ Build headers manually from raw request
   const headers: Record<string, string> = {};
   Object.entries(event.node.req.headers).forEach(([key, value]) => {

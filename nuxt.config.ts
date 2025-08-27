@@ -50,54 +50,7 @@ export default defineNuxtConfig({
     },
   },
   imports: {
-    dirs: [
-      // Auto-import from utils - top level
-      "app/utils",
-      "app/utils/**",
-
-      // Auto-import from utils subdirectories
-      "app/utils/types",
-      "app/utils/types/**",
-      "app/utils/common",
-      "app/utils/common/**",
-      "app/utils/common/filter",
-      "app/utils/common/filter/**",
-      "app/utils/components",
-      "app/utils/components/**",
-      "app/utils/extension",
-      "app/utils/extension/**",
-      "app/utils/server",
-      "app/utils/server/**",
-      "app/utils/server/auth",
-      "app/utils/server/auth/**",
-
-      // Auto-import from composables
-      "app/composables",
-      "app/composables/**",
-    ],
-    imports: [
-      // Auto-import types from utils
-      {
-        from: "~/utils/common/filter/FilterTypes",
-        name: "FilterGroup",
-        type: true,
-      },
-      {
-        from: "~/utils/common/filter/FilterTypes",
-        name: "FilterCondition",
-        type: true,
-      },
-      {
-        from: "~/utils/common/filter/FilterTypes",
-        name: "FilterProps",
-        type: true,
-      },
-      {
-        from: "~/utils/common/filter/FilterTypes",
-        name: "FieldOption",
-        type: true,
-      },
-    ],
+    dirs: ["utils/**/**/**", "composables/**/**"],
   },
   alias: {
     "~/app": "./app",

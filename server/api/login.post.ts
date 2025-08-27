@@ -2,19 +2,20 @@ import {
   defineEventHandler,
   readBody,
   setCookie,
-  H3Event,
   createError,
   sendError,
   getHeader,
 } from "h3";
+import { useRuntimeConfig } from "#imports";
+import { $fetch } from "ofetch";
 import {
   ACCESS_TOKEN_KEY,
   REFRESH_TOKEN_KEY,
   EXP_TIME_KEY,
-} from "~/utils/common/constants";
-import type { AuthResponse } from "~/utils/types/server";
+} from "../../app/utils/common/constants";
+import type { AuthResponse } from "../../app/utils/types/server";
 
-export default defineEventHandler(async (event: H3Event) => {
+export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
   const apiUrl = config.public.apiUrl;
   try {

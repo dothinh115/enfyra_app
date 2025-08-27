@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import type { FilterCondition, FilterGroup } from "~/utils/common/filter/filter-types";
-import { useFilterHistory } from "~/composables/useFilterHistory";
-
 const props = defineProps<{
   modelValue: boolean;
   tableName: string;
@@ -51,7 +48,7 @@ function handleApply() {
   if (hasActiveFilters(localFilter.value)) {
     addToHistory(localFilter.value);
   }
-  
+
   // Emit the normalized filter object
   emit("apply", { ...localFilter.value });
   emit("update:modelValue", false);
@@ -60,7 +57,7 @@ function handleApply() {
 function handleClear() {
   // Clear local filter
   localFilter.value = createEmptyFilter();
-  
+
   // Apply cleared filter immediately
   emit("apply", { ...localFilter.value });
   emit("update:modelValue", false);
@@ -75,20 +72,22 @@ function handleClose() {
 function applySavedFilter(filter: any) {
   // Apply saved filter directly
   localFilter.value = { ...filter };
-  
+
   // Emit the filter and close
   emit("apply", { ...filter });
   emit("update:modelValue", false);
 }
 
 const hasActiveConditions = computed(() => {
-  return localFilter.value.conditions.some((condition: FilterCondition | FilterGroup) => {
-    if ("field" in condition) {
-      return condition.field && condition.operator;
-    } else {
-      return hasActiveFiltersLocal(condition);
+  return localFilter.value.conditions.some(
+    (condition: FilterCondition | FilterGroup) => {
+      if ("field" in condition) {
+        return condition.field && condition.operator;
+      } else {
+        return hasActiveFiltersLocal(condition);
+      }
     }
-  });
+  );
 });
 
 function hasActiveFiltersLocal(group: FilterGroup): boolean {
@@ -108,7 +107,7 @@ const { isTablet } = useScreen();
   <Teleport to="body">
     <UDrawer
       :open="modelValue"
-      @update:open="(value) => value ? null : handleClose()"
+      @update:open="(value) => (value ? null : handleClose())"
       direction="right"
       :class="isTablet ? 'w-full' : 'min-w-2xl'"
     >

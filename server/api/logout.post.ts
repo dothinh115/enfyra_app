@@ -3,7 +3,6 @@ import {
   getHeader,
   getCookie,
   deleteCookie,
-  H3Event,
 } from "h3";
 import { useRuntimeConfig } from "#imports";
 import { $fetch } from "ofetch";
@@ -11,9 +10,9 @@ import {
   REFRESH_TOKEN_KEY,
   ACCESS_TOKEN_KEY,
   EXP_TIME_KEY,
-} from "~/utils/common/constants";
+} from "../../app/utils/common/constants";
 
-export default defineEventHandler(async (event: H3Event) => {
+export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
   const apiUrl = config.public.apiUrl;
 

@@ -1,4 +1,3 @@
-import type { FilterGroup, FilterCondition } from "../utils/common/filter/filter-types";
 
 export function useFilterQuery() {
   function buildQuery(filter: FilterGroup): Record<string, any> {

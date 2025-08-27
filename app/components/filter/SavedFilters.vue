@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import type { FilterHistoryItem } from "~/composables/useFilterHistory";
-import { useFilterHistory } from "~/composables/useFilterHistory";
-
 interface Props {
   tableName: string;
   currentFilter: any;

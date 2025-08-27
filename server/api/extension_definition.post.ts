@@ -1,10 +1,20 @@
+
+import {
+  defineEventHandler,
+  readBody,
+  readRawBody,
+  getHeader,
+  createError,
+} from "h3";
+import { useRuntimeConfig } from "#imports";
+import { $fetch } from "ofetch";
 import {
   autoAssignExtensionName,
   buildExtensionWithVite,
   isProbablyVueSFC,
   assertValidVueSFC,
   assertValidJsBundleSyntax,
-} from "~/utils/server/extension";
+} from "../../app/utils/server/extension";
 
 export default defineEventHandler(async (event) => {
   const method = event.method;
