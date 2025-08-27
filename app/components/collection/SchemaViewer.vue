@@ -149,14 +149,61 @@ const schemaStructure = computed(() => {
 
   const structure: Record<string, any> = {};
 
-  schemaData.value.forEach((field: any) => {
+  // Sort fields: regular columns first, then relations, then system fields last
+  const sortedFields = [...schemaData.value].sort((a: any, b: any) => {
+    const aName = a.name || a.propertyName;
+    const bName = b.name || b.propertyName;
+    
+    const systemFields = ['createdAt', 'updatedAt'];
+    const aIsSystem = systemFields.includes(aName);
+    const bIsSystem = systemFields.includes(bName);
+    const aIsRelation = a.fieldType === 'relation';
+    const bIsRelation = b.fieldType === 'relation';
+    
+    // Assign priority: 1 = regular columns, 2 = relations, 3 = system fields
+    const getPriority = (isSystem: boolean, isRelation: boolean) => {
+      if (isSystem) return 3;
+      if (isRelation) return 2;
+      return 1;
+    };
+    
+    const aPriority = getPriority(aIsSystem, aIsRelation);
+    const bPriority = getPriority(bIsSystem, bIsRelation);
+    
+    return aPriority - bPriority;
+  });
+
+  sortedFields.forEach((field: any) => {
     const fieldName = field.name || field.propertyName;
     if (!fieldName) return;
+    
+    // Skip isSystem from all tables
+    if (fieldName === 'isSystem') return;
+    
+    // Skip isRootAdmin only from user_definition table
+    if (fieldName === 'isRootAdmin' && props.tableName === 'user_definition') return;
+
+    // Get target table name for relations
+    let targetTableName = null;
+    if (field.targetTable) {
+      if (typeof field.targetTable === 'string') {
+        targetTableName = field.targetTable;
+      } else if (field.targetTable.name) {
+        targetTableName = field.targetTable.name;
+      } else if (field.targetTable.id && schemaComposable.value) {
+        // Try to find table name by ID
+        const { getSchemas } = useSchema();
+        const allSchemas = getSchemas();
+        const targetSchema = Object.values(allSchemas).find((schema: any) => schema.id === field.targetTable.id);
+        if (targetSchema && (targetSchema as any).name) {
+          targetTableName = (targetSchema as any).name;
+        }
+      }
+    }
 
     structure[fieldName] = {
       type: field.type || field.fieldType || "unknown",
       fieldType: field.fieldType || "column",
-      required: !field.isNullable && !field.defaultValue && !field.isGenerated,
       nullable: field.isNullable || false,
       defaultValue: field.defaultValue || null,
       isGenerated: field.isGenerated || false,
@@ -165,7 +212,7 @@ const schemaStructure = computed(() => {
       ...(field.validation && { validation: field.validation }),
       ...(field.options && { options: field.options }),
       ...(field.relationType && { relationType: field.relationType }),
-      ...(field.targetTable && { targetTable: field.targetTable }),
+      ...(targetTableName && { targetTable: targetTableName }),
     };
   });
 
@@ -187,12 +234,16 @@ const examplePayload = computed(() => {
     if (!fieldName) return;
 
     // Skip auto-generated fields, system fields, and relations for POST example
-    if (
-      field.isGenerated ||
-      field.fieldType === "relation" ||
-      ["createdAt", "updatedAt", "id", "isRootAdmin", "isSystem"].includes(fieldName)
-    )
-      return;
+    if (field.isGenerated || field.fieldType === "relation") return;
+    
+    // Skip system fields
+    if (["createdAt", "updatedAt", "id"].includes(fieldName)) return;
+    
+    // Skip isSystem from all tables
+    if (fieldName === 'isSystem') return;
+    
+    // Skip isRootAdmin only from user_definition table
+    if (fieldName === 'isRootAdmin' && props.tableName === 'user_definition') return;
 
     switch (field.type?.toLowerCase()) {
       case "varchar":
@@ -252,7 +303,13 @@ const validationRules = computed(() => {
     if (!fieldName) return;
 
     // Skip system fields for validation rules
-    if (["createdAt", "updatedAt", "id", "isRootAdmin", "isSystem"].includes(fieldName)) return;
+    if (["createdAt", "updatedAt", "id"].includes(fieldName)) return;
+    
+    // Skip isSystem from all tables
+    if (fieldName === 'isSystem') return;
+    
+    // Skip isRootAdmin only from user_definition table
+    if (fieldName === 'isRootAdmin' && props.tableName === 'user_definition') return;
 
     const fieldRules: string[] = [];
 
@@ -308,8 +365,8 @@ const relations = computed(() => {
           const { getSchemas } = useSchema();
           const allSchemas = getSchemas();
           const targetSchema = Object.values(allSchemas).find((schema: any) => schema.id === field.targetTable.id);
-          if (targetSchema) {
-            targetTableName = targetSchema.name;
+          if (targetSchema && (targetSchema as any).name) {
+            targetTableName = (targetSchema as any).name;
           }
         }
       }
