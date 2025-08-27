@@ -12,6 +12,15 @@ const errors = ref<Record<string, string>>({});
 
 const { generateEmptyForm } = useSchema("column_definition");
 
+// Centralized UUID logic
+function handleUuidType(column: any): any {
+  if (column.type === "uuid") {
+    column.isGenerated = true;
+    delete column.defaultValue;
+  }
+  return column;
+}
+
 function createEmptyColumn(): any {
   return generateEmptyForm();
 }
@@ -23,25 +32,18 @@ function editColumn(col: any, index: number) {
   editingIndex.value = index;
   currentColumn.value = { ...toRaw(col) };
 
-  // Nếu type là uuid, đảm bảo isGenerated = true và không có defaultValue
-  if (currentColumn.value.type === "uuid") {
-    currentColumn.value.isGenerated = true;
-    delete currentColumn.value.defaultValue;
-  }
+  // Use centralized UUID logic
+  handleUuidType(currentColumn.value);
 }
 
 function saveColumn() {
-  validate();
-  validate("name");
+  validate(); // Single validation call
   if (Object.keys(errors.value).length > 0) return;
 
   const newCol = { ...currentColumn.value };
 
-  // Đảm bảo uuid type luôn có isGenerated = true và không có defaultValue
-  if (newCol.type === "uuid") {
-    newCol.isGenerated = true;
-    delete newCol.defaultValue;
-  }
+  // Use centralized UUID logic
+  handleUuidType(newCol);
 
   if (isNew.value) {
     columns.value.push(newCol);
@@ -64,11 +66,8 @@ function addNewColumn() {
   editingIndex.value = null;
   delete currentColumn.value.id;
 
-  // Nếu type là uuid, tự động set isGenerated = true
-  if (currentColumn.value.type === "uuid") {
-    currentColumn.value.isGenerated = true;
-    delete currentColumn.value.defaultValue;
-  }
+  // Use centralized UUID logic
+  handleUuidType(currentColumn.value);
 }
 
 function validate(property?: string) {
@@ -97,51 +96,71 @@ function validate(property?: string) {
   } else delete errors.value.defaultValue;
 }
 
+// Extract UUID type mapping
+function getUuidTypeMap() {
+  return {
+    defaultValue: {
+      type: "text",
+      disabled: true,
+      placeholder: "Auto-generated UUID",
+    },
+    isGenerated: {
+      type: "boolean",
+      disabled: true,
+      default: true,
+    },
+    options: {
+      excluded: true,
+    },
+  };
+}
+
+// Extract array/enum type mapping
+function getArrayEnumTypeMap(currentType: string, options: any[]) {
+  return {
+    options: {
+      type: "array-tags",
+    },
+    defaultValue: {
+      type: currentType,
+      options,
+      ...(!options?.length && {
+        excluded: true,
+      }),
+    },
+  };
+}
+
 function getDefaultValueType(columnType: string) {
-  if (!columnType) return { type: "text" };
+  switch (columnType) {
+    case "boolean":
+      return "boolean";
 
-  // Boolean type
-  if (columnType === "boolean") {
-    return { type: "boolean" };
+    case "int":
+    case "float":
+      return "number";
+
+    case "date":
+      return "date";
+
+    case "text":
+    case "richtext":
+    case "varchar":
+    case "uuid":
+      return "text";
+
+    case "code":
+      return "code";
+
+    case "array-select":
+      return "array-select";
+
+    case "enum":
+      return "enum";
+
+    default:
+      return "text";
   }
-
-  // Numeric types
-  if (columnType === "int" || columnType === "float") {
-    return { type: "number" };
-  }
-
-  // Date type
-  if (columnType === "date") {
-    return {
-      type: "date",
-      fieldProps: {
-        class: "col-span-2",
-      },
-    };
-  }
-
-  if (columnType === "text" || columnType === "richtext") {
-    return { type: "text" };
-  }
-
-  if (columnType === "code") {
-    return { type: "code" };
-  }
-
-  if (columnType === "array-select") {
-    return { type: "array-select" };
-  }
-
-  if (columnType === "enum") {
-    return { type: "enum" };
-  }
-
-  if (columnType === "varchar" || columnType === "uuid") {
-    return { type: "text" };
-  }
-
-  // Default fallback
-  return { type: "text" };
 }
 
 const typeMap = computed(() => {
@@ -161,38 +180,19 @@ const typeMap = computed(() => {
       disabled: currentColumn.value?.name === "id",
     },
     defaultValue: getDefaultValueType(currentType),
-    // Xử lý đặc biệt cho uuid type
-    ...(currentType === "uuid" && {
-      defaultValue: {
-        type: "text",
-        disabled: true,
-        placeholder: "Auto-generated UUID",
-      },
-      isGenerated: {
-        type: "boolean",
-        disabled: true,
-        default: true,
-      },
-    }),
-    ...(["array-select", "enum"].includes(currentType) && {
-      options: {
-        type: "array-tags",
-      },
-      defaultValue: {
-        type: currentType,
-        options: currentColumn.value?.options,
-        ...(!currentColumn.value?.options?.length && {
-          excluded: true,
-        }),
-      },
-    }),
+    // Apply UUID type mapping
+    ...(currentType === "uuid" && getUuidTypeMap()),
+    // Apply array/enum type mapping
+    ...(["array-select", "enum"].includes(currentType) &&
+      getArrayEnumTypeMap(currentType, currentColumn.value?.options)),
 
-    // Exclude options field khi không phải array-select hoặc enum
-    ...(!["array-select", "enum"].includes(currentType) && {
-      options: {
-        excluded: true,
-      },
-    }),
+    // Exclude options field for other types
+    ...(!["array-select", "enum"].includes(currentType) &&
+      currentType !== "uuid" && {
+        options: {
+          excluded: true,
+        },
+      }),
   };
 });
 
@@ -207,71 +207,68 @@ onMounted(() => {
   if (!columns.value.length) columns.value.push(primaryColumn);
 });
 
-// Watcher để xử lý uuid type
-watch(
-  () => currentColumn.value?.type,
-  (newType, oldType) => {
-    if (newType === "uuid" && oldType !== "uuid") {
-      // Khi type thay đổi thành uuid
-      if (currentColumn.value) {
-        currentColumn.value.isGenerated = true;
-        delete currentColumn.value.defaultValue;
+// Handle type changes and options changes
+function handleTypeChange(newType: string, oldType: string) {
+  if (!currentColumn.value) return;
+
+  if (newType === "uuid" && oldType !== "uuid") {
+    handleUuidType(currentColumn.value);
+  } else if (oldType === "uuid" && newType !== "uuid") {
+    currentColumn.value.isGenerated = false;
+    const defaultValueType = getDefaultValueType(newType);
+    if (defaultValueType) {
+      currentColumn.value.defaultValue = null;
+    }
+  }
+}
+
+function handleOptionsChange(currentType: string, newOptions: any[]) {
+  if (!currentColumn.value) return;
+  if (!["array-select", "enum"].includes(currentType)) return;
+
+  // If no options, hide defaultValue
+  if (!newOptions || newOptions.length === 0) {
+    if (currentColumn.value.defaultValue) {
+      delete currentColumn.value.defaultValue;
+    }
+    return;
+  }
+
+  // Sanitize defaultValue to keep only existing values in options
+  if (currentColumn.value.defaultValue) {
+    if (currentType === "array-select") {
+      // For array-select, defaultValue is array
+      if (Array.isArray(currentColumn.value.defaultValue)) {
+        currentColumn.value.defaultValue =
+          currentColumn.value.defaultValue.filter((value: any) => {
+            const val = typeof value === "object" ? value.value : value;
+            return newOptions.includes(val);
+          });
       }
-    } else if (oldType === "uuid" && newType !== "uuid") {
-      // Khi type thay đổi từ uuid sang type khác
-      if (currentColumn.value) {
-        currentColumn.value.isGenerated = false;
-        // Khôi phục lại defaultValue dựa trên type mới
-        const defaultValueType = getDefaultValueType(newType);
-        if (defaultValueType) {
-          currentColumn.value.defaultValue = null;
-        }
+    } else if (currentType === "enum") {
+      // For enum, defaultValue is single value
+      const val =
+        typeof currentColumn.value.defaultValue === "object"
+          ? currentColumn.value.defaultValue.value
+          : currentColumn.value.defaultValue;
+
+      if (!newOptions.includes(val)) {
+        currentColumn.value.defaultValue = null;
       }
     }
   }
-);
+}
 
-// Watcher để sanitize defaultValue khi options thay đổi
+// Unified watcher to handle both type and options changes
 watch(
-  () => currentColumn.value?.options,
-  (newOptions, oldOptions) => {
-    if (!currentColumn.value) return;
-
-    const currentType = currentColumn.value.type;
-    if (!["array-select", "enum"].includes(currentType)) return;
-
-    // Nếu không có options, ẩn defaultValue
-    if (!newOptions || newOptions.length === 0) {
-      if (currentColumn.value.defaultValue) {
-        delete currentColumn.value.defaultValue;
-      }
-      return;
+  () => [currentColumn.value?.type, currentColumn.value?.options],
+  ([newType, newOptions], [oldType]) => {
+    if (newType !== oldType) {
+      handleTypeChange(newType, oldType);
     }
 
-    // Sanitize defaultValue để chỉ giữ những giá trị còn tồn tại trong options
-    if (currentColumn.value.defaultValue) {
-      if (currentType === "array-select") {
-        // Với array-select, defaultValue là array
-        if (Array.isArray(currentColumn.value.defaultValue)) {
-          currentColumn.value.defaultValue =
-            currentColumn.value.defaultValue.filter((value: any) => {
-              // Nếu value là object, check value.value
-              const val = typeof value === "object" ? value.value : value;
-              return newOptions.includes(val);
-            });
-        }
-      } else if (currentType === "enum") {
-        // Với enum, defaultValue là single value
-        const val =
-          typeof currentColumn.value.defaultValue === "object"
-            ? currentColumn.value.defaultValue.value
-            : currentColumn.value.defaultValue;
-
-        if (!newOptions.includes(val)) {
-          // Nếu giá trị không còn tồn tại trong options, reset về null
-          currentColumn.value.defaultValue = null;
-        }
-      }
+    if (newType && ["array-select", "enum"].includes(newType)) {
+      handleOptionsChange(newType, newOptions);
     }
   },
   { deep: true }

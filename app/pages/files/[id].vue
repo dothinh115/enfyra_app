@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { UIcon } from "#components";
-import { UForm } from "#components";
-
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
@@ -172,10 +169,10 @@ async function deleteFile() {
     return;
   }
 
-  toast.add({ 
+  toast.add({
     title: "Success",
-    description: "File deleted successfully", 
-    color: "success" 
+    description: "File deleted successfully",
+    color: "success",
   });
   await navigateTo("/files");
 }
@@ -362,6 +359,7 @@ function getFileIconAndColor(mimetype: string): {
               'updatedAt',
               'permissions',
               'uploaded_by',
+              'folder',
             ]"
             :loading="pending"
           />

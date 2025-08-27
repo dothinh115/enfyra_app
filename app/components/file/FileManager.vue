@@ -330,10 +330,7 @@ useSubHeaderActionRegistry([
       const totalCount =
         (props.folders?.length || 0) + (props.files?.length || 0);
       const selectedCount = selectedItems.value.length;
-      console.log('Label computed - selectedCount:', selectedCount, 'totalCount:', totalCount, 'label:', selectedCount === totalCount ? "Deselect All" : "Select All");
-      return selectedCount === totalCount
-        ? "Deselect All"
-        : "Select All";
+      return selectedCount === totalCount ? "Deselect All" : "Select All";
     }),
     icon: computed(() => {
       const totalCount =
@@ -350,21 +347,15 @@ useSubHeaderActionRegistry([
     onClick: () => {
       const totalCount =
         (props.folders?.length || 0) + (props.files?.length || 0);
-      console.log('Select All clicked - View Mode:', viewMode.value);
-      console.log('Before click - selectedItems.length:', selectedItems.value.length, 'totalCount:', totalCount);
-      
+
       if (selectedItems.value.length === totalCount) {
         // Clear all selections but keep selection mode active
-        console.log('Clearing all selections');
         selectedItems.value = [];
       } else {
         // Select all items
-        console.log('Selecting all items');
         const allItems = [...props.folders, ...props.files];
         selectedItems.value = allItems.map((item) => item.id);
       }
-      
-      console.log('After click - selectedItems.length:', selectedItems.value.length);
     },
     side: "right",
     show: computed(() => isSelectionMode.value),

@@ -27,7 +27,6 @@ watch(
         "Only letters, numbers, _ allowed. Cannot start with number or _!";
     else if (name === "table") nameError.value = "Table name cannot be `table`";
     else nameError.value = "";
-    console.log(nameError.value);
   }
 );
 

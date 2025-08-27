@@ -57,11 +57,11 @@ const {
 });
 
 // Use composables for column visibility and table actions
-const { 
-  hiddenColumns, 
-  visibleColumns, 
-  toggleColumnVisibility, 
-  columnDropdownItems 
+const {
+  hiddenColumns,
+  visibleColumns,
+  toggleColumnVisibility,
+  columnDropdownItems,
 } = useDataTableVisibility(tableName, schemas);
 
 const {
@@ -71,7 +71,6 @@ const {
   handleBulkDelete,
   handleSelectionChange,
 } = useDataTableActions(tableName, fetchData, data);
-
 
 useSubHeaderActionRegistry([
   // Selection mode toggle button - only show when user has delete permission
@@ -245,7 +244,7 @@ watch(
 // Handle filter apply from FilterDrawer
 async function handleFilterApply(filter: FilterGroup) {
   currentFilter.value = filter;
-  
+
   if (page.value === 1) {
     // Already on page 1 → fetch directly
     await fetchData();
@@ -253,7 +252,7 @@ async function handleFilterApply(filter: FilterGroup) {
     // On other page → go to page 1, watch will trigger
     const newQuery = { ...route.query };
     delete newQuery.page;
-    
+
     await router.replace({
       query: newQuery,
     });
