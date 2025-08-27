@@ -53,9 +53,14 @@ useHeaderActionRegistry([
     icon: "lucide:save",
     variant: "solid",
     color: "primary",
-    loading: computed(() => saving.value || schemaLoading.value),
+    loading: computed(
+      () => deleting.value || saving.value || schemaLoading.value
+    ),
     disabled: computed(
-      () => (table.value?.isSystem && !isSystemTableModifiable(table.value?.name)) || schemaLoading.value
+      () =>
+        (table.value?.isSystem &&
+          !isSystemTableModifiable(table.value?.name)) ||
+        schemaLoading.value
     ),
     submit: save,
     permission: {
@@ -73,9 +78,14 @@ useHeaderActionRegistry([
     icon: "lucide:trash",
     variant: "solid",
     color: "error",
-    loading: computed(() => deleting.value || schemaLoading.value),
+    loading: computed(
+      () => deleting.value || saving.value || schemaLoading.value
+    ),
     disabled: computed(
-      () => (table.value?.isSystem && !isSystemTableModifiable(table.value?.name)) || schemaLoading.value
+      () =>
+        (table.value?.isSystem &&
+          !isSystemTableModifiable(table.value?.name)) ||
+        schemaLoading.value
     ),
     onClick: handleDelete,
     permission: {
