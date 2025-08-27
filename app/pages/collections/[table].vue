@@ -237,9 +237,8 @@ onMounted(() => {
 
     <!-- Schema Viewer Modal -->
     <Teleport to="body">
-      <UDrawer
+      <UModal
         v-model:open="showSchemaViewer"
-        direction="right"
         :class="isTablet ? 'w-full' : 'min-w-2xl'"
       >
         <template #header>
@@ -271,7 +270,7 @@ onMounted(() => {
         <template #body>
           <CollectionSchemaViewer v-if="table?.name" :table-name="table.name" />
         </template>
-      </UDrawer>
+      </UModal>
     </Teleport>
   </div>
 </template>

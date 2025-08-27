@@ -42,6 +42,31 @@
       </ClientOnly>
     </div>
 
+    <!-- Example PATCH Request -->
+    <div
+      class="bg-gradient-to-r from-yellow-500/5 to-yellow-400/2 rounded-xl border border-yellow-200/30 dark:border-yellow-800/30 p-4"
+    >
+      <div class="flex items-center gap-2 mb-4">
+        <UIcon name="lucide:edit" class="text-yellow-500" size="18" />
+        <h3 class="text-lg font-semibold text-foreground">
+          Example PATCH Request
+        </h3>
+        <span class="text-xs text-muted-foreground ml-auto">
+          Only send fields you want to update
+        </span>
+      </div>
+      <ClientOnly>
+        <VueJsonPretty
+          :data="examplePatchPayload"
+          :show-length="true"
+          :show-line="false"
+          :deep="3"
+          theme="dark"
+          class="bg-gray-900 rounded-lg p-4"
+        />
+      </ClientOnly>
+    </div>
+
     <!-- Field Validation Rules -->
     <div
       v-if="validationRules.length > 0"
@@ -114,10 +139,8 @@ const props = defineProps<Props>();
 const schemaComposable = computed(() => {
   try {
     const schema = useSchema(props.tableName);
-    console.log("Schema composable for", props.tableName, ":", schema);
     return schema;
   } catch (error) {
-    console.warn(`Schema not found for table: ${props.tableName}`, error);
     return null;
   }
 });
@@ -125,20 +148,16 @@ const schemaComposable = computed(() => {
 // Get schema data
 const schemaData = computed(() => {
   if (!schemaComposable.value) {
-    console.log("No schema composable available");
     return null;
   }
 
   try {
     // definition is already a computed ref, so we use .value
     const definitions = unref(schemaComposable.value.definition);
-    console.log("Schema definitions for", props.tableName, ":", definitions);
 
     // Keep all definitions for Schema Structure, but will filter in other sections
     return definitions;
   } catch (error) {
-    console.error("Failed to get schema definitions:", error);
-    console.error("Schema composable structure:", schemaComposable.value);
     return null;
   }
 });
@@ -222,19 +241,17 @@ const schemaStructure = computed(() => {
 // Example payload for POST request
 const examplePayload = computed(() => {
   if (!schemaData.value || !Array.isArray(schemaData.value)) {
-    console.log("No schemaData for examplePayload:", schemaData.value);
     return {};
   }
 
   const example: Record<string, any> = {};
-  console.log("Generating example payload for fields:", schemaData.value);
 
   schemaData.value.forEach((field: any) => {
     const fieldName = field.name || field.propertyName;
     if (!fieldName) return;
 
-    // Skip auto-generated fields, system fields, and relations for POST example
-    if (field.isGenerated || field.fieldType === "relation") return;
+    // Skip auto-generated fields for POST example  
+    if (field.isGenerated) return;
     
     // Skip system fields
     if (["createdAt", "updatedAt", "id"].includes(fieldName)) return;
@@ -244,6 +261,35 @@ const examplePayload = computed(() => {
     
     // Skip isRootAdmin only from user_definition table
     if (fieldName === 'isRootAdmin' && props.tableName === 'user_definition') return;
+
+    // Handle relations differently
+    if (field.fieldType === "relation") {
+      // Get target table name for relation example
+      let targetTableName = "unknown";
+      if (field.targetTable) {
+        if (typeof field.targetTable === 'string') {
+          targetTableName = field.targetTable;
+        } else if (field.targetTable.name) {
+          targetTableName = field.targetTable.name;
+        } else if (field.targetTable.id && schemaComposable.value) {
+          const { getSchemas } = useSchema();
+          const allSchemas = getSchemas();
+          const targetSchema = Object.values(allSchemas).find((schema: any) => schema.id === field.targetTable.id);
+          if (targetSchema && (targetSchema as any).name) {
+            targetTableName = (targetSchema as any).name;
+          }
+        }
+      }
+      
+      // Check relation type to determine format
+      const relationType = field.type || field.relationType;
+      if (relationType === 'one-to-many' || relationType === 'many-to-many') {
+        example[fieldName] = [{ id: `${targetTableName}-id` }];
+      } else {
+        example[fieldName] = { id: `${targetTableName}-id` };
+      }
+      return;
+    }
 
     switch (field.type?.toLowerCase()) {
       case "varchar":
@@ -284,19 +330,93 @@ const examplePayload = computed(() => {
     }
   });
 
-  console.log("Generated example payload:", example);
+  return example;
+});
+
+// Example patch payload - show partial update with 1-2 fields
+const examplePatchPayload = computed(() => {
+  if (!schemaData.value || !Array.isArray(schemaData.value)) {
+    return {};
+  }
+
+  const example: Record<string, any> = {};
+  let fieldsAdded = 0;
+  const maxFields = 2; // Show only 1-2 fields for PATCH example
+
+  schemaData.value.forEach((field: any) => {
+    if (fieldsAdded >= maxFields) return;
+    
+    const fieldName = field.name || field.propertyName;
+    if (!fieldName) return;
+
+    // Skip auto-generated fields, system fields 
+    if (field.isGenerated) return;
+    if (["createdAt", "updatedAt", "id"].includes(fieldName)) return;
+    if (fieldName === 'isSystem') return;
+    if (fieldName === 'isRootAdmin' && props.tableName === 'user_definition') return;
+
+    // Handle relations
+    if (field.fieldType === "relation") {
+      let targetTableName = "unknown";
+      if (field.targetTable) {
+        if (typeof field.targetTable === 'string') {
+          targetTableName = field.targetTable;
+        } else if (field.targetTable.name) {
+          targetTableName = field.targetTable.name;
+        } else if (field.targetTable.id && schemaComposable.value) {
+          const { getSchemas } = useSchema();
+          const allSchemas = getSchemas();
+          const targetSchema = Object.values(allSchemas).find((schema: any) => schema.id === field.targetTable.id);
+          if (targetSchema && (targetSchema as any).name) {
+            targetTableName = (targetSchema as any).name;
+          }
+        }
+      }
+      
+      // Check relation type to determine format
+      const relationType = field.type || field.relationType;
+      if (relationType === 'one-to-many' || relationType === 'many-to-many') {
+        example[fieldName] = [{ id: `${targetTableName}-id` }];
+      } else {
+        example[fieldName] = { id: `${targetTableName}-id` };
+      }
+      fieldsAdded++;
+      return;
+    }
+
+    // Add one example field for PATCH
+    switch (field.type?.toLowerCase()) {
+      case "varchar":
+      case "text":
+        example[fieldName] = `Updated ${fieldName}`;
+        fieldsAdded++;
+        break;
+      case "int":
+        example[fieldName] = 456;
+        fieldsAdded++;
+        break;
+      case "boolean":
+        example[fieldName] = false;
+        fieldsAdded++;
+        break;
+      default:
+        if (fieldsAdded === 0) { // Ensure at least one field
+          example[fieldName] = `updated_${field.type}_value`;
+          fieldsAdded++;
+        }
+    }
+  });
+
   return example;
 });
 
 // Validation rules
 const validationRules = computed(() => {
   if (!schemaData.value || !Array.isArray(schemaData.value)) {
-    console.log("No schemaData for validationRules:", schemaData.value);
     return [];
   }
 
   const rules: Array<{ field: string; rules: string[] }> = [];
-  console.log("Generating validation rules for fields:", schemaData.value);
 
   schemaData.value.forEach((field: any) => {
     const fieldName = field.name || field.propertyName;
@@ -351,8 +471,6 @@ const relations = computed(() => {
   return schemaData.value
     .filter((field: any) => field.fieldType === "relation")
     .map((field: any) => {
-      console.log("Processing relation field:", field);
-      
       // Get target table name
       let targetTableName = "unknown";
       if (field.targetTable) {
