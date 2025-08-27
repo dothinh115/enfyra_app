@@ -190,7 +190,7 @@ const examplePayload = computed(() => {
     if (
       field.isGenerated ||
       field.fieldType === "relation" ||
-      ["createdAt", "updatedAt", "id"].includes(fieldName)
+      ["createdAt", "updatedAt", "id", "isRootAdmin", "isSystem"].includes(fieldName)
     )
       return;
 
@@ -252,7 +252,7 @@ const validationRules = computed(() => {
     if (!fieldName) return;
 
     // Skip system fields for validation rules
-    if (["createdAt", "updatedAt", "id"].includes(fieldName)) return;
+    if (["createdAt", "updatedAt", "id", "isRootAdmin", "isSystem"].includes(fieldName)) return;
 
     const fieldRules: string[] = [];
 
@@ -293,14 +293,33 @@ const relations = computed(() => {
 
   return schemaData.value
     .filter((field: any) => field.fieldType === "relation")
-    .map((field: any) => ({
-      name: field.name || field.propertyName,
-      type: field.relationType || "unknown",
-      targetTable: field.targetTable?.name || field.targetTable,
-      nullable: field.isNullable || false,
-      ...(field.inversePropertyName && {
-        inverseProperty: field.inversePropertyName,
-      }),
-    }));
+    .map((field: any) => {
+      console.log("Processing relation field:", field);
+      
+      // Get target table name
+      let targetTableName = "unknown";
+      if (field.targetTable) {
+        if (typeof field.targetTable === 'string') {
+          targetTableName = field.targetTable;
+        } else if (field.targetTable.name) {
+          targetTableName = field.targetTable.name;
+        } else if (field.targetTable.id && schemaComposable.value) {
+          // Try to find table name by ID
+          const { getSchemas } = useSchema();
+          const allSchemas = getSchemas();
+          const targetSchema = Object.values(allSchemas).find((schema: any) => schema.id === field.targetTable.id);
+          if (targetSchema) {
+            targetTableName = targetSchema.name;
+          }
+        }
+      }
+
+      return {
+        name: field.name || field.propertyName,
+        type: field.type || field.relationType || "many-to-one", // default relation type
+        targetTable: targetTableName,
+        nullable: field.isNullable || false,
+      };
+    });
 });
 </script>
