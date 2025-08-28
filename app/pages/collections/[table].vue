@@ -81,7 +81,8 @@ useHeaderActionRegistry([
       () =>
         (table.value?.isSystem &&
           !isSystemTableModifiable(table.value?.name)) ||
-        schemaLoading.value
+        schemaLoading.value ||
+        saving.value
     ),
     onClick: handleDelete,
     permission: {
