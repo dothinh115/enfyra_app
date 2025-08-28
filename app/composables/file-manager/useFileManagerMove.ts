@@ -1,5 +1,18 @@
 export function useFileManagerMove() {
-  const { fileMoveState: moveState } = useGlobalState();
+  // File Manager Move State
+  const moveState = useState("file-manager:move:state", () => ({
+    moveMode: false as boolean,
+    sourceFolderId: null as string | null,
+    selectedItems: [] as string[],
+    selectedFileIds: [] as string[],
+    selectedFolderIds: [] as string[],
+  }));
+  
+  const selectedFoldersForDelete = useState<string[]>(
+    "file-manager:folder:selected:list",
+    () => []
+  );
+  
   const route = useRoute();
   const { confirm } = useConfirm();
   const toast = useToast();
@@ -125,13 +138,26 @@ export function useFileManagerMove() {
     return !hasError;
   }
 
+  function clearFileManagerState() {
+    moveState.value = {
+      moveMode: false,
+      sourceFolderId: null,
+      selectedItems: [],
+      selectedFileIds: [],
+      selectedFolderIds: [],
+    };
+    selectedFoldersForDelete.value = [];
+  }
+
   return {
     isMoveMode,
     isAnyMovePending,
     moveState,
+    selectedFoldersForDelete,
     startMoveMode,
     cancelMoveMode,
     isMoveHereDisabled,
     handleMoveHere,
+    clearFileManagerState,
   };
 }

@@ -130,6 +130,12 @@ watch(
               value: handler.type || 'Unknown',
             },
             {
+              label: 'System',
+              component: handler.isSystem ? 'UBadge' : undefined,
+              props: handler.isSystem ? { variant: 'soft', color: 'info' } : undefined,
+              value: handler.isSystem ? 'System' : '-'
+            },
+            {
               label: 'Created',
               value: new Date(handler.createdAt).toLocaleDateString(),
             },

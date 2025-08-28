@@ -128,6 +128,16 @@ watch(
               label: 'Created',
               value: new Date(role.createdAt).toLocaleDateString(),
             },
+            {
+              label: 'System',
+              component: role.isSystem ? 'UBadge' : undefined,
+              props: role.isSystem ? { variant: 'soft', color: 'info' } : undefined,
+              value: role.isSystem ? 'System' : '-'
+            },
+            {
+              label: 'Users',
+              value: '-'
+            }
           ]"
           :actions="[]"
           :header-actions="!role.isSystem ? [{

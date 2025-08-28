@@ -290,7 +290,7 @@ async function deleteRoute(routeItem: any) {
               v-for="routeItem in routesData"
               :key="routeItem.id"
               :title="routeItem.path"
-              :description="routeItem.mainTable.name"
+              :description="routeItem.mainTable?.name"
               :icon="routeItem.icon || 'lucide:circle'"
               icon-color="primary"
               :card-class="'cursor-pointer lg:hover:ring-2 lg:hover:ring-primary/20 transition-all'"
@@ -305,29 +305,27 @@ async function deleteRoute(routeItem: any) {
                   },
                   value: routeItem.isEnabled ? 'Enabled' : 'Disabled'
                 },
-                ...(routeItem.isSystem ? [{
+                {
                   label: 'System',
-                  component: 'UBadge',
-                  props: { variant: 'soft', color: 'info', },
-                  value: 'System'
-                }] : []),
-                ...(routeItem.order ? [{
-                  label: 'Order',
-                  value: routeItem.order
-                }] : []),
-                ...(routeItem.publishedMethods?.length ? [{
+                  component: routeItem.isSystem ? 'UBadge' : undefined,
+                  props: routeItem.isSystem ? { variant: 'soft', color: 'info' } : undefined,
+                  value: routeItem.isSystem ? 'System' : '-'
+                },
+                {
                   label: 'Methods',
-                  component: 'UBadge',
-                  values: routeItem.publishedMethods.map((m: any) => ({
-                    value: m.method.toUpperCase(),
-                    props: {
-                      color: m.method === 'GET' ? 'info' : 
-                             m.method === 'POST' ? 'success' : 
-                             m.method === 'PATCH' ? 'warning' : 
-                             m.method === 'DELETE' ? 'error' : undefined
-                    }
-                  }))
-                }] : [])
+                  component: routeItem.publishedMethods?.length ? 'UBadge' : undefined,
+                  values: routeItem.publishedMethods?.length ? 
+                    routeItem.publishedMethods.map((m: any) => ({
+                      value: m.method.toUpperCase(),
+                      props: {
+                        color: m.method === 'GET' ? 'info' : 
+                               m.method === 'POST' ? 'success' : 
+                               m.method === 'PATCH' ? 'warning' : 
+                               m.method === 'DELETE' ? 'error' : undefined
+                      }
+                    })) : undefined,
+                  value: !routeItem.publishedMethods?.length ? '-' : undefined
+                }
               ]"
               :actions="[]"
               :header-actions="getRouteHeaderActions(routeItem)"

@@ -303,16 +303,12 @@ watch(
                 },
                 value: menu.isEnabled ? 'Enabled' : 'Disabled',
               },
-              ...(menu.isSystem
-                ? [
-                    {
-                      label: 'System',
-                      component: 'UBadge',
-                      props: { variant: 'soft', color: 'info' },
-                      value: 'System',
-                    },
-                  ]
-                : []),
+              {
+                label: 'System',
+                component: menu.isSystem ? 'UBadge' : undefined,
+                props: menu.isSystem ? { variant: 'soft', color: 'info' } : undefined,
+                value: menu.isSystem ? 'System' : '-'
+              },
             ]"
             :actions="[]"
             :header-actions="[

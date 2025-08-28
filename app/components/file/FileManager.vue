@@ -44,11 +44,9 @@ const {
   cancelMoveMode,
   isMoveHereDisabled,
   handleMoveHere,
+  selectedFoldersForDelete: selectedFolders,
+  clearFileManagerState,
 } = useFileManagerMove();
-
-// Get remaining global state and services
-const { selectedFoldersForDelete: selectedFolders, clearFileManagerState } =
-  useGlobalState();
 const { confirm } = useConfirm();
 
 function handleFolderClick(folder: any) {

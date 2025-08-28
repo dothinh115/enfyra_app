@@ -110,7 +110,7 @@ const emit = defineEmits<{
 }>();
 
 // Access global move state
-const { fileMoveState: moveState } = useGlobalState();
+const { moveState } = useFileManagerMove();
 const { checkPermissionCondition } = usePermissions();
 
 // Check delete permission for files

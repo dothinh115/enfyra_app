@@ -5,7 +5,7 @@ const props = defineProps<{
   currentFilter?: FilterGroup; // Optional current filter from parent
 }>();
 
-const { schemas } = useGlobalState();
+const { schemas } = useSchema();
 const { addToHistory } = useFilterHistory(props.tableName);
 const { hasActiveFilters } = useFilterQuery();
 

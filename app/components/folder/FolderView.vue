@@ -30,7 +30,7 @@ const emit = defineEmits<{
 const { isMounted } = useMounted();
 
 // Get move state to disable selection during move mode
-const { fileMoveState: moveState } = useGlobalState();
+const { moveState } = useFileManagerMove();
 
 // Import permissions
 const { checkPermissionCondition } = usePermissions();
