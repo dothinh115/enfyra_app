@@ -66,16 +66,7 @@ const visibleMenuItems = computed(() => {
 </script>
 
 <template>
-  <!-- Loading skeleton -->
-  <div v-if="globalLoading" class="flex flex-col space-y-1">
-    <div v-for="i in 5" :key="i" class="animate-pulse">
-      <div class="h-10 bg-muted/50 rounded-lg"></div>
-    </div>
-  </div>
-
-  <!-- Menu items based on registry -->
   <nav
-    v-else
     class="flex flex-col space-y-1 bg-gradient-to-b from-background to-muted/5"
   >
     <!-- Empty state when no menu items available -->

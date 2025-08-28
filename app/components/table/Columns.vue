@@ -302,7 +302,6 @@ watch(
         <UBadge size="xs" color="info" v-if="column.isNullable"
           >nullable</UBadge
         >
-        <UBadge size="xs" color="info" v-if="column.isIndex">index</UBadge>
       </div>
 
       <!-- Delete button -->

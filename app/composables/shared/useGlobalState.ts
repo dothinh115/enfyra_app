@@ -1,6 +1,5 @@
 export const useGlobalState = () => {
   const tables = useState<any[]>("global:tables", () => []);
-  const routes = useState<any[]>("global:routes", () => []);
   const settings = useState<any>("global:settings", () => {});
 
   const sidebarVisible = useState<boolean>(
@@ -42,30 +41,6 @@ export const useGlobalState = () => {
     tables.value = tablesData.value?.data || [];
   }
 
-  // API composable for fetching routes
-  const { data: routesData, pending: routesPending, execute: executeFetchRoutes } = useApiLazy(
-    () => "/route_definition",
-    {
-      query: {
-        fields: [
-          "*",
-          "mainTable.*",
-          "routePermissions.*",
-          "handlers.*",
-          "hooks.*",
-        ].join(","),
-        limit: 0,
-        sort: ["id"].join(","),
-      },
-      errorContext: "Fetch Routes",
-    }
-  );
-
-  async function fetchRoute() {
-    await executeFetchRoutes();
-    routes.value = routesData.value?.data || [];
-  }
-
   // API composable for fetching settings
   const { data: settingsData, pending: settingsPending, execute: executeFetchSettings } = useApiLazy(
     () => "/setting_definition",
@@ -84,11 +59,11 @@ export const useGlobalState = () => {
   }
 
   const schemaLoading = computed(() => {
-    return tablesPending.value || routesPending.value || settingsPending.value;
+    return tablesPending.value || settingsPending.value;
   });
 
   async function fetchSchema() {
-    await Promise.all([fetchTable(), fetchRoute(), fetchSetting()]);
+    await Promise.all([fetchTable(), fetchSetting()]);
     updateSchemas(tables.value);
   }
 
@@ -119,7 +94,6 @@ export const useGlobalState = () => {
   return {
     tables,
     schemas, // Pass through from useSchema for backward compatibility
-    routes,
     fetchSchema,
     schemaLoading,
     sidebarVisible,

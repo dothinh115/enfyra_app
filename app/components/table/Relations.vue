@@ -97,7 +97,6 @@ function saveRelation() {
           }}
         </UBadge>
         <UBadge size="xs" color="info" v-if="rel.isNullable">nullable</UBadge>
-        <UBadge size="xs" color="info" v-if="rel.isIndex">index</UBadge>
       </div>
 
       <UButton

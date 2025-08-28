@@ -104,26 +104,6 @@ const visibleFields = computed(() => {
     return hasKey;
   });
 
-  // Filter out relation fields that don't have routes
-  const { routes, tables } = useGlobalState();
-  fields = fields.filter((field: any) => {
-    if (field.fieldType !== "relation") return true;
-
-    // Check if relation target table has route
-    const tableId = field.targetTable?.id;
-    if (!tableId) return false;
-
-    const tableName = tables.value.find((t: any) => t.id === tableId)?.name;
-    if (!tableName) return false;
-
-    const hasRoute = routes.value.some((r: any) => {
-      const routePath = r.path.replace(/^\/+/, "");
-      return routePath === tableName;
-    });
-
-    return hasRoute;
-  });
-
   // Filter by excluded in typeMap
   fields = fields.filter((field: any) => {
     const key = field.name || field.propertyName;

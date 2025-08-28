@@ -30,16 +30,6 @@ watch(
   }
 );
 
-watch(
-  () => table.columns.type,
-  (newType) => {
-    const notIndexableTypes = ["text", "json"];
-    if (notIndexableTypes.includes(newType)) {
-      table.column.isIndex = false;
-    }
-  },
-  { immediate: false }
-);
 
 function validateColumn(col: any) {
   if (!col.name?.trim()) {

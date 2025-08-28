@@ -26,13 +26,6 @@ export default defineNuxtPlugin(async () => {
     await registerAllMenusFromApi(menuResponse.data);
   }
 
-  // Wait for tables to be loaded before registering table menus
-  if (tables.value.length === 0) {
-    // If tables are empty, wait a bit and try again
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
-
-  // Register all table menus using helper function (LAST - after all sidebars are registered)
   if (tables.value.length > 0) {
     await registerTableMenusWithSidebarIds(tables.value);
   }
