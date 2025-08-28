@@ -6,14 +6,15 @@ export default defineNuxtPlugin(async () => {
     registerTableMenusWithSidebarIds,
     registerMiniSidebar,
   } = useMenuRegistry();
-  const { tables, fetchSchema } = useGlobalState();
+  const { tables, fetchSchema, fetchSetting } = useGlobalState();
   const { confirm } = useConfirm();
 
   const { fetchMenuDefinitions } = useMenuApi();
 
-  // Fetch schema and menu definitions in parallel for better performance
-  const [, menuResponse] = await Promise.all([
+  // Fetch schema, settings, and menu definitions in parallel for better performance
+  const [, , menuResponse] = await Promise.all([
     fetchSchema(),
+    fetchSetting(),
     fetchMenuDefinitions(),
   ]);
 

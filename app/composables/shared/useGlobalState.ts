@@ -58,12 +58,9 @@ export const useGlobalState = () => {
     settings.value = settingsData.value?.data[0] || {};
   }
 
-  const schemaLoading = computed(() => {
-    return tablesPending.value || settingsPending.value;
-  });
 
   async function fetchSchema() {
-    await Promise.all([fetchTable(), fetchSetting()]);
+    await fetchTable();
     updateSchemas(tables.value);
   }
 
@@ -93,9 +90,11 @@ export const useGlobalState = () => {
 
   return {
     tables,
+    settings,
     schemas, // Pass through from useSchema for backward compatibility
     fetchSchema,
-    schemaLoading,
+    fetchSetting,
+    schemaLoading: tablesPending,
     sidebarVisible,
     routeLoading,
     toggleSidebar,
