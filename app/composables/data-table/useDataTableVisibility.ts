@@ -1,17 +1,25 @@
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, type Ref } from "vue";
+import type { SchemaCollection, TableDefinitionField } from "~/types/schema";
+import { isRefSchemaCollection } from "~/utils/common/type-guards";
 
-export function useDataTableVisibility(tableName: string, schemas: any) {
+export function useDataTableVisibility(
+  tableName: string,
+  schemas: Ref<SchemaCollection> | any
+) {
   // Column visibility state with localStorage support - save hidden columns instead of visible
   const hiddenColumns = ref<Set<string>>(new Set());
 
   // Computed to get visible columns from hidden columns
   const visibleColumns = computed(() => {
+    if (!isRefSchemaCollection(schemas)) return new Set();
+    
     const schema = schemas.value[tableName];
     if (!schema?.definition) return new Set();
 
     const columnFields = schema.definition
-      .filter((field: any) => field.fieldType === "column")
-      .map((field: any) => field.name);
+      .filter((field: TableDefinitionField) => field.fieldType === "column")
+      .map((field: TableDefinitionField) => field.name)
+      .filter((name: string | undefined): name is string => !!name);
 
     // Visible = all columns minus hidden columns
     return new Set(
@@ -35,7 +43,10 @@ export function useDataTableVisibility(tableName: string, schemas: any) {
         return new Set(validHiddenColumns);
       }
     } catch (error) {
-      console.warn("Failed to load column visibility from localStorage:", error);
+      console.warn(
+        "Failed to load column visibility from localStorage:",
+        error
+      );
     }
     // Default: no columns hidden (all visible)
     return new Set();
@@ -55,12 +66,13 @@ export function useDataTableVisibility(tableName: string, schemas: any) {
 
   // Initialize visible columns when schema changes
   watch(
-    () => schemas.value[tableName],
+    () => isRefSchemaCollection(schemas) ? schemas.value[tableName] : null,
     (schema) => {
       if (schema?.definition) {
         const columnFields = schema.definition
-          .filter((field: any) => field.fieldType === "column")
-          .map((field: any) => field.name);
+          .filter((field: TableDefinitionField) => field.fieldType === "column")
+          .map((field: TableDefinitionField) => field.name)
+          .filter((name: string | undefined): name is string => !!name);
 
         // Load from localStorage or default to no hidden columns (all visible)
         hiddenColumns.value = loadColumnVisibility(tableName, columnFields);
@@ -86,19 +98,22 @@ export function useDataTableVisibility(tableName: string, schemas: any) {
 
   // Column visibility dropdown items
   const columnDropdownItems = computed(() => {
+    if (!isRefSchemaCollection(schemas)) return [];
+    
     const schema = schemas.value[tableName];
     if (!schema?.definition) return [];
 
     const items = schema.definition
-      .filter((field: any) => field.fieldType === "column")
-      .map((field: any) => ({
-        label: field.label || field.name,
+      .filter((field: TableDefinitionField) => field.fieldType === "column")
+      .filter((field: TableDefinitionField) => !!field.name)
+      .map((field: TableDefinitionField) => ({
+        label: field.label || field.name || '',
         type: "checkbox" as const,
         get checked() {
-          return !hiddenColumns.value.has(field.name); // checked = not hidden
+          return !hiddenColumns.value.has(field.name!); // checked = not hidden
         },
         onToggle: () => {
-          toggleColumnVisibility(field.name);
+          toggleColumnVisibility(field.name!);
         },
       }));
 
@@ -109,6 +124,6 @@ export function useDataTableVisibility(tableName: string, schemas: any) {
     hiddenColumns,
     visibleColumns,
     toggleColumnVisibility,
-    columnDropdownItems
+    columnDropdownItems,
   };
 }

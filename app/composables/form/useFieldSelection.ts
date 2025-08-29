@@ -1,8 +1,9 @@
 import type { FilterCondition, FilterGroup } from '~/utils/common/filter/filter-types';
+import type { SchemaCollection } from '~/types/schema';
 import { generateFilterId } from '~/utils/common/filter/filter-operators';
 
 export function useFieldSelection(
-  schemas: Record<string, any>,
+  schemas: SchemaCollection,
   tableName: string
 ) {
   function onFieldSelectChange(
@@ -12,7 +13,7 @@ export function useFieldSelection(
     emit: Function
   ) {
     const options = getCombinedOptionsForContext(tableName, schemas);
-    const selectedOption = options.find((opt: any) => opt.value === selectedValue);
+    const selectedOption = options.find((opt) => opt.value === selectedValue);
 
     if (!selectedOption) return;
 
@@ -40,7 +41,7 @@ export function useFieldSelection(
       // Get target table name and its first field
       const targetTableName = selectedOption.targetTable || tableName;
       const targetOptions = getCombinedOptionsForContext(targetTableName, schemas);
-      const firstField = targetOptions.find((opt: any) => opt.fieldCategory === "column");
+      const firstField = targetOptions.find((opt) => opt.fieldCategory === "column");
 
       const newGroup: FilterGroup = {
         id: generateFilterId(),

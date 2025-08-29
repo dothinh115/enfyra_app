@@ -4,7 +4,7 @@
       <FormField
         v-for="field in visibleFields"
         :key="field.name || field.propertyName"
-        :key-name="field.name || field.propertyName"
+        :key-name="(field.name || field.propertyName) as string"
         :form-data="modelValue"
         :column-map="fieldMap"
         :type-map="typeMapWithGenerated"

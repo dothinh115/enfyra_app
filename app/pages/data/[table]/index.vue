@@ -10,7 +10,7 @@ const total = ref(1);
 const page = ref(1);
 const pageLimit = 10;
 const data = ref([]);
-const table = computed(() => Object.values(schemas.value).find((s: any) => s.name === tableName) as any);
+const table = computed(() => schemas.value[tableName]);
 const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
 const { checkPermissionCondition } = usePermissions();
 
@@ -142,22 +142,22 @@ useSubHeaderActionRegistry([
 
 const { buildColumn, buildActionsColumn } = useDataTableColumns();
 
-const columns = computed<ColumnDef<any>[]>(() => {
+const columns = computed(() => {
   const schema = schemas.value[tableName];
   if (!schema?.definition) return [];
 
   const dataColumns = schema.definition
     .filter(
-      (field: any) =>
-        field.fieldType === "column" && visibleColumns.value.has(field.name)
+      (field) =>
+        field.fieldType === "column" && field.name && visibleColumns.value.has(field.name)
     )
-    .map((field: any) => {
+    .map((field) => {
       let config: DataTableColumnConfig = {
-        id: field.name,
-        header: field.label || field.name,
+        id: field.name!,
+        header: field.label || field.name || '',
       };
 
-      if (field.type === "datetime") {
+      if (field.type === "timestamp") {
         config.format = "datetime";
       } else if (field.type === "date") {
         config.format = "date";
@@ -171,7 +171,7 @@ const columns = computed<ColumnDef<any>[]>(() => {
       } else {
         config.format = "custom";
         config.formatOptions = {
-          formatter: (value: any) => {
+          formatter: (value: unknown) => {
             if (value === null || value === undefined) return "-";
             const str = String(value);
             return str.length > 50 ? str.slice(0, 50) + "..." : str;
@@ -199,7 +199,7 @@ const columns = computed<ColumnDef<any>[]>(() => {
           });
           return hasDeletePermission;
         },
-        onSelect: (row: any) => {
+        onSelect: (row: Record<string, any>) => {
           handleDelete(row.id);
         },
       },
@@ -340,7 +340,7 @@ useHeaderActionRegistry([
         :page-size="pageLimit"
         :selectable="isSelectionMode"
         @selection-change="handleSelectionChange"
-        @row-click="(row: any) => navigateTo(`/data/${tableName}/${row.id}`)"
+        @row-click="(row: Record<string, any>) => navigateTo(`/data/${tableName}/${row.id}`)"
       >
         <template #header-actions>
           <div

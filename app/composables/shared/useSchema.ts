@@ -1,6 +1,16 @@
+import type {
+  TableApiResponse,
+  SchemaCollection,
+  TableSchema,
+  TableDefinitionField,
+  FormValidationResult,
+  FormChangesState,
+  RelationType,
+} from "~/types/schema";
+
 export function useSchema(tableName?: string | Ref<string>) {
-  const schemas = useState<any>("schemas:data", () => ({}));
-  
+  const schemas = useState<SchemaCollection>("schemas:data", () => ({}));
+
   // API for fetching tables
   const {
     data: tablesData,
@@ -17,12 +27,12 @@ export function useSchema(tableName?: string | Ref<string>) {
 
   async function fetchSchema() {
     await executeFetchTables();
-    const tables = tablesData.value?.data || [];
+    const tables: TableApiResponse[] = tablesData.value?.data || [];
     updateSchemas(tables);
   }
-  
-  function convertToEnfyraSchema(input: any[]): Record<string, any> {
-    const schema: Record<string, any> = {};
+
+  function convertToEnfyraSchema(input: TableApiResponse[]): SchemaCollection {
+    const schema: SchemaCollection = {};
     const seenRelationKeys = new Set<string>();
 
     for (const t of input) {
@@ -30,13 +40,13 @@ export function useSchema(tableName?: string | Ref<string>) {
         ...t,
         definition: [],
       };
-      delete schema[t.name].columns;
-      delete schema[t.name].relations;
+      delete schema[t.name]?.columns;
+      delete schema[t.name]?.relations;
     }
 
     for (const t of input) {
       for (const col of t.columns || []) {
-        schema[t.name].definition.push({
+        schema[t.name]?.definition.push({
           ...col,
           fieldType: "column",
         });
@@ -44,13 +54,13 @@ export function useSchema(tableName?: string | Ref<string>) {
     }
 
     for (const tableName in schema) {
-      const def = schema[tableName].definition;
+      const def = schema[tableName]?.definition;
 
       const shouldInject = (name: string) =>
-        !def.some((d: any) => d.name === name && d.fieldType === "column");
+        !def?.some((d) => d.name === name && d.fieldType === "column");
 
       if (shouldInject("createdAt")) {
-        def.push({
+        def?.push({
           name: "createdAt",
           type: "timestamp",
           isNullable: false,
@@ -63,7 +73,7 @@ export function useSchema(tableName?: string | Ref<string>) {
       }
 
       if (shouldInject("updatedAt")) {
-        def.push({
+        def?.push({
           name: "updatedAt",
           type: "timestamp",
           isNullable: false,
@@ -83,7 +93,7 @@ export function useSchema(tableName?: string | Ref<string>) {
 
         const directKey = `${sourceTable}:${rel.propertyName}`;
         if (!seenRelationKeys.has(directKey)) {
-          schema[sourceTable].definition.push({
+          schema[sourceTable]?.definition.push({
             ...rel,
             name: rel.propertyName,
             fieldType: "relation",
@@ -95,22 +105,25 @@ export function useSchema(tableName?: string | Ref<string>) {
           const targetTableName = input.find(
             (t) => t.id === rel.targetTable.id
           )?.name;
-          const inverseKey = `${targetTableName}:${rel.inversePropertyName}`;
-          if (!seenRelationKeys.has(inverseKey)) {
-            const inverseRel = {
-              ...rel,
-              name: rel.inversePropertyName,
-              propertyName: rel.inversePropertyName,
-              inversePropertyName: rel.propertyName,
-              sourceTable: rel.targetTable,
-              targetTable: rel.sourceTable,
-              type: inverseRelationType(rel.type),
-              fieldType: "relation",
-              isNullable: true,
-            };
-            delete inverseRel.id;
-            schema[targetTableName].definition.push(inverseRel);
-            seenRelationKeys.add(inverseKey);
+          
+          if (targetTableName) {
+            const inverseKey = `${targetTableName}:${rel.inversePropertyName}`;
+            if (!seenRelationKeys.has(inverseKey)) {
+              const inverseRel: TableDefinitionField = {
+                ...rel,
+                id: undefined,  // set undefined thay vì delete
+                name: rel.inversePropertyName,
+                propertyName: rel.inversePropertyName,
+                inversePropertyName: rel.propertyName,
+                sourceTable: rel.targetTable,
+                targetTable: rel.sourceTable,
+                type: inverseRelationType(rel.type),
+                fieldType: "relation",
+                isNullable: true,
+              };
+              schema[targetTableName]?.definition.push(inverseRel);
+              seenRelationKeys.add(inverseKey);
+            }
           }
         }
       }
@@ -119,7 +132,7 @@ export function useSchema(tableName?: string | Ref<string>) {
     return schema;
   }
 
-  function inverseRelationType(type: string): string {
+  function inverseRelationType(type: RelationType): RelationType {
     switch (type) {
       case "one-to-many":
         return "many-to-one";
@@ -130,19 +143,25 @@ export function useSchema(tableName?: string | Ref<string>) {
     }
   }
 
-  function updateSchemas(tables: any[]) {
+  function updateSchemas(tables: TableApiResponse[]) {
     schemas.value = convertToEnfyraSchema(tables);
   }
 
   // Table-specific functionality (only when tableName is provided)
-  const tableNameRef = tableName ? (isRef(tableName) ? tableName : ref(tableName)) : ref("");
+  const tableNameRef = tableName
+    ? isRef(tableName)
+      ? tableName
+      : ref(tableName)
+    : ref("");
 
-  const definition = computed(
+  const definition = computed<TableDefinitionField[]>(
     () => schemas.value[tableNameRef.value]?.definition || []
   );
 
-  function sortFieldsByOrder(fields: any[]): any[] {
-    return [...fields].sort((a: any, b: any) => {
+  function sortFieldsByOrder(
+    fields: TableDefinitionField[]
+  ): TableDefinitionField[] {
+    return [...fields].sort((a, b) => {
       if (a.fieldType === "column" && b.fieldType === "relation") return -1;
       if (a.fieldType === "relation" && b.fieldType === "column") return 1;
       return 0;
@@ -150,7 +169,7 @@ export function useSchema(tableName?: string | Ref<string>) {
   }
 
   const fieldMap = computed(() => {
-    const map = new Map<string, any>();
+    const map = new Map<string, TableDefinitionField>();
     for (const field of definition.value) {
       const key = field.name || field.propertyName;
       if (key) map.set(key, field);
@@ -158,12 +177,12 @@ export function useSchema(tableName?: string | Ref<string>) {
     return map;
   });
 
-  function getField(key: string) {
+  function getField(key: string): TableDefinitionField | undefined {
     return fieldMap.value.get(key);
   }
 
   const editableFields = computed(() => {
-    let fields = definition.value.filter((field: any) => {
+    let fields = definition.value.filter((field) => {
       const key = field.name || field.propertyName;
       if (!key) return false;
       if (
@@ -242,10 +261,7 @@ export function useSchema(tableName?: string | Ref<string>) {
     return result;
   }
 
-  function validate(record: Record<string, any>): {
-    isValid: boolean;
-    errors: Record<string, string>;
-  } {
+  function validate(record: Record<string, any>): FormValidationResult {
     const errors: Record<string, string> = {};
     let isValid = true;
 
@@ -279,14 +295,14 @@ export function useSchema(tableName?: string | Ref<string>) {
     if (!definition.value.length) return "*";
 
     const relations = definition.value
-      .filter((field: any) => field.fieldType === "relation")
-      .map((field: any) => `${field.propertyName}.*`);
+      .filter((field) => field.fieldType === "relation")
+      .map((field) => `${field.propertyName}.*`);
 
     return ["*", ...relations].join(",");
   }
 
   // Form change detection
-  function useFormChanges() {
+  function useFormChanges(): FormChangesState {
     const originalData = ref<Record<string, any>>({});
     const hasChanges = ref(false);
 
@@ -295,7 +311,7 @@ export function useSchema(tableName?: string | Ref<string>) {
       hasChanges.value = false;
     }
 
-    function checkChanges(currentData: Record<string, any>) {
+    function checkChanges(currentData: Record<string, any>): boolean {
       // Deep comparison between original and current data
       const original = JSON.stringify(originalData.value);
       const current = JSON.stringify(currentData);
@@ -312,18 +328,19 @@ export function useSchema(tableName?: string | Ref<string>) {
   }
 
   // If tableName provided, return single table schema
-  const tableSchema = computed(() => {
+  const tableSchema = computed<TableSchema | null>(() => {
     if (!tableName) return null;
     return schemas.value[tableNameRef.value] || null;
   });
 
   return {
     // Schema data and management
-    schemas: tableName ? tableSchema : readonly(schemas),
+    schemas: readonly(schemas),
+    schema: tableSchema,
     fetchSchema,
     schemaLoading: tablesPending,
     updateSchemas,
-    
+
     // Table-specific functions (only useful when tableName is provided)
     definition,
     fieldMap,

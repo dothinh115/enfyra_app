@@ -19,7 +19,7 @@
             <div class="flex justify-end">
               <RecordDetailsRegularField
                 :field="field"
-                :value="record[field.name || field.propertyName]"
+                :value="record[(field.name || field.propertyName) as string]"
               />
             </div>
           </div>
@@ -46,14 +46,14 @@
             <UBadge 
               variant="soft" 
               size="sm"
-              :color="getRelationBadgeColor(field.relationType)"
+              :color="getRelationBadgeColor(field.relationType || '')"
             >
               {{ field.relationType }}
             </UBadge>
           </div>
           <RecordDetailsRelationField
             :field="field"
-            :value="record[field.name || field.propertyName]"
+            :value="record[(field.name || field.propertyName) as string]"
           />
         </div>
       </div>
@@ -78,7 +78,7 @@
             <div class="flex justify-end">
               <RecordDetailsRegularField
                 :field="field"
-                :value="record[field.name || field.propertyName]"
+                :value="record[(field.name || field.propertyName) as string]"
               />
             </div>
           </div>
@@ -97,7 +97,7 @@ const props = defineProps<{
 const { definition, sortFieldsByOrder } = useSchema(props.tableName);
 
 const visibleFields = computed(() => {
-  let fields = definition.value.filter((field: any) => {
+  let fields = definition.value.filter((field) => {
     const key = field.name || field.propertyName;
     if (!key) return false;
     if (["isSystem", "isRootAdmin"].includes(key)) return false;
@@ -109,22 +109,22 @@ const visibleFields = computed(() => {
 
 // Separate fields into logical sections
 const basicFields = computed(() => {
-  return visibleFields.value.filter((field: any) => {
+  return visibleFields.value.filter((field) => {
     const key = field.name || field.propertyName;
     if (field.fieldType === 'relation') return false;
-    if (['createdAt', 'updatedAt', 'id'].includes(key)) return false;
+    if (key && ['createdAt', 'updatedAt', 'id'].includes(key)) return false;
     return true;
   });
 });
 
 const relationFields = computed(() => {
-  return visibleFields.value.filter((field: any) => field.fieldType === 'relation');
+  return visibleFields.value.filter((field) => field.fieldType === 'relation');
 });
 
 const metadataFields = computed(() => {
-  return visibleFields.value.filter((field: any) => {
+  return visibleFields.value.filter((field) => {
     const key = field.name || field.propertyName;
-    return ['id', 'createdAt', 'updatedAt'].includes(key);
+    return key ? ['id', 'createdAt', 'updatedAt'].includes(key) : false;
   });
 });
 
