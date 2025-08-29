@@ -1,6 +1,5 @@
 export function useSchema(tableName?: string | Ref<string>) {
   const schemas = useState<any>("schemas:data", () => ({}));
-  const tables = useState<any[]>("schema:tables", () => []);
   
   // API for fetching tables
   const {
@@ -16,22 +15,11 @@ export function useSchema(tableName?: string | Ref<string>) {
     errorContext: "Fetch Tables",
   });
 
-  async function fetchTables() {
-    await executeFetchTables();
-    tables.value = tablesData.value?.data || [];
-  }
-
   async function fetchSchema() {
-    await fetchTables();
-    updateSchemas(tables.value);
+    await executeFetchTables();
+    const tables = tablesData.value?.data || [];
+    updateSchemas(tables);
   }
-  
-  // Watch tables and auto-update schemas
-  watch(tables, (newTables) => {
-    if (newTables && newTables.length > 0) {
-      updateSchemas(newTables);
-    }
-  }, { immediate: true, deep: true });
   
   function convertToEnfyraSchema(input: any[]): Record<string, any> {
     const schema: Record<string, any> = {};
@@ -332,7 +320,6 @@ export function useSchema(tableName?: string | Ref<string>) {
   return {
     // Schema data and management
     schemas: tableName ? tableSchema : readonly(schemas),
-    tables: readonly(tables),
     fetchSchema,
     schemaLoading: tablesPending,
     updateSchemas,

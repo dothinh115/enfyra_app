@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const route = useRoute();
-const { tables, fetchSchema, schemaLoading } = useSchema();
+const { schemas, fetchSchema, schemaLoading } = useSchema();
 const { confirm } = useConfirm();
 const toast = useToast();
 const { registerTableMenusWithSidebarIds } = useMenuRegistry();
@@ -138,7 +138,7 @@ async function patchTable() {
 
   await fetchSchema();
 
-  registerTableMenusWithSidebarIds(tables.value as any[]);
+  registerTableMenusWithSidebarIds(Object.values(schemas.value));
 
   toast.add({
     title: "Success",
@@ -167,7 +167,7 @@ async function deleteTable() {
 
   await fetchSchema();
 
-  registerTableMenusWithSidebarIds(tables.value as any[]);
+  registerTableMenusWithSidebarIds(Object.values(schemas.value));
 
   toast.add({
     title: "Success",
@@ -215,9 +215,9 @@ onMounted(() => {
                 <TableRelations
                   v-model="table.relations"
                   :table-options="
-                    tables?.map((t) => ({
-                      label: t?.name,
-                      value: { id: t.id },
+                    Object.values(schemas).map((schema: any) => ({
+                      label: schema?.name,
+                      value: { id: schema.id },
                     }))
                   "
                 />

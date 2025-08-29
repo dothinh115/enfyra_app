@@ -22,10 +22,11 @@ const showCreateDrawer = ref(false);
 const showFilterDrawer = ref(false);
 const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
 const currentFilter = ref(createEmptyFilter());
-const { tables } = useSchema();
-const targetTable = computed(() =>
-  tables.value.find((t) => t.id === props.relationMeta?.targetTable?.id)
-);
+const { schemas } = useSchema();
+const targetTable = computed(() => {
+  const targetId = props.relationMeta?.targetTable?.id;
+  return (Object.values(schemas.value).find((schema: any) => schema.id === targetId) || null) as any;
+});
 
 // Get schema for the target table - computed to handle reactive props
 const targetTableName = computed(() => targetTable.value?.name || "");

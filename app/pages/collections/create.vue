@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { tables, fetchSchema, schemaLoading } = useSchema();
+const { schemas, fetchSchema, schemaLoading } = useSchema();
 const { confirm } = useConfirm();
 const toast = useToast();
 const { registerTableMenusWithSidebarIds } = useMenuRegistry();
@@ -153,11 +153,11 @@ async function save() {
   // Fetch schema first to get updated tables
   await fetchSchema();
 
-  // Wait a bit to ensure tables.value is updated
+  // Wait a bit to ensure schemas.value is updated
   await nextTick();
 
   // Re-register all table menus to ensure sync
-  await registerTableMenusWithSidebarIds(tables.value as any[]);
+  await registerTableMenusWithSidebarIds(Object.values(schemas.value));
 
   toast.add({
     title: "Success",
@@ -213,7 +213,10 @@ async function save() {
             <TableRelations
               v-model="table.relations"
               :table-options="
-                tables.map((t) => ({ label: t.name, value: t.id }))
+                Object.values(schemas).map((schema: any) => ({ 
+                  label: schema.name, 
+                  value: schema.id 
+                }))
               "
             />
           </div>

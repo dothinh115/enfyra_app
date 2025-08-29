@@ -135,6 +135,10 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+// Get global schemas for finding target tables by ID
+const { schemas: allSchemas } = useSchema();
+
 // Get schema data with error handling
 const schemaComposable = computed(() => {
   try {
@@ -211,9 +215,7 @@ const schemaStructure = computed(() => {
         targetTableName = field.targetTable.name;
       } else if (field.targetTable.id && schemaComposable.value) {
         // Try to find table name by ID
-        const { getSchemas } = useSchema();
-        const allSchemas = getSchemas();
-        const targetSchema = Object.values(allSchemas).find((schema: any) => schema.id === field.targetTable.id);
+        const targetSchema = Object.values(allSchemas.value).find((schema: any) => schema.id === field.targetTable.id);
         if (targetSchema && (targetSchema as any).name) {
           targetTableName = (targetSchema as any).name;
         }
@@ -272,9 +274,7 @@ const examplePayload = computed(() => {
         } else if (field.targetTable.name) {
           targetTableName = field.targetTable.name;
         } else if (field.targetTable.id && schemaComposable.value) {
-          const { getSchemas } = useSchema();
-          const allSchemas = getSchemas();
-          const targetSchema = Object.values(allSchemas).find((schema: any) => schema.id === field.targetTable.id);
+          const targetSchema = Object.values(allSchemas.value).find((schema: any) => schema.id === field.targetTable.id);
           if (targetSchema && (targetSchema as any).name) {
             targetTableName = (targetSchema as any).name;
           }
@@ -364,9 +364,7 @@ const examplePatchPayload = computed(() => {
         } else if (field.targetTable.name) {
           targetTableName = field.targetTable.name;
         } else if (field.targetTable.id && schemaComposable.value) {
-          const { getSchemas } = useSchema();
-          const allSchemas = getSchemas();
-          const targetSchema = Object.values(allSchemas).find((schema: any) => schema.id === field.targetTable.id);
+          const targetSchema = Object.values(allSchemas.value).find((schema: any) => schema.id === field.targetTable.id);
           if (targetSchema && (targetSchema as any).name) {
             targetTableName = (targetSchema as any).name;
           }
@@ -480,9 +478,7 @@ const relations = computed(() => {
           targetTableName = field.targetTable.name;
         } else if (field.targetTable.id && schemaComposable.value) {
           // Try to find table name by ID
-          const { getSchemas } = useSchema();
-          const allSchemas = getSchemas();
-          const targetSchema = Object.values(allSchemas).find((schema: any) => schema.id === field.targetTable.id);
+          const targetSchema = Object.values(allSchemas.value).find((schema: any) => schema.id === field.targetTable.id);
           if (targetSchema && (targetSchema as any).name) {
             targetTableName = (targetSchema as any).name;
           }

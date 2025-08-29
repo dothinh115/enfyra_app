@@ -63,7 +63,7 @@ const typeMap = {
 const { fetchMenuDefinitions } = useMenuApi();
 const { reregisterAllMenus, registerTableMenusWithSidebarIds } =
   useMenuRegistry();
-const { tables } = useSchema();
+const { schemas } = useSchema();
 
 const {
   execute: createMenu,
@@ -248,8 +248,9 @@ async function saveMenu() {
   await reregisterAllMenus(fetchMenuDefinitions as any);
 
   // Also reregister table menus to ensure consistency
-  if (tables.value.length > 0) {
-    await registerTableMenusWithSidebarIds(tables.value as any[]);
+  const schemaValues = Object.values(schemas.value);
+  if (schemaValues.length > 0) {
+    await registerTableMenusWithSidebarIds(schemaValues);
   }
 
   toast.add({

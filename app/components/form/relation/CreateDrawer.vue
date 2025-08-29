@@ -11,10 +11,10 @@ const show = computed({
   set: (val) => emit("update:modelValue", val),
 });
 
-const { tables } = useSchema();
-const targetTable = tables.value.find(
-  (t) => t.id === props.relationMeta.targetTable.id
-);
+const { schemas } = useSchema();
+const targetTable = Object.values(schemas.value).find(
+  (schema: any) => schema.id === props.relationMeta.targetTable.id
+) as any;
 const { generateEmptyForm, validate } = useSchema(targetTable?.name);
 
 const {

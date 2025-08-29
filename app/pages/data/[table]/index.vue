@@ -5,12 +5,12 @@ import ColumnSelector from "~/components/data-table/ColumnSelector.vue";
 const route = useRoute();
 const router = useRouter();
 const tableName = route.params.table as string;
-const { tables, schemas } = useSchema();
+const { schemas } = useSchema();
 const total = ref(1);
 const page = ref(1);
 const pageLimit = 10;
 const data = ref([]);
-const table = computed(() => tables.value.find((t) => t.name === tableName));
+const table = computed(() => Object.values(schemas.value).find((s: any) => s.name === tableName) as any);
 const { createEmptyFilter, buildQuery, hasActiveFilters } = useFilterQuery();
 const { checkPermissionCondition } = usePermissions();
 
