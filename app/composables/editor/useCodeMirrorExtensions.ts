@@ -4,7 +4,6 @@ import { html } from "@codemirror/lang-html";
 import { linter, lintGutter } from "@codemirror/lint";
 import * as acorn from "acorn";
 import * as walk from "acorn-walk";
-import { EditorState } from "@codemirror/state";
 import {
   lineNumbers,
   highlightActiveLine,
