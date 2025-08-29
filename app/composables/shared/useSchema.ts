@@ -1,8 +1,32 @@
 export function useSchema(tableName?: string | Ref<string>) {
   const schemas = useState<any>("schemas:data", () => ({}));
+  const tables = useState<any[]>("schema:tables", () => []);
   
-  // Watch tables from useGlobalState and auto-update schemas
-  const { tables } = useGlobalState();
+  // API for fetching tables
+  const {
+    data: tablesData,
+    pending: tablesPending,
+    execute: executeFetchTables,
+  } = useApiLazy(() => "/table_definition", {
+    query: {
+      fields: ["*", "columns.*", "relations.*"].join(","),
+      limit: 0,
+      sort: ["id"].join(","),
+    },
+    errorContext: "Fetch Tables",
+  });
+
+  async function fetchTables() {
+    await executeFetchTables();
+    tables.value = tablesData.value?.data || [];
+  }
+
+  async function fetchSchema() {
+    await fetchTables();
+    updateSchemas(tables.value);
+  }
+  
+  // Watch tables and auto-update schemas
   watch(tables, (newTables) => {
     if (newTables && newTables.length > 0) {
       updateSchemas(newTables);
@@ -306,8 +330,11 @@ export function useSchema(tableName?: string | Ref<string>) {
   });
 
   return {
-    // Schema data
-    schemas: tableName ? tableSchema : readonly(schemas), // Return single table if tableName, all if not
+    // Schema data and management
+    schemas: tableName ? tableSchema : readonly(schemas),
+    tables: readonly(tables),
+    fetchSchema,
+    schemaLoading: tablesPending,
     updateSchemas,
     
     // Table-specific functions (only useful when tableName is provided)

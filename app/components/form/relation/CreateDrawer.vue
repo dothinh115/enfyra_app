@@ -11,7 +11,7 @@ const show = computed({
   set: (val) => emit("update:modelValue", val),
 });
 
-const { tables } = useGlobalState();
+const { tables } = useSchema();
 const targetTable = tables.value.find(
   (t) => t.id === props.relationMeta.targetTable.id
 );

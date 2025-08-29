@@ -6,7 +6,8 @@ export default defineNuxtPlugin(async () => {
     registerTableMenusWithSidebarIds,
     registerMiniSidebar,
   } = useMenuRegistry();
-  const { tables, fetchSchema, fetchSetting } = useGlobalState();
+  const { tables, fetchSchema } = useSchema();
+  const { fetchSetting } = useGlobalState();
   const { confirm } = useConfirm();
 
   const { fetchMenuDefinitions } = useMenuApi();
@@ -28,7 +29,7 @@ export default defineNuxtPlugin(async () => {
   }
 
   if (tables.value.length > 0) {
-    await registerTableMenusWithSidebarIds(tables.value);
+    await registerTableMenusWithSidebarIds(tables.value as any[]);
   }
 
   // Register logout button as bottom mini sidebar

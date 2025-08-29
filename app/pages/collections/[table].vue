@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const route = useRoute();
-const { tables, fetchSchema, schemaLoading } = useGlobalState();
+const { tables, fetchSchema, schemaLoading } = useSchema();
 const { confirm } = useConfirm();
 const toast = useToast();
 const { registerTableMenusWithSidebarIds } = useMenuRegistry();
@@ -138,7 +138,7 @@ async function patchTable() {
 
   await fetchSchema();
 
-  registerTableMenusWithSidebarIds(tables.value);
+  registerTableMenusWithSidebarIds(tables.value as any[]);
 
   toast.add({
     title: "Success",
@@ -167,7 +167,7 @@ async function deleteTable() {
 
   await fetchSchema();
 
-  registerTableMenusWithSidebarIds(tables.value);
+  registerTableMenusWithSidebarIds(tables.value as any[]);
 
   toast.add({
     title: "Success",

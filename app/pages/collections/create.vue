@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { tables, fetchSchema, schemaLoading } = useGlobalState();
+const { tables, fetchSchema, schemaLoading } = useSchema();
 const { confirm } = useConfirm();
 const toast = useToast();
 const { registerTableMenusWithSidebarIds } = useMenuRegistry();
@@ -14,7 +14,6 @@ const table = reactive<any>({
 });
 
 const nameError = ref<string | null>(null);
-const nameInputTouched = ref(false);
 
 watch(
   () => table.name,
@@ -29,7 +28,6 @@ watch(
     else nameError.value = "";
   }
 );
-
 
 function validateColumn(col: any) {
   if (!col.name?.trim()) {
@@ -115,7 +113,6 @@ const {
   errorContext: "Create Table",
 });
 
-
 useHeaderActionRegistry([
   {
     id: "create-table",
@@ -160,7 +157,7 @@ async function save() {
   await nextTick();
 
   // Re-register all table menus to ensure sync
-  await registerTableMenusWithSidebarIds(tables.value);
+  await registerTableMenusWithSidebarIds(tables.value as any[]);
 
   toast.add({
     title: "Success",
