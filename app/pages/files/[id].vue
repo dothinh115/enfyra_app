@@ -4,8 +4,9 @@ const router = useRouter();
 const toast = useToast();
 const { confirm } = useConfirm();
 const { isMounted } = useMounted();
+const { updateFileTimestamp } = useGlobalState();
+const { getPreviewUrl } = useFileUrl();
 const fileId = route.params.id as string;
-
 const {
   data: file,
   pending,
@@ -195,6 +196,9 @@ async function handleReplaceFileSuccess(files: File | File[]) {
   showReplaceModal.value = false;
   await initializeForm();
 
+  // Update global timestamp to bust cache everywhere
+  updateFileTimestamp(fileId);
+
   // Show success message
   toast.add({
     title: "Success",
@@ -301,9 +305,7 @@ function getFileIconAndColor(mimetype: string): {
             class="max-w-132 max-h-132"
           >
             <CommonImage
-              :src="`/assets/${file?.data?.[0]?.id}?t=${
-                file?.data?.[0]?.updatedAt || Date.now()
-              }`"
+              :src="getPreviewUrl(fileId)"
               :alt="form.filename"
               class="object-contain h-full w-132 h-132"
               loading-area="custom"

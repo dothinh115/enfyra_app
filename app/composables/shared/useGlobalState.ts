@@ -6,6 +6,12 @@ export const useGlobalState = () => {
     () => true
   );
   const routeLoading = useState<boolean>("global:route:loading", () => false);
+  
+  // Global file update tracker for cache busting
+  const fileUpdateTimestamp = useState<Record<string, number>>(
+    "global:file:update:timestamp",
+    () => ({})
+  );
 
   // API composable for fetching settings
   const {
@@ -37,6 +43,17 @@ export const useGlobalState = () => {
   function setRouteLoading(loading: boolean) {
     routeLoading.value = loading;
   }
+  
+  function updateFileTimestamp(fileId: string) {
+    fileUpdateTimestamp.value = {
+      ...fileUpdateTimestamp.value,
+      [fileId]: Date.now()
+    };
+  }
+  
+  function getFileTimestamp(fileId: string): number {
+    return fileUpdateTimestamp.value[fileId] || 0;
+  }
 
   return {
     settings,
@@ -46,5 +63,8 @@ export const useGlobalState = () => {
     toggleSidebar,
     setSidebarVisible,
     setRouteLoading,
+    fileUpdateTimestamp,
+    updateFileTimestamp,
+    getFileTimestamp,
   };
 };

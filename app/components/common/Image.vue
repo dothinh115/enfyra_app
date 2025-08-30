@@ -120,9 +120,15 @@ const imageSrc = computed(() => {
     src = src.replace("assets/", "/api/assets/");
   }
 
-  if (src.startsWith("/api/assets/") && !src.includes("format=")) {
+  if (src.startsWith("/api/assets/")) {
     const url = new URL(src, window.location.origin);
-    url.searchParams.set("format", "avif");
+    
+    // Add format if not present
+    if (!url.searchParams.has("format")) {
+      url.searchParams.set("format", "avif");
+    }
+    
+    // Preserve existing query params (like ?t= for cache busting)
     src = url.pathname + url.search;
   }
 
@@ -281,12 +287,27 @@ onUnmounted(() => {
 
 watch(
   () => props.src,
-  () => {
-    isLoading.value = false;
+  (newSrc, oldSrc) => {
+    // Reset states
+    isLoading.value = true;
     hasError.value = false;
     isRetrying.value = false;
     retryCount.value = 0;
-    isInViewport.value = false;
+    
+    // Force reload image if src changed
+    if (newSrc !== oldSrc && imageRef.value) {
+      // Clear current src to force browser to reload
+      imageRef.value.src = '';
+      
+      // Re-trigger intersection observer if needed
+      if (isInViewport.value) {
+        nextTick(() => {
+          if (imageRef.value) {
+            imageRef.value.src = imageSrc.value;
+          }
+        });
+      }
+    }
   }
 );
 </script>

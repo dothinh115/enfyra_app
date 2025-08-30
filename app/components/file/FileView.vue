@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { UIcon } from "#components";
-import { h } from "vue";
-import { getFileIconAndColor } from "~/utils/file-management/file-icons";
 
 interface Props {
   files: any[];
@@ -45,11 +43,14 @@ const canDeleteFile = checkPermissionCondition({
   ],
 });
 
+// Use file URL composable
+const { getFileUrl } = useFileUrl();
+
 // Transform files data to include assetUrl
 const transformedFiles = computed(() => {
   return props.files.map((file: any) => ({
     ...file,
-    assetUrl: `/api/assets/${file.id}`,
+    assetUrl: getFileUrl(file.id),
     displayName: file.filename || file.title || "Untitled",
   }));
 });
@@ -89,7 +90,6 @@ function deleteFile(file: any) {
   const { deleteFile } = useFileManager();
   deleteFile(file, () => emit("refresh-files"));
 }
-
 
 // Build file columns for DataTable
 const fileColumns = computed(() => [
@@ -187,17 +187,22 @@ function toggleItemSelection(fileId: string) {
 function handleSelectionChange(selectedRows: any[]) {
   const selectedIds = selectedRows.map((row) => row.id);
   const currentSelected = [...props.selectedItems];
-  
+
   // Only sync file selections, don't touch folder selections
-  const currentFileSelections = currentSelected.filter(id => 
-    props.files.some(file => file.id === id)
+  const currentFileSelections = currentSelected.filter((id) =>
+    props.files.some((file) => file.id === id)
   );
 
-  console.log('FileView handleSelectionChange - DataTable selectedIds:', selectedIds, 'currentFileSelections:', currentFileSelections);
+  console.log(
+    "FileView handleSelectionChange - DataTable selectedIds:",
+    selectedIds,
+    "currentFileSelections:",
+    currentFileSelections
+  );
 
   currentFileSelections.forEach((itemId) => {
     if (!selectedIds.includes(itemId)) {
-      console.log('Emitting toggle-selection to remove file:', itemId);
+      console.log("Emitting toggle-selection to remove file:", itemId);
       emit("toggle-selection", itemId);
     }
   });
@@ -205,7 +210,7 @@ function handleSelectionChange(selectedRows: any[]) {
   // Add newly selected items
   selectedIds.forEach((itemId) => {
     if (!currentFileSelections.includes(itemId)) {
-      console.log('Emitting toggle-selection to add file:', itemId);
+      console.log("Emitting toggle-selection to add file:", itemId);
       emit("toggle-selection", itemId);
     }
   });
@@ -301,7 +306,11 @@ function getContextMenuItems(file: any) {
           :loading="false"
           :page-size="50"
           :selectable="!moveState.moveMode && isSelectionMode"
-          :context-menu-items="!isSelectionMode && !moveState.moveMode ? getContextMenuItems : undefined"
+          :context-menu-items="
+            !isSelectionMode && !moveState.moveMode
+              ? getContextMenuItems
+              : undefined
+          "
           :selected-items="selectedItems"
           @row-click="handleFileClick"
           @selection-change="handleSelectionChange"

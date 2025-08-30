@@ -46,6 +46,7 @@ import { getFileIconAndColor } from "~/utils/file-management/file-icons";
 import { formatFileSize } from "~/utils/file-management/file-utils";
 import type { FileItem } from "~/utils/types";
 import FileGridCard from "./grid/FileGridCard.vue";
+import { useFileUrl } from "~/composables/file-manager/useFileUrl";
 
 interface Props {
   files: FileItem[];
@@ -65,6 +66,9 @@ const props = withDefaults(defineProps<Props>(), {
   selectedItems: () => [],
 });
 
+// Use file URL composable
+const { getFileUrl, getPreviewUrl } = useFileUrl();
+
 // Transform files data for display
 const transformedFiles = computed(() => {
   return props.files.map((file: any) => {
@@ -77,8 +81,8 @@ const transformedFiles = computed(() => {
       iconBackground: iconConfig.background,
       size: formatFileSize(parseInt(file.filesize || "0")),
       modifiedAt: formatDate(file.updatedAt || file.createdAt || ""),
-      assetUrl: `/api/assets/${file.id}`,
-      previewUrl: `/api/assets/${file.id}`,
+      assetUrl: getFileUrl(file.id),
+      previewUrl: getPreviewUrl(file.id),
     };
   });
 });
