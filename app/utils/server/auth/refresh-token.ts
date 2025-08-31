@@ -13,17 +13,15 @@ export async function refreshToken(event: H3Event): Promise<string | null> {
   const expTimeStr = getCookie(event, EXP_TIME_KEY);
   const refreshToken = getCookie(event, REFRESH_TOKEN_KEY);
   const now = Date.now();
-
   // If there's no refreshToken then give up
   if (!refreshToken) {
     return null;
   }
 
   const expTime = expTimeStr ? parseInt(expTimeStr) : 0;
-  const tokenStillValid = accessToken && now < expTime - 10_000;
+  const tokenStillValid = now < expTime - 10_000;
 
-  // If token is still valid then use it
-  if (tokenStillValid) {
+  if (tokenStillValid && accessToken) {
     return accessToken!;
   }
 
