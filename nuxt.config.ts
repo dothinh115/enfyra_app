@@ -3,7 +3,13 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineNuxtConfig({
   compatibilityDate: "2025-05-15",
   devtools: { enabled: true },
-  modules: ["@nuxt/icon", "@nuxt/ui", "@nuxtjs/tailwindcss", "nuxt-codemirror"],
+  modules: [
+    "@nuxt/icon",
+    "@nuxt/ui",
+    "@nuxtjs/tailwindcss",
+    "nuxt-codemirror",
+    "./../enfyra-sdk-nuxt/dist/module.cjs",
+  ],
   colorMode: {
     preference: "dark",
     fallback: "dark",
@@ -51,16 +57,6 @@ export default defineNuxtConfig({
   },
   imports: {
     dirs: ["utils/**/**/**", "composables/**/**"],
-    imports: [
-      {
-        name: 'useEnfyraApi',
-        from: '@enfyra/vue-sdk'
-      },
-      {
-        name: 'useEnfyraConfig',
-        from: '@enfyra/vue-sdk'
-      }
-    ]
   },
   alias: {
     "~/app": "./app",
@@ -101,8 +97,11 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      apiUrl: process.env.API_URL,
-      apiPrefix: "/api",
+      enfyraSDK: {
+        appUrl: "http://localhost:3000",
+        apiUrl: process.env.API_URL,
+        apiPrefix: "/api",
+      },
     },
   },
 });

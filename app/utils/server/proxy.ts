@@ -9,13 +9,21 @@ import { useRuntimeConfig } from "#imports";
  */
 export function proxyToAPI(event: H3Event, customPath?: string) {
   const config = useRuntimeConfig();
-  const apiPrefix = config.public.apiPrefix || "/api";
-  
-  const rawPath = customPath || event.path.replace(new RegExp(`^${apiPrefix}`), "");
-  const targetUrl = `${config.public.apiUrl}${rawPath}`;
-  
-  const headers = event.context.proxyHeaders || {};
-  
+  const apiPrefix = config.public.enfyraSDK.apiPrefix || "/api";
+
+  const rawPath =
+    customPath || event.path.replace(new RegExp(`^${apiPrefix}`), "");
+  const targetUrl = `${config.public.enfyraSDK.apiUrl}${rawPath}`;
+
+  // Forward original headers and add auth headers from middleware
+  const originalHeaders = event.node.req.headers;
+  const authHeaders = event.context.proxyHeaders || {};
+
+  const headers = {
+    ...originalHeaders,
+    ...authHeaders,
+  };
+
   return proxyRequest(event, targetUrl, {
     headers,
   });

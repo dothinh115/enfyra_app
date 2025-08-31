@@ -1,5 +1,3 @@
-// useEnfyraApi is auto-imported in Nuxt
-
 export const useMenuApi = () => {
   const {
     data: menuDefinitions,
