@@ -106,7 +106,7 @@ export function useApi<T = any>(
 
   const computedPath = computed(() => {
     const rawPath = typeof path === 'function' ? path() : path;
-    return rawPath.replace(/^\/?api\/?/, "");
+    return rawPath.replace(/^\/?api\/?/, "").replace(/^\/+/, "");
   });
 
   const execute = async (executeOpts?: {
@@ -129,7 +129,7 @@ export function useApi<T = any>(
         (method === "patch" || method === "delete")
       ) {
         const promises = executeOpts.ids.map(async (id) => {
-          const finalPath = `${computedPath.value}/${id}`;
+          const finalPath = buildPath(computedPath.value, id);
           return useFetch<T>(finalPath, {
             baseURL: apiPrefix,
             method: method as any,
@@ -146,9 +146,14 @@ export function useApi<T = any>(
         return results;
       }
 
+      // Helper function to build clean path
+      const buildPath = (...segments: (string | number)[]): string => {
+        return segments.filter(Boolean).join('/');
+      };
+
       // Build final path with optional ID
       const finalPath = executeOpts?.id
-        ? `${computedPath.value}/${executeOpts.id}`
+        ? buildPath(computedPath.value, executeOpts.id)
         : computedPath.value;
 
       // Call useFetch when execute is called
@@ -218,9 +223,16 @@ export function useApiLazy<T = any>(
     error.value = null;
 
     try {
-      const basePath = (typeof path === 'function' ? path() : path).replace(/^\/?api\/?/, "");
+      const basePath = (typeof path === 'function' ? path() : path)
+        .replace(/^\/?api\/?/, "")
+        .replace(/^\/+/, ""); // Remove leading slashes
       const finalBody = executeOpts?.body || unref(body);
       const finalQuery = unref(query);
+
+      // Helper function to build clean path
+      const buildPath = (...segments: (string | number)[]): string => {
+        return segments.filter(Boolean).join('/');
+      };
 
       // Batch operation with multiple IDs (only for patch and delete)
       if (
@@ -230,7 +242,7 @@ export function useApiLazy<T = any>(
         (method === "patch" || method === "delete")
       ) {
         const promises = executeOpts.ids.map(async (id) => {
-          const finalPath = `${basePath}/${id}`;
+          const finalPath = buildPath(basePath, id);
           return $fetch<T>(finalPath, {
             baseURL: apiPrefix,
             method: method as any,
@@ -270,7 +282,7 @@ export function useApiLazy<T = any>(
 
       // Single operation with single ID
       const finalPath = executeOpts?.id
-        ? `${basePath}/${executeOpts.id}`
+        ? buildPath(basePath, executeOpts.id)
         : basePath;
 
       const response = await $fetch<T>(finalPath, {
