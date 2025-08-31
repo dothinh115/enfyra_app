@@ -9,6 +9,7 @@ export default defineNuxtConfig({
     "@nuxtjs/tailwindcss",
     "nuxt-codemirror",
     "@enfyra/sdk-nuxt",
+    // "../enfyra-sdk-nuxt/dist/module.mjs",
   ],
   colorMode: {
     preference: "dark",
