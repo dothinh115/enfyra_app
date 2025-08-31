@@ -48,6 +48,7 @@
 </template>
 
 <script setup lang="ts">
+// useEnfyraApi is auto-imported in Nuxt
 interface Props {
   id: string | number;
 }
@@ -71,7 +72,7 @@ const {
   error: extensionError,
   pending: loading,
   execute: executeFetchExtension,
-} = useApiLazy(() => "/extension_definition", {
+} = useEnfyraApi(() => "/extension_definition", {
   query: computed(() => ({
     fields: "*",
     filter: {

@@ -66,6 +66,7 @@
 </template>
 
 <script setup lang="ts">
+// useEnfyraApi is auto-imported in Nuxt
 interface Props {
   path: string;
 }
@@ -84,7 +85,7 @@ const {
   error: menuError,
   pending: loading,
   execute: executeFetchMenu,
-} = useApiLazy(() => "/menu_definition", {
+} = useEnfyraApi(() => "/menu_definition", {
   query: computed(() => ({
     fields: "*,extension.*",
     filter: {

@@ -35,7 +35,7 @@ const {
   data: apiData,
   pending: loading,
   execute: fetchData,
-} = useApiLazy(() => `/${tableName}`, {
+} = useEnfyraApi(() => `/${tableName}`, {
   query: computed(() => {
     const filterQuery = hasActiveFilters(currentFilter.value)
       ? buildQuery(currentFilter.value)

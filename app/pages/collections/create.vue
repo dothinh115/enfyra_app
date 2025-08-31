@@ -1,4 +1,6 @@
 <script setup lang="ts">
+// useEnfyraApi is auto-imported in Nuxt
+
 const { schemas, fetchSchema, schemaLoading } = useSchema();
 const { confirm } = useConfirm();
 const toast = useToast();
@@ -108,7 +110,7 @@ const {
   pending: createLoading,
   execute: createTable,
   error: createError,
-} = useApiLazy("/table_definition", {
+} = useEnfyraApi("/table_definition", {
   method: "post",
   errorContext: "Create Table",
 });

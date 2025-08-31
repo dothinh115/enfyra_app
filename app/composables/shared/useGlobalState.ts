@@ -1,3 +1,4 @@
+
 export const useGlobalState = () => {
   const settings = useState<any>("global:settings", () => {});
 
@@ -18,7 +19,7 @@ export const useGlobalState = () => {
     data: settingsData,
     pending: settingsPending,
     execute: executeFetchSettings,
-  } = useApiLazy(() => "/setting_definition", {
+  } = useEnfyraApi(() => "/setting_definition", {
     query: {
       fields: ["*", "methods.*"].join(","),
       limit: 0,

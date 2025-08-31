@@ -24,6 +24,7 @@
 </template>
 
 <script setup lang="ts">
+// useEnfyraApi is auto-imported in Nuxt
 const toast = useToast();
 
 const tableName = "role_definition";
@@ -33,13 +34,13 @@ const createErrors = ref<Record<string, string>>({});
 
 const { generateEmptyForm, validate } = useSchema(tableName);
 
-// Setup useApiLazy composable at top level
+// Setup useEnfyraApi composable at top level
 const {
   data: createData,
   pending: createLoading,
   execute: createRole,
   error: createError,
-} = useApiLazy(() => `/${tableName}`, {
+} = useEnfyraApi(() => `/${tableName}`, {
   method: "post",
   errorContext: "Create Role",
 });

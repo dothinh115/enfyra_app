@@ -93,6 +93,7 @@
   </div>
 </template>
 <script setup lang="ts">
+// useEnfyraApi is auto-imported in Nuxt
 const page = ref(1);
 const limit = 9;
 const tableName = "user_definition";
@@ -112,7 +113,7 @@ const {
   data: apiData,
   pending: loading,
   execute: fetchUsers,
-} = useApiLazy(() => `/${tableName}`, {
+} = useEnfyraApi(() => `/${tableName}`, {
   query: computed(() => {
     const filterQuery = hasActiveFilters(currentFilter.value)
       ? buildQuery(currentFilter.value)
@@ -272,7 +273,7 @@ async function deleteUser(user: any) {
   });
 
   if (isConfirmed) {
-    const { execute: deleteUserApi, error: deleteError } = useApiLazy(
+    const { execute: deleteUserApi, error: deleteError } = useEnfyraApi(
       () => `/${tableName}/${user.id}`,
       {
         method: "delete",

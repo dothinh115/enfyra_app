@@ -1,4 +1,5 @@
 export default defineNuxtPlugin(() => {
+  return; // Temporarily disable
   if (typeof window === 'undefined') return;
 
   let lastServerId: string | null = null;

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// useEnfyraApi is auto-imported in Nuxt
 const props = defineProps<{
   modelValue: boolean;
   parentId?: string;
@@ -18,7 +19,7 @@ const {
   pending: createLoading,
   execute: createFolder,
   error: createError,
-} = useApiLazy(() => "/folder_definition", {
+} = useEnfyraApi(() => "/folder_definition", {
   method: "post",
   errorContext: "Create Folder",
 });

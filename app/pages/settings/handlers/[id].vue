@@ -38,6 +38,7 @@
 </template>
 
 <script setup lang="ts">
+
 const route = useRoute();
 const toast = useToast();
 const { confirm } = useConfirm();
@@ -98,7 +99,7 @@ const {
   data: handlerData,
   pending: loading,
   execute: executeGetHandler,
-} = useApiLazy(`/${tableName}`, {
+} = useEnfyraApi(`/${tableName}`, {
   query: { fields: getIncludeFields(), filter: { id: { _eq: id } } },
   errorContext: "Fetch Handler",
 });
@@ -107,7 +108,7 @@ const {
   error: saveError,
   execute: executeSaveHandler,
   pending: saveLoading,
-} = useApiLazy(`/${tableName}`, {
+} = useEnfyraApi(`/${tableName}`, {
   method: "patch",
   errorContext: "Save Handler",
 });
@@ -116,7 +117,7 @@ const {
   error: deleteError,
   execute: executeDeleteHandler,
   pending: deleteLoading,
-} = useApiLazy(`/${tableName}`, {
+} = useEnfyraApi(`/${tableName}`, {
   method: "delete",
   errorContext: "Delete Handler",
 });

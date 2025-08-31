@@ -47,6 +47,7 @@ import { formatFileSize } from "~/utils/file-management/file-utils";
 import type { FileItem } from "~/utils/types";
 import FileGridCard from "./grid/FileGridCard.vue";
 import { useFileUrl } from "~/composables/file-manager/useFileUrl";
+// useEnfyraApi is auto-imported in Nuxt
 
 interface Props {
   files: FileItem[];
@@ -97,7 +98,7 @@ const { confirm } = useConfirm();
 const toast = useToast();
 
 // Delete file API
-const { execute: executeDeleteFile } = useApiLazy(() => `/file_definition`, {
+const { execute: executeDeleteFile } = useEnfyraApi(() => `/file_definition`, {
   method: "delete",
   errorContext: "Delete File",
 });

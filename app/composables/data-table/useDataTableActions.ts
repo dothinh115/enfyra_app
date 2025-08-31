@@ -1,3 +1,4 @@
+
 export function useDataTableActions(
   tableName: string,
   fetchData: () => Promise<void>,
@@ -12,7 +13,7 @@ export function useDataTableActions(
   const { createLoader } = useLoader();
 
   // Delete single record composable
-  const { execute: executeDelete, error: deleteError } = useApiLazy(
+  const { execute: executeDelete, error: deleteError } = useEnfyraApi(
     () => `/${tableName}`,
     {
       method: "delete",

@@ -1,3 +1,5 @@
+// useEnfyraApi is auto-imported in Nuxt
+
 export function useFileManagerMove() {
   // File Manager Move State
   const moveState = useState("file-manager:move:state", () => ({
@@ -22,7 +24,7 @@ export function useFileManagerMove() {
     execute: patchFiles,
     error: patchFilesError,
     pending: patchFilesPending,
-  } = useApiLazy(() => "/file_definition", {
+  } = useEnfyraApi(() => "/file_definition", {
     method: "patch",
     errorContext: "Move Files",
   });
@@ -31,7 +33,7 @@ export function useFileManagerMove() {
     execute: patchFolders,
     error: patchFoldersError,
     pending: patchFoldersPending,
-  } = useApiLazy(() => "/folder_definition", {
+  } = useEnfyraApi(() => "/folder_definition", {
     method: "patch",
     errorContext: "Move Folders",
   });

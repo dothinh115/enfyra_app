@@ -1,4 +1,6 @@
 <script setup lang="ts">
+// useEnfyraApi is auto-imported in Nuxt
+
 const props = defineProps<{
   modelValue: boolean;
   relationMeta: any;
@@ -21,7 +23,7 @@ const {
   data: createData,
   pending: creating,
   execute: createRecord,
-} = useApiLazy(() => `/${targetTable?.name}`, {
+} = useEnfyraApi(() => `/${targetTable?.name}`, {
   method: "post",
   errorContext: "Create Relation Record",
 });

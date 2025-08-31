@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// useEnfyraApi is auto-imported in Nuxt
 interface Props {
   parentId?: string;
   folders?: any[];
@@ -191,7 +192,7 @@ async function handleBulkDelete() {
 
   if (folderIds.length > 0) {
     selectedFolders.value = folderIds;
-    const { execute: deleteFolderApi, error: deleteFolderError } = useApiLazy(
+    const { execute: deleteFolderApi, error: deleteFolderError } = useEnfyraApi(
       () => "/folder_definition",
       { method: "delete", errorContext: "Delete Folder" }
     );
@@ -203,7 +204,7 @@ async function handleBulkDelete() {
   }
 
   if (fileIds.length > 0 && !deletionErrors) {
-    const { execute: deleteFileApi, error: deleteFileError } = useApiLazy(
+    const { execute: deleteFileApi, error: deleteFileError } = useEnfyraApi(
       () => "/file_definition",
       { method: "delete", errorContext: "Delete File" }
     );

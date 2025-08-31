@@ -1,4 +1,6 @@
 <script setup lang="ts">
+// useEnfyraApi is auto-imported in Nuxt
+
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
@@ -12,7 +14,7 @@ const {
   pending,
   error,
   execute,
-} = useApiLazy(`/file_definition`, {
+} = useEnfyraApi(`/file_definition`, {
   query: {
     filter: {
       id: {
@@ -32,7 +34,7 @@ const {
   error: updateError,
   execute: executeUpdateFile,
   pending: updateLoading,
-} = useApiLazy(`/file_definition`, {
+} = useEnfyraApi(`/file_definition`, {
   method: "patch",
   errorContext: "Update File",
 });
@@ -41,7 +43,7 @@ const {
   error: deleteError,
   execute: executeDeleteFile,
   pending: deleteLoading,
-} = useApiLazy(`/file_definition`, {
+} = useEnfyraApi(`/file_definition`, {
   method: "delete",
   errorContext: "Delete File",
 });

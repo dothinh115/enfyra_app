@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// useEnfyraApi is auto-imported in Nuxt
 const toast = useToast();
 const page = ref(1);
 const pageLimit = 10;
@@ -14,7 +15,7 @@ const {
   data: apiData,
   pending: loading,
   execute: fetchRoles,
-} = useApiLazy(() => "/role_definition", {
+} = useEnfyraApi(() => "/role_definition", {
   query: computed(() => ({
     fields: getIncludeFields(),
     sort: "-createdAt",
@@ -48,7 +49,7 @@ useHeaderActionRegistry({
   },
 });
 
-const { execute: deleteRoleApi, error: deleteError } = useApiLazy(
+const { execute: deleteRoleApi, error: deleteError } = useEnfyraApi(
   () => `/role_definition`,
   {
     method: "delete",

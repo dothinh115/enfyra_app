@@ -2,7 +2,7 @@
 export function useFileManager(parentFilter?: any) {
   // API call for folders (only if parentFilter is provided)
   const apiCall = parentFilter
-    ? useApiLazy(() => "folder_definition", {
+    ? useEnfyraApi(() => "folder_definition", {
         query: computed(() => ({
           limit: 100,
           fields: "*",
@@ -18,7 +18,7 @@ export function useFileManager(parentFilter?: any) {
   const { confirm } = useConfirm();
 
   // API calls at setup level (following best practices)
-  const { execute: deleteFolderApi, error: deleteFolderError } = useApiLazy(
+  const { execute: deleteFolderApi, error: deleteFolderError } = useEnfyraApi(
     () => "/folder_definition",
     {
       method: "delete",
@@ -26,7 +26,7 @@ export function useFileManager(parentFilter?: any) {
     }
   );
 
-  const { execute: deleteFileApi, error: deleteFileError } = useApiLazy(
+  const { execute: deleteFileApi, error: deleteFileError } = useEnfyraApi(
     () => "/file_definition",
     {
       method: "delete",

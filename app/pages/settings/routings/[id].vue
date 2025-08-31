@@ -63,6 +63,8 @@
 </template>
 
 <script setup lang="ts">
+// useEnfyraApi is auto-imported in Nuxt
+
 const route = useRoute();
 const toast = useToast();
 const { confirm } = useConfirm();
@@ -119,7 +121,7 @@ const {
   data: routeData,
   pending: loading,
   execute: executeGetRoute,
-} = useApiLazy(`/${tableName}`, {
+} = useEnfyraApi(`/${tableName}`, {
   query: {
     fields: getIncludeFields(),
     filter: { id: { _eq: route.params.id } },
@@ -131,7 +133,7 @@ const {
   error: updateError,
   execute: executeUpdateRoute,
   pending: updateLoading,
-} = useApiLazy(`/${tableName}`, {
+} = useEnfyraApi(`/${tableName}`, {
   method: "patch",
   errorContext: "Update Route",
 });
@@ -140,7 +142,7 @@ const {
   error: deleteError,
   execute: executeDeleteRoute,
   pending: deleteLoading,
-} = useApiLazy(`/${tableName}`, {
+} = useEnfyraApi(`/${tableName}`, {
   method: "delete",
   errorContext: "Delete Route",
 });

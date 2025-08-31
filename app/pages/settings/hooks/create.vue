@@ -24,6 +24,7 @@
 </template>
 
 <script setup lang="ts">
+// useEnfyraApi is auto-imported in Nuxt
 const toast = useToast();
 
 const tableName = "hook_definition";
@@ -51,13 +52,13 @@ useHeaderActionRegistry({
   },
 });
 
-// Setup useApiLazy composable at top level
+// Setup useEnfyraApi composable at top level
 const {
   data: createData,
   error: createError,
   execute: executeCreateHook,
   pending: createLoading,
-} = useApiLazy(() => `/${tableName}`, {
+} = useEnfyraApi(() => `/${tableName}`, {
   method: "post",
   errorContext: "Create Hook",
 });

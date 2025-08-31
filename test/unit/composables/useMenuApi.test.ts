@@ -6,12 +6,12 @@ import {
   mockEmptyApiResponse,
 } from "../../fixtures/menu-data";
 
-// Mock useApiLazy
+// Mock useEnfyraApi
 const mockExecute = vi.fn();
 const mockData = ref(null);
 const mockPending = ref(false);
 
-const mockUseApiLazy = vi.fn(() => ({
+const mockUseEnfyraApi = vi.fn(() => ({
   data: mockData,
   pending: mockPending,
   execute: mockExecute,
@@ -19,7 +19,7 @@ const mockUseApiLazy = vi.fn(() => ({
 
 // Mock the composable
 const mockUseMenuApi = () => {
-  mockUseApiLazy();
+  mockUseEnfyraApi();
 
   const getMiniSidebars = computed(() => {
     const menus = mockData.value?.data || [];

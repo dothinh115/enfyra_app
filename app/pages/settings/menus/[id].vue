@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// useEnfyraApi is auto-imported in Nuxt
 const route = useRoute();
 
 const toast = useToast();
@@ -19,7 +20,7 @@ const {
   data: menuData,
   pending: loading,
   execute: executeFetchMenu,
-} = useApiLazy(() => `/${tableName}`, {
+} = useEnfyraApi(() => `/${tableName}`, {
   query: {
     fields: getIncludeFields(),
     filter: { id: { _eq: Number(route.params.id) } },
@@ -31,7 +32,7 @@ const {
   execute: executeUpdateMenu,
   pending: updateLoading,
   error: updateError,
-} = useApiLazy(() => `/${tableName}`, {
+} = useEnfyraApi(() => `/${tableName}`, {
   method: "patch",
   errorContext: "Update Menu",
 });
@@ -40,7 +41,7 @@ const {
   execute: executeDeleteMenu,
   pending: deleteLoading,
   error: deleteError,
-} = useApiLazy(() => `/${tableName}`, {
+} = useEnfyraApi(() => `/${tableName}`, {
   method: "delete",
   errorContext: "Delete Menu",
 });

@@ -1,10 +1,11 @@
+// useEnfyraApi is auto-imported in Nuxt
 
 export const useMenuApi = () => {
   const {
     data: menuDefinitions,
     pending: menuDefinitionsPending,
     execute: fetchMenuDefinitions,
-  } = useApiLazy<{ data: MenuApiItem[] }>(() => "/menu_definition", {
+  } = useEnfyraApi<{ data: MenuApiItem[] }>(() => "/menu_definition", {
     query: computed(() => ({
       limit: 0,
       fields: "*,parent.*,children.*,sidebar.*",

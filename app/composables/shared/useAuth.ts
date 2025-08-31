@@ -1,3 +1,5 @@
+// useEnfyraApi is now auto-imported
+
 export function useAuth() {
   const me = useState<any | null>("global:me", () => null);
 
@@ -35,7 +37,7 @@ export function useAuth() {
     data: userData,
     execute: executeFetchUser,
     error: fetchUserError,
-  } = useApiLazy(() => "/me", {
+  } = useEnfyraApi(() => "/me", {
     query: {
       fields: userProfileFields.join(","),
     },
@@ -43,7 +45,7 @@ export function useAuth() {
   });
 
   // API composable for login
-  const { execute: executeLogin, error: loginError } = useApiLazy(
+  const { execute: executeLogin, error: loginError } = useEnfyraApi(
     () => "/login",
     {
       method: "post",
@@ -52,7 +54,7 @@ export function useAuth() {
   );
 
   // API composable for logout
-  const { execute: executeLogout, error: logoutError } = useApiLazy(
+  const { execute: executeLogout, error: logoutError } = useEnfyraApi(
     () => "/logout",
     {
       method: "post",

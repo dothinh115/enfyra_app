@@ -11,7 +11,7 @@ const {
   pending: createLoading,
   execute: createRecord,
   error: createError,
-} = useApiLazy(() => `/${route.params.table}`, {
+} = useEnfyraApi(() => `/${route.params.table}`, {
   method: "post",
   errorContext: "Create Record",
 });

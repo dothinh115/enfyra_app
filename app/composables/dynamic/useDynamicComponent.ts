@@ -33,10 +33,9 @@ import {
   DataTable,
 } from "#components";
 
+import { useEnfyraApi } from '#imports'
 import {
   // Enfyra composables
-  useApi,
-  useApiLazy,
   useHeaderActionRegistry,
   useSubHeaderActionRegistry,
   useSchema,
@@ -236,8 +235,7 @@ export const useDynamicComponent = () => {
       // Direct injection - no need for createComposableMap filtering
       const composables = {
         // Enfyra composables
-        useApi,
-        useApiLazy,
+        useEnfyraApi,
         useHeaderActionRegistry,
         useSubHeaderActionRegistry,
         useSchema,

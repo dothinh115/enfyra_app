@@ -97,6 +97,7 @@
 </template>
 
 <script setup lang="ts">
+// useEnfyraApi is auto-imported in Nuxt
 
 const page = ref(1);
 const limit = 9;
@@ -113,7 +114,7 @@ const {
   data: apiData,
   pending: loading,
   execute: fetchExtensions,
-} = useApiLazy(() => "/extension_definition", {
+} = useEnfyraApi(() => "/extension_definition", {
   query: computed(() => ({
     fields: ["*", "menu.*"].join(","),
     limit,
@@ -129,7 +130,7 @@ const total = computed(() => apiData.value?.meta?.totalCount || 0);
 
 const extensionLoaders = ref<Record<string, any>>({});
 
-const { execute: updateExtension, error: updateError } = useApiLazy(
+const { execute: updateExtension, error: updateError } = useEnfyraApi(
   () => `/extension_definition`,
   {
     method: "patch",
@@ -266,7 +267,7 @@ const toggleExtensionStatus = async (extension: ExtensionDefinition) => {
   });
 };
 
-const { execute: deleteExtensionApi, error: deleteError } = useApiLazy(
+const { execute: deleteExtensionApi, error: deleteError } = useEnfyraApi(
   () => `/extension_definition`,
   {
     method: "delete",

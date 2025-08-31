@@ -51,6 +51,16 @@ export default defineNuxtConfig({
   },
   imports: {
     dirs: ["utils/**/**/**", "composables/**/**"],
+    imports: [
+      {
+        name: 'useEnfyraApi',
+        from: '@enfyra/vue-sdk'
+      },
+      {
+        name: 'useEnfyraConfig',
+        from: '@enfyra/vue-sdk'
+      }
+    ]
   },
   alias: {
     "~/app": "./app",

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// useEnfyraApi is auto-imported in Nuxt
 const toast = useToast();
 
 const tableName = "menu_definition";
@@ -69,7 +70,7 @@ const {
   execute: createMenu,
   pending: creating,
   error: createError,
-} = useApiLazy(() => "/menu_definition", {
+} = useEnfyraApi(() => "/menu_definition", {
   method: "post",
   errorContext: "Create Menu",
 });

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// useEnfyraApi is auto-imported in Nuxt
 const route = useRoute();
 const router = useRouter();
 const showCreateModal = ref(false);
@@ -13,7 +14,7 @@ const {
   data: folder,
   pending: folderPending,
   execute: fetchFolder,
-} = useApiLazy(() => `/folder_definition`, {
+} = useEnfyraApi(() => `/folder_definition`, {
   query: computed(() => ({
     filter: {
       id: {
@@ -65,7 +66,7 @@ const {
   execute: uploadFilesApi,
   error: uploadError,
   pending: uploadPending,
-} = useApiLazy(() => `file_definition`, {
+} = useEnfyraApi(() => `file_definition`, {
   method: "post",
   errorContext: "Upload Files",
 });
@@ -149,7 +150,7 @@ async function handleFileUpload(files: File | File[]) {
 
   // Check for errors
   if (uploadError.value) {
-    return; // Error already handled by useApiLazy
+    return; // Error already handled by useEnfyraApi
   }
 
   await fetchFolder();

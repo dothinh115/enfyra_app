@@ -14,7 +14,7 @@ const {
   data: apiData,
   pending: loading,
   execute: fetchRecord,
-} = useApiLazy(() => `/${route.params.table}`, {
+} = useEnfyraApi(() => `/${route.params.table}`, {
   query: computed(() => ({
     fields: "*",
     filter: {
@@ -77,7 +77,7 @@ const {
   pending: updateLoading,
   execute: updateRecord,
   error: updateError,
-} = useApiLazy(() => `/${route.params.table}`, {
+} = useEnfyraApi(() => `/${route.params.table}`, {
   method: "patch",
   errorContext: "Update Record",
 });
@@ -86,7 +86,7 @@ const {
   error: deleteError,
   execute: executeDeleteRecord,
   pending: deleteLoading,
-} = useApiLazy(() => `/${route.params.table}`, {
+} = useEnfyraApi(() => `/${route.params.table}`, {
   method: "delete",
   errorContext: "Delete Record",
 });

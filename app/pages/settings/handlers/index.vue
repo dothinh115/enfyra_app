@@ -14,7 +14,7 @@ const {
   data: apiData,
   pending: loading,
   execute: fetchRouteHandlers,
-} = useApiLazy(() => "/route_handler_definition", {
+} = useEnfyraApi(() => "/route_handler_definition", {
   query: computed(() => ({
     fields: getIncludeFields(),
     sort: "-createdAt",
@@ -25,7 +25,7 @@ const {
   errorContext: "Fetch Route Handlers",
 });
 
-const { execute: removeHandler, error: removeHandlerError } = useApiLazy(
+const { execute: removeHandler, error: removeHandlerError } = useEnfyraApi(
   () => `/route_handler_definition`,
   {
     method: "delete",

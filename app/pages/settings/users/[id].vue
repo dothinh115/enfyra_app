@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// useEnfyraApi is auto-imported in Nuxt
 const route = useRoute();
 const toast = useToast();
 const { confirm } = useConfirm();
@@ -12,7 +13,7 @@ const {
   data: apiData,
   pending: loading,
   execute: fetchUser,
-} = useApiLazy(() => "/user_definition", {
+} = useEnfyraApi(() => "/user_definition", {
   query: computed(() => ({
     fields: "*",
     filter: {
@@ -41,7 +42,7 @@ const {
   execute: updateUser,
   pending: updateLoading,
   error: updateError,
-} = useApiLazy(() => `/user_definition/${route.params.id}`, {
+} = useEnfyraApi(() => `/user_definition/${route.params.id}`, {
   method: "patch",
   errorContext: "Update User",
 });
@@ -50,7 +51,7 @@ const {
   execute: removeUser,
   pending: deleteLoading,
   error: deleteError,
-} = useApiLazy(() => `/user_definition/${route.params.id}`, {
+} = useEnfyraApi(() => `/user_definition/${route.params.id}`, {
   method: "delete",
   errorContext: "Delete User",
 });

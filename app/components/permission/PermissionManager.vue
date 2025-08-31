@@ -200,6 +200,7 @@
 </template>
 
 <script setup lang="ts">
+// useEnfyraApi is auto-imported in Nuxt
 import { UIcon } from "#components";
 
 const toast = useToast();
@@ -244,7 +245,7 @@ const {
   data: permissionsData,
   pending: loading,
   execute: fetchPermissions,
-} = useApiLazy(() => `/${permissionTableName.value}`, {
+} = useEnfyraApi(() => `/${permissionTableName.value}`, {
   query: {
     filter: {
       [props.currentFieldId.field]: {
@@ -259,7 +260,7 @@ const {
   error: createError,
   execute: createPermission,
   pending: creating,
-} = useApiLazy(() => `/${permissionTableName.value}`, {
+} = useEnfyraApi(() => `/${permissionTableName.value}`, {
   method: "post",
   errorContext: "Create Permission",
 });
@@ -268,7 +269,7 @@ const {
   error: updateError,
   execute: updatePermission,
   pending: updating,
-} = useApiLazy(() => `/${permissionTableName.value}`, {
+} = useEnfyraApi(() => `/${permissionTableName.value}`, {
   method: "patch",
   errorContext: "Update Permission",
 });
@@ -277,7 +278,7 @@ const {
   error: deleteError,
   execute: deletePermissionApi,
   pending: deletePending,
-} = useApiLazy(() => `/${permissionTableName.value}`, {
+} = useEnfyraApi(() => `/${permissionTableName.value}`, {
   method: "delete",
   errorContext: "Delete Permission",
 });

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// useEnfyraApi is auto-imported in Nuxt
 
 const toast = useToast();
 const { confirm } = useConfirm();
@@ -33,7 +34,7 @@ const {
   data: apiData,
   pending: loading,
   execute: fetchMenus,
-} = useApiLazy(() => "/menu_definition", {
+} = useEnfyraApi(() => "/menu_definition", {
   query: computed(() => {
     const filterQuery = hasActiveFilters(currentFilter.value)
       ? buildQuery(currentFilter.value)
@@ -156,7 +157,7 @@ async function toggleEnabled(menuItem: any, value?: boolean) {
   }
 
   // Create a specific instance for this menu update
-  const { execute: updateSpecificMenu, error: updateError } = useApiLazy(
+  const { execute: updateSpecificMenu, error: updateError } = useEnfyraApi(
     () => `/menu_definition/${menuItem.id}`,
     {
       method: "patch",
@@ -202,7 +203,7 @@ async function deleteMenu(menuItem: any) {
   });
 
   if (isConfirmed) {
-    const { execute: deleteMenuApi, error: deleteError } = useApiLazy(
+    const { execute: deleteMenuApi, error: deleteError } = useEnfyraApi(
       () => `/menu_definition/${menuItem.id}`,
       {
         method: "delete",
