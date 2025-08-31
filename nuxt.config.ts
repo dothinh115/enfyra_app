@@ -17,14 +17,6 @@ export default defineNuxtConfig({
     storageKey: "nuxt-color-mode",
   },
   ssr: false,
-  nitro: {
-    publicAssets: [
-      {
-        dir: "public/extensions",
-        maxAge: 0, // No cache for extensions
-      },
-    ],
-  },
   css: ["./app/assets/css/main.css"],
   app: {
     head: {

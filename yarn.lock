@@ -623,7 +623,20 @@
   dependencies:
     tslib "^2.4.0"
 
-"@enfyra/sdk-nuxt@^0.1.10", "@enfyra/sdk-nuxt@^0.1.8":
+"@enfyra/sdk-nuxt@^0.1.11":
+  version "0.1.11"
+  resolved "https://registry.yarnpkg.com/@enfyra/sdk-nuxt/-/sdk-nuxt-0.1.11.tgz#6ed796c3b899deaba79c481184cb489f0e7e04df"
+  integrity sha512-shQDUuZqfZe1Fms5i2M9GdpYFMJ/uzo1hqJQkjCqU7ww8aj3NjgAo0s2W2kWHV1et1vgKy34qERMSYZyB3HIyQ==
+  dependencies:
+    "@enfyra/sdk-nuxt" "^0.1.8"
+    cookie "^0.6.0"
+    glob "^8.1.0"
+    h3 "^1.15.4"
+    jwt-decode "^4.0.0"
+    nuxt "^3.18.1"
+    ofetch "^1.3.3"
+
+"@enfyra/sdk-nuxt@^0.1.8":
   version "0.1.10"
   resolved "https://registry.yarnpkg.com/@enfyra/sdk-nuxt/-/sdk-nuxt-0.1.10.tgz#649f3b92f9b9394c40d382b614814271220b8557"
   integrity sha512-0/faYtVWCOw8nyGRgn0r817ciAsCS7zdoPB+znd1Wqcv0LZ3gOW7NVJBnjxxXy4nvhsjlTnlFtyrC5m2046ZTw==
