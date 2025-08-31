@@ -8,7 +8,7 @@ export default defineNuxtConfig({
     "@nuxt/ui",
     "@nuxtjs/tailwindcss",
     "nuxt-codemirror",
-    "./../enfyra-sdk-nuxt/dist/module.cjs",
+    "@enfyra/sdk-nuxt",
   ],
   colorMode: {
     preference: "dark",
@@ -98,7 +98,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       enfyraSDK: {
-        appUrl: "http://localhost:3000",
+        appUrl: process.env.APP_URL,
         apiUrl: process.env.API_URL,
         apiPrefix: "/api",
       },
