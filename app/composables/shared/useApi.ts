@@ -91,7 +91,7 @@ function getErrorIcon(errorCode: string): string {
 }
 
 export function useApi<T = any>(
-  path: () => string,
+  path: (() => string) | string,
   opts: UseApiOptions<T> = {}
 ) {
   const headers = useRequestHeaders(["cookie", "authorization"]);
@@ -105,7 +105,7 @@ export function useApi<T = any>(
   const loader = createLoader();
 
   const computedPath = computed(() => {
-    const rawPath = path();
+    const rawPath = typeof path === 'function' ? path() : path;
     return rawPath.replace(/^\/?api\/?/, "");
   });
 
@@ -195,7 +195,7 @@ export function useApi<T = any>(
 }
 
 export function useApiLazy<T = any>(
-  path: () => string,
+  path: (() => string) | string,
   opts: UseApiOptions<T> = {}
 ) {
   const headers = useRequestHeaders(["cookie", "authorization"]);
@@ -218,7 +218,7 @@ export function useApiLazy<T = any>(
     error.value = null;
 
     try {
-      const basePath = path().replace(/^\/?api\/?/, "");
+      const basePath = (typeof path === 'function' ? path() : path).replace(/^\/?api\/?/, "");
       const finalBody = executeOpts?.body || unref(body);
       const finalQuery = unref(query);
 

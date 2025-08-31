@@ -26,13 +26,20 @@ The `useApiLazy` composable provides a consistent interface for client-side API 
 
 ```typescript
 // Basic setup - always requires manual execution
-const { data, pending, error, execute } = useApiLazy(() => "/users", {
-  method: "get",
+// URL can be string or function for reactive paths
+const { data, pending, error, execute } = useApiLazy("/users", {
+  method: "get", 
   query: computed(() => ({
     limit: 10,
     sort: "-createdAt",
   })),
   errorContext: "Fetch Users",
+});
+
+// Use function for reactive/dynamic URLs
+const userId = ref('123');
+const { data, pending, error, execute } = useApiLazy(() => `/users/${userId.value}`, {
+  errorContext: "Fetch User",
 });
 
 // Execute when needed (e.g., on component mount)
@@ -132,7 +139,7 @@ useApiLazy provides automatic error handling:
 3. **Error State**: Access error details via the `error` ref
 
 ```typescript
-const { data, error, execute } = useApiLazy(() => "/users", {
+const { data, error, execute } = useApiLazy("/users", {
   errorContext: "Create User", // Shows "Create User: [error message]" in toast
 });
 
@@ -144,18 +151,27 @@ if (error.value) {
 
 ## Common Patterns
 
-### Dynamic Paths
+### URL Parameters
 
-Always use functions for paths to support reactivity:
+You can pass either a string (for static URLs) or a function (for reactive URLs):
 
 ```typescript
 const userId = ref(1);
 
-// ✅ Correct - reactive path
-const { data } = useApi(() => `/users/${userId.value}`);
+// ✅ Static URL - use string when path doesn't change
+const { data } = useApiLazy("/users", {
+  errorContext: "Fetch Users",
+});
 
-// ❌ Wrong - static string
-const { data } = useApi(`/users/${userId.value}`);
+// ✅ Reactive URL - use function when path contains reactive values
+const { data } = useApiLazy(() => `/users/${userId.value}`, {
+  errorContext: "Fetch User",
+});
+
+// ❌ Wrong - static string with reactive value (won't update)
+const { data } = useApiLazy(`/users/${userId.value}`, {
+  errorContext: "Fetch User", 
+});
 ```
 
 ### Computed Query/Body
@@ -166,7 +182,7 @@ Use computed refs for reactive query parameters:
 const page = ref(1);
 const limit = ref(10);
 
-const { data, execute } = useApiLazy(() => "/users", {
+const { data, execute } = useApiLazy("/users", {
   query: computed(() => ({
     page: page.value,
     limit: limit.value,
@@ -198,12 +214,12 @@ interface ApiDetailResponse<T> {
   data: T;
 }
 
-// 1. READ - Fetch list with pagination
+// 1. READ - Fetch list with pagination  
 const {
   data: usersData,
   pending,
   execute: fetchUsers,
-} = useApiLazy<ApiListResponse<User>>(() => "/users", {
+} = useApiLazy<ApiListResponse<User>>("/users", {
   method: "get", // Default, but explicit is better
   query: computed(() => ({
     page: 1,
@@ -216,7 +232,7 @@ const {
 // 2. CREATE - Add new user
 const { execute: createUser, error: createError } = useApiLazy<
   ApiDetailResponse<User>
->(() => "/users", {
+>("/users", {
   method: "post",
   errorContext: "Create User",
 });
@@ -224,7 +240,7 @@ const { execute: createUser, error: createError } = useApiLazy<
 // 3. UPDATE - Modify existing user
 const { execute: updateUser, error: updateError } = useApiLazy<
   ApiDetailResponse<User>
->(() => "/users", {
+>("/users", {
   method: "patch",
   errorContext: "Update User",
 });
@@ -232,7 +248,7 @@ const { execute: updateUser, error: updateError } = useApiLazy<
 // 4. DELETE - Remove user
 const { execute: deleteUser, error: deleteError } = useApiLazy<{
   success: boolean;
-}>(() => "/users", {
+}>("/users", {
   method: "delete",
   errorContext: "Delete User",
 });
@@ -286,7 +302,7 @@ const {
   data: apiData,
   pending,
   execute,
-} = useApiLazy(() => "/users", {
+} = useApiLazy("/users", {
   query: computed(() => ({
     page: page.value,
     limit,
@@ -314,7 +330,7 @@ onMounted(async () => await execute());
 
 ```typescript
 // Batch delete multiple users
-const { execute: deleteUsers } = useApiLazy(() => "/user_definition", {
+const { execute: deleteUsers } = useApiLazy("/user_definition", {
   method: "delete",
   errorContext: "Delete Users",
 });
@@ -323,7 +339,7 @@ const { execute: deleteUsers } = useApiLazy(() => "/user_definition", {
 await deleteUsers({ ids: ["1", "2", "3"] });
 
 // Batch update multiple roles
-const { execute: updateRoles } = useApiLazy(() => "/role_definition", {
+const { execute: updateRoles } = useApiLazy("/role_definition", {
   method: "patch",
   errorContext: "Update Roles",
 });
@@ -348,7 +364,7 @@ await updateRoles({
 
 ```typescript
 // Batch file upload
-const { execute: uploadFiles } = useApiLazy(() => "/file_definition", {
+const { execute: uploadFiles } = useApiLazy("/file_definition", {
   method: "post",
   errorContext: "Upload Files",
 });
@@ -492,7 +508,7 @@ async function updateUser() {
 Always include `errorContext` for better error messages:
 
 ```typescript
-const { execute } = useApiLazy(() => "/users", {
+const { execute } = useApiLazy("/users", {
   method: "post",
   errorContext: "Create User", // User sees: "Create User: Network error"
 });
@@ -509,7 +525,7 @@ const { execute } = useApiLazy(() => "/users", {
 </template>
 
 <script setup>
-const { data, pending, execute } = useApiLazy(() => "/users", {
+const { data, pending, execute } = useApiLazy("/users", {
   errorContext: "Fetch Users",
 });
 
@@ -611,7 +627,7 @@ interface DeleteResponse {
 
 ````typescript
 // ✅ Good - batch delete multiple items
-const { execute: deleteItems } = useApiLazy(() => "/items", {
+const { execute: deleteItems } = useApiLazy("/items", {
   method: "delete",
   errorContext: "Delete Items",
 });
@@ -627,7 +643,7 @@ async function bulkDelete(selectedIds: string[]) {
 }
 
 // ✅ Good - batch update with same data
-const { execute: updateItems } = useApiLazy(() => "/items", {
+const { execute: updateItems } = useApiLazy("/items", {
   method: "patch",
   errorContext: "Update Items",
 });
@@ -640,7 +656,7 @@ async function bulkActivate(selectedIds: string[]) {
 }
 
 // ✅ Good - batch file upload
-const { execute: uploadFiles } = useApiLazy(() => "/file_definition", {
+const { execute: uploadFiles } = useApiLazy("/file_definition", {
   method: "post",
   errorContext: "Upload Files",
 });
@@ -716,7 +732,8 @@ onMounted(() => execute());
 
 1. **"path is not a function" error**
 
-   - Always pass a function: `() => "/endpoint"`, not `"/endpoint"`
+   - Use string for static URLs: `"/endpoint"` 
+   - Use function for reactive URLs: `() => "/endpoint"` with reactive values
 
 2. **Changes not reactive**
 
@@ -760,7 +777,7 @@ async function badFunction(id: string) {
 }
 
 // ✅ Do this instead:
-const { execute: deleteItem, error } = useApiLazy(() => "/items", {
+const { execute: deleteItem, error } = useApiLazy("/items", {
   method: "delete",
   errorContext: "Delete Item",
 });

@@ -119,7 +119,7 @@ const {
   data: routeData,
   pending: loading,
   execute: executeGetRoute,
-} = useApiLazy(() => `/${tableName}`, {
+} = useApiLazy(`/${tableName}`, {
   query: {
     fields: getIncludeFields(),
     filter: { id: { _eq: route.params.id } },
@@ -131,7 +131,7 @@ const {
   error: updateError,
   execute: executeUpdateRoute,
   pending: updateLoading,
-} = useApiLazy(() => `/${tableName}`, {
+} = useApiLazy(`/${tableName}`, {
   method: "patch",
   errorContext: "Update Route",
 });
@@ -140,7 +140,7 @@ const {
   error: deleteError,
   execute: executeDeleteRoute,
   pending: deleteLoading,
-} = useApiLazy(() => `/${tableName}`, {
+} = useApiLazy(`/${tableName}`, {
   method: "delete",
   errorContext: "Delete Route",
 });

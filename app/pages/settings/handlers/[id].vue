@@ -98,7 +98,7 @@ const {
   data: handlerData,
   pending: loading,
   execute: executeGetHandler,
-} = useApiLazy(() => `/${tableName}`, {
+} = useApiLazy(`/${tableName}`, {
   query: { fields: getIncludeFields(), filter: { id: { _eq: id } } },
   errorContext: "Fetch Handler",
 });
@@ -107,7 +107,7 @@ const {
   error: saveError,
   execute: executeSaveHandler,
   pending: saveLoading,
-} = useApiLazy(() => `/${tableName}`, {
+} = useApiLazy(`/${tableName}`, {
   method: "patch",
   errorContext: "Save Handler",
 });
@@ -116,7 +116,7 @@ const {
   error: deleteError,
   execute: executeDeleteHandler,
   pending: deleteLoading,
-} = useApiLazy(() => `/${tableName}`, {
+} = useApiLazy(`/${tableName}`, {
   method: "delete",
   errorContext: "Delete Handler",
 });

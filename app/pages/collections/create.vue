@@ -108,7 +108,7 @@ const {
   pending: createLoading,
   execute: createTable,
   error: createError,
-} = useApiLazy(() => "/table_definition", {
+} = useApiLazy("/table_definition", {
   method: "post",
   errorContext: "Create Table",
 });
