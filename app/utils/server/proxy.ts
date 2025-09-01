@@ -16,15 +16,18 @@ export function proxyToAPI(event: H3Event, customPath?: string) {
   const targetUrl = `${config.public.enfyraSDK.apiUrl}${rawPath}`;
 
   // Forward original headers and add auth headers from middleware
-  const originalHeaders = event.node.req.headers;
+  const originalHeaders = { ...event.node.req.headers };
   const authHeaders = event.context.proxyHeaders || {};
+
+  // Remove headers that can cause issues with proxy
+  delete originalHeaders.host;
+  delete originalHeaders['content-length'];
+  delete originalHeaders.connection;
 
   const headers = {
     ...originalHeaders,
     ...authHeaders,
   };
-
-  console.log(targetUrl);
 
   return proxyRequest(event, targetUrl, {
     headers,
