@@ -636,10 +636,10 @@
     nuxt "^3.18.1"
     ofetch "^1.3.3"
 
-"@enfyra/sdk-nuxt@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@enfyra/sdk-nuxt/-/sdk-nuxt-0.2.0.tgz#6b44627efc5ebd83173013be5a1860d16f434698"
-  integrity sha512-YIpQL2D3Wu9cJU6JT6cLCeNQJJPJk8EUsGepVTCVcAHDqpF6ypWTfwAsQEW6ymiZ0Jr17U53dHkywGY20kp4gQ==
+"@enfyra/sdk-nuxt@^0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@enfyra/sdk-nuxt/-/sdk-nuxt-0.2.1.tgz#ed7fb196135dd36b323af8ee2e209bdbc90b37c4"
+  integrity sha512-c/5rleicVhlBbLGHFlVe/qi6iloVsg47cMh15x8r8KkqaYnIkfIHCRdWoUkdjHjYn4YnHXliHyVJtH0U0yn42g==
   dependencies:
     "@enfyra/sdk-nuxt" "^0.1.8"
     cookie "^0.6.0"
