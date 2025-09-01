@@ -88,13 +88,8 @@ export default defineNuxtConfig({
       },
     },
   },
-  runtimeConfig: {
-    public: {
-      enfyraSDK: {
-        appUrl: process.env.APP_URL,
-        apiUrl: process.env.API_URL,
-        apiPrefix: "/api",
-      },
-    },
+  enfyraSDK: {
+    appUrl: process.env.APP_URL,
+    apiUrl: process.env.API_URL,
   },
 });
