@@ -12,7 +12,7 @@ export const useFileUrl = () => {
     if (!fileId) return '';
     
     // Build base URL
-    let url = `/api/assets/${fileId}`;
+    let url = `/assets/${fileId}`;
     
     // Add query parameters
     const params = new URLSearchParams();

@@ -114,20 +114,20 @@ const retryTimer = ref<ReturnType<typeof setTimeout> | null>(null);
 const imageSrc = computed(() => {
   let src = props.src;
 
-  if (src.startsWith("/assets/")) {
-    src = src.replace("/assets/", "/api/assets/");
-  } else if (src.startsWith("assets/")) {
-    src = src.replace("assets/", "/api/assets/");
-  }
+  // Handle assets paths
+  if (src.includes("/assets/")) {
+    // Ensure it starts with /assets/
+    if (!src.startsWith("/assets/")) {
+      src = src.replace(/^\/?(assets\/)/, "/assets/");
+    }
 
-  if (src.startsWith("/api/assets/")) {
     const url = new URL(src, window.location.origin);
-    
+
     // Add format if not present
     if (!url.searchParams.has("format")) {
       url.searchParams.set("format", "avif");
     }
-    
+
     // Preserve existing query params (like ?t= for cache busting)
     src = url.pathname + url.search;
   }
@@ -293,12 +293,12 @@ watch(
     hasError.value = false;
     isRetrying.value = false;
     retryCount.value = 0;
-    
+
     // Force reload image if src changed
     if (newSrc !== oldSrc && imageRef.value) {
       // Clear current src to force browser to reload
-      imageRef.value.src = '';
-      
+      imageRef.value.src = "";
+
       // Re-trigger intersection observer if needed
       if (isInViewport.value) {
         nextTick(() => {

@@ -12,7 +12,7 @@ export function transformFileForDisplay(file: any) {
     displayName: file.filename || file.title || "Untitled",
     size: formatFileSize(parseInt(file.filesize || "0")),
     modifiedAt: file.updatedAt || file.createdAt || "",
-    assetUrl: `/api/assets/${file.id}`,
-    previewUrl: `/api/assets/${file.id}`,
+    assetUrl: `/assets/${file.id}`,
+    previewUrl: `/assets/${file.id}`,
   };
 }
