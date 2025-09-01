@@ -24,6 +24,8 @@ export function proxyToAPI(event: H3Event, customPath?: string) {
     ...authHeaders,
   };
 
+  console.log(targetUrl);
+
   return proxyRequest(event, targetUrl, {
     headers,
   });

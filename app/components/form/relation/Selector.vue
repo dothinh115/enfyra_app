@@ -27,7 +27,9 @@ const currentFilter = ref(createEmptyFilter());
 const { schemas } = useSchema();
 const targetTable = computed(() => {
   const targetId = props.relationMeta?.targetTable?.id;
-  return (Object.values(schemas.value).find((schema: any) => schema.id === targetId) || null) as any;
+  return (Object.values(schemas.value).find(
+    (schema: any) => schema.id === targetId
+  ) || null) as any;
 });
 
 // Get schema for the target table - computed to handle reactive props
@@ -150,9 +152,16 @@ async function fetchDataWithValidation() {
   }
 }
 
-onMounted(() => {
-  fetchDataWithValidation();
-});
+// onMounted(
+//   fetchDataWithValidation
+// );
+
+watch(
+  () => props.open,
+  async (newVal) => {
+    if (newVal) await fetchDataWithValidation();
+  }
+);
 
 watch(page, async (newPage, oldPage) => {
   if (newPage >= 1 && newPage !== oldPage) {
