@@ -1,5 +1,5 @@
 export default defineNuxtRouteMiddleware(async (to, from) => {
-  const { me, fetchUser } = useAuth();
+  const { me, fetchUser } = useEnfyraAuth();
 
   if (!me.value) {
     await fetchUser();

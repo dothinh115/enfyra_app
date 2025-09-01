@@ -33,7 +33,6 @@ import {
   DataTable,
 } from "#components";
 
-import { useEnfyraApi } from '#imports'
 import {
   // Enfyra composables
   useHeaderActionRegistry,
@@ -42,11 +41,11 @@ import {
   useScreen,
   useGlobalState,
   useConfirm,
-  useAuth,
+  useEnfyraAuth,
   usePermissions,
   useFilterQuery,
   useDataTableColumns,
-
+  useEnfyraApi,
   // Nuxt composables
   useToast,
   useState,
@@ -242,7 +241,7 @@ export const useDynamicComponent = () => {
         useScreen,
         useGlobalState,
         useConfirm,
-        useAuth,
+        useEnfyraAuth,
         usePermissions,
         useFilterQuery,
         useDataTableColumns,

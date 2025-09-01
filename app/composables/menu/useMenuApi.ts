@@ -14,22 +14,22 @@ export const useMenuApi = () => {
   const getMiniSidebars = computed(() => {
     const miniSidebars = menuDefinitions.value?.data || [];
     return miniSidebars
-      .filter((menu) => menu.type === "Mini Sidebar" && menu.isEnabled)
-      .sort((a, b) => a.order - b.order);
+      .filter((menu: any) => menu.type === "Mini Sidebar" && menu.isEnabled)
+      .sort((a: any, b: any) => a.order - b.order);
   });
 
   const getDropdownMenus = computed(() => {
     const dropdownMenus = menuDefinitions.value?.data || [];
     return dropdownMenus
-      .filter((menu) => menu.type === "Dropdown Menu" && menu.isEnabled)
-      .sort((a, b) => a.order - b.order);
+      .filter((menu: any) => menu.type === "Dropdown Menu" && menu.isEnabled)
+      .sort((a: any, b: any) => a.order - b.order);
   });
 
   const getMenus = computed(() => {
     const menus = menuDefinitions.value?.data || [];
     return menus
-      .filter((menu) => menu.type === "Menu" && menu.isEnabled)
-      .sort((a, b) => a.order - b.order);
+      .filter((menu: any) => menu.type === "Menu" && menu.isEnabled)
+      .sort((a: any, b: any) => a.order - b.order);
   });
 
   const getMenuItemsBySidebar = computed(() => {
@@ -38,12 +38,12 @@ export const useMenuApi = () => {
       const allMenus = menuDefinitions.value?.data || [];
       const sidebarMenus = allMenus
         .filter(
-          (item) =>
+          (item: any) =>
             (item.type === "Menu" || item.type === "Dropdown Menu") &&
             item.isEnabled &&
             item.sidebar?.id?.toString() === sidebarId
         )
-        .sort((a, b) => a.order - b.order);
+        .sort((a: any, b: any) => a.order - b.order);
       return sidebarMenus;
     };
   });

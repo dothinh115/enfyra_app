@@ -1,5 +1,5 @@
 export default defineNuxtPlugin(async () => {
-  const { logout } = useAuth();
+  const { logout } = useEnfyraAuth();
 
   const {
     registerAllMenusFromApi,

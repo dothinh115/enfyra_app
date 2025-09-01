@@ -26,7 +26,7 @@ global.usePermissions = vi.fn(() => ({
   checkPermissionCondition: vi.fn(() => false)
 }))
 
-global.useAuth = vi.fn(() => ({
+global.useEnfyraAuth = vi.fn(() => ({
   me: { value: null }
 }))
 

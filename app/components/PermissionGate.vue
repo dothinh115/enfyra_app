@@ -13,7 +13,7 @@ const props = withDefaults(defineProps<PermissionGateProps>(), {
 
 const { hasAnyPermission, hasAllPermissions, checkPermissionCondition } =
   usePermissions();
-const { me } = useAuth();
+const { me } = useEnfyraAuth();
 
 const hasPermission = computed(() => {
   if (me.value?.isRootAdmin) {

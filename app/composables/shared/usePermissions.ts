@@ -1,5 +1,5 @@
 export function usePermissions() {
-  const { me } = useAuth();
+  const { me } = useEnfyraAuth();
 
   // Helper function to check if user has permission for a specific route and method
   const hasPermission = (routePath: string, method: string): boolean => {

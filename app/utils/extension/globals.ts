@@ -89,7 +89,7 @@ export const ENFYRA_GLOBALS = {
   useLoader: true,
   
   // Auth & Permissions
-  useAuth: true,
+  useEnfyraAuth: true,
   usePermissions: true,
   
   // Menu system
@@ -123,7 +123,7 @@ export const EXTENSION_COMPOSABLES = {
   useScreen: 'useScreen',
   useGlobalState: 'useGlobalState',
   useConfirm: 'useConfirm',
-  useAuth: 'useAuth',
+  useEnfyraAuth: 'useEnfyraAuth',
   usePermissions: 'usePermissions',
   
   // Nuxt composables
