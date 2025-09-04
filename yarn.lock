@@ -623,10 +623,10 @@
   dependencies:
     tslib "^2.4.0"
 
-"@enfyra/sdk-nuxt@^0.3.2":
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/@enfyra/sdk-nuxt/-/sdk-nuxt-0.3.2.tgz#a1d404012677de715945cbc7758e78aa715750d0"
-  integrity sha512-c+mufb5g2dTmLIB4oxEMifxRUeyuaxAEhNYpujW2P9zY2RjodenVl+qsbQl/EF1nlDx0k0RIWV6XZfaw8AC31g==
+"@enfyra/sdk-nuxt@^0.3.5":
+  version "0.3.5"
+  resolved "https://registry.yarnpkg.com/@enfyra/sdk-nuxt/-/sdk-nuxt-0.3.5.tgz#babe3131507f6c9ab5db9161467658bc005748d6"
+  integrity sha512-GP3MwGLkcuSrpCmWGnLsmp5Tmr8IfRx4KU5ZS8fA46HRzOP+NY1dh0LX1KbcQZccG/Qv4UkmoABjOWdepjCD7Q==
   dependencies:
     "@vitejs/plugin-vue" "^5.2.0"
     cookie "^0.6.0"
