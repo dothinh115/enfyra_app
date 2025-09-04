@@ -60,28 +60,6 @@ export default defineNuxtConfig({
       rollupOptions: {
         output: {
           manualChunks: {
-            // CodeMirror core - essential packages
-            "codemirror-core": [
-              "@codemirror/view",
-              "@codemirror/state",
-              "@codemirror/language",
-            ],
-            // CodeMirror languages - separate chunk
-            "codemirror-langs": [
-              "@codemirror/lang-javascript",
-              "@codemirror/lang-vue",
-              "@codemirror/lang-html",
-            ],
-            // CodeMirror features - separate chunk
-            "codemirror-features": [
-              "@codemirror/lint",
-              "@codemirror/commands",
-              "@codemirror/autocomplete",
-              "@codemirror/search",
-            ],
-            // Vue table - separate chunk để lazy load
-            "vue-table": ["@tanstack/vue-table"],
-            // Core vendor
             vendor: ["vue", "vue-router"],
           },
         },
@@ -89,7 +67,6 @@ export default defineNuxtConfig({
     },
   },
   enfyraSDK: {
-    appUrl: process.env.APP_URL,
     apiUrl: process.env.API_URL,
   },
 });
