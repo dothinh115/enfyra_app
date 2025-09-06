@@ -3,6 +3,9 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineNuxtConfig({
   compatibilityDate: "2025-05-15",
   devtools: { enabled: true },
+  devServer: {
+    port: parseInt(process.env.PORT || "3000"),
+  },
   modules: [
     "@nuxt/icon",
     "@nuxt/ui",
